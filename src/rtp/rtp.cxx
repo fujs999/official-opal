@@ -44,14 +44,6 @@
 
 #define new PNEW
 
-#define BAD_TRANSMIT_PKT_MAX 5      // Number of consecutive bad tx packet in below number of seconds
-#define BAD_TRANSMIT_TIME_MAX 10    //  maximum of seconds of transmit fails before session is killed
-
-#define RTP_VIDEO_RX_BUFFER_SIZE 0x100000 // 1Mb
-#define RTP_AUDIO_RX_BUFFER_SIZE 0x4000   // 16kb
-#define RTP_DATA_TX_BUFFER_SIZE  0x2000   // 8kb
-#define RTP_CTRL_BUFFER_SIZE     0x1000   // 4kb
-
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -1092,7 +1084,7 @@ void RTP_ControlFrame::AddIFR(RTP_SyncSourceId syncSourceIn)
 
 ostream & operator<<(ostream & strm, const RTP_ControlFrame::LostPacketMask & mask)
 {
-  for (std::set<unsigned>::const_iterator it = mask.begin(); it != mask.end(); ++it) {
+  for (RTP_ControlFrame::LostPacketMask::const_iterator it = mask.begin(); it != mask.end(); ++it) {
     if (it != mask.begin())
       strm << ',';
     strm << *it;
@@ -1112,7 +1104,7 @@ void RTP_ControlFrame::AddNACK(RTP_SyncSourceId syncSourceOut, RTP_SyncSourceId 
   nack->senderSSRC = syncSourceOut;
   nack->mediaSSRC = syncSourceIn;
 
-  std::set<unsigned>::const_iterator it = lostPackets.begin();
+  LostPacketMask::const_iterator it = lostPackets.begin();
   size_t i = 0;
   nack->fld[i].packetID = (uint16_t)*it++;
   unsigned bitmask = 0;
@@ -1148,11 +1140,11 @@ bool RTP_ControlFrame::ParseNACK(RTP_SyncSourceId & senderSSRC, RTP_SyncSourceId
 
   lostPackets.clear();
   for (size_t i = 0; i < count; ++i) {
-    unsigned pid = nack->fld[i].packetID;
-    lostPackets.insert(pid);
-    for (unsigned bit = 0; bit < 16; ++bit) {
+    RTP_SequenceNumber pktId = nack->fld[i].packetID;
+    lostPackets.insert(pktId);
+    for (RTP_SequenceNumber bit = 0; bit < 16; ++bit) {
       if (nack->fld[i].bitmask & (1 << bit))
-        lostPackets.insert(pid + bit + 1);
+        lostPackets.insert(pktId + bit + 1);
     }
   }
 
