@@ -185,12 +185,10 @@ static int codec_decoder(const struct PluginCodec_Definition * codec,
     return 0;
   }
 
-  int status = 0;
-
   // if this is a packet loss concealment frame, generate interpolated data
   // else decode the real data
   if (*flag & PluginCodec_CoderSilenceFrame) {
-    status = speex_decode_int(context->coderState, NULL, sampleBuffer);
+    speex_decode_int(context->coderState, NULL, sampleBuffer);
   }
   else {
     speex_bits_read_from(&context->speexBits, (char *)from, *fromLen); 
@@ -758,18 +756,19 @@ CREATE_NARROW_SPEEXW_CAP_DATA(Narrow-8k,    Narrow8k,    3)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define NARROW_BITSPERFRAME_MODE2    (Speex_Bits_Per_Second(2, 8000)/50) // 119             // 5950
-#define NARROW_BITSPERFRAME_MODE3    (Speex_Bits_Per_Second(3, 8000)/50) // 160             // 8000
-#define NARROW_BITSPERFRAME_MODE4    (Speex_Bits_Per_Second(4, 8000)/50) // 220             // 11000 
-#define NARROW_BITSPERFRAME_MODE5    (Speex_Bits_Per_Second(5, 8000)/50) // 300             // 15000
-#define NARROW_BITSPERFRAME_MODE6    (Speex_Bits_Per_Second(6, 8000)/50) // 364             // 18200
-#define NARROW_BITSPERFRAME_MODE7    (Speex_Bits_Per_Second(7, 8000)/50) // 492             // 26400
+#define NARROW_BITSPERFRAME_MODE(m)  ((unsigned)Speex_Bits_Per_Second(m, 8000)/50)
+#define NARROW_BITSPERFRAME_MODE2    NARROW_BITSPERFRAME_MODE(2) // 119             // 5950
+#define NARROW_BITSPERFRAME_MODE3    NARROW_BITSPERFRAME_MODE(3) // 160             // 8000
+#define NARROW_BITSPERFRAME_MODE4    NARROW_BITSPERFRAME_MODE(4) // 220             // 11000 
+#define NARROW_BITSPERFRAME_MODE5    NARROW_BITSPERFRAME_MODE(5) // 300             // 15000
+#define NARROW_BITSPERFRAME_MODE6    NARROW_BITSPERFRAME_MODE(6) // 364             // 18200
+#define NARROW_BITSPERFRAME_MODE7    NARROW_BITSPERFRAME_MODE(7) // 492             // 26400
 
 //#define WIDE_BITSPERFRAME_MODE2    ((Speex_Bytes_Per_Frame(2, 16000)/50) // NARROW_BITSPERFRAME_MODE2 + 112)     // 11550
 //#define WIDE_BITSPERFRAME_MODE3    ((Speex_Bytes_Per_Frame(3, 16000)/50)     // 17600
 //#define WIDE_BITSPERFRAME_MODE4    ((Speex_Bytes_Per_Frame(4, 16000)/50)     // 28600
 //#define WIDE_BITSPERFRAME_MODE5    ((Speex_Bytes_Per_Frame(5, 16000)/50)     // 28600
-#define WIDE_BITSPERFRAME_MODE6    (Speex_Bits_Per_Second(6, 16000)/50)     // 20600
+#define WIDE_BITSPERFRAME_MODE6    ((unsigned)Speex_Bits_Per_Second(6, 16000)/50)     // 20600
 
 static struct PluginCodec_Definition ver1SpeexCodecDefn[] = {
 

@@ -494,8 +494,8 @@ public:
    modes zero and one. */
 static H264_PluginMediaFormat const MyMediaFormatInfo_Mode0(OPAL_H264_MODE0, MyOptionTable_0);
 static H264_PluginMediaFormat const MyMediaFormatInfo_Mode1(OPAL_H264_MODE1, MyOptionTable_1);
-static H264_PluginMediaFormat const MyMediaFormatInfo_Open0("Open"OPAL_H264_MODE0, MyOptionTable_0);
-static H264_PluginMediaFormat const MyMediaFormatInfo_Open1("Open"OPAL_H264_MODE1, MyOptionTable_1);
+static H264_PluginMediaFormat const MyMediaFormatInfo_Open0("Open" OPAL_H264_MODE0, MyOptionTable_0);
+static H264_PluginMediaFormat const MyMediaFormatInfo_Open1("Open" OPAL_H264_MODE1, MyOptionTable_1);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -768,7 +768,7 @@ class H264_Encoder : public PluginVideoEncoder<MY_CODEC>
       if (m_quality >= 0 && len < bufferSize)
         len += snprintf(bufferPtr+len, bufferSize-len, "Quality=%u\n", m_quality);
 
-      return len;
+      return (int)len;
     }
 
 
