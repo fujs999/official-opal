@@ -254,7 +254,7 @@ struct OpalKeyFrameDetectorFlashH264 : OpalVideoFormat::FrameDetector
 {
     virtual OpalVideoFormat::FrameType GetFrameType(const BYTE * rtp, PINDEX size)
     {
-      if (size < sizeof(FlashSPS_PPS))
+      if (size < (PINDEX)sizeof(FlashSPS_PPS))
         return OpalVideoFormat::e_NonFrameBoundary;
       if (memcmp(rtp, FlashSPS_PPS, sizeof(FlashSPS_PPS)) == 0)
         return OpalVideoFormat::e_IntraFrame;
