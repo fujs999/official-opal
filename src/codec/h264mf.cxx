@@ -258,7 +258,7 @@ struct OpalKeyFrameDetectorFlashH264 : OpalVideoFormat::FrameDetector
         return OpalVideoFormat::e_NonFrameBoundary;
       if (memcmp(rtp, FlashSPS_PPS, sizeof(FlashSPS_PPS)) == 0)
         return OpalVideoFormat::e_IntraFrame;
-      return OpalVideoFormat::e_IntraFrame;
+      return OpalVideoFormat::e_InterFrame;
     }
 };
 
