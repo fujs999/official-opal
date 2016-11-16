@@ -377,6 +377,13 @@ bool OpalIntraFrameControl::RequireIntraFrame()
       m_state = e_Idle;
       break;
 
+    case e_Idle :
+      if (m_maxThrottleTime > 0 && m_retryTime > 0 && m_periodicTime > 0 && !m_requestTimer.IsRunning()) {
+        m_requestTimer = m_periodicTime;
+        PTRACE(4, "Initial Periodic I-Frame request: next=" << m_periodicTime << " this=" << this);
+      }
+      // Do default case
+
     default:
       return false;
   }
@@ -388,16 +395,29 @@ bool OpalIntraFrameControl::RequireIntraFrame()
 
 void OpalIntraFrameControl::IntraFrameDetected()
 {
+  PTimeInterval newTimeout;
+
   {
     PWaitAndSignal mutex(m_mutex);
-    if (m_state != e_Requested)
-      return;
 
-    m_state = e_Throttled;
-    PTRACE(4, "I-Frame detected: throttle=" << m_currentThrottleTime << " this=" << this);
+    switch (m_state) {
+      case e_Idle :
+        newTimeout = m_periodicTime;
+        break;
+
+      case e_Requested:
+        m_state = e_Throttled;
+        newTimeout = m_currentThrottleTime;
+        PTRACE(4, "I-Frame detected: throttle=" << m_currentThrottleTime << " this=" << this);
+        break;
+
+      default :
+        break;
+    }
   }
 
-  m_requestTimer = m_currentThrottleTime; // Outside mutex
+  if (newTimeout > 0)
+    m_requestTimer = newTimeout; // Outside mutex
 }
 
 
