@@ -79,7 +79,10 @@ For example:
 Loosely follow the [GitFlow][3] model, but with the following modifications:
 * There is no "production" branch (normally `master` in Git Flow)
 * The integration branch is named `staging` instead of `develop`
-* TODO: details of `master`, `trunk`
+* `master` and `develop` branches do exist, but are lost in history somewhere
+  and should be ignored
+* The `trunk` branch is used for changes pushed to/pulled from the public Opal
+  repository
 
 Once we have fully switched to the new Jenkins we should look at cleaning up our
 branches and agree the model/naming to use. For now, we don't want to break the
