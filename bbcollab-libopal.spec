@@ -16,7 +16,7 @@ BuildRequires:  bbcollab-ptlib-devel >= 2.17
 BuildRequires:  bbcollab-ffmpeg-devel
 BuildRequires:  opus-devel
 BuildRequires:  speex-devel
-BuildRequires:  libsrtp-devel
+BuildRequires:  libsrtp-devel = 1.4.4
 BuildRequires:  libtheora-devel
 BuildRequires:  libvpx-devel
 BuildRequires:  x264-devel
