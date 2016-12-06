@@ -12,6 +12,7 @@ License:        MPL 1.0
 URL:            http://www.opalvoip.org/
 Source0:        zsdk-opal.src.tgz
 
+BuildRequires:  bbcollab-gcc
 BuildRequires:  bbcollab-ptlib-devel >= 2.17
 BuildRequires:  bbcollab-ffmpeg-devel
 BuildRequires:  opus-devel
