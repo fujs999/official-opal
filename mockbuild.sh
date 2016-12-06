@@ -13,6 +13,9 @@ if ! which spectool > /dev/null; then
     exit 1
 fi
 
+# Remove any existing output
+rm -rf rpmbuild
+
 # Build the source RPM
 mkdir -p rpmbuild/SOURCES
 tar -czf rpmbuild/SOURCES/zsdk-opal.src.tgz --exclude-vcs --exclude=rpmbuild .
