@@ -29,6 +29,8 @@ OpalVOIP library
 Summary:        Development files for %{name}
 Group:          Development/Libraries
 Requires:       %{name} = %{version}-%{release}
+Requires:       bbcollab-ptlib-devel >= 2.17
+Requires:       libsrtp-devel = 1.4.4
 
 %description    devel
 The %{name}-devel package contains libraries and header files for
