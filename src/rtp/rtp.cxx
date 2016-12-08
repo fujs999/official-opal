@@ -1383,7 +1383,7 @@ void RTPHeaderExtensions::AddUniqueID(RTPHeaderExtensionInfo & info)
 {
   if (info.m_id == 0)
     ++info.m_id;
-  while (find(info) == end())
+  while (find(info) != end())
     ++info.m_id;
   insert(info);
 }

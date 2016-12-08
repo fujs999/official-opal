@@ -1026,7 +1026,7 @@ void OpalRTPSession::SetHeaderExtensions(const RTPHeaderExtensions & ext)
   m_headerExtensions = ext;
 
   for (RTPHeaderExtensions::const_iterator it = ext.begin(); it != ext.end(); ++it) {
-    if (it->m_uri == GetAbsSendTimeHdrExtURI()) {
+    if (it->m_uri.AsString() == GetAbsSendTimeHdrExtURI()) {
       m_absSendTimeHdrExtId = it->m_id;
       break;
     }
