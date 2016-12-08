@@ -49,7 +49,8 @@
 
 RTP_DataFrame::MetaData::MetaData()
   : m_absoluteTime(0)
-  , m_networkTime(0)
+  , m_transmitTime(0)
+  , m_receivedTime(0)
   , m_discontinuity(0)
 {
 }
@@ -83,7 +84,7 @@ RTP_DataFrame::RTP_DataFrame(const PBYTEArray data)
   , m_paddingSize(0)
 {
   if (SetPacketSize(data.GetSize()))
-    m_metaData.m_networkTime.SetCurrentTime();
+    m_metaData.m_receivedTime.SetCurrentTime();
   else {
     SetSize(MinHeaderSize);
     theArray[0] = 0; // Make illegal RTP frame
@@ -1366,6 +1367,25 @@ RTPHeaderExtensionInfo::RTPHeaderExtensionInfo()
   : m_id(0)
   , m_direction(Undefined)
 {
+}
+
+
+RTPHeaderExtensionInfo::RTPHeaderExtensionInfo(const PURL & uri, const PString & attributes)
+  : m_id(0)
+  , m_direction(Undefined)
+  , m_uri(uri)
+  , m_attributes(attributes)
+{
+}
+
+
+void RTPHeaderExtensions::AddUniqueID(RTPHeaderExtensionInfo & info)
+{
+  if (info.m_id == 0)
+    ++info.m_id;
+  while (find(info) == end())
+    ++info.m_id;
+  insert(info);
 }
 
 

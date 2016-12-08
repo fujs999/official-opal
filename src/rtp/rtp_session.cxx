@@ -104,6 +104,7 @@ OpalRTPSession::OpalRTPSession(const Init & init)
   , m_isAudio(init.m_mediaType == OpalMediaType::Audio())
   , m_timeUnits(m_isAudio ? 8 : 90)
   , m_toolName(PProcess::Current().GetName())
+  , m_absSendTimeHdrExtId(-1)
   , m_allowAnySyncSource(true)
   , m_staleReceiverTimeout(m_manager.GetStaleReceiverTimeout())
   , m_maxOutOfOrderPackets(20)
@@ -1023,6 +1024,13 @@ void OpalRTPSession::SetHeaderExtensions(const RTPHeaderExtensions & ext)
 {
   PSafeLockReadWrite lock(*this);
   m_headerExtensions = ext;
+
+  for (RTPHeaderExtensions::const_iterator it = ext.begin(); it != ext.end(); ++it) {
+    if (it->m_uri == GetAbsSendTimeHdrExtURI()) {
+      m_absSendTimeHdrExtId = it->m_id;
+      break;
+    }
+  }
 }
 
 
@@ -1246,8 +1254,13 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnPreReceiveData(RTP_DataFrame
 }
 
 
-OpalRTPSession::SendReceiveStatus OpalRTPSession::OnReceiveData(RTP_DataFrame &)
+OpalRTPSession::SendReceiveStatus OpalRTPSession::OnReceiveData(RTP_DataFrame & frame)
 {
+  PINDEX length;
+  BYTE * absTime = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_OneByte, m_absSendTimeHdrExtId, length);
+  if (absTime != NULL)
+    frame.SetTransmitTimeNTP(((absTime[0]<<24)|(absTime[1]<<16)|absTime[2])<<14LL);
+
   return e_ProcessPacket;
 }
 
@@ -2615,6 +2628,12 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::WriteData(RTP_DataFrame & fram
       return e_IgnorePacket;
 
     case e_ProcessPacket :
+      frame.SetTransmitTime();
+      if (m_absSendTimeHdrExtId > 0) {
+        unsigned ntp = (frame.GetMetaData().m_transmitTime.GetNTP() >> 14) & 0x00ffffff;
+        BYTE data[3] = { (BYTE)(ntp >> 24), (BYTE)(ntp >> 16), (BYTE)ntp };
+        frame.SetHeaderExtension(m_absSendTimeHdrExtId, sizeof(data), data, RTP_DataFrame::RFC5285_OneByte);
+      }
       if (transport->Write(frame.GetPointer(), frame.GetPacketSize(), e_Data, remote))
         return e_ProcessPacket;
 
