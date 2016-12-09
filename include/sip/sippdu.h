@@ -1079,6 +1079,7 @@ class SIPTransaction : public SIPTransactionBase
 
     virtual PBoolean OnReceivedResponse(SIP_PDU & response);
     virtual PBoolean OnCompleted(SIP_PDU & response);
+    virtual bool ReSend(const SIP_PDU & /*cmd*/) { return false;  }
 
     SIPEndPoint & GetEndPoint() const { return m_owner->GetEndPoint(); }
     SIPConnection * GetConnection() const;
@@ -1151,6 +1152,7 @@ class SIPResponse : public SIPTransaction
     virtual SIPTransaction * CreateDuplicate() const;
 
     virtual bool Send();
+    virtual bool ReSend(const SIP_PDU & cmd);
 };
 
 
@@ -1259,11 +1261,15 @@ class SIPRegister : public SIPTransaction
         , m_registrarAddress(m_remoteAddress)
         , m_compatibility(param.m_compatibility)
         , m_instanceId(param.m_instanceId)
+        , m_ciscoDeviceType(param.m_ciscoDeviceType)
+        , m_ciscoDevicePattern(param.m_ciscoDevicePattern)
       { }
 
       PCaselessString  & m_registrarAddress; // For backward compatibility
       CompatibilityModes m_compatibility;
       PGloballyUniqueID  m_instanceId;
+      PString            m_ciscoDeviceType;
+      PString            m_ciscoDevicePattern;
     };
 
     SIPRegister(

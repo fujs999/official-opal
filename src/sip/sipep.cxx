@@ -741,14 +741,9 @@ bool SIPEndPoint::OnReceivedPDU(SIP_PDU * pdu)
   // Check if we have already received this request (have a transaction in play)
   // But not ACK as that is really part of the INVITE transaction
   if (pdu->GetMethod() != SIP_PDU::Method_ACK) {
-    PString id = pdu->GetTransactionID();
-    PSafePtr<SIPResponse> transaction = PSafePtrCast<SIPTransaction, SIPResponse>(GetTransaction(id, PSafeReadOnly));
-    if (transaction != NULL) {
-      PTRACE(4, "Retransmitting previous response for transaction id=" << id);
-      transaction->InitialiseHeaders(*pdu);
-      transaction->Send();
+    PSafePtr<SIPTransaction> transaction = GetTransaction(pdu->GetTransactionID(), PSafeReadOnly);
+    if (transaction != NULL && transaction->ReSend(*pdu))
       return false;
-    }
   }
 
   const SIPMIMEInfo & mime = pdu->GetMIME();
@@ -1263,10 +1258,16 @@ bool SIPEndPoint::OnReceivedREFER(SIP_PDU & request)
 {
   // REFER outside of a connect dialog is bizarre, but that's Cisco for you
 
-  SIPURL to = request.GetMIME().GetTo();
-  PSafePtr<SIPHandler> handler = activeSIPHandlers.FindSIPHandlerByUrl(to, SIP_PDU::Method_REGISTER, PSafeReference);
+  SIPURL url = request.GetMIME().GetTo();
+  PSafePtr<SIPHandler> handler = FindSIPHandlerByUrl(url, SIP_PDU::Method_REGISTER, PSafeReference);
+
+  if (handler == NULL) {
+    url = request.GetMIME().GetFrom();
+    handler = FindSIPHandlerByUrl(url, SIP_PDU::Method_REGISTER, PSafeReference);
+  }
+
   if (handler == NULL || dynamic_cast<SIPRegisterHandler *>(&*handler)->GetParams().m_compatibility != SIPRegister::e_Cisco) {
-    PTRACE(3, "Could not find a Cisco REGISTER corresponding to the REFER " << to);
+    PTRACE(3, "Could not find a Cisco REGISTER corresponding to the REFER " << url);
     return false; // Returns method not allowed
   }
 
