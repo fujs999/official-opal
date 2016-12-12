@@ -49,7 +49,7 @@
 
 RTP_DataFrame::MetaData::MetaData()
   : m_absoluteTime(0)
-  , m_networkTime(0)
+  , m_receivedTime(0)
   , m_discontinuity(0)
 {
 }
@@ -83,7 +83,7 @@ RTP_DataFrame::RTP_DataFrame(const PBYTEArray data)
   , m_paddingSize(0)
 {
   if (SetPacketSize(data.GetSize()))
-    m_metaData.m_networkTime.SetCurrentTime();
+    m_metaData.m_receivedTime.SetCurrentTime();
   else {
     SetSize(MinHeaderSize);
     theArray[0] = 0; // Make illegal RTP frame
