@@ -657,7 +657,7 @@ class RTP_DataFrame : public PBYTEArray
         MetaData();
 
         PTime    m_absoluteTime; // Wall clock time packet was sent, as calculated via RTCP and timestamp
-        PTime    m_networkTime;  // Wall clock time packet physically read from socket
+        PTime    m_receivedTime;  // Wall clock time packet physically read from socket
         unsigned m_discontinuity;
         PString  m_lipSyncId;
     };
