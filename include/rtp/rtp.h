@@ -610,6 +610,10 @@ class RTP_DataFrame : public PBYTEArray
       RFC5285_TwoByte
     };
 
+    static const unsigned MaxHeaderExtensionId = 65535;
+    static const unsigned MaxHeaderExtensionIdOneByte = 14;
+    static const unsigned MaxHeaderExtensionIdTwoByte = 255;
+
     /**Get header extension by specified id.
        @returns NULL if no extension of that id and type is present.
       */

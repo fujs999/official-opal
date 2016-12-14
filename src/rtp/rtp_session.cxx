@@ -104,7 +104,7 @@ OpalRTPSession::OpalRTPSession(const Init & init)
   , m_isAudio(init.m_mediaType == OpalMediaType::Audio())
   , m_timeUnits(m_isAudio ? 8 : 90)
   , m_toolName(PProcess::Current().GetName())
-  , m_absSendTimeHdrExtId(-1)
+  , m_absSendTimeHdrExtId(UINT_MAX)
   , m_allowAnySyncSource(true)
   , m_staleReceiverTimeout(m_manager.GetStaleReceiverTimeout())
   , m_maxOutOfOrderPackets(20)
@@ -1174,7 +1174,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnSendData(RTP_DataFrame & fra
 {
   frame.SetTransmitTime();
 
-  if (rewrite != e_RewriteNothing && m_absSendTimeHdrExtId > 0) {
+  if (rewrite != e_RewriteNothing && m_absSendTimeHdrExtId <= RTP_DataFrame::MaxHeaderExtensionIdOneByte) {
     unsigned ntp = (frame.GetMetaData().m_transmitTime.GetNTP() >> 14) & 0x00ffffff;
     BYTE data[3] = { (BYTE)(ntp >> 16), (BYTE)(ntp >> 8), (BYTE)ntp };
     frame.SetHeaderExtension(m_absSendTimeHdrExtId, sizeof(data), data, RTP_DataFrame::RFC5285_OneByte);

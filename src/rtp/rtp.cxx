@@ -325,6 +325,9 @@ BYTE * RTP_DataFrame::GetHeaderExtension(unsigned & id, PINDEX & length, int idx
 
 BYTE * RTP_DataFrame::GetHeaderExtension(HeaderExtensionType type, unsigned idToFind, PINDEX & length) const
 {
+  if (idToFind > MaxHeaderExtensionId)
+    return NULL;
+
   if (!GetExtension())
     return NULL;
 
@@ -394,7 +397,7 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
 
   switch (type) {
     case RFC3550 :
-      if (PAssert(id < 65536U && length < (1<<16)*4, PInvalidParameter) && SetExtensionSizeDWORDs((length + 3) / 4)) {
+      if (PAssert(id <= MaxHeaderExtensionId && length < (1<<16)*4, PInvalidParameter) && SetExtensionSizeDWORDs((length + 3) / 4)) {
         BYTE * exthdr = (BYTE *)&theArray[headerExtBase];
         *(PUInt16b *)exthdr = (uint16_t)id;
         if (data != NULL && length > 0)
@@ -404,12 +407,12 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
       return false;
 
     case RFC5285_OneByte :
-      if (PAssert(id < 15 && length > 0 && length <= 16, PInvalidParameter))
+      if (PAssert(id <= MaxHeaderExtensionIdOneByte && length > 0 && length <= 16, PInvalidParameter))
         break;
       return false;
 
     case RFC5285_TwoByte :
-      if (PAssert(id < 256 && length < 256, PInvalidParameter))
+      if (PAssert(id <= MaxHeaderExtensionIdTwoByte && length < 256, PInvalidParameter))
         break;
       return false;
   }
