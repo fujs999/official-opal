@@ -1172,14 +1172,6 @@ void OpalRTPSession::SyncSource::OnRxDelayLastReceiverReport(const RTP_DelayLast
 
 OpalRTPSession::SendReceiveStatus OpalRTPSession::OnSendData(RTP_DataFrame & frame, RewriteMode rewrite)
 {
-  frame.SetTransmitTime();
-
-  if (rewrite != e_RewriteNothing && m_absSendTimeHdrExtId <= RTP_DataFrame::MaxHeaderExtensionIdOneByte) {
-    unsigned ntp = (frame.GetMetaData().m_transmitTime.GetNTP() >> 14) & 0x00ffffff;
-    BYTE data[3] = { (BYTE)(ntp >> 16), (BYTE)(ntp >> 8), (BYTE)ntp };
-    frame.SetHeaderExtension(m_absSendTimeHdrExtId, sizeof(data), data, RTP_DataFrame::RFC5285_OneByte);
-  }
-
   RTP_SyncSourceId ssrc = frame.GetSyncSource();
   SyncSource * syncSource;
   if (GetSyncSource(ssrc, e_Sender, syncSource)) {
@@ -1221,7 +1213,19 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnSendData(RTP_DataFrame & fra
     GetSyncSource(ssrc, e_Sender, syncSource);
   }
 
-  return syncSource->OnSendData(frame, rewrite);
+  SendReceiveStatus status = syncSource->OnSendData(frame, rewrite);
+  if (status != e_ProcessPacket)
+    return status;
+
+  frame.SetTransmitTime();
+
+  if (rewrite != e_RewriteNothing && m_absSendTimeHdrExtId <= RTP_DataFrame::MaxHeaderExtensionIdOneByte) {
+    unsigned ntp = (frame.GetMetaData().m_transmitTime.GetNTP() >> 14) & 0x00ffffff;
+    BYTE data[3] = { (BYTE)(ntp >> 16), (BYTE)(ntp >> 8), (BYTE)ntp };
+    frame.SetHeaderExtension(m_absSendTimeHdrExtId, sizeof(data), data, RTP_DataFrame::RFC5285_OneByte);
+  }
+
+  return status;
 }
 
 
