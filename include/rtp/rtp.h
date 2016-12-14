@@ -624,8 +624,9 @@ class RTP_DataFrame : public PBYTEArray
     ) const;
 
     /**Set header extension.
-       Note when RFC 5285 formats are used, the extension is appened to ones
-       already present.
+       Note when RFC 5285 formats are used, the extension is appended to ones
+       already present. An existing extension of the same ID will be overwritten,
+       if it is the same size. If not the same size, an assert is thrown.
 
        @returns true if extension legal.
       */
