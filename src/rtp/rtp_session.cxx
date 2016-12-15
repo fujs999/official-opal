@@ -1275,7 +1275,9 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnReceiveData(RTP_DataFrame & 
     ntp <<=  8; ntp |= *absTime++;
     ntp <<= 14; ntp |= highBits.GetNTP() & (-1LL<<38);
     frame.SetTransmitTimeNTP(ntp);
-    PTRACE(6, "Set transmit time on RTP: sn=" << frame.GetSequenceNumber() << " time=" << frame.GetMetaData().m_transmitTime);
+    PTRACE(6, "Set transmit time on RTP:"
+              " sn=" << frame.GetSequenceNumber() << ","
+              " time=" << frame.GetMetaData().m_transmitTime.AsString(PTime::TodayFormat));
   }
 
   return e_ProcessPacket;
