@@ -670,14 +670,19 @@ class RTP_DataFrame : public PBYTEArray
       */
     void SetMetaData(const MetaData & metaData) { m_metaData = metaData; }
 
-    /**Get absolute (wall clock) time of packet, if known.
+    /**Get absolute (wall clock) time of packet, as calculated via RTCP and timestamp, if available.
       */
     PTime GetAbsoluteTime() const { return m_metaData.m_absoluteTime; }
 
-    /**Set absolute (wall clock) time of packet.
+    /**Set absolute (wall clock) time of media, as calculated via RTCP and timestamp.
       */
     void SetAbsoluteTime() { m_metaData.m_absoluteTime.SetCurrentTime(); }
     void SetAbsoluteTime(const PTime & t) { m_metaData.m_absoluteTime = t; }
+
+    /**Set transmit (wall clock) time of packet transmission.
+      */
+    void SetTransmitTime() { m_metaData.m_transmitTime.SetCurrentTime(); }
+    void SetTransmitTimeNTP(uint64_t ntp) { m_metaData.m_transmitTime.SetNTP(ntp); }
 
     /** Get sequence number discontinuity.
         If non-zero this indicates the number of packets detected as missing
@@ -726,9 +731,9 @@ PLIST(RTP_DataFrameList, RTP_DataFrame);
 
 /** Information for RFC 5285 header extensions.
   */
-class RTPExtensionHeaderInfo : public PObject
+class RTPHeaderExtensionInfo : public PObject
 {
-    PCLASSINFO(RTPExtensionHeaderInfo, PObject);
+    PCLASSINFO(RTPHeaderExtensionInfo, PObject);
   public:
     unsigned m_id;
 
@@ -744,7 +749,12 @@ class RTPExtensionHeaderInfo : public PObject
 
     PString m_attributes;
 
-    RTPExtensionHeaderInfo();
+    RTPHeaderExtensionInfo();
+    explicit RTPHeaderExtensionInfo(
+      const PURL & uri,
+      const PString & attributes = PString::Empty()
+    );
+
     virtual Comparison Compare(const PObject & other) const;
 
 #if OPAL_SDP
@@ -753,7 +763,11 @@ class RTPExtensionHeaderInfo : public PObject
 #endif
 };
 
-typedef std::set<RTPExtensionHeaderInfo> RTPExtensionHeaders;
+class RTPHeaderExtensions : public std::set<RTPHeaderExtensionInfo>
+{
+public:
+  void AddUniqueID(RTPHeaderExtensionInfo & info);
+};
 
 
 #if PTRACING

@@ -98,6 +98,12 @@
 */
 #define OPAL_OPT_ICE_LITE "ICE-Lite"
 
+/**OpalConnection::StringOption key to a boolean indicating the AbsSendTime
+   header extension (http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time)
+   should be offered in the SDP. Default false.
+  */
+#define OPAL_OPT_OFFER_SDP_ABS_SEND_TIME "Offer-SDP-Abs-Send-Time"
+
 
 /////////////////////////////////////////////////////////
 
@@ -228,8 +234,8 @@ class SDPCommonAttributes
 
     virtual const SDPBandwidth & GetBandwidth() const { return m_bandwidth; }
 
-    virtual const RTPExtensionHeaders & GetExtensionHeaders() const { return m_extensionHeaders; }
-    virtual void SetExtensionHeader(const RTPExtensionHeaderInfo & ext) { m_extensionHeaders.insert(ext); }
+    virtual const RTPHeaderExtensions & GetHeaderExtensions() const { return m_headerExtensions; }
+    virtual void SetHeaderExtension(RTPHeaderExtensionInfo & ext);
 
     virtual void ParseAttribute(const PString & value);
     virtual void SetAttribute(const PString & attr, const PString & value);
@@ -267,7 +273,7 @@ class SDPCommonAttributes
   protected:
     Direction           m_direction;
     SDPBandwidth        m_bandwidth;
-    RTPExtensionHeaders m_extensionHeaders;
+    RTPHeaderExtensions m_headerExtensions;
 #if OPAL_SRTP // DTLS
     SetupModes                 m_setupMode;
     ConnectionMode             m_connectionMode;

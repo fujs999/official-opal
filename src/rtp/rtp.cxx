@@ -49,6 +49,7 @@
 
 RTP_DataFrame::MetaData::MetaData()
   : m_absoluteTime(0)
+  , m_transmitTime(0)
   , m_receivedTime(0)
   , m_discontinuity(0)
 {
@@ -389,74 +390,78 @@ BYTE * RTP_DataFrame::GetHeaderExtension(HeaderExtensionType type, unsigned idTo
 
 bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * data, HeaderExtensionType type)
 {
-  PINDEX headerBase = MinHeaderSize + 4*GetContribSrcCount();
-  BYTE * dataPtr = NULL;
+  PINDEX headerExtBase = MinHeaderSize + 4*GetContribSrcCount();
 
   switch (type) {
     case RFC3550 :
-      if (PAssert((PINDEX)type < 65536, PInvalidParameter) && PAssert(length < 65535, PInvalidParameter))
-        break;
-      return false;
-    case RFC5285_OneByte :
-      if (PAssert((PINDEX)type < 15, PInvalidParameter) && PAssert(length > 0 && length <= 16, PInvalidParameter))
-        break;
-      return false;
-    case RFC5285_TwoByte :
-      if (PAssert((PINDEX)type < 256, PInvalidParameter) && PAssert(length <= 256, PInvalidParameter))
-        break;
-      return false;
-  }
-
-  if (type == RFC3550) {
-    if (!SetExtensionSizeDWORDs((length+3)/4))
-      return false;
-
-    BYTE * hdr = (BYTE *)&theArray[headerBase];
-    *(PUInt16b *)hdr = (uint16_t)id;
-    dataPtr = hdr += 4;
-  }
-  else {
-    PINDEX oldSize = 0;
-    if (GetExtension()) {
-      BYTE * hdr = (BYTE *)&theArray[headerBase];
-      unsigned oldId = *(PUInt16b *)hdr;
-      if (type == RFC5285_OneByte ? (oldId != 0xbede) : ((oldId&0xfff0) != 0x1000))
-        SetExtension(false);
-      else {
-        PINDEX previousLen;
-        BYTE * previous = GetHeaderExtension(type, id, previousLen);
-        if (previous != NULL) {
-          if (data != NULL && length > 0)
-            memcpy(previous, data, std::min(length, previousLen));
-          return true;
-        }
-        oldSize = GetExtensionSizeDWORDs();
-        if (!SetExtensionSizeDWORDs(oldSize + (length + (type == RFC5285_OneByte ? 1 : 2) + 3)/4))
-          return false;
+      if (PAssert(id < 65536U && length < (1<<16)*4, PInvalidParameter) && SetExtensionSizeDWORDs((length + 3) / 4)) {
+        BYTE * exthdr = (BYTE *)&theArray[headerExtBase];
+        *(PUInt16b *)exthdr = (uint16_t)id;
+        if (data != NULL && length > 0)
+          memcpy(exthdr + 4, data, length);
+        return true;
       }
-    }
+      return false;
 
-    if (!GetExtension()) {
-      if (!SetHeaderExtension(type == RFC5285_OneByte ? 0xbede : 0x1000,
-                              length + (type == RFC5285_OneByte ? 1 : 2),
-                              NULL, RFC3550))
+    case RFC5285_OneByte :
+      if (PAssert(id < 15 && length > 0 && length <= 16, PInvalidParameter))
+        break;
+      return false;
+
+    case RFC5285_TwoByte :
+      if (PAssert(id < 256 && length < 256, PInvalidParameter))
+        break;
+      return false;
+  }
+
+  PINDEX oldSizeDWORDs = 0;
+
+  if (GetExtension()) {
+    BYTE * exthdr = (BYTE *)&theArray[headerExtBase];
+    unsigned oldId = *(PUInt16b *)exthdr;
+    if (type == RFC5285_OneByte ? (oldId != 0xbede) : ((oldId&0xfff0) != 0x1000))
+      SetExtension(false);
+    else {
+      oldSizeDWORDs = GetExtensionSizeDWORDs();
+
+      PINDEX previousLength = 0;
+      BYTE * previousData = GetHeaderExtension(type, id, previousLength);
+      if (previousData != NULL) {
+        if (previousLength < length) {
+          // These calculations are all a bit dodgy, needs detailed checking
+          if (!SetExtensionSizeDWORDs(oldSizeDWORDs + (length - previousLength + 3)/4))
+            return false;
+          memmove(previousData+length, previousData+previousLength, oldSizeDWORDs*4-(previousData-exthdr)-length);
+        }
+
+        if (data != NULL && length > 0)
+          memcpy(previousData, data, length);
+
+        return true;
+      }
+
+      if (!SetExtensionSizeDWORDs(oldSizeDWORDs + (length + (type == RFC5285_OneByte ? 1 : 2) + 3)/4))
         return false;
     }
-
-    BYTE * hdr = (BYTE *)&theArray[headerBase+4+oldSize*4];;
-    if (type == RFC5285_OneByte) {
-      *hdr = (BYTE)((id << 4)|(length-1));
-      dataPtr = hdr+1;
-    }
-    else {
-      *hdr++ = (BYTE)id;
-      *hdr++ = (BYTE)length;
-      dataPtr = hdr;
-    }
   }
 
-  if (dataPtr != NULL && data != NULL && length > 0)
-    memcpy(dataPtr, data, length);
+  if (!GetExtension()) {
+    if (!SetHeaderExtension(type == RFC5285_OneByte ? 0xbede : 0x1000,
+                            length + (type == RFC5285_OneByte ? 1 : 2),
+                            NULL, RFC3550))
+      return false;
+  }
+
+  BYTE * exthdr = (BYTE *)&theArray[headerExtBase + 4 + oldSizeDWORDs*4];;
+  if (type == RFC5285_OneByte)
+    *exthdr++ = (BYTE)((id << 4)|(length-1));
+  else {
+    *exthdr++ = (BYTE)id;
+    *exthdr++ = (BYTE)length;
+  }
+
+  if (data != NULL && length > 0)
+    memcpy(exthdr, data, length);
 
   return true;
 }
@@ -1362,26 +1367,40 @@ void RTP_ControlFrame::ReceiverReport::SetLostPackets(unsigned packets)
 
 /////////////////////////////////////////////////////////////////////////////
 
-RTPExtensionHeaderInfo::RTPExtensionHeaderInfo()
+RTPHeaderExtensionInfo::RTPHeaderExtensionInfo()
   : m_id(0)
   , m_direction(Undefined)
 {
 }
 
 
-PObject::Comparison RTPExtensionHeaderInfo::Compare(const PObject & obj) const
+RTPHeaderExtensionInfo::RTPHeaderExtensionInfo(const PURL & uri, const PString & attributes)
+  : m_id(0)
+  , m_direction(Undefined)
+  , m_uri(uri)
+  , m_attributes(attributes)
 {
-  const RTPExtensionHeaderInfo & other = dynamic_cast<const RTPExtensionHeaderInfo &>(obj);
-  if (m_id < other.m_id)
-    return LessThan;
-  if (m_id > other.m_id)
-    return GreaterThan;
-  return EqualTo;
+}
+
+
+void RTPHeaderExtensions::AddUniqueID(RTPHeaderExtensionInfo & info)
+{
+  if (info.m_id == 0)
+    ++info.m_id;
+  while (find(info) != end())
+    ++info.m_id;
+  insert(info);
+}
+
+
+PObject::Comparison RTPHeaderExtensionInfo::Compare(const PObject & obj) const
+{
+  return Compare2(m_id, dynamic_cast<const RTPHeaderExtensionInfo &>(obj).m_id);
 }
 
 
 #if OPAL_SDP
-bool RTPExtensionHeaderInfo::ParseSDP(const PString & param)
+bool RTPHeaderExtensionInfo::ParseSDP(const PString & param)
 {
   PINDEX space = param.Find(' ');
   if (space == P_MAX_INDEX)
@@ -1423,21 +1442,21 @@ bool RTPExtensionHeaderInfo::ParseSDP(const PString & param)
 }
 
 
-void RTPExtensionHeaderInfo::OutputSDP(ostream & strm) const
+void RTPHeaderExtensionInfo::OutputSDP(ostream & strm) const
 {
   strm << "a=extmap:" << m_id;
 
   switch (m_direction) {
-    case RTPExtensionHeaderInfo::Inactive :
+    case RTPHeaderExtensionInfo::Inactive :
       strm << "/inactive";
       break;
-    case RTPExtensionHeaderInfo::SendOnly :
+    case RTPHeaderExtensionInfo::SendOnly :
       strm << "/sendonly";
       break;
-    case RTPExtensionHeaderInfo::RecvOnly :
+    case RTPHeaderExtensionInfo::RecvOnly :
       strm << "/recvonly";
       break;
-    case RTPExtensionHeaderInfo::SendRecv :
+    case RTPHeaderExtensionInfo::SendRecv :
       strm << "/sendrecv";
       break;
     default :
