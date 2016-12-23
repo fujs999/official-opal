@@ -199,10 +199,9 @@ class SIPEndPoint : public OpalSDPEndPoint
     /**Setup a connection transfer a connection for the SIP endpoint.
       */
     virtual PBoolean SetupTransfer(
-      const PString & token,        ///<  Existing connection to be transferred
-      const PString & callIdentity, ///<  Call identity of the secondary call (if it exists)
+      SIPConnection & connection,   ///<  Existing connection to be transferred
       const PString & remoteParty,  ///<  Remote party to transfer the existing call to
-      void * userData = NULL        ///<  user data to pass to CreateConnection
+      const PString & replaces      ///<  Information for completing consultation transfer
     );
     
     /**Forward the connection using the same token as the specified connection.
@@ -1022,6 +1021,9 @@ class SIPEndPoint : public OpalSDPEndPoint
 
     PSafePtr<SIPHandler> FindSIPHandlerByCallID(const PString & callID, PSafetyMode m)
       { return activeSIPHandlers.FindSIPHandlerByCallID(callID, m); }
+
+    PSafePtr<SIPHandler> FindSIPHandlerByUrl(const PString & aor, SIP_PDU::Methods method, PSafetyMode mode)
+      { return activeSIPHandlers.FindSIPHandlerByUrl(aor, method, mode); }
 
     void UpdateHandlerIndexes(SIPHandler * handler)
       { activeSIPHandlers.Update(handler); }
