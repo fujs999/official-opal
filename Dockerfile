@@ -11,6 +11,8 @@ RUN rpm --import http://packages.atrpms.net/RPM-GPG-KEY.atrpms \
     && yum clean all
 COPY mcu.repo /etc/yum.repos.d/
 COPY bbcollab-libopal.spec .
+# Invalidate Docker cache if yum repo metadata has changed
+ADD http://nexus.bbcollab.net/yum/mcu-develop/repodata/repomd.xml /tmp/
 # Use two-step build dependency installation, so we can cache the RPMs for fingerprinting
 RUN yum-builddep -y --downloadonly --downloaddir=/var/cache/jenkins/build-deps bbcollab-libopal.spec \
     && yum install -y /var/cache/jenkins/build-deps/*.rpm \
