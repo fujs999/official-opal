@@ -129,3 +129,5 @@ samples/openphone/server.key
 samples/opalshark/resource.cpp
 samples/opalshark/config.wxs
 samples/openphone/config.wxs
+
+rpmbuild/
