@@ -610,6 +610,10 @@ class RTP_DataFrame : public PBYTEArray
       RFC5285_TwoByte
     };
 
+    static const unsigned MaxHeaderExtensionId = 65535;
+    static const unsigned MaxHeaderExtensionIdOneByte = 14;
+    static const unsigned MaxHeaderExtensionIdTwoByte = 255;
+
     /**Get header extension by specified id.
        @returns NULL if no extension of that id and type is present.
       */
@@ -620,8 +624,9 @@ class RTP_DataFrame : public PBYTEArray
     ) const;
 
     /**Set header extension.
-       Note when RFC 5285 formats are used, the extension is appened to ones
-       already present.
+       Note when RFC 5285 formats are used, the extension is appended to ones
+       already present. An existing extension of the same ID will be overwritten,
+       if it is the same size. If not the same size, an assert is thrown.
 
        @returns true if extension legal.
       */
@@ -659,7 +664,7 @@ class RTP_DataFrame : public PBYTEArray
         // Note the first two times here are not synchronised with the local CPU clock, but the remote systems.
         PTime    m_absoluteTime; // Wall clock time media was sampled, as calculated via RTCP and timestamp
         PTime    m_transmitTime; // Wall clock time packet was transmitted (calculated from header extensions)
-        PTime    m_receivedTime;  // Wall clock time packet physically read from socket
+        PTime    m_receivedTime; // Wall clock time packet physically read from socket
         unsigned m_discontinuity;
         PString  m_lipSyncId;
     };
