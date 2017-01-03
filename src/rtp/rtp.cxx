@@ -425,7 +425,7 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
       return true;
 
     case RFC5285_OneByte :
-      if (!PAssert(id <= MaxHeaderExtensionIdOneByte && length > 0 && length <= 16, PInvalidParameter))
+      if (!PAssert(id > 0 && id <= MaxHeaderExtensionIdOneByte && length > 0 && length <= 16, PInvalidParameter))
         return false;
 
       if (oldId != 0xbede) {
@@ -468,7 +468,7 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
       break;
 
     case RFC5285_TwoByte :
-      if (PAssert(id <= MaxHeaderExtensionIdTwoByte && length < 256, PInvalidParameter))
+      if (PAssert(id > 0 && id <= MaxHeaderExtensionIdTwoByte && length < 256, PInvalidParameter))
         return false;
 
       if ((oldId & 0xfff0) != 0x1000) {
@@ -487,17 +487,26 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
 
       // Search for the end of the existing headers, checking if id already there
       for (;;) {
-        unsigned currentId = currentExtension[0];
-        PINDEX currentLen = currentExtension[1];
+        unsigned currentId = *currentExtension++;
+        --extensionSize;
+
+        if (currentId == 0) {
+          if (extensionSize > 0)
+            continue;
+          break;
+        }
+
+        PINDEX currentLen = *currentExtension++;
+        --extensionSize;
+
         if (currentId == id) {
           // Already present, so overwrite it, but we don't support a change in size
           if (!PAssert(length != currentLen, PInvalidParameter))
             return false;
-          memcpy(currentExtension+2, data, length);
+          memcpy(currentExtension, data, length);
           return true;
         }
 
-        currentLen += 2; // Add in header extensions header size
         currentExtension += currentLen; // Add in before the break, so is pointing at end of all extensions
         if (extensionSize <= currentLen)
           break;
@@ -506,7 +515,9 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
   }
 
   // Calculate new RFC3550 header extension size, as we append new one to the end
-  if (!SetExtensionSizeDWORDs(((currentExtension - (BYTE *)baseExtension) + (type == RFC5285_OneByte ? 1 : 2) + length + 3)/4))
+  if (!SetExtensionSizeDWORDs(((currentExtension - (BYTE *)&baseExtension[2]) // Previous header size
+                              + (type == RFC5285_OneByte ? 1 : 2) + length // New appended header size
+                              + 3)/4)) // Converted to whole DWORDs
     return false;
 
   // Set the header extensions header
