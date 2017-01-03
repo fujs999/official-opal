@@ -373,12 +373,21 @@ BYTE * RTP_DataFrame::GetHeaderExtension(HeaderExtensionType type, unsigned idTo
         return NULL;
 
       for (;;) {
-        idPresent = ptr[0];
-        length = ptr[1];
-        if (idPresent == idToFind)
-          return ptr+2;
+        idPresent = *ptr++;
+        --extensionSize;
 
-        length += 2; // Add in header extensions header
+        if (idPresent == 0) {
+          if (extensionSize > 0)
+            continue;
+          return NULL;
+        }
+
+        length = *ptr++;
+        --extensionSize;
+
+        if (idPresent == idToFind)
+          return ptr;
+
         if (extensionSize <= length)
           return NULL;
         extensionSize -= length;
