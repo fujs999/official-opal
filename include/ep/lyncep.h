@@ -83,6 +83,7 @@ class OpalLyncShim
     struct AudioVideoCall;
     AudioVideoCall * CreateAudioVideoCall(Conversation & conv, const char * uri);
     bool AcceptAudioVideoCall(AudioVideoCall & call);
+    bool ForwardAudioVideoCall(AudioVideoCall & call, const char * targetURI);
     bool TransferAudioVideoCall(AudioVideoCall & call, const char * targetURI);
     bool TransferAudioVideoCall(AudioVideoCall & call, AudioVideoCall & target);
     void DestroyAudioVideoCall(AudioVideoCall * & call);
@@ -94,6 +95,11 @@ class OpalLyncShim
     struct SpeechRecognitionConnector;
     SpeechRecognitionConnector * CreateSpeechRecognitionConnector(AudioVideoFlow & flow);
     void DestroySpeechRecognitionConnector(SpeechRecognitionConnector * & connector);
+
+    struct ToneController;
+    ToneController * CreateToneController(AudioVideoFlow & flow);
+    bool SendTone(ToneController & toneController, int toneId);
+    void DestroyToneController(ToneController * & toneController);
 
     struct SpeechSynthesisConnector;
     SpeechSynthesisConnector * CreateSpeechSynthesisConnector(AudioVideoFlow & flow);
@@ -112,7 +118,8 @@ class OpalLyncShim
     static int const CallStateTerminating;
 #if PTRACING
     static std::string GetCallStateName(int callState);
-	static std::string GetTransferStateName(int transferState);
+    static std::string GetTransferStateName(int transferState);
+    static std::string GetToneIdName(int toneId);
 #endif
 
     static int const MediaFlowActive;
@@ -129,10 +136,11 @@ class OpalLyncShim
     };
     virtual void OnIncomingLyncCall(const IncomingLyncCallInfo & /*info*/) { }
     virtual void OnLyncCallStateChanged(int /*previousState*/, int /*newState*/) { }
-	virtual void OnLyncCallTransferReceived(const std::string & /*TransferDestination*/, const std::string & /*TransferredBy*/) { }
-	virtual void OnLyncCallTransferStateChanged(int /*previousState*/, int /*newState*/) { }
-
     virtual void OnLyncCallFailed(const std::string & /*error*/) { }
+    virtual void OnLyncCallTransferReceived(const std::string & /*TransferDestination*/, const std::string & /*TransferredBy*/) { }
+    virtual void OnLyncCallTransferStateChanged(int /*previousState*/, int /*newState*/) { }
+    virtual void OnLyncCallToneReceived(int /*toneId*/, float /* volume */) { }
+    virtual void OnLyncCallIncomingFaxDetected() { }
     virtual void OnMediaFlowStateChanged(int /*previousState*/, int /*newState*/) { }
     virtual bool OnApplicationProvisioning(ApplicationEndpoint * aep);
 
@@ -399,6 +407,19 @@ class OpalLyncConnection : public OpalConnection, public OpalLyncShimBase
       */
     virtual PBoolean SetConnected();
 
+    /**Forward incoming call to specified address.
+       This would typically be called from within the OnIncomingCall()
+       function when an application wishes to redirct an unwanted incoming
+       call.
+
+       The return value is true if the call is to be forwarded, false
+       otherwise. Note that if the call is forwarded the current connection is
+       cleared with teh ended call code of EndedByCallForwarded.
+      */
+    virtual PBoolean ForwardCall(
+      const PString & forwardParty   ///<  Party to forward call to.
+    );
+
     /**Initiate the transfer of an existing call (connection) to a new remote 
        party.
 
@@ -407,6 +428,22 @@ class OpalLyncConnection : public OpalConnection, public OpalLyncShimBase
      */
     virtual bool TransferConnection(
       const PString & remoteParty   ///<  Remote party to transfer the existing call to
+    );
+
+    /**Send a user input indication to the remote endpoint.
+       This sends DTMF emulation user input indication.
+
+       The \p tone parameter must be one of "0123456789#*ABCD!" where '!'
+       indicates a hook flash. If tone is a ' ' character then a
+       signalUpdate PDU is sent that updates the last tone indication
+       sent. See the H.245 specifcation for more details on this.
+
+       A \p duration of zero indicates that a default duration (90ms) is to be
+       used.
+      */
+    virtual PBoolean SendUserInputTone(
+      char tone,              ///<  DTMF tone code
+      unsigned duration = 0   ///<  Duration of tone in milliseconds
     );
 
     /**Create a new media stream.
@@ -436,13 +473,15 @@ class OpalLyncConnection : public OpalConnection, public OpalLyncShimBase
     Conversation   * m_conversation;
     AudioVideoCall * m_audioVideoCall;
     AudioVideoFlow * m_flow;
+    ToneController * m_toneController;
     bool             m_mediaActive;
 
     virtual void OnLyncCallStateChanged(int previousState, int newState) override;
-	virtual void OnLyncCallTransferReceived(const std::string & transferDestination, const std::string & tansferredBy) override;
-	virtual void OnLyncCallTransferStateChanged(int previousState, int newState) override;
-
     virtual void OnLyncCallFailed(const std::string & error) override;
+    virtual void OnLyncCallTransferReceived(const std::string & transferDestination, const std::string & tansferredBy) override;
+    virtual void OnLyncCallTransferStateChanged(int previousState, int newState) override;
+    virtual void OnLyncCallToneReceived(int toneId, float volume) override;
+    virtual void OnLyncCallIncomingFaxDetected() override;
     virtual void OnMediaFlowStateChanged(int previousState, int newState) override;
 
   friend class OpalLyncMediaStream;
