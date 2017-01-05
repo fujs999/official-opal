@@ -2003,6 +2003,11 @@ bool SDPRTPAVPMediaDescription::FromSession(OpalMediaSession * session,
         SetHeaderExtension(ext);
       }
 
+      if (m_stringOptions.GetBoolean(OPAL_OPT_OFFER_SDP_TRANSPORT_CONGESTION_CONTROL)) {
+        RTPHeaderExtensionInfo ext(OpalRTPSession::GetTransportWideSeqNumHdrExtURI());
+        SetHeaderExtension(ext);
+      }
+
       if (m_stringOptions.GetBoolean(OPAL_OPT_OFFER_REDUCED_SIZE_RTCP, true))
         m_reducedSizeRTCP = true;
     }
