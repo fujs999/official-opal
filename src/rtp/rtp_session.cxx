@@ -1032,7 +1032,7 @@ void OpalRTPSession::SetHeaderExtensions(const RTPHeaderExtensions & ext)
       PTRACE(3, "Unsupported header extension: id=" << it->m_id << ", uri=" << it->m_uri);
       continue;
     }
-    m_headerExtensions = ext;
+    m_headerExtensions.insert(*it);
   }
 }
 
