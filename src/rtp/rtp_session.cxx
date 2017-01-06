@@ -2265,7 +2265,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SendTWCC(const RTP_TransportWi
     if (!lock.IsLocked())
       return e_AbortTransport;
 
-    if (m_transportWideSeqNumHdrExtId < 0) {
+    if (m_transportWideSeqNumHdrExtId > RTP_DataFrame::MaxHeaderExtensionIdOneByte) {
       PTRACE(3, *this << "remote not capable of TWCC");
       return e_IgnorePacket;
     }
