@@ -1294,15 +1294,16 @@ void RTP_ControlFrame::AddTWCC(RTP_SyncSourceId syncSourceOut, const RTP_Transpo
   if (!PAssert(statusCount < 65536, PInvalidParameter))
     return;
 
-  // Our reference time is the time of the first (lowest SN) packet
+  // Our reference time is the time of the first (lowest SN) packet, rounded down
   PTimeInterval referenceTime(itPkt->second.m_timestamp.GetMilliSeconds()/64*64);
 
-  // Calculate the 250us increment delta times for each packet, -1 means missing.
+  // Calculate the 250us quantised delta times between each packet, -1 means missing.
   vector<int> quarterMillisecond(statusCount);
+  quarterMillisecond[0] = (int)((itPkt->second.m_timestamp - referenceTime).GetMicroSeconds()/250);
   for (unsigned index = 1; index < statusCount; ++index)
     quarterMillisecond[index] = -1;
-  for (itPkt = info.m_packets.begin(); itPkt != info.m_packets.end(); ++itPkt)
-    quarterMillisecond[itPkt->first - initialSN] = (int)((itPkt->second.m_timestamp - referenceTime).GetMicroSeconds()/250);
+  for (RTP_TransportWideCongestionControl::PacketMap::const_iterator prevPkt = itPkt++; itPkt != info.m_packets.end(); ++prevPkt,++itPkt)
+    quarterMillisecond[itPkt->first - initialSN] = (int)((itPkt->second.m_timestamp - prevPkt->second.m_timestamp).GetMicroSeconds()/250);
 
   // Now calculate the status bits for each packet, either run length or matrix form
   vector<PUInt16b> statusChunks((statusCount+6)/7); // Worst case
@@ -1429,21 +1430,25 @@ bool RTP_ControlFrame::ParseTWCC(RTP_SyncSourceId & senderSSRC, RTP_TransportWid
      reference the remote is using. */
   const uint8_t * delta = (const uint8_t *)chunks;
   for (index = 0; index < count && size > 0; ++index) {
+    unsigned quarterMilliseconds;
     switch (status[index]) {
       case 1 : // Small delta
-        info.m_packets.insert(make_pair(baseSN + index, PTimeInterval::MicroSeconds(*delta++ * 250U) + referenceTime));
+        quarterMilliseconds = *delta++ & 0xff;
         --size;
         break;
 
       case 2 : // Large delta
-        info.m_packets.insert(make_pair(baseSN + index, PTimeInterval::MicroSeconds(*(PUInt16b *)delta * 250U) + referenceTime));
+        quarterMilliseconds = *(PUInt16b *)delta;
         delta += 2;
         size -= 2;
         break;
 
       default : // Absent
-        break;
+        continue;
     }
+
+    referenceTime += PTimeInterval::MicroSeconds(quarterMilliseconds * 250U);
+    info.m_packets.insert(make_pair(baseSN + index, referenceTime));
   }
 
   return !info.m_packets.empty();
