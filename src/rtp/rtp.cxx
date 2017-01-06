@@ -1297,11 +1297,11 @@ void RTP_ControlFrame::AddTWCC(RTP_SyncSourceId syncSourceOut, const RTP_Transpo
   // Our reference time is the time of the first (lowest SN) packet, rounded down
   PTimeInterval referenceTime(itPkt->second.m_timestamp.GetMilliSeconds()/64*64);
 
-  // Calculate the 250us quantised delta times between each packet, -1 means missing.
+  // Calculate the 250us quantised delta times between each packet, INT_MAX means missing.
   vector<int> quarterMillisecond(statusCount);
   quarterMillisecond[0] = (int)((itPkt->second.m_timestamp - referenceTime).GetMicroSeconds()/250);
   for (unsigned index = 1; index < statusCount; ++index)
-    quarterMillisecond[index] = -1;
+    quarterMillisecond[index] = numeric_limits<int>::max();
   for (RTP_TransportWideCongestionControl::PacketMap::const_iterator prevPkt = itPkt++; itPkt != info.m_packets.end(); ++prevPkt,++itPkt)
     quarterMillisecond[itPkt->first - initialSN] = (int)((itPkt->second.m_timestamp - prevPkt->second.m_timestamp).GetMicroSeconds()/250);
 
@@ -1320,11 +1320,13 @@ void RTP_ControlFrame::AddTWCC(RTP_SyncSourceId syncSourceOut, const RTP_Transpo
     else {
       unsigned chunk;
       if (runLength >= 7) {
+        if (currentStatus == lastStatus) // Edge case for last packet being in the run
+          ++runLength;
         chunk = (lastStatus << 13) | runLength;  // Run length chunk
         --index;
       }
       else {
-        // Vector chunk, we are not bothering with the 14 bit version for now.
+        // Vector chunk, we are not bothering with the 14x1 bit version for now.
         chunk = 3;
         for (unsigned run = 0; run < runLength; ++run)
           chunk = (chunk << 2) | lastStatus;
@@ -1347,10 +1349,10 @@ void RTP_ControlFrame::AddTWCC(RTP_SyncSourceId syncSourceOut, const RTP_Transpo
   uint8_t * deltaPtr = deltas.data();
   for (itPkt = info.m_packets.begin(); itPkt != info.m_packets.end(); ++itPkt) {
     int quarterMS = quarterMillisecond[itPkt->first - initialSN];
-    if (quarterMS < 256)
+    if (quarterMS >= 0 && quarterMS < 256)
       *deltaPtr++ = (uint8_t)quarterMS;
-    else {
-      *(PUInt16b *)deltaPtr = (uint16_t)quarterMS;
+    else if (quarterMS >= numeric_limits<int16_t>::min() && quarterMS <= numeric_limits<int16_t>::max()) {
+      *(PInt16b *)deltaPtr = (int16_t)quarterMS;
       deltaPtr += 2;
     }
   }
@@ -1430,7 +1432,7 @@ bool RTP_ControlFrame::ParseTWCC(RTP_SyncSourceId & senderSSRC, RTP_TransportWid
      reference the remote is using. */
   const uint8_t * delta = (const uint8_t *)chunks;
   for (index = 0; index < count && size > 0; ++index) {
-    unsigned quarterMilliseconds;
+    int quarterMilliseconds;
     switch (status[index]) {
       case 1 : // Small delta
         quarterMilliseconds = *delta++ & 0xff;
@@ -1438,7 +1440,7 @@ bool RTP_ControlFrame::ParseTWCC(RTP_SyncSourceId & senderSSRC, RTP_TransportWid
         break;
 
       case 2 : // Large delta
-        quarterMilliseconds = *(PUInt16b *)delta;
+        quarterMilliseconds = *(PInt16b *)delta;
         delta += 2;
         size -= 2;
         break;
