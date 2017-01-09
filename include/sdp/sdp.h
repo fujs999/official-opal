@@ -78,6 +78,11 @@
   */
 #define OPAL_OPT_RTCP_MUX "RTCP-Mux"
 
+/**OpalConnection::StringOption key to a boolean indicating the RFC5506
+   reduced size RTCP support should be offered in the SDP. Default true.
+  */
+#define OPAL_OPT_OFFER_REDUCED_SIZE_RTCP "Offer-Reduced-Size-RTCP"
+
 /**Suppress UDP/TLS in SDP transport offer.
    When offering DTLS, should use UDP/TLS/RTP/SAVPF as the transport, but for
    interoperability reasons (*cough*Chrome*cough*) need to set only the
@@ -103,6 +108,13 @@
    should be offered in the SDP. Default false.
   */
 #define OPAL_OPT_OFFER_SDP_ABS_SEND_TIME "Offer-SDP-Abs-Send-Time"
+
+/**OpalConnection::StringOption key to a boolean indicating the transport
+   wide congestion control header extension and RTCP support
+   (http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions)
+   should be offered in the SDP. Default false.
+  */
+#define OPAL_OPT_OFFER_SDP_TRANSPORT_CONGESTION_CONTROL "Offer-SDP-Transport-Congestion-Control"
 
 
 /////////////////////////////////////////////////////////
@@ -387,6 +399,7 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
     WORD                 m_port;
     WORD                 m_portCount;
     OpalMediaType        m_mediaType;
+    bool                 m_reducedSizeRTCP;
     PStringList          m_mids;
     PStringToString      m_groups;
 #if OPAL_ICE
