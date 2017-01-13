@@ -108,7 +108,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /opt/bbcollab/lib64/*.so.*
-/opt/bbcollab/lib64/opal-%{version}
+/opt/bbcollab/lib64/opal-%{version_major}.%{version_minor}.%{version_patch}
 
 %files devel
 %defattr(-,root,root,-)
