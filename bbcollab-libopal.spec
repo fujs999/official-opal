@@ -3,8 +3,8 @@
 %global version_patch  4
 
 Name:           bbcollab-libopal
-Version:        %{version_major}.%{version_minor}.%{version_patch}
-Release:        0.0.1%{?jenkins_release}%{?dist}
+Version:        %{version_major}.%{version_minor}.%{version_patch}.0
+Release:        0%{?jenkins_release}%{?dist}
 Summary:        OpalVOIP library
 
 Group:          System Environment/Libraries
@@ -12,9 +12,9 @@ License:        MPL 1.0
 URL:            http://www.opalvoip.org/
 Source0:        zsdk-opal.src.tgz
 
-BuildRequires:  bbcollab-gcc
-BuildRequires:  bbcollab-ptlib-devel >= 2.17
-BuildRequires:  bbcollab-ffmpeg-devel
+BuildRequires:  bbcollab-gcc = 5.1.0
+BuildRequires:  bbcollab-ptlib-devel = 2.17.4.0
+BuildRequires:  bbcollab-ffmpeg-devel = 2.6.3
 BuildRequires:  opus-devel
 BuildRequires:  speex-devel
 BuildRequires:  libsrtp-devel = 1.4.4
@@ -29,7 +29,7 @@ OpalVOIP library
 Summary:        Development files for %{name}
 Group:          Development/Libraries
 Requires:       %{name} = %{version}-%{release}
-Requires:       bbcollab-ptlib-devel >= 2.17
+Requires:       bbcollab-ptlib-devel = 2.17.4.0
 Requires:       libsrtp-devel = 1.4.4
 
 %description    devel
@@ -108,7 +108,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 /opt/bbcollab/lib64/*.so.*
-/opt/bbcollab/lib64/opal-%{version}
+/opt/bbcollab/lib64/opal-%{version_major}.%{version_minor}.%{version_patch}
 
 %files devel
 %defattr(-,root,root,-)
