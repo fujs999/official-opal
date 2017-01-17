@@ -3,7 +3,7 @@
 %global version_patch  4
 
 Name:           bbcollab-libopal
-Version:        %{version_major}.%{version_minor}.%{version_patch}.0
+Version:        %{version_major}.%{version_minor}.%{version_patch}.1
 Release:        0%{?jenkins_release}%{?dist}
 Summary:        OpalVOIP library
 
@@ -29,7 +29,7 @@ OpalVOIP library
 Summary:        Development files for %{name}
 Group:          Development/Libraries
 Requires:       %{name} = %{version}-%{release}
-Requires:       bbcollab-ptlib-devel = 2.17.4.0
+Requires:       bbcollab-ptlib-devel = 2.17.4.1
 Requires:       libsrtp-devel = 1.4.4
 
 %description    devel
