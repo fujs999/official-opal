@@ -292,9 +292,14 @@ PStringArray OpalLyncEndPoint::GetRegisteredUsers() const
 void OpalLyncEndPoint::AdjustLyncURI(PString & uri)
 {
   if (uri.NumCompare(GetPrefixName()+':') == EqualTo)
-    uri.Splice("sip", 0, GetPrefixName().GetLength());
+    uri.Splice("sip", 0, GetPrefixName().GetLength()); // Swap "lync" with "sip"
   else if (uri.NumCompare("sip:") != EqualTo)
-    uri.Splice("sip:", 0);
+    uri.Splice("sip:", 0);                             // If not got "sip:" add it
+
+  if (uri.Find('@') == P_MAX_INDEX)
+    uri.Splice("tel", 0, 3); // No @ implies a telephone number
+
+  uri.Delete(uri.Find(';'), P_MAX_INDEX); // Remove any extraneous parameters as Lync very fussy
 }
 
 
