@@ -77,7 +77,8 @@ OpalNetworkStatistics::OpalNetworkStatistics()
   , m_maximumJitter(-1)
   , m_jitterBufferDelay(-1)
   , m_roundTripTime(-1)
-  , m_lastPacketTime(0)
+  , m_lastPacketAbsTime(0)
+  , m_lastPacketNetTime(0)
   , m_lastReportTime(0)
   , m_targetBitRate(0)
   , m_targetFrameRate(0)
@@ -1093,6 +1094,11 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
   m_maxNoTransmitTime = session.GetStringOptions().GetVar(OPAL_OPT_MEDIA_TX_TIMEOUT, manager.GetTxMediaTimeout());
 
   PIPAddress bindingIP(localInterface);
+  if (!bindingIP.IsValid()) {
+    PTRACE(2, session << "open failed, illegal local interface \"" << localInterface << '"');
+    return false;
+  }
+
   PIPAddress remoteIP;
   remoteAddress.GetIpAddress(remoteIP);
 
