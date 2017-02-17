@@ -13,7 +13,7 @@ URL:            http://www.opalvoip.org/
 Source0:        zsdk-opal.src.tgz
 
 BuildRequires:  bbcollab-gcc = 5.1.0
-BuildRequires:  bbcollab-ptlib-devel = 2.17.4.3
+BuildRequires:  bbcollab-ptlib-devel = 2.17.4.4
 BuildRequires:  bbcollab-ffmpeg-devel = 2.6.3
 BuildRequires:  opus-devel
 BuildRequires:  speex-devel
@@ -29,7 +29,7 @@ OpalVOIP library
 Summary:        Development files for %{name}
 Group:          Development/Libraries
 Requires:       %{name} = %{version}-%{release}
-Requires:       bbcollab-ptlib-devel = 2.17.4.3
+Requires:       bbcollab-ptlib-devel = 2.17.4.4
 Requires:       libsrtp-devel = 1.4.4
 
 %description    devel
