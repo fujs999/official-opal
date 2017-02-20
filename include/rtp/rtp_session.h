@@ -220,6 +220,8 @@ class OpalRTPSession : public OpalMediaSession
     virtual SendReceiveStatus OnOutOfOrderPacket(RTP_DataFrame & frame);
 
     virtual void OnRxSenderReport(const RTP_SenderReport & sender);
+    virtual void OnRxReceiverReports(RTP_SyncSourceId src, const RTP_ControlFrame::ReceiverReport * rr, unsigned count);
+    virtual void OnRxReceiverReports(RTP_SyncSourceId src, const std::vector<RTP_ReceiverReport> reports);
     virtual void OnRxReceiverReport(RTP_SyncSourceId src, const RTP_ControlFrame::ReceiverReport & rr);
     virtual void OnRxReceiverReport(RTP_SyncSourceId src, const RTP_ReceiverReport & report);
     virtual void OnRxSourceDescription(const RTP_SourceDescriptionArray & descriptions);
