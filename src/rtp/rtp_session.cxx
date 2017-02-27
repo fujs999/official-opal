@@ -2173,11 +2173,18 @@ void OpalRTPSession::OnRxReceiverReports(RTP_SyncSourceId ssrc, const RTP_Contro
     if (CheckControlSSRC(ssrc, rr[i].ssrc, sender PTRACE_PARAM(, "RR"))) {
       RTP_ReceiverReport report(rr[i], sender->m_ntpPassThrough);
       sender->OnRxReceiverReport(report);
-      OnRxReceiverReport(ssrc, report);
       reports.push_back(report);
     }
   }
   OnRxReceiverReports(ssrc, reports);
+}
+
+
+void OpalRTPSession::OnRxReceiverReports(RTP_SyncSourceId ssrc, const std::vector<RTP_ReceiverReport> & reports)
+{
+  for (RTP_ReceiverReport report : reports) {
+    OnRxReceiverReport(ssrc, report);        
+  }
 }
 
 
