@@ -2182,8 +2182,8 @@ void OpalRTPSession::OnRxReceiverReports(RTP_SyncSourceId ssrc, const RTP_Contro
 
 void OpalRTPSession::OnRxReceiverReports(RTP_SyncSourceId ssrc, const std::vector<RTP_ReceiverReport> & reports)
 {
-  for (RTP_ReceiverReport report : reports) {
-    OnRxReceiverReport(ssrc, report);        
+  for (unsigned i = 0; i < reports.size(); ++i) {
+    OnRxReceiverReport(ssrc, reports[i]);        
   }
 }
 
