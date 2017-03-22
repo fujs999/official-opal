@@ -1565,12 +1565,13 @@ bool RTP_ControlFrame::ParseREMB(RTP_SyncSourceId & senderSSRC, RTP_SyncSourceAr
 
   if (remb->numSSRC == 0)
     return false;
-  else if (remb->numSSRC > 1 && size < sizeof(FbREMB) + (remb->numSSRC - 1) * sizeof(remb->feedbackSSRC))
+  if (remb->numSSRC > 1 && size < sizeof(FbREMB) + (remb->numSSRC - 1) * sizeof(remb->feedbackSSRC))
     return false;
 
   senderSSRC = remb->senderSSRC;
+  targetSSRCs.resize(remb->numSSRC);
   for (int i = 0; i < remb->numSSRC; ++i)
-      targetSSRCs.push_back(remb->feedbackSSRC[i]);
+      targetSSRCs[i] = remb->feedbackSSRC[i];
   maxBitRate = (((remb->bitRate[0]&0x3)<<16)|(remb->bitRate[1]<<8)|remb->bitRate[2])*(1 << (remb->bitRate[0] >> 2));
   return true;
 }

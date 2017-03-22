@@ -1578,7 +1578,7 @@ OpalMediaFlowControl::OpalMediaFlowControl(OpalBandwidth bitRate,
                                            unsigned ssrc)
   : OpalMediaCommand(mediaType, sessionID, ssrc)
   , m_bitRate(bitRate)
-  , m_ssrcs({ssrc})
+  , m_ssrcs(1, ssrc)
 {
 }
 
