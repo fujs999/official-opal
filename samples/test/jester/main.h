@@ -21,9 +21,6 @@
  *
  * Contributor(s): Robert Jongbloed.
  *
- * $Revision$
- * $Author$
- * $Date$
  */
 
 #ifndef _Jester_MAIN_H

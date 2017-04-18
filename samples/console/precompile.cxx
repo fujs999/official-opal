@@ -21,9 +21,6 @@
  *
  * Contributor(s): ______________________________________.
  *
- * $Revision: 22832 $
- * $Author: rjongbloed $
- * $Date: 2009-06-05 14:58:07 +1000 (Fri, 05 Jun 2009) $
  */
 
 #include "precompile.h"

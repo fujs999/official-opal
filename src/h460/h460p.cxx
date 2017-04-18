@@ -33,9 +33,6 @@
  *
  * Contributor(s): Many thanks to Simon Horne.
  *
- * $Revision$
- * $Author$
- * $Date$
  */
 
 #include <ptlib.h>

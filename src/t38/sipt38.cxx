@@ -23,9 +23,6 @@
  *
  * Contributor(s): Vyacheslav Frolov.
  *
- * $Revision$
- * $Author$
- * $Date$
  */
 
 /*

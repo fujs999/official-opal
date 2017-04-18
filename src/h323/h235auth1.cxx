@@ -23,9 +23,6 @@
  *
  * Contributor(s): Fürbass Franz <franz.fuerbass@infonova.at>
  *
- * $Revision$
- * $Author$
- * $Date$
  */
 
 #include <ptlib.h>

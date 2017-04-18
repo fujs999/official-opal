@@ -19,9 +19,6 @@
  *
  * Contributor(s): Equivalence Pty. Ltd.
  *
- * $Revision$
- * $Author$
- * $Date$
  */
 
 #include "precompile.h"

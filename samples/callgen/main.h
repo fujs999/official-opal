@@ -19,10 +19,8 @@
  *
  * Contributor(s): Equivalence Pty. Ltd.
  *
- * $Revision$
- * $Author$
- * $Date$
  */
+
 
 
 class MyManager;

@@ -21,9 +21,6 @@
 *
 * Contributor(s): Robert Jongbloed.
 *
-* $Revision$
-* $Author$
-* $Date$
 */
 
 #ifdef P_USE_PRAGMA

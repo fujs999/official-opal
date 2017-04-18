@@ -24,10 +24,6 @@
  *
  * Contributor(s): Craig Southeren (craigs@postincrement.com)
  *                 Robert Jongbloed (robertj@voxlucida.com.au)
- *
- * $Revision$
- * $Author$
- * $Date$
  */
 
 
@@ -157,6 +153,10 @@ class OpalBaseMixer : public PSmartObject
        to avoid deadlocks when calling.
       */
     void StopPushThread(bool lock = true);
+
+    /**Get the period for mixing in milliseconds.
+      */
+    unsigned GetPeriodMS() const { return m_periodMS; }
 
     /**Get the period for mixing in RTP timestamp units.
       */

@@ -23,9 +23,6 @@
  *
  * Contributor(s): ______________________________________.
  *
- * $Revision$
- * $Author$
- * $Date$
  */
 
 #include <ptlib.h>
@@ -475,6 +472,11 @@ void OpalRTPConnection::DetermineRTPNAT(const OpalTransport & transport, const O
 {
   if (m_remoteBehindNAT) {
     PTRACE(4, "Already determined is behind NAT");
+    return;
+  }
+
+  if (m_stringOptions.GetBoolean(OPAL_OPT_DISABLE_NAT)) {
+    PTRACE(4, "NAT detection has been disabled");
     return;
   }
 
