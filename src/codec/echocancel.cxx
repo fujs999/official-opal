@@ -22,9 +22,6 @@
  *
  * Contributor(s): Miguel Rodriguez Perez.
  *
- * $Revision$
- * $Author$
- * $Date$
  */
 
 #include <ptlib.h>

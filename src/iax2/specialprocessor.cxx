@@ -24,9 +24,6 @@
  *
  * The author of this code is Stephen Cook
  *
- * $Revision$
- * $Author$
- * $Date$
  */
 
 #include <ptlib.h>

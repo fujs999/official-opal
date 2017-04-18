@@ -23,9 +23,6 @@
 *
 * Contributor(s): ______________________________________.
 *
-* $Revision$
-* $Author$
-* $Date$
 */
 
 #ifndef SBC_DISABLE_PTLIB

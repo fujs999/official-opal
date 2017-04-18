@@ -23,9 +23,6 @@
  *
  * Contributor(s): ______________________________________.
  *
- * $Revision$
- * $Author$
- * $Date$
  *
  * This code implements all or part of the following RFCs
  *

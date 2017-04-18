@@ -23,9 +23,6 @@
  * Contributor(s): Vox Lucida Pty. Ltd.
  *                 BCS Global, Inc.
  *
- * $Revision$
- * $Author$
- * $Date$
  */
 
 #include "precompile.h"

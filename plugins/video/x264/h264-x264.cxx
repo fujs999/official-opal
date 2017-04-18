@@ -30,6 +30,7 @@
  *                 Michele Piccini (michele@piccini.com)
  *                 Derek Smithies (derek@indranet.co.nz)
  *                 Robert Jongbloed (robertj@voxlucida.com.au)
+ *
  */
 
 #include "../common/platform.h"

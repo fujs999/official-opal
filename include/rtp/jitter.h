@@ -26,9 +26,6 @@
  *
  * Contributor(s): ______________________________________.
  *
- * $Revision$
- * $Author$
- * $Date$
  */
 
 #ifndef OPAL_RTP_JITTER_H

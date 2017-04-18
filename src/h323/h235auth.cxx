@@ -23,9 +23,6 @@
  *
  * Contributor(s): __________________________________
  *
- * $Revision$
- * $Author$
- * $Date$
  */
 
 #include <ptlib.h>
