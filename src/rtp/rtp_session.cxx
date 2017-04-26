@@ -858,7 +858,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SendBYE(RTP_SyncSourceId ssrc)
 
   SendReceiveStatus status = sender->SendBYE();
   if (status == e_ProcessPacket) {
-    P_INSTRUMENTED_LOCK_READ_WRITE();
+    P_INSTRUMENTED_LOCK_READ_WRITE2(writeLock, *this);
 
     // Now remove the shut down SSRC
     SyncSourceMap::iterator it = m_SSRC.find(ssrc);
@@ -1286,11 +1286,13 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnReceiveData(RTP_DataFrame & 
   BYTE * exthdr;
   PINDEX hdrlen;
   if ((exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_OneByte, m_absSendTimeHdrExtId, hdrlen)) != NULL) {
+    const uint64_t HighBitsMask = ~0ULL << 38;
+
     if (m_absSendTimeHighBits == 0) {
       PTime highBits = frame.GetAbsoluteTime();
       if (!highBits.IsValid())
         highBits.SetCurrentTime();
-      m_absSendTimeHighBits = highBits.GetNTP() & (-1LL << 38);
+      m_absSendTimeHighBits = highBits.GetNTP() & HighBitsMask;
     }
 
     int64_t     ntp  = *exthdr++;
@@ -1300,7 +1302,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnReceiveData(RTP_DataFrame & 
 
     if (ntp < m_absSendTimeAllBits) {
       m_absSendTimeHighBits += 1LL << 38;
-      ntp = (ntp & ~(-1LL << 38)) | m_absSendTimeHighBits;
+      ntp = (ntp & ~HighBitsMask) | m_absSendTimeHighBits;
     }
 
     m_absSendTimeAllBits = ntp;
