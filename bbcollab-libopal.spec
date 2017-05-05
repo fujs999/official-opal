@@ -3,7 +3,7 @@
 %global version_patch  4
 
 Name:           bbcollab-libopal
-Version:        %{version_major}.%{version_minor}.%{version_patch}.14
+Version:        %{version_major}.%{version_minor}.%{version_patch}.15
 Release:        1%{?jenkins_release}%{?dist}
 Summary:        OpalVOIP library
 
@@ -17,7 +17,7 @@ BuildRequires:  bbcollab-ptlib-devel = 2.17.4.11
 BuildRequires:  bbcollab-ffmpeg-devel = 2.6.3
 BuildRequires:  opus-devel
 BuildRequires:  speex-devel
-BuildRequires:  libsrtp-devel = 1.4.4
+BuildRequires:  libsrtp-devel = 1.4.4-10.20101004cvs.el6
 BuildRequires:  libtheora-devel
 BuildRequires:  libvpx-devel
 BuildRequires:  x264-devel
@@ -30,7 +30,7 @@ Summary:        Development files for %{name}
 Group:          Development/Libraries
 Requires:       %{name} = %{version}-%{release}
 Requires:       bbcollab-ptlib-devel = 2.17.4.11
-Requires:       libsrtp-devel = 1.4.4
+Requires:       libsrtp-devel = 1.4.4-10.20101004cvs.el6
 
 %description    devel
 The %{name}-devel package contains libraries and header files for
