@@ -73,7 +73,10 @@ PStringList OpalSDPEndPoint::GetAvailableStringOptions() const
     OPAL_OPT_RTCP_MUX,
     OPAL_OPT_AV_BUNDLE,
     OPAL_OPT_OFFER_ICE,
-    OPAL_OPT_ICE_LITE
+    OPAL_OPT_ICE_TIMEOUT,
+    OPAL_OPT_ICE_LITE,
+    OPAL_OPT_TRICKLE_ICE,
+    OPAL_OPT_ICE_PROMISCUOUS
   };
 
   PStringList list = OpalRTPEndPoint::GetAvailableStringOptions();
