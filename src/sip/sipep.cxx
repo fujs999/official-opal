@@ -40,6 +40,7 @@
 #include <sdp/sdp.h>
 #include <sip/sippres.h>
 #include <im/sipim.h>
+#include <opal.h>
 
 
 class SIP_PDU_Work : public SIPWorkItem
@@ -64,7 +65,7 @@ static BYTE DefaultKeepAliveData[] = { '\r', '\n', '\r', '\n' };
 ////////////////////////////////////////////////////////////////////////////
 
 SIPEndPoint::SIPEndPoint(OpalManager & mgr, unsigned maxThreads)
-  : OpalSDPEndPoint(mgr, "sip", IsNetworkEndPoint | SupportsE164)
+  : OpalSDPEndPoint(mgr, OPAL_PREFIX_SIP, IsNetworkEndPoint | SupportsE164)
   , m_defaultPrackMode(SIPConnection::e_prackSupported)
   , m_maxPacketSizeUDP(1300)         // As per RFC 3261 section 18.1.1
   , m_maxRetries(10)
@@ -100,7 +101,7 @@ SIPEndPoint::SIPEndPoint(OpalManager & mgr, unsigned maxThreads)
 #endif
 
 #if OPAL_PTLIB_SSL
-  m_manager.AttachEndPoint(this, "sips");
+  m_manager.AttachEndPoint(this, OPAL_PREFIX_SIPS);
 #endif
 
   PInterfaceMonitor::GetInstance().AddNotifier(m_onHighPriorityInterfaceChange, 80);
@@ -614,11 +615,12 @@ PStringList SIPEndPoint::GetAvailableStringOptions() const
   static char const * const StringOpts[] = {
     OPAL_OPT_FORWARD_REFER,
     OPAL_OPT_REFER_SUB,
+    OPAL_OPT_NO_REFER_SUB,
+    OPAL_OPT_PRACK_MODE,
     OPAL_OPT_INITIAL_OFFER,
     OPAL_OPT_ALLOW_EARLY_REPLACE,
     OPAL_OPT_EXTERNAL_SDP,
-    OPAL_OPT_UNSECURE_SRTP,
-    OPAL_SIP_REFERRED_CONNECTION
+    OPAL_OPT_UNSECURE_SRTP
   };
 
   PStringList list = OpalSDPEndPoint::GetAvailableStringOptions();
