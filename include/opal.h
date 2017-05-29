@@ -804,12 +804,16 @@ typedef struct OpalParamGeneral {
   unsigned m_noMediaTimeout;          /**< Time in milliseconds for which, if no media is received, the
                                            call is cleared. */
   const char * m_caFiles;             /**< File or directory containing Certificate Authority root certificates
-                                           to validate remotes in TLS connections, e.g. sips or h323s. */
+                                           to validate remotes in TLS connections, e.g. sips or h323s. Note,
+                                           an empty string "" is a valid value, and only NULL can be used
+                                           for "no change". */
   const char * m_certificate;         /**< Certificate to use to identify this endpoint in TLS connections,
                                            e.g. sips or h323s. This can either be a filename or a PEM format
-                                           certificate as a string. */
+                                           certificate as a string. Note, an empty string "" is a valid value,
+                                           and only NULL can be used for "no change". */
   const char * m_privateKey;          /**< Private key to use with the above certificate file. This can either
-                                           be a filename or a PEM format certificate as a string. */
+                                           be a filename or a PEM format certificate as a string. Note, an empty
+                                           string "" is a valid value, and only NULL can be used for "no change". */
   unsigned m_autoCreateCertificate;   /**< Indicate a self signed certificate should be generated automatically
                                            if the certicalte and private key files are not found at the locations
                                            indicated (value=1), or that only the file/value indicated in above
@@ -917,6 +921,9 @@ typedef struct OpalParamProtocol {
   const char * m_mediaCryptoSuites;   /**< A list of \n separated strings indicated enabled media
                                            crypto suites for this endpoint. Note, order of entries
                                            indicates priority. */
+  const char * m_allMediaCryptoSuites;/**< This is only provided as a return value, and lists all of the
+                                           crypto suites supported by this protocol in the form:
+                                              "name1=description1\nname2=description2\n" */
 } OpalParamProtocol;
 
 
