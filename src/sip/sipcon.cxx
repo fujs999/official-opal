@@ -1750,6 +1750,9 @@ static void MergeIdentityURL(SIPURL & out, const SIPURL & in)
   if (in.GetHostName().Find(".invalid") == P_MAX_INDEX && PIPSocket::Address(out.GetHostName()).IsValid())
     out.SetHostName(in.GetHostName());
 
+  if (!out.GetPortSupplied() && in.GetPortSupplied())
+    out.SetPort(in.GetPort());
+
   out.SetParamVars(in.GetParamVars(), true);
 }
 
@@ -2205,6 +2208,7 @@ void SIPConnection::OnReceivedINVITE(SIP_PDU & request)
   m_dialog.Update(request);
   if (!m_dialog.IsEstablished()) {
     PTRACE(2, "Illegal fields in INVITE, cannot establish dialog, aborting call.");
+    m_releaseMethod = ReleaseWithResponse;
     Release(EndedByIllegalAddress);
     return;
   }

@@ -58,7 +58,7 @@ class OpalManager_C;
 
 #define PTraceModule() "Opal C"
 
-static const char * const LocalPrefixes[] = {
+static PConstString const LocalPrefixes[] = {
   OPAL_PREFIX_PCSS,
   OPAL_PREFIX_GST,
   OPAL_PREFIX_POTS,
@@ -616,11 +616,15 @@ bool OpalMediaDataCallbacks::OnReadMediaFrame(const OpalLocalConnection & connec
                                               const OpalMediaStream & mediaStream,
                                               RTP_DataFrame & frame)
 {
-  if (m_mediaDataHeader != OpalMediaDataWithHeader)
+  if (m_mediaDataHeader != OpalMediaDataWithHeader) {
+    PTRACE(2, "OnReadMediaFrame failed due to illegal OpalMediaDataType.");
     return false;
+  }
 
-  if (m_mediaReadData == NULL)
+  if (m_mediaReadData == NULL) {
+    PTRACE(2, "OnReadMediaFrame failed due to no call back set.");
     return false;
+  }
 
   int result = m_mediaReadData(connection.GetCall().GetToken(),
                                mediaStream.GetID(),
@@ -638,13 +642,17 @@ bool OpalMediaDataCallbacks::OnReadMediaFrame(const OpalLocalConnection & connec
 
 bool OpalMediaDataCallbacks::OnWriteMediaFrame(const OpalLocalConnection & connection,
                                                const OpalMediaStream & mediaStream,
-                                            RTP_DataFrame & frame)
+                                               RTP_DataFrame & frame)
 {
-  if (m_mediaDataHeader != OpalMediaDataWithHeader)
+  if (m_mediaDataHeader != OpalMediaDataWithHeader) {
+    PTRACE(2, "OnWriteMediaFrame failed due to illegal OpalMediaDataType.");
     return false;
+  }
 
-  if (m_mediaWriteData == NULL)
+  if (m_mediaWriteData == NULL) {
+    PTRACE(2, "OnWriteMediaFrame failed due to no call back set.");
     return false;
+  }
 
   int result = m_mediaWriteData(connection.GetCall().GetToken(),
                                 mediaStream.GetID(),
@@ -662,11 +670,15 @@ bool OpalMediaDataCallbacks::OnReadMediaData(const OpalLocalConnection & connect
                                           PINDEX size,
                                           PINDEX & length)
 {
-  if (m_mediaDataHeader != OpalMediaDataPayloadOnly)
+  if (m_mediaDataHeader != OpalMediaDataPayloadOnly) {
+    PTRACE(2, "OnReadMediaData failed due to illegal OpalMediaDataType.");
     return false;
+  }
 
-  if (m_mediaReadData == NULL)
+  if (m_mediaReadData == NULL) {
+    PTRACE(2, "OnReadMediaData failed due to no call back set.");
     return false;
+  }
 
   int result = m_mediaReadData(connection.GetCall().GetToken(),
                                mediaStream.GetID(),
@@ -688,11 +700,15 @@ bool OpalMediaDataCallbacks::OnWriteMediaData(const OpalLocalConnection & connec
                                            PINDEX length,
                                            PINDEX & written)
 {
-  if (m_mediaDataHeader != OpalMediaDataPayloadOnly)
+  if (m_mediaDataHeader != OpalMediaDataPayloadOnly) {
+    PTRACE(2, "OnWriteMediaData failed due to illegal OpalMediaDataType.");
     return false;
+  }
 
-  if (m_mediaWriteData == NULL)
+  if (m_mediaWriteData == NULL) {
+    PTRACE(2, "OnWriteMediaData failed due to no call back set.");
     return false;
+  }
 
   int result = m_mediaWriteData(connection.GetCall().GetToken(),
                                 mediaStream.GetID(),
@@ -1726,19 +1742,21 @@ void OpalManager_C::HandleSetGeneral(const OpalMessage & command, OpalMessageBuf
   if (m_apiVersion < 34)
     return;
 
+#if P_SSL
   SET_MESSAGE_STRING(response, m_param.m_general.m_caFiles, GetSSLCertificateAuthorityFiles());
   SET_MESSAGE_STRING(response, m_param.m_general.m_certificate, GetSSLCertificateFile());
   SET_MESSAGE_STRING(response, m_param.m_general.m_privateKey, GetSSLPrivateKeyFile());
   response->m_param.m_general.m_autoCreateCertificate = m_autoCreateCertificate ? 1 : 2;
 
-  if (!IsNullString(command.m_param.m_general.m_caFiles))
+  if (command.m_param.m_general.m_caFiles != NULL)
     SetSSLCertificateAuthorityFiles(command.m_param.m_general.m_caFiles);
-  if (!IsNullString(command.m_param.m_general.m_certificate))
+  if (command.m_param.m_general.m_certificate != NULL)
     SetSSLCertificateFile(command.m_param.m_general.m_certificate);
-  if (!IsNullString(command.m_param.m_general.m_privateKey))
+  if (command.m_param.m_general.m_privateKey != NULL)
     SetSSLPrivateKeyFile(command.m_param.m_general.m_privateKey);
   if (command.m_param.m_general.m_autoCreateCertificate > 0)
     SetSSLAutoCreateCertificate(command.m_param.m_general.m_autoCreateCertificate == 1);
+#endif
 }
 
 
@@ -1956,6 +1974,13 @@ void OpalManager_C::HandleSetProtocol(const OpalMessage & command, OpalMessageBu
   SET_MESSAGE_STRING(response, m_param.m_protocol.m_mediaCryptoSuites, strm);
   if (!IsNullString(command.m_param.m_protocol.m_mediaCryptoSuites))
     ep->SetMediaCryptoSuites(PString(command.m_param.m_protocol.m_mediaCryptoSuites).Lines());
+
+  PStringArray allMediaCryptoSutes = ep->GetAllMediaCryptoSuites();
+  strm.MakeEmpty();
+  for (PINDEX i = 0; i < allMediaCryptoSutes.GetSize(); ++i) {
+    OpalMediaCryptoSuite * cryptoSuite = OpalMediaCryptoSuiteFactory::CreateInstance(allMediaCryptoSutes[i]);
+    strm << cryptoSuite->GetFactoryName() << '=' << cryptoSuite->GetDescription() << 'n';
+  }
 }
 
 
@@ -2198,10 +2223,15 @@ void OpalManager_C::HandleSetUpCall(const OpalMessage & command, OpalMessageBuff
   if (partyA.IsEmpty()) {
     for (PINDEX i = 0; i < PARRAYSIZE(LocalPrefixes); ++i) {
       OpalLocalEndPoint * ep = FindEndPointAs<OpalLocalEndPoint>(LocalPrefixes[i]);
-      if (ep != NULL)
-        partyA = LocalPrefixes[i];
+      if (ep != NULL) {
+        partyA = LocalPrefixes[i] + ':';
+        break;
+      }
     }
-    partyA += ':';
+    if (partyA.IsEmpty()) {
+        response.SetError("No local endpoint available");
+        return;
+    }
   }
 
   OpalConnection::StringOptions options;
