@@ -17,7 +17,7 @@ BuildRequires:  bbcollab-ptlib-devel = 2.17.4.16-2.1.el6
 BuildRequires:  bbcollab-ffmpeg-devel = 2.6.3-8.7.el6
 BuildRequires:  opus-devel
 BuildRequires:  speex-devel
-BuildRequires:  libsrtp-devel = 1.4.4-10.20101004cvs.el6-10.20101004cvs.el6
+BuildRequires:  libsrtp-devel = 1.4.4-10.20101004cvs.el6
 BuildRequires:  libtheora-devel
 BuildRequires:  libvpx-devel
 BuildRequires:  x264-devel
@@ -30,7 +30,7 @@ Summary:        Development files for %{name}
 Group:          Development/Libraries
 Requires:       %{name} = %{version}-%{release}
 Requires:       bbcollab-ptlib-devel = 2.17.4.16-2.1.el6
-Requires:       libsrtp-devel = 1.4.4-10.20101004cvs.el6-10.20101004cvs.el6
+Requires:       libsrtp-devel = 1.4.4-10.20101004cvs.el6
 
 %description    devel
 The %{name}-devel package contains libraries and header files for
