@@ -1952,11 +1952,11 @@ PString OpalConsoleManager::GetArgumentSpec() const
   }
 
 #if OPAL_PTLIB_SSL
-  str << "[SSL options:]"
-         "-ssl-ca:           Set SSL certificate authority directory/file.\n"
-         "-ssl-cert:         Set SSL certificate for local client.\n"
-         "-ssl-key:          Set SSL private key lor local certificate.\n"
-         "-ssl-no-create.    Do not auto-create SSL certificate/private key if do not exist.\n";
+  str << "[SSL/TLS options:]"
+         "-ssl-ca:           Set SSL/TLS certificate authority directory/file.\n"
+         "-ssl-cert:         Set SSL/TLS certificate for local client.\n"
+         "-ssl-key:          Set SSL/TLS private key lor local certificate.\n"
+         "-ssl-no-create.    Do not auto-create SSL/TLS certificate/private key if does not exist.\n";
 #endif
 
   str << "[IP options:]"
@@ -2132,15 +2132,15 @@ bool OpalConsoleManager::Initialise(PArgList & args, bool verbose, const PString
     DisableDetectInBandDTMF(true);
 
 #if OPAL_PTLIB_SSL
-  m_caFiles = args.GetOptionString("ssl-ca", m_caFiles);
-  m_certificateFile = args.GetOptionString("ssl-cert", m_certificateFile);
-  m_privateKeyFile = args.GetOptionString("ssl-key", m_privateKeyFile);
-  m_autoCreateCertificate = !args.HasOption("ssl-no-create");
+  SetSSLCertificateAuthorityFiles(args.GetOptionString("ssl-ca", GetSSLCertificateAuthorityFiles()));
+  SetSSLCertificateFile(args.GetOptionString("ssl-cert", GetSSLCertificateFile()));
+  SetSSLPrivateKeyFile(args.GetOptionString("ssl-key", GetSSLPrivateKeyFile()));
+  SetSSLAutoCreateCertificate(!args.HasOption("ssl-no-create"));
   if (verbose)
-    output << "SSL certificate authority: " << m_caFiles << "\n"
-              "SSL certificate: " << m_certificateFile << "\n"
-              "SSL private key: " << m_privateKeyFile << "\n"
-              "SSL auto-create certificate/key: " << (m_autoCreateCertificate ? "Yes" : "No") << '\n';
+    output << "SSL/TLS certificate authority: " << GetSSLCertificateAuthorityFiles() << "\n"
+              "SSL/TLS certificate: " << GetSSLCertificateFile() << "\n"
+              "SSL/TLS private key: " << GetSSLPrivateKeyFile() << "\n"
+              "SSL/TLS auto-create certificate/key: " << (GetSSLAutoCreateCertificate() ? "Yes" : "No") << '\n';
 #endif
 
   if (args.HasOption("portbase")) {
@@ -2808,6 +2808,9 @@ PString OpalManagerCLI::GetArgumentSpec() const
 #if P_CURSES
               "-tui. Enable text user interface.\n"
 #endif
+              "-page: Enable text output page every N lines,\r"
+              "-1 (default) indicates automatic determine terminal size.\r"
+              "0 indicates disable paging and output all text.\n"
               , spec.Find("V-version"));
   return spec;
 }
@@ -2834,13 +2837,10 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
     if (m_cli == NULL && args.HasOption("tui")) {
       PCLICurses * cli = CreateCLICurses();
       if (cli != NULL) {
-        PCLICurses::Window * mainWindow = cli->GetWindow(0);
-        if (mainWindow == NULL) {
-          *LockedOutput() << "Could not create text user interface, probably redirected I/O" << endl;
-          return false;
-        }
-        m_outputStream = mainWindow;
-        m_cli = cli;
+        if (cli->GetWindowCount() > 0)
+          m_cli = cli;
+        else
+          *LockedOutput() << "Could not create text user interface, probably redirected I/O, using normal CLI" << endl;
       }
     }
 #endif // P_CURSES
@@ -2849,7 +2849,26 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
       return false;
   }
 
+  m_cli->SetPagerLines(args.GetOptionAs("page", -1));
+
+  {
+    PCLI::Context * context = m_cli->StartForeground();
+    if (context != NULL)
+      m_outputStream = context;
+  }
+
   m_cli->SetPrompt(args.GetCommandName() + "> ");
+
+#if OPAL_PTLIB_SSL
+  m_cli->SetCommand("ssl", PCREATE_NOTIFIER(CmdSSL),
+                    "Set SSL/TLS certificates",
+                    "[ --ca <ca-dir-file> ] [ --cert <cert> ] [ --key <key> ] [ --no-create ]",
+                    "a-ca:        Set SSL/TLS certificate authority directory/file.\n"
+                    "c-cert:      Set SSL/TLS certificate for local client.\n"
+                    "k-key:       Set SSL/TLS private key lor local certificate.\n"
+                    "C-create.    Auto-create SSL/TLS certificate/private key if does not exist.\n"
+                    "n-no-create. Do not auto-create SSL/TLS certificate/private key if does not exist.\n");
+#endif
 
 #if OPAL_PTLIB_NAT
   m_cli->SetCommand("nat list", PCREATE_NOTIFIER(CmdNatList),
@@ -3057,6 +3076,24 @@ PCLICurses * OpalManagerCLI::CreateCLICurses()
 }
 #endif // P_CURSES
 
+
+#if OPAL_PTLIB_SSL
+void OpalManagerCLI::CmdSSL(PCLI::Arguments & args, P_INT_PTR)
+{
+  SetSSLCertificateAuthorityFiles(args.GetOptionString("ca", GetSSLCertificateAuthorityFiles()));
+  SetSSLCertificateFile(args.GetOptionString("cert", GetSSLCertificateFile()));
+  SetSSLPrivateKeyFile(args.GetOptionString("key", GetSSLPrivateKeyFile()));
+  if (args.HasOption("create"))
+    SetSSLAutoCreateCertificate(true);
+  if (args.HasOption("no-create"))
+    SetSSLAutoCreateCertificate(false);
+  
+  args.GetContext() << "SSL/TLS certificate authority: " << GetSSLCertificateAuthorityFiles() << "\n"
+                       "SSL/TLS certificate: " << GetSSLCertificateFile() << "\n"
+                       "SSL/TLS private key: " << GetSSLPrivateKeyFile() << "\n"
+                       "SSL/TLS auto-create certificate/key: " << (GetSSLAutoCreateCertificate() ? "Yes" : "No") << '\n';
+}
+#endif
 
 #if OPAL_PTLIB_NAT
 void OpalManagerCLI::CmdNatList(PCLI::Arguments & args, P_INT_PTR)

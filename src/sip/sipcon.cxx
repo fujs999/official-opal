@@ -1062,7 +1062,7 @@ void SIPConnection::WriteINVITE(OpalTransport & transport, bool & succeeded)
   SIPURL myAddress = m_stringOptions(OPAL_OPT_CALLING_PARTY_URL);
   if (myAddress.IsEmpty()) {
     if (GetLocalPartyName() == GetEndPoint().GetDefaultLocalPartyName())
-      myAddress = GetEndPoint().GetDefaultLocalURL(transport);
+      myAddress = GetEndPoint().GetDefaultLocalURL(transport, m_dialog.GetRequestURI());
     else {
       myAddress = GetLocalPartyName();
       myAddress.SetDisplayName(GetDisplayName());
@@ -1795,6 +1795,8 @@ OpalMediaCryptoSuite::KeyExchangeModes SIPConnection::GetMediaCryptoKeyExchangeM
   if (m_stringOptions.GetBoolean(OPAL_OPT_UNSECURE_SRTP) ||
               m_dialog.GetRemoteTransportAddress(m_dnsEntry).GetProtoPrefix() == OpalTransportAddress::TlsPrefix())
     modes |= OpalMediaCryptoSuite::e_SecureSignalling;
+  if (m_stringOptions.GetBoolean(OPAL_OPT_ENABLE_DTLS))
+    modes |= OpalMediaCryptoSuite::e_InBandKeyEchange;
   return modes;
 #else
   return OpalMediaCryptoSuite::e_AllowClear;
