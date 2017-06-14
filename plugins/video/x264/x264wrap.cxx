@@ -676,9 +676,9 @@ bool H264Encoder::OpenPipeAndExecute(void * instance, const char * executablePat
   }
 #endif /* HAVE_MKFIFO */
 
-  m_pid = fork();
+  m_pid = vfork();
   if (m_pid < 0) {
-    PTRACE(1, PipeTraceName, "Error when trying to fork");
+    PTRACE(1, PipeTraceName, "Error when trying to vfork");
     return false;
   }
 
