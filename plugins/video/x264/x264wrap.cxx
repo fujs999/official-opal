@@ -683,9 +683,10 @@ bool H264Encoder::OpenPipeAndExecute(void * instance, const char * executablePat
   }
 
   if (m_pid == 0) {
-    // If succeeds, does not return
+    // If succeeds, execl does not return
     execl(executablePath, executablePath, m_dlName, m_ulName, NULL);
-    PTRACE(1, PipeTraceName, "Error when trying to execute GPL process  " << executablePath << " - " << strerror(errno));
+    // With vfork() we must not do anything other than execl or _exit
+    _exit(1);
     return false;
   }
 
