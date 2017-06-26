@@ -1259,6 +1259,8 @@ void OpalManager_C::SendIncomingCallInfo(const OpalConnection & connection)
   message->m_param.m_incomingCall.m_product.m_manufacturerCode = info.manufacturerCode;
 
   SET_MESSAGE_STRING(message, m_param.m_incomingCall.m_alertingType,   network->GetAlertingType());
+  if (m_apiVersion >= 35)
+    SET_MESSAGE_STRING(message, m_param.m_incomingCall.m_supportedFeatures, network->GetSupportedFeatures());
   SET_MESSAGE_STRING(message, m_param.m_incomingCall.m_protocolCallId, connection.GetIdentifier());
 
   if (m_apiVersion >= 32)
@@ -1654,7 +1656,7 @@ void OpalManager_C::HandleSetGeneral(const OpalMessage & command, OpalMessageBuf
     }
     else {
       OpalMediaType mediaType = mediaName.ToLower();
-      if (!mediaType.empty()) {
+      if (mediaType.GetDefinition() != NULL) {
         // Known media type name, change all codecs of that type
         for (OpalMediaFormatList::iterator it = allCodecs.begin(); it != allCodecs.end(); ++it) {
           if (it->IsMediaType(mediaType)) {
@@ -2181,6 +2183,9 @@ static void SetOptionOverrides(bool originating,
 
   if (!IsNullString(params.m_displayName))
     options.Set(originating ? OPAL_OPT_CALLING_DISPLAY_NAME : OPAL_OPT_CALLED_DISPLAY_NAME, params.m_displayName);
+
+  if (!IsNullString(params.m_mediaCryptoSuites))
+    options.Set(OPAL_OPT_CRYPTO_SUITES, params.m_mediaCryptoSuites);
 
   if (params.m_userInputMode > OpalUserInputDefault && params.m_userInputMode <= OpalUserInputInBand) {
     static char const * const ModeNames[] = { "Q.931", "String", "Tone", "RFC2833", "InBand" };

@@ -719,7 +719,8 @@ void OpalConnection::AdjustMediaFormats(bool   local,
 
 PStringArray OpalConnection::GetMediaCryptoSuites() const
 {
-  return m_endpoint.GetMediaCryptoSuites();
+  PStringArray overrides = m_stringOptions(OPAL_OPT_CRYPTO_SUITES).Lines();
+  return overrides.IsEmpty() ? m_endpoint.GetMediaCryptoSuites() : overrides;
 }
 
 
@@ -1581,6 +1582,12 @@ bool OpalConnection::SetAlertingType(const PString & /*info*/)
 
 
 PString OpalConnection::GetCallInfo() const
+{
+  return PString::Empty();
+}
+
+
+PString OpalConnection::GetSupportedFeatures() const
 {
   return PString::Empty();
 }
