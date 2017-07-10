@@ -3,8 +3,8 @@
 %global version_patch  4
 
 Name:           bbcollab-libopal
-Version:        %{version_major}.%{version_minor}.%{version_patch}.21
-Release:        2%{?jenkins_release}%{?dist}
+Version:        %{version_major}.%{version_minor}.%{version_patch}.22
+Release:        1%{?jenkins_release}%{?dist}
 Summary:        OpalVOIP library
 
 Group:          System Environment/Libraries
