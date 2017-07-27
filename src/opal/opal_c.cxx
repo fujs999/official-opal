@@ -1259,6 +1259,8 @@ void OpalManager_C::SendIncomingCallInfo(const OpalConnection & connection)
   message->m_param.m_incomingCall.m_product.m_manufacturerCode = info.manufacturerCode;
 
   SET_MESSAGE_STRING(message, m_param.m_incomingCall.m_alertingType,   network->GetAlertingType());
+  if (m_apiVersion >= 35)
+    SET_MESSAGE_STRING(message, m_param.m_incomingCall.m_supportedFeatures, network->GetSupportedFeatures());
   SET_MESSAGE_STRING(message, m_param.m_incomingCall.m_protocolCallId, connection.GetIdentifier());
 
   if (m_apiVersion >= 32)
@@ -1654,7 +1656,7 @@ void OpalManager_C::HandleSetGeneral(const OpalMessage & command, OpalMessageBuf
     }
     else {
       OpalMediaType mediaType = mediaName.ToLower();
-      if (!mediaType.empty()) {
+      if (mediaType.GetDefinition() != NULL) {
         // Known media type name, change all codecs of that type
         for (OpalMediaFormatList::iterator it = allCodecs.begin(); it != allCodecs.end(); ++it) {
           if (it->IsMediaType(mediaType)) {
@@ -1807,12 +1809,16 @@ static void StartStopListeners(OpalEndPoint * ep, const PString & interfaces, Op
     return;
 
   ep->RemoveListener(NULL);
-  if (interfaces.IsEmpty())
+  if (interfaces.IsEmpty()) {
+    PTRACE(4, "Stopped all listeners for " << *ep);
     return;
+  }
 
   PStringArray interfaceArray;
   if (interfaces != "*")
     interfaceArray = interfaces.Lines();
+
+  PTRACE(4, "Starting listeners " << setfill(',') << interfaceArray << " for " << *ep);
   if (!ep->StartListeners(interfaceArray))
     response.SetError(PSTRSTRM("Could not start " << ep->GetPrefixName() << " listener(s) " << interfaces));
 }
@@ -1821,6 +1827,7 @@ static void StartStopListeners(OpalEndPoint * ep, const PString & interfaces, Op
 void OpalManager_C::HandleSetProtocol(const OpalMessage & command, OpalMessageBuffer & response)
 {
   if (IsNullString(command.m_param.m_protocol.m_prefix)) {
+    PTRACE(4, "Setting protocol parameters for all protocols");
     SET_MESSAGE_STRING(response, m_param.m_protocol.m_userName, GetDefaultUserName());
     if (command.m_param.m_protocol.m_userName != NULL)
       SetDefaultUserName(command.m_param.m_protocol.m_userName);
@@ -1854,6 +1861,7 @@ void OpalManager_C::HandleSetProtocol(const OpalMessage & command, OpalMessageBu
     return;
   }
 
+  PTRACE(4, "Setting protocol parameters for " << *ep);
   SET_MESSAGE_STRING(response, m_param.m_protocol.m_userName, ep->GetDefaultLocalPartyName());
   if (command.m_param.m_protocol.m_userName != NULL)
     ep->SetDefaultLocalPartyName(command.m_param.m_protocol.m_userName);
@@ -2181,6 +2189,9 @@ static void SetOptionOverrides(bool originating,
 
   if (!IsNullString(params.m_displayName))
     options.Set(originating ? OPAL_OPT_CALLING_DISPLAY_NAME : OPAL_OPT_CALLED_DISPLAY_NAME, params.m_displayName);
+
+  if (!IsNullString(params.m_mediaCryptoSuites))
+    options.Set(OPAL_OPT_CRYPTO_SUITES, params.m_mediaCryptoSuites);
 
   if (params.m_userInputMode > OpalUserInputDefault && params.m_userInputMode <= OpalUserInputInBand) {
     static char const * const ModeNames[] = { "Q.931", "String", "Tone", "RFC2833", "InBand" };

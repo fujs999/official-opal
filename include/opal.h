@@ -76,7 +76,7 @@ typedef struct OpalHandleStruct * OpalHandle;
 typedef struct OpalMessage OpalMessage;
 
 /// Current API version
-#define OPAL_C_API_VERSION 34
+#define OPAL_C_API_VERSION 35
 
 
 ///////////////////////////////////////
@@ -276,7 +276,7 @@ typedef OpalMessage * (OPAL_EXPORT *OpalGetMessageFunction)(OpalHandle opal, uns
     If successful, the the type of the message is the same as the command type.
     The message fields in the return will generally be set to the previous value
     for the field, where relevant. For example in the OpalCmdSetGeneralParameters
-    command the OpalParamGeneral::m_stunServer would contain the STUN server name
+    command the OpalParamGeneral::m_natServer would contain the STUN server name
     prior to the command.
 
     A NULL is only returned if the either OpalHandle or OpalMessage parameters is NULL.
@@ -372,6 +372,7 @@ typedef void (OPAL_EXPORT *OpalFreeMessageFunction)(OpalMessage * message);
                         OPAL_PREFIX_LYNC   " " \
                         OPAL_PREFIX_PCSS   " " \
                         OPAL_PREFIX_LOCAL  " " \
+                        OPAL_PREFIX_GST    " " \
                         OPAL_PREFIX_POTS   " " \
                         OPAL_PREFIX_PSTN   " " \
                         OPAL_PREFIX_FAX    " " \
@@ -646,7 +647,7 @@ typedef enum OpalMediaTiming {
 
       memset(&command, 0, sizeof(command));
       command.m_type = OpalCmdSetGeneralParameters;
-      command.m_param.m_general.m_stunServer = "stun.voxgratia.org";
+      command.m_param.m_general.m_natServer = "stun.l.google.com:19302";
       command.m_param.m_general.m_mediaMask = "RFC4175*";
       response = OpalSendMessage(hOPAL, &command);
       </code>
@@ -1230,6 +1231,12 @@ typedef struct OpalStatusIncomingCall {
                                       and system configuration, it may be different. A simple
                                       example is where the identity is "fred@nurk.com" but the
                                       address is "sip:fred@10.11.12.13:1415" */
+  const char * m_supportedFeatures; /** A list of supported features by name, separated by '\n'.
+                                        This is protocol dependent, for example, it corresponds to
+                                        the values of the "Supported" header in an incoming INVITE.
+                                        For H.323 it would be things like "H.460.18" etc. Note:
+                                        NULL indicagtes not supported by C API version, while empty
+                                        string indicates supported but no features indicated. */
 } OpalStatusIncomingCall;
 
 

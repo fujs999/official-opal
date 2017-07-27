@@ -268,6 +268,8 @@ static PString InternalGetRate(const PTime & lastUpdate,
       double value = (lastValue - previousValue)*1000.0/milliseconds;
       if (value == 0)
         str = '0';
+      else if (value <= 1.0)
+        str = PSTRSTRM(fixed << setprecision(significantFigures) << value);
       else
         str = PString(PString::ScaleSI, value, significantFigures);
     }
@@ -1470,9 +1472,9 @@ bool OpalMediaSession::ApplyCryptoKey(OpalMediaCryptoKeyList &, bool)
 }
 
 
-bool OpalMediaSession::IsCryptoSecured(bool) const
+OpalMediaCryptoKeyInfo * OpalMediaSession::IsCryptoSecured(bool) const
 {
-  return false;
+  return NULL;
 }
 
 
@@ -1602,12 +1604,19 @@ OpalMediaTransportPtr OpalDummySession::DetachTransport()
 
 
 #if OPAL_SDP
+OpalDummySession::OpalDummySession(const Init & init, const PStringArray & sdpTokens)
+  : OpalMediaSession(init)
+  , m_sdpTokens(sdpTokens)
+{
+}
+
+
 SDPMediaDescription * OpalDummySession::CreateSDPMediaDescription()
 {
-  if (m_mediaType.empty())
-    return new SDPDummyMediaDescription(GetLocalAddress(), PStringArray());
+  if (m_sdpTokens.empty())
+    return OpalMediaSession::CreateSDPMediaDescription();
 
-  return OpalMediaSession::CreateSDPMediaDescription();
+  return new SDPDummyMediaDescription(GetLocalAddress(), m_sdpTokens);
 }
 #endif // OPAL_SDP
 

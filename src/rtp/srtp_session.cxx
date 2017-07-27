@@ -383,6 +383,16 @@ PObject * OpalSRTPKeyInfo::Clone() const
 }
 
 
+PObject::Comparison OpalSRTPKeyInfo::Compare(const PObject & obj) const
+{
+  const OpalSRTPKeyInfo& other = dynamic_cast<const OpalSRTPKeyInfo&>(obj);
+  Comparison c = m_key.Compare(other.m_key);
+  if (c == EqualTo)
+    c = m_salt.Compare(other.m_salt);
+  return c;
+}
+
+
 bool OpalSRTPKeyInfo::IsValid() const
 {
   return m_key.GetSize() == m_cryptoSuite.GetCipherKeyBytes() &&
@@ -548,6 +558,16 @@ bool OpalSRTPSession::ApplyKeyToSRTP(const OpalMediaCryptoKeyInfo & keyInfo, Dir
     PTRACE(3, *this << "changing crypto keys from \"" << m_keyInfo[dir]->GetCryptoSuite() << "\""
                        " to \"" << keyInfo.GetCryptoSuite() << "\" for " << dir);
     delete m_keyInfo[dir];
+
+    for (SyncSourceMap::iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
+      if (it->second->m_direction == dir) {
+        RTP_SyncSourceId ssrc = it->first;
+        if (m_addedStream.erase(ssrc) > 0) {
+          srtp_remove_stream(m_context, ssrc);
+          PTRACE(4, *this << "removed " << dir << " SRTP stream for SSRC=" << RTP_TRACE_SRC(ssrc));
+        }
+      }
+    }
   }
   else {
     PTRACE(3, *this << "setting crypto keys (" << keyInfo.GetCryptoSuite() << ") for " << dir);
@@ -565,9 +585,9 @@ bool OpalSRTPSession::ApplyKeyToSRTP(const OpalMediaCryptoKeyInfo & keyInfo, Dir
 }
 
 
-bool OpalSRTPSession::IsCryptoSecured(Direction dir) const
+OpalMediaCryptoKeyInfo * OpalSRTPSession::IsCryptoSecured(bool rx) const
 {
-  return m_keyInfo[dir] != NULL;
+  return m_keyInfo[rx ? e_Receiver : e_Sender];
 }
 
 
