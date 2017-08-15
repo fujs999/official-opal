@@ -137,3 +137,4 @@ plugins/audio/Opus/opus/win32/VS2017/Win32/Debug
 plugins/audio/Opus/opus/win32/VS2017/Win32/Release
 plugins/audio/Opus/opus/win32/VS2017/x64
 rpmbuild/
+nbproject/private/
