@@ -44,6 +44,7 @@
 
 
 #define new PNEW
+#define PTraceModule() "MediaFormat"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -811,9 +812,10 @@ OpalMediaFormat::OpalMediaFormat(const char * fullName,
                                  PINDEX   fs,
                                  unsigned ft,
                                  unsigned cr,
-                                 time_t ts)
+                                 time_t ts,
+                                 bool am)
 {
-  Construct(new OpalMediaFormatInternal(fullName, mediaType, pt, en, nj, bw, fs, ft,cr, ts));
+  Construct(new OpalMediaFormatInternal(fullName, mediaType, pt, en, nj, bw, fs, ft,cr, ts, am));
 }
 
 
@@ -1232,12 +1234,16 @@ OpalMediaFormatInternal::OpalMediaFormatInternal(const char * fullName,
                                                  PINDEX   fs,
                                                  unsigned ft,
                                                  unsigned cr,
-                                                 time_t   ts)
-  : formatName(fullName), mediaType(_mediaType), forceIsTransportable(false)
+                                                 time_t   ts,
+                                                 bool     am)
+  : formatName(fullName)
+  , rtpPayloadType(pt)
+  , rtpEncodingName(en)
+  , mediaType(_mediaType)
+  , codecVersionTime(ts != 0 ? ts : PTime().GetTimeInSeconds())
+  , forceIsTransportable(false)
+  , m_allowMultiple(am)
 {
-  codecVersionTime = ts != 0 ? ts : PTime().GetTimeInSeconds();
-  rtpPayloadType   = pt;
-  rtpEncodingName  = en;
 
   AddOption(new OpalMediaOptionString(OpalMediaFormat::DescriptionOption(), true, fullName));
 
@@ -1277,8 +1283,12 @@ OpalMediaFormatInternal::OpalMediaFormatInternal(const char * fullName,
   }
 
   PWaitAndSignal mutex(GetMediaFormatsListMutex());
-  OpalMediaFormatList & registeredFormats = GetMediaFormatsList();
+  DeconflictPayloadTypes(GetMediaFormatsList());
+}
 
+
+void OpalMediaFormatInternal::DeconflictPayloadTypes(OpalMediaFormatList & formats)
+{
   OpalMediaFormat * conflictingFormat = NULL;
 
   // Build a table of all the unused payload types
@@ -1290,13 +1300,13 @@ OpalMediaFormatInternal::OpalMediaFormatInternal(const char * fullName,
     inUse[i] = true;
 
   // Search for conflicting RTP Payload Type, collecting in use payload types along the way
-  for (OpalMediaFormatList::iterator format = registeredFormats.begin(); format != registeredFormats.end(); ++format) {
+  for (OpalMediaFormatList::iterator format = formats.begin(); format != formats.end(); ++format) {
     inUse[format->GetPayloadType()] = true;
 
     // A conflict is when we are after an explicit payload type, we have found one already using it
     if (rtpPayloadType > RTP_DataFrame::DynamicBase && rtpPayloadType  == format->GetPayloadType()) {
       // If it is a shared payload types, which happens when encoding name is the same, then allow it
-      if (rtpEncodingName == format->GetEncodingName())
+      if (!m_allowMultiple && rtpEncodingName == format->GetEncodingName())
         return;
 
       // Have a conflicting media format, move it later when we know where to
@@ -1304,8 +1314,8 @@ OpalMediaFormatInternal::OpalMediaFormatInternal(const char * fullName,
     }
   }
 
-  if (rtpPayloadType > RTP_DataFrame::DynamicBase && conflictingFormat == NULL) {
-    PTRACE(4, "Using assigned payload type " << rtpPayloadType << " for " << fullName);
+  if (!inUse[rtpPayloadType]) {
+    PTRACE(5, "Using provided payload type " << rtpPayloadType << " for " << formatName);
     return;
   }
 
@@ -1321,12 +1331,15 @@ OpalMediaFormatInternal::OpalMediaFormatInternal(const char * fullName,
 
   // If we had a conflict we change the older one, as it is assumed that the
   // application really wanted that value and internal OPAL ones can move
-  if (conflictingFormat == NULL)
-    rtpPayloadType = (RTP_DataFrame::PayloadTypes)nextUnused;
+  if (conflictingFormat == NULL || m_allowMultiple) {
+    RTP_DataFrame::PayloadTypes newPT = (RTP_DataFrame::PayloadTypes)nextUnused;
+    PTRACE(4, "Replacing payload type " << rtpPayloadType << " with " << newPT << " for " << formatName);
+    rtpPayloadType = newPT;
+  }
   else {
     PTRACE(3, "Conflicting payload type: "
            << *conflictingFormat << " moved to " << nextUnused
-           << " as " << fullName << " requires " << rtpPayloadType);
+           << " as " << formatName << " requires " << rtpPayloadType);
     conflictingFormat->SetPayloadType((RTP_DataFrame::PayloadTypes)nextUnused);
   }
 }
@@ -2092,10 +2105,8 @@ OpalMediaFormatList & OpalMediaFormatList::operator+=(const PString & wildcard)
   OpalMediaFormatList & registeredFormats = GetMediaFormatsList();
 
   OpalMediaFormatList::const_iterator fmt;
-  while ((fmt = registeredFormats.FindFormat(wildcard, fmt)) != registeredFormats.end()) {
-    if (!HasFormat(*fmt))
-      OpalMediaFormatBaseList::Append(fmt->Clone());
-  }
+  while ((fmt = registeredFormats.FindFormat(wildcard, fmt)) != registeredFormats.end())
+    *this += *fmt;
 
   return *this;
 }
@@ -2104,8 +2115,19 @@ OpalMediaFormatList & OpalMediaFormatList::operator+=(const PString & wildcard)
 OpalMediaFormatList & OpalMediaFormatList::operator+=(const OpalMediaFormat & format)
 {
   MakeUnique();
-  if (format.IsValid() && !HasFormat(format))
+
+  if (!format.IsValid())
+    return *this;
+
+  const_iterator it = FindFormat(format);
+  if (it == end())
     OpalMediaFormatBaseList::Append(format.Clone());
+  else if (format.m_info->m_allowMultiple) {
+    OpalMediaFormat * copy = format.CloneAs<OpalMediaFormat>();
+    copy->m_info->DeconflictPayloadTypes(*this);
+    OpalMediaFormatBaseList::Append(copy);
+  }
+
   return *this;
 }
 
@@ -2388,6 +2410,64 @@ OpalMediaTypeList OpalMediaFormatList::GetMediaTypes() const
 
   return mediaTypes;
 }
+
+
+/////////////////////////////////////////////////////////////////////////////
+
+namespace OpalRtx
+{
+  const PString & AssociatedPayloadTypeOption() { static PConstString s("Associated-Payload-Type"); return s; }
+  const PString & RetransmitTimeOption() { static PConstString s("Retransmit-Time"); return s; }
+  const PCaselessString & EncodingName() { static PConstCaselessString s("rtx"); return s; }
+
+  class OpalRtxMediaFormat : public OpalMediaFormat
+  {
+  public:
+    OpalRtxMediaFormat(const OpalMediaType & mediaType)
+      : OpalMediaFormat(OpalRtx::GetName(mediaType),
+                        mediaType,
+                        RTP_DataFrame::DynamicBase,
+                        EncodingName(),
+                        false, 0, 0, 0,
+                        mediaType == OpalMediaType::Video() ? VideoClockRate : AudioClockRate,
+                        0, true)
+    {
+      OpalMediaOptionUnsigned * opt = new OpalMediaOptionUnsigned(AssociatedPayloadTypeOption(),
+                                          true, OpalMediaOption::EqualMerge, 0, 0, RTP_DataFrame::MaxPayloadType);
+      OPAL_SET_MEDIA_OPTION_FMTP(opt, "apt", "");
+      AddOption(opt);
+
+      opt = new OpalMediaOptionUnsigned(RetransmitTimeOption(), false, OpalMediaOption::NoMerge, 3000, 100);
+      OPAL_SET_MEDIA_OPTION_FMTP(opt, "rtx-time", "");
+      AddOption(opt);
+    }
+  };
+
+  PString GetName(const OpalMediaType & mediaType)
+  {
+    return "rtx-" + mediaType;
+  }
+
+  static PMutex s_rtxMutex;
+
+  OpalMediaFormat GetMediaFormat(const OpalMediaType & mediaType)
+  {
+    PString name = GetName(mediaType);
+    OpalMediaFormat fmt(name);
+    if (!fmt.IsValid()) {
+      PWaitAndSignal lock(s_rtxMutex);
+      fmt = name; // Check again after mutex to avoid race condition
+      if (!fmt.IsValid()) {
+        // Need to keep a primordial copy of the media format, and release memory on program exit
+        static OpalMediaFormatList cleanUpRtx;
+        cleanUpRtx.OpalMediaFormatBaseList::Append(new OpalRtxMediaFormat(mediaType));
+        fmt = name;
+      }
+    }
+
+    return fmt;
+  }
+};
 
 
 // End of File ///////////////////////////////////////////////////////////////
