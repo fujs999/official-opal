@@ -67,7 +67,6 @@ PKG_CONFIG_PATH=/opt/bbcollab/lib64/pkgconfig:/opt/bbcollab/lib/pkgconfig
         --mandir=/opt/bbcollab/share/man \
         --infodir=/opt/bbcollab/share/info \
         --enable-localspeexdsp \
-        --enable-rtpfec \
         --disable-h323 \
         --disable-iax2 \
         --disable-skinny \
