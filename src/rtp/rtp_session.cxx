@@ -1264,6 +1264,11 @@ bool OpalRTPSession::SyncSource::OnSendReceiverReport(RTP_ControlFrame::Receiver
   if (m_packets == 0 && !m_lastSenderReportTime.IsValid())
     return false;
 
+  // https://tools.ietf.org/html/rfc3550#section-6.4
+  // Do not include a reception block if no RTP packets have been received since the last report
+  if (m_extendedSequenceNumber == m_lastRRSequenceNumber)
+      return false;
+
   if (report == NULL)
     return true;
 
@@ -1271,13 +1276,12 @@ bool OpalRTPSession::SyncSource::OnSendReceiverReport(RTP_ControlFrame::Receiver
   report->SetLostPackets(m_packetsLost);
 
   if (m_extendedSequenceNumber >= m_lastRRSequenceNumber)
-    report->fraction = (BYTE)((m_packetsLostSinceLastRR<<8)/(m_extendedSequenceNumber - m_lastRRSequenceNumber + 1));
+    report->fraction = (BYTE)((m_packetsLostSinceLastRR<<8)/(m_extendedSequenceNumber - m_lastRRSequenceNumber));
   else
     report->fraction = 0;
   m_packetsLostSinceLastRR = 0;
 
-  report->last_seq = m_lastRRSequenceNumber;
-  m_lastRRSequenceNumber = m_extendedSequenceNumber;
+  report->last_seq = m_lastRRSequenceNumber = m_extendedSequenceNumber;
 
   report->jitter = m_jitterAccum >> JitterRoundingGuardBits; // Allow for rounding protection bits
 
@@ -1338,7 +1342,7 @@ void OpalRTPSession::SyncSource::OnRxSenderReport(const RTP_SenderReport & repor
 
 void OpalRTPSession::SyncSource::OnRxReceiverReport(const RTP_ReceiverReport & report)
 {
-  PTRACE(m_throttleRxRR, &m_session, m_session << "OnReceiverReport: " << report << m_throttleRxRR);
+  PTRACE(m_throttleRxRR, &m_session, m_session << "OnRxReceiverReport: " << report << m_throttleRxRR);
 
   m_packetsLost = report.totalLost;
   PTRACE_IF(m_throttleInvalidLost, (unsigned)m_packetsLost > m_packets, &m_session,
@@ -1470,9 +1474,12 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnPreReceiveData(RTP_DataFrame
     return e_IgnorePacket; // Non fatal error, just ignore
   }
 
-  SyncSource * receiver = UseSyncSource(frame.GetSyncSource(), e_Receiver, false);
-  if (receiver == NULL)
+  RTP_SyncSourceId ssrc = frame.GetSyncSource();
+  SyncSource * receiver = UseSyncSource(ssrc, e_Receiver, false);
+  if (receiver == NULL) {
+      PTRACE_IF(2, m_loggedBadSSRC.insert(ssrc).second, *this << "ignoring unknown SSRC: " << setw(1) << frame);
       return e_IgnorePacket;
+  }
 
   return receiver->OnReceiveData(frame, e_RxFromNetwork);
 }
@@ -2000,16 +2007,15 @@ bool OpalRTPSession::CheckControlSSRC(RTP_SyncSourceId PTRACE_PARAM(senderSSRC),
                                       SyncSource * & info
                                       PTRACE_PARAM(, const char * pduName))
 {
-#if PTRACING
-  unsigned level = IsGroupMember(GetBundleGroupId()) ? 6 : 2;
-  PTRACE_IF(level, m_SSRC.find(senderSSRC) == m_SSRC.end(), *this << pduName << " from incorrect SSRC=" << RTP_TRACE_SRC(senderSSRC));
-  if (m_SSRC.find(targetSSRC) == m_SSRC.end()) {
-    PTRACE(level, *this << pduName << " for incorrect SSRC=" << RTP_TRACE_SRC(targetSSRC));
-    return false;
-  }
-#endif
+  PTRACE_IF(2, m_SSRC.find(senderSSRC) == m_SSRC.end() && m_loggedBadSSRC.insert(senderSSRC).second,
+            *this << pduName << " from incorrect SSRC=" << RTP_TRACE_SRC(senderSSRC));
 
-  return targetSSRC != 0 && GetSyncSource(targetSSRC, e_Sender, info);
+  if (targetSSRC != 0 && GetSyncSource(targetSSRC, e_Sender, info))
+    return true;
+
+  PTRACE_IF(2, m_loggedBadSSRC.insert(targetSSRC).second,
+            *this << pduName << " for incorrect SSRC=" << RTP_TRACE_SRC(targetSSRC));
+  return false;
 }
 
 
@@ -2474,9 +2480,10 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SendNACK(const RTP_ControlFram
     // Packet always starts with SR or RR, use empty RR as place holder
     InitialiseControlFrame(request, *sender);
 
-    PTRACE(4, *this << "sending NACK, "
-              "SSRC=" << RTP_TRACE_SRC(receiver->m_sourceIdentifier) << ", "
-              "lost=" << lostPackets);
+    PTRACE(4, *this << "sending NACK:"
+                       " lost=" << lostPackets << ","
+                       " rx-SSRC=" << RTP_TRACE_SRC(receiver->m_sourceIdentifier) << ","
+                       " tx-SSRC=" << RTP_TRACE_SRC(sender->m_sourceIdentifier));
 
     request.AddNACK(sender->m_sourceIdentifier, receiver->m_sourceIdentifier, lostPackets);
     ++receiver->m_NACKs;
@@ -2534,16 +2541,16 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SendFlowControl(unsigned maxBi
 
     if (!(m_feedback&(OpalMediaFormat::e_TMMBR | OpalMediaFormat::e_REMB))) {
       PTRACE(3, *this << "remote not capable of flow control (TMMBR or REMB)");
-      return e_ProcessPacket;
+      return e_IgnorePacket;
     }
 
     SyncSource * sender;
     if (!GetSyncSource(0, e_Sender, sender))
-      return e_ProcessPacket;
+      return e_IgnorePacket;
 
     SyncSource * receiver;
     if (!GetSyncSource(syncSourceIn, e_Receiver, receiver))
-      return e_ProcessPacket;
+      return e_IgnorePacket;
 
     // Packet always starts with SR or RR, use empty RR as place holder
     InitialiseControlFrame(request, *sender);
@@ -2586,11 +2593,11 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SendIntraFrameRequest(unsigned
 
     SyncSource * sender;
     if (!GetSyncSource(0, e_Sender, sender))
-      return e_ProcessPacket;
+      return e_IgnorePacket;
 
     SyncSource * receiver;
     if (!GetSyncSource(syncSourceIn, e_Receiver, receiver))
-      return e_ProcessPacket;
+      return e_IgnorePacket;
 
     // Packet always starts with SR or RR, use empty RR as place holder
     InitialiseControlFrame(request, *sender);
@@ -2635,22 +2642,24 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SendTemporalSpatialTradeOff(un
 
     if (!(m_feedback&OpalMediaFormat::e_TSTR)) {
       PTRACE(3, *this << "remote not capable of Temporal/Spatial Tradeoff (TSTR)");
-      return e_ProcessPacket;
+      return e_IgnorePacket;
     }
 
     SyncSource * sender;
     if (!GetSyncSource(0, e_Sender, sender))
-      return e_ProcessPacket;
+      return e_IgnorePacket;
 
     SyncSource * receiver;
     if (!GetSyncSource(syncSourceIn, e_Receiver, receiver))
-      return e_ProcessPacket;
+      return e_IgnorePacket;
 
     // Packet always starts with SR or RR, use empty RR as place holder
     InitialiseControlFrame(request, *sender);
 
-    PTRACE(3, *this << "sending TSTO (temporal spatial trade off) "
-           "value=" << tradeOff << ", SSRC=" << RTP_TRACE_SRC(receiver->m_sourceIdentifier));
+    PTRACE(3, *this << "sending TSTO (temporal spatial trade off):"
+                       " value=" << tradeOff << ","
+                       " rx-SSRC=" << RTP_TRACE_SRC(receiver->m_sourceIdentifier) << ","
+                       " tx-SSRC=" << RTP_TRACE_SRC(sender->m_sourceIdentifier));
 
     request.AddTSTO(sender->m_sourceIdentifier, receiver->m_sourceIdentifier, tradeOff, sender->m_lastTSTOSequenceNumber++);
   }

@@ -836,7 +836,7 @@ class OpalRTPSession : public OpalMediaSession
     typedef std::map<RTP_SyncSourceId, SyncSource *> SyncSourceMap;
     SyncSourceMap    m_SSRC;
     SyncSource       m_dummySyncSource;
-    RTP_SyncSourceId m_defaultSSRC[2];
+    RTP_SyncSourceId m_defaultSSRC[2]; // For e_Sender and e_Receiver
 
     const SyncSource & GetSyncSource(RTP_SyncSourceId ssrc, Direction dir) const;
     virtual bool GetSyncSource(RTP_SyncSourceId ssrc, Direction dir, SyncSource * & info);
@@ -875,6 +875,9 @@ class OpalRTPSession : public OpalMediaSession
     PTRACE_THROTTLE(m_throttleTxReport,3,60000,5);
     PTRACE_THROTTLE(m_throttleRxEmptyRR,3,60000);
     PTRACE_THROTTLE(m_throttleRxSDES,4,60000);
+#if PTRACING
+    std::set<RTP_SyncSourceId> m_loggedBadSSRC;
+#endif
 
   private:
     OpalRTPSession(const OpalRTPSession &);
