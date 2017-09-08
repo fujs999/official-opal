@@ -2035,7 +2035,7 @@ bool SDPRTPAVPMediaDescription::FromSession(OpalMediaSession * session,
               RTP_SyncSourceId ssrc = *itSSRC;
               if (rtpSession->GetRtxSyncSource(ssrc, OpalRTPSession::e_Sender, true) == 0 &&
                   rtpSession->GetRtxSyncSource(ssrc, OpalRTPSession::e_Sender, false) == 0) {
-                RTP_SyncSourceId rtxSSRC = rtpSession->EnableSyncSourceRtx(ssrc, pt, 0);
+                RTP_SyncSourceId rtxSSRC = rtpSession->EnableSyncSourceRtx(ssrc, rtx->GetPayloadType(), 0);
                 if (rtxSSRC != 0)
                   ssrcs.push_back(rtxSSRC);
               }
@@ -2103,6 +2103,8 @@ bool SDPRTPAVPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSo
 {
   OpalRTPSession * rtpSession = dynamic_cast<OpalRTPSession *>(session);
   if (rtpSession != NULL) {
+    PTRACE(4, "Setting SDP to RTP session " << *rtpSession);
+
     /* Set single port or disjoint RTCP port, must be done before Open()
        and before SDPMediaDescription::ToSession() */
     rtpSession->SetSinglePortTx(m_controlAddress == m_mediaAddress);
@@ -2131,6 +2133,7 @@ bool SDPRTPAVPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSo
     }
 
     // Connect up the SSRC's used for "rtx" packets
+    RTP_SyncSourceArray rtxConfirmed;
     for (vector<RTP_SyncSourceArray>::const_iterator it = m_flowSSRC.begin(); it != m_flowSSRC.end(); ++it) {
       if (it->size() == 2) {
         RTP_SyncSourceId primarySSRC = it->at(0);
@@ -2146,12 +2149,23 @@ bool SDPRTPAVPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSo
             const OpalMediaFormat & mediaFormat = format->GetMediaFormat();
             if (OpalRtx::EncodingName() == mediaFormat.GetEncodingName()) {
               RTP_DataFrame::PayloadTypes pt = mediaFormat.GetOptionPayloadType(OpalRtx::AssociatedPayloadTypeOption());
-              if (pt != RTP_DataFrame::IllegalPayloadType)
+              if (pt != RTP_DataFrame::IllegalPayloadType) {
                 rtpSession->EnableSyncSourceRtx(primarySSRC, pt, rtxSSRC);
+                rtxConfirmed.push_back(rtxSSRC);
+              }
             }
           }
         }
       }
+    }
+
+    // Go through and remove those rtx SSRC's that didn't get confirmed
+    RTP_SyncSourceArray senderSSRCs = rtpSession->GetSyncSources(OpalRTPSession::e_Sender);
+    for (RTP_SyncSourceArray::iterator it = senderSSRCs.begin(); it != senderSSRCs.end(); ++it) {
+      RTP_SyncSourceId ssrc = *it;
+      if (rtpSession->GetRtxSyncSource(ssrc, OpalRTPSession::e_Sender, false) != 0 &&
+          std::find(rtxConfirmed.begin(), rtxConfirmed.end(), ssrc) == rtxConfirmed.end())
+        rtpSession->RemoveSyncSource(ssrc);
     }
   }
 
