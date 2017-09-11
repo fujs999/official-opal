@@ -148,7 +148,8 @@ class OpalRTPSession : public OpalMediaSession
       */
     RTP_SyncSourceArray GetSyncSources(Direction dir) const;
 
-    /**Set the "rtx" SSRC to use for the given SSRC
+    /**Set the "rtx" SSRC to use for the given SSRC.
+       @return rtxSSRC or a newly allocated SSRC used for "rtx" packets. Zero on error.
       */
     RTP_SyncSourceId EnableSyncSourceRtx(
       RTP_SyncSourceId primarySSRC,      ///< Primary SSRC of data that can be retransmitted
@@ -385,11 +386,17 @@ class OpalRTPSession : public OpalMediaSession
     void SetMediaTrackId(const PString & id, RTP_SyncSourceId ssrc, Direction dir);
 
     /**Get the SSRC for the secondary rtx packets.
-       If \p primary is true then returns the SSRC that is being sued for "rtx" packets,
-       and when false, indicates the SSRC used for primary data.
-       @return zero of \p ssrc does not exist or is not being used for "rtx" packets.
+       If \p primary is true then \p ssrc is a primary SSRC and the function
+       returns the SSRC that is being used for "rtx" packets. When false,
+       \p ssrc is expected to be an "rtx" SSRC and the function returns the
+       SSRC used for primary data.
+       @return zero if \p ssrc does not exist or is not the expected type.
       */
-    RTP_SyncSourceId GetRtxSyncSource(RTP_SyncSourceId ssrc, Direction dir, bool primary) const;
+    RTP_SyncSourceId GetRtxSyncSource(
+      RTP_SyncSourceId ssrc,    ///< SSRC to get value for
+      Direction dir,            ///< Direction of media, if ssrc == 0
+      bool isPrimary            ///< The \p ssrc is a primary and we are getting "rtx" SSRC
+  ) const;
 
     /**Get the tool name for the RTP session.
       */
