@@ -776,8 +776,10 @@ OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnReceiveData(RTP_DataFrame &
     return e_IgnorePacket;
   }
 
-  /* Need to have a receiver SSRC (their sender) even if we have never been
-      told about it, or we can't decrypt the RTCP packet. */
+  /* Need to have a receiver SSRC (their sender) or we can't decrypt the RTCP
+     packet. Applies only if remote did not tell us about SSRC's via signalling
+     (e.g. SDP) and we just acceting anything, if it did tell us valid SSRC's
+     the this fails and we don't use the RTP data as it may be some spoofing. */
   if (UseSyncSource(ssrc, e_Receiver, false) == NULL)
     return e_IgnorePacket;
 
