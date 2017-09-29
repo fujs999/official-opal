@@ -640,6 +640,7 @@ void FFMPEGCodec::ErrorCallback(unsigned ffmpegLevel, const char * msg)
       strstr(msg, "Too many slices") != NULL ||
       (isxdigit(msg[1]) && msg[2] == '\0'))
     ptlibLevel = 6;
+  // This is not really so severe an error, everything decodes fine! Happens with flash, a lot.
   else if (strcmp(msg, "non-existing SPS 32 referenced in buffering period") == 0)
     ptlibLevel = 5;
   else if (ffmpegLevel > 2)
