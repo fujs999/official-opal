@@ -9,6 +9,7 @@ RUN groupadd -g 1000 jenkins && useradd -M -u 1000 -g 1000 jenkins
 RUN rpm --import http://packages.atrpms.net/RPM-GPG-KEY.atrpms \
     && yum install -y http://dl.atrpms.net/all/atrpms-repo-6-7.el6.x86_64.rpm \
     && yum clean all
+RUN sed --in-place 's/^baseurl=http:\/\/dl.atrpms.net\/el$releasever-$basearch\/atrpms\/stable$/baseurl=http:\/\/dl.atrpms.net\/el$releasever-$basearch\/atrpms\/stable https:\/\/www.mirrorservice.org\/sites\/dl.atrpms.net\/el$releasever-$basearch\/atrpms\/stable/' /etc/yum.repos.d/atrpms.repo
 COPY mcu.repo /etc/yum.repos.d/
 COPY bbcollab-libopal.spec .
 # Invalidate Docker cache if yum repo metadata has changed
