@@ -105,6 +105,12 @@ PBoolean OpalFaxMediaStream::WritePacket(RTP_DataFrame & packet)
 }
 
 
+PString OpalFaxMediaStream::GetPatchThreadName() const
+{
+  return PSTRSTRM((IsSource() ? 'R' : 'T') << "x " << GetMediaFormat());
+}
+
+
 PBoolean OpalFaxMediaStream::IsSynchronous() const
 {
   return false;
@@ -226,6 +232,13 @@ void OpalFaxSession::ApplyMediaOptions(const OpalMediaFormat & mediaFormat)
 }
 
 
+void OpalFaxSession::AttachTransport(const OpalMediaTransportPtr & transport)
+{
+  m_transport = transport;
+  m_transport->AddReadNotifier(PCREATE_NOTIFIER(OnReadPacket));
+}
+
+
 bool OpalFaxSession::Open(const PString & localInterface, const OpalTransportAddress & remoteAddress)
 {
   if (IsOpen())
@@ -248,6 +261,8 @@ bool OpalFaxSession::Open(const PString & localInterface, const OpalTransportAdd
     PTRACE(2, "UDPTL\tCould conect to " << remoteAddress);
     return false;
   }
+
+  m_transport->AddReadNotifier(PCREATE_NOTIFIER(OnReadPacket));
 
   PTRACE(3, "UDPTL\tOpened transport to " << remoteAddress);
   return true;
@@ -642,7 +657,7 @@ PStringList OpalFaxEndPoint::GetAvailableStringOptions() const
   static char const * const StringOpts[] = {
     OPAL_OPT_STATION_ID,
     OPAL_OPT_HEADER_INFO,
-    OPAL_NO_G111_FAX,
+    OPAL_NO_G711_FAX,
     OPAL_SWITCH_ON_CED,
     OPAL_T38_SWITCH_TIME
   };
@@ -842,6 +857,16 @@ void OpalFaxConnection::OnClosedMediaStream(const OpalMediaStream & stream)
 }
 
 
+void OpalFaxConnection::OnStopMediaPatch(OpalMediaPatch & patch)
+{
+  OpalMediaStreamPtr src = &patch.GetSource();
+  if (&src->GetConnection() == this)
+    GetEndPoint().GetManager().QueueDecoupledEvent(
+              new PSafeWorkArg1<OpalConnection, OpalMediaStreamPtr, bool>(this, src, &OpalConnection::CloseMediaStream));
+  OpalLocalConnection::OnStopMediaPatch(patch);
+}
+
+
 PBoolean OpalFaxConnection::SendUserInputTone(char tone, unsigned duration)
 {
   OnUserInputTone(tone, duration);
@@ -931,7 +956,7 @@ void OpalFaxConnection::OnSwitchedFaxMediaStreams(bool toT38, bool success)
     m_finalStatistics.m_fax.m_result = OpalMediaStatistics::FaxNotStarted;
   }
   else {
-    if (toT38 && m_stringOptions.GetBoolean(OPAL_NO_G111_FAX)) {
+    if (toT38 && m_stringOptions.GetBoolean(OPAL_NO_G711_FAX)) {
       PTRACE(4, "FAX\tSwitch request to fax failed, checking for fall back to G.711");
       InternalOnFaxCompleted();
     }
