@@ -824,6 +824,7 @@ OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnReceiveControl(RTP_ControlF
     OPAL_SRTP_TRACE(2, e_Receiver, e_Control, ssrc, 3, "not automatically added");
     return e_IgnorePacket;
   }
+
   m_anyRTCP_SSRC = false;
 
   RTP_ControlFrame decoded(encoded);
