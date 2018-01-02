@@ -396,10 +396,41 @@ bool OpalICEMediaTransport::InternalHandleICE(SubChannels subchannel, const void
       return false;
     }
 
-    m_remoteCandidates[subchannel].push_back(PNatCandidate(PNatCandidate::HostType, (PNatMethod::Component)(subchannel+1)));
+    /* If we had not got the candidate via SDP, then there was some sort of short cut to
+       a trickle ICE and this candidate took too long to determine by the signalling system.
+       We will assume that was a TURN server, as that would be typically slowest to set up,
+       and give it lowest possible priority. Note, that if we have a PRIORITY attribute in
+       the STUN, and it was constructed as per RFC recommendation, we can actually determine
+       the type from it. */
+    PNatCandidate newCandidate(PNatCandidate::RelayType, (PNatMethod::Component)(subchannel+1));
+    typedef PSTUNAttribute1<PSTUNAttribute::PRIORITY, PUInt32b> PSTUNIcePriority;
+    PSTUNIcePriority * priAttr = PSTUNIcePriority::Find(message);
+    if (priAttr != NULL) {
+      newCandidate.m_priority = priAttr->m_parameter;
+      switch (newCandidate.m_priority >> 24) {
+        case 126 :
+          newCandidate.m_type = PNatCandidate::HostType;
+          break;
+
+        case 110 :
+          newCandidate.m_type = PNatCandidate::PeerReflexiveType;
+          break;
+
+        case 100 :
+          newCandidate.m_type = PNatCandidate::ServerReflexiveType;
+          break;
+
+        case 0 :
+          break; // PNatCandidate::RelayType
+
+        default :
+          PTRACE(4, "Could not derive the candidate type from priority (" << newCandidate.m_priority << ") in STUN message.");
+      }
+    }
+    m_remoteCandidates[subchannel].push_back(newCandidate);
     candidate = &m_remoteCandidates[subchannel].back();
     candidate->m_baseTransportAddress = ap;
-    PTRACE(3, *this << subchannel << ", received STUN request for unknown ICE candidate, adding: " << ap);
+    PTRACE(3, *this << subchannel << ", received STUN request for unknown ICE candidate, adding: " << newCandidate);
   }
 
   if (message.IsRequest()) {
@@ -425,10 +456,12 @@ bool OpalICEMediaTransport::InternalHandleICE(SubChannels subchannel, const void
     PTRACE(3, *this << subchannel << ", ICE found USE-CANDIDATE from " << ap);
 
     /* With ICE-lite (which only supports regular nomination), only one candidate pair
-       should ever be selected. Allowing the candidate to change after initial selection
-       decreases Firefox connection reliability, as it only supports aggressive nomination.
-       See https://bugzilla.mozilla.org/show_bug.cgi?id=1034964 */
-    if (m_lite && m_state == e_Completed)
+       should ever be selected. However, Firefox only supports aggressive nomination,
+       see https://bugzilla.mozilla.org/show_bug.cgi?id=1034964 which means we have
+       to implement at least that small part of full ICE. So, we check for if we
+       already have a selected candidate, and ignore any others unless one with a
+       higher priority arrives. */
+    if (m_state == e_Completed && m_selectedCandidate->m_priority >= candidate->m_priority)
       return false;
   }
   else if (message.IsSuccessResponse()) {
