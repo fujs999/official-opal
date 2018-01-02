@@ -46,6 +46,18 @@
 #define new PNEW
 
 
+// Magic numbers from RFC5245
+const unsigned HostTypePriority = 126;
+const unsigned PeerReflexiveTypePriority = 110;
+const unsigned ServerReflexiveTypePriority = 100;
+const unsigned RelayTypePriority = 0;
+const unsigned CandidateTypePriority[PNatCandidate::NumTypes] = {
+  HostTypePriority,
+  ServerReflexiveTypePriority,
+  PeerReflexiveTypePriority,
+  RelayTypePriority
+};
+
 /////////////////////////////////////////////////////////////////////////////
 
 OpalICEMediaTransport::OpalICEMediaTransport(const PString & name)
@@ -269,7 +281,7 @@ bool OpalICEMediaTransport::GetCandidates(PString & user, PString & pass, PNatCa
     static const PNatMethod::Component ComponentId[2] = { PNatMethod::eComponent_RTP, PNatMethod::eComponent_RTCP };
     PNatCandidate candidate(PNatCandidate::HostType, ComponentId[subchannel], LiteFoundation);
     GetSubChannelAsSocket((SubChannels)subchannel)->GetLocalAddress(candidate.m_baseTransportAddress);
-    candidate.m_priority = (126 << 24) | (256 - candidate.m_component);
+    candidate.m_priority = (CandidateTypePriority[candidate.m_type] << 24) | (256 - candidate.m_component);
 
     if (candidate.m_baseTransportAddress.GetAddress().GetVersion() != 6)
       candidate.m_priority |= 0xffff00;
@@ -408,20 +420,20 @@ bool OpalICEMediaTransport::InternalHandleICE(SubChannels subchannel, const void
     if (priAttr != NULL) {
       newCandidate.m_priority = priAttr->m_parameter;
       switch (newCandidate.m_priority >> 24) {
-        case 126 :
+        case HostTypePriority :
           newCandidate.m_type = PNatCandidate::HostType;
           break;
 
-        case 110 :
+        case PeerReflexiveTypePriority :
           newCandidate.m_type = PNatCandidate::PeerReflexiveType;
           break;
 
-        case 100 :
+        case ServerReflexiveTypePriority :
           newCandidate.m_type = PNatCandidate::ServerReflexiveType;
           break;
 
-        case 0 :
-          break; // PNatCandidate::RelayType
+        case RelayTypePriority :
+          break;
 
         default :
           PTRACE(4, "Could not derive the candidate type from priority (" << newCandidate.m_priority << ") in STUN message.");
