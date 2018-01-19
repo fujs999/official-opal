@@ -415,6 +415,7 @@ OpalRTPSession::SyncSource::SyncSource(OpalRTPSession & session, RTP_SyncSourceI
   , m_canonicalName(cname)
   , m_rtxSSRC(0)
   , m_rtxPT(RTP_DataFrame::IllegalPayloadType)
+  , m_rtxPackets(-1)
   , m_notifiers(m_session.m_notifiers)
   , m_lastSequenceNumber(0)
   , m_extendedSequenceNumber(0)
@@ -575,6 +576,9 @@ void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame
   m_averageTimeAccum = 0;
   m_maximumTimeAccum = 0;
   m_minimumTimeAccum = 0xffffffff;
+
+  if (m_maxConsecutiveLost > 0)
+    m_maxConsecutiveLost = 0;
 
 #if PTRACING
   unsigned Level = 4;
@@ -1437,14 +1441,22 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnSendData(RTP_DataFrame & fra
     GetSyncSource(ssrc, e_Sender, syncSource);
   }
 
-  if (rewrite != e_Retransmit || syncSource->m_rtxSSRC == 0)
-    return syncSource->OnSendData(frame, rewrite);
+  switch (rewrite) {
+    case e_RewriteNothing:
+      ++syncSource->m_rtxPackets;
+    default:
+      return syncSource->OnSendData(frame, rewrite);
 
-  // Is a retransmit using RFC4588, switch to "rtx" sync source
-  if (GetSyncSource(syncSource->m_rtxSSRC, e_Sender, syncSource))
-    return syncSource->OnSendData(frame, rewrite);
+    case e_Retransmit:
+      // Is a retransmit using RFC4588, switch to "rtx" sync source
+      SyncSource * rtxSyncSource;
+      if (syncSource->m_rtxSSRC == 0 || !GetSyncSource(syncSource->m_rtxSSRC, e_Sender, rtxSyncSource))
+        return e_IgnorePacket;
 
-  return e_IgnorePacket;
+      ++syncSource->m_rtxPackets;
+      return rtxSyncSource->OnSendData(frame, rewrite);
+
+  }
 }
 
 
@@ -1884,6 +1896,7 @@ void OpalRTPSession::GetStatistics(OpalMediaStatistics & statistics, Direction d
   statistics.m_controlPacketsIn  = m_rtcpPacketsReceived;
   statistics.m_controlPacketsOut = m_rtcpPacketsSent;
   statistics.m_NACKs             = -1;
+  statistics.m_rtxPackets        = -1;
   statistics.m_packetsLost       = -1;
   statistics.m_packetsOutOfOrder = -1;
   statistics.m_lateOutOfOrder    = -1;
@@ -1920,6 +1933,7 @@ void OpalRTPSession::GetStatistics(OpalMediaStatistics & statistics, Direction d
         statistics.m_totalPackets += ssrcStats.m_totalPackets;
 
         AddSpecial(statistics.m_NACKs, ssrcStats.m_NACKs);
+        AddSpecial(statistics.m_rtxPackets, ssrcStats.m_rtxPackets);
         AddSpecial(statistics.m_packetsLost, ssrcStats.m_packetsLost);
         if (statistics.m_maxConsecutiveLost < ssrcStats.m_maxConsecutiveLost)
           statistics.m_maxConsecutiveLost = ssrcStats.m_maxConsecutiveLost;
@@ -1980,12 +1994,11 @@ void OpalRTPSession::SyncSource::GetStatistics(OpalMediaStatistics & statistics)
   statistics.m_totalPackets      = m_packets;
   if (m_session.m_feedback&OpalMediaFormat::e_NACK)
     statistics.m_NACKs           = m_NACKs;
+  statistics.m_rtxSSRC           = m_rtxSSRC;
+  statistics.m_rtxPackets        = m_rtxPackets;
   statistics.m_packetsLost       = m_packetsLost;
-  if (m_maxConsecutiveLost > 0) {
-    if (statistics.m_maxConsecutiveLost < m_maxConsecutiveLost)
-      statistics.m_maxConsecutiveLost = m_maxConsecutiveLost;
-    const_cast<SyncSource*>(this)->m_maxConsecutiveLost = 0;
-  }
+  if (statistics.m_maxConsecutiveLost < m_maxConsecutiveLost)
+    statistics.m_maxConsecutiveLost = m_maxConsecutiveLost;
   statistics.m_minimumPacketTime = m_minimumPacketTime;
   statistics.m_averagePacketTime = m_averagePacketTime;
   statistics.m_maximumPacketTime = m_maximumPacketTime;
