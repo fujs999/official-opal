@@ -26,11 +26,19 @@
  *
  */
 
-#define MY_CODEC SILK
 #include <codec/opalplugin.hpp>
+
+#ifndef PLUGIN_CODEC_DLL_EXPORTS
+#include "plugin_config.h"
+#endif
 
 #include "SILK_SDK/interface/SKP_Silk_SDK_API.h"
 
+
+#define MY_CODEC silk                        // Name of codec (use C variable characters)
+
+#define MY_CODEC_LOG  STRINGIZE(MY_CODEC)
+class MY_CODEC { };
 
 PLUGINCODEC_CONTROL_LOG_FUNCTION_DEF
 
@@ -125,14 +133,14 @@ static struct PluginCodec_Option const * const MyOptions[] = {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class SilkPluginMediaFormat : public AudioFormat
+class SilkPluginMediaFormat : public PluginCodec_AudioFormat<MY_CODEC>
 {
   public:
     unsigned m_actualSampleRate;
     unsigned m_actualChannels;
 
     SilkPluginMediaFormat(const char * formatName, unsigned samplesPerFrame, unsigned bytesPerFrame, unsigned sampleRate)
-      : AudioFormat(formatName, MyPayloadName, MyDescription, samplesPerFrame, bytesPerFrame, sampleRate, MyOptions)
+      : PluginCodec_AudioFormat<MY_CODEC>(formatName, MyPayloadName, MyDescription, samplesPerFrame, bytesPerFrame, sampleRate, MyOptions)
     {
 		}
 
@@ -158,7 +166,7 @@ static SilkPluginMediaFormat const MyMediaFormat16k("SILK-16", 320, 75, 16000);
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class MyEncoder : public Transcoder
+class MyEncoder : public PluginCodec<MY_CODEC>
 {
   protected:
     void * m_state;
@@ -166,7 +174,7 @@ class MyEncoder : public Transcoder
 
   public:
     MyEncoder(const PluginCodec_Definition * defn)
-      : Transcoder(defn)
+      : PluginCodec<MY_CODEC>(defn)
       , m_state(NULL)
     {
     }
@@ -223,7 +231,7 @@ class MyEncoder : public Transcoder
       }
 
       // Base class sets bit rate and frame time
-      return Transcoder::SetOption(optionName, optionValue);
+      return PluginCodec<MY_CODEC>::SetOption(optionName, optionValue);
     }
 
 
@@ -256,14 +264,14 @@ class MyEncoder : public Transcoder
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class MyDecoder : public Transcoder
+class MyDecoder : public PluginCodec<MY_CODEC>
 {
   protected:
     void * m_state;
 
   public:
     MyDecoder(const PluginCodec_Definition * defn)
-      : Transcoder(defn)
+      : PluginCodec<MY_CODEC>(defn)
     {
     }
 
