@@ -35,10 +35,7 @@
 
 #include "../common/platform.h"
 
-#include <algorithm>
-
 #define MY_CODEC x264  // Name of codec (use C variable characters)
-#include <codec/opalplugin.hpp>
 
 #define OPAL_H323 1
 #define OPAL_SIP 1
@@ -50,8 +47,12 @@
 #include "../common/h264frame.h"
 #include "x264wrap.h"
 
+#include <algorithm>
+
 
 ///////////////////////////////////////////////////////////////////////////////
+
+class MY_CODEC { };
 
 PLUGINCODEC_CONTROL_LOG_FUNCTION_DEF
 
@@ -544,11 +545,13 @@ static struct PluginCodec_H323GenericCodecData MyH323GenericData = {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class H264_PluginMediaFormat : public VideoFormat
+class H264_PluginMediaFormat : public PluginCodec_VideoFormat<MY_CODEC>
 {
 public:
+  typedef PluginCodec_VideoFormat<MY_CODEC> BaseClass;
+
   H264_PluginMediaFormat(const char * formatName, OptionsTable options, const char * encodingName = H264EncodingName)
-    : VideoFormat(formatName, encodingName, MyDescription, LevelInfo[sizeof(LevelInfo)/sizeof(LevelInfo[0])-1].m_MaxBitRate, options)
+    : BaseClass(formatName, encodingName, MyDescription, LevelInfo[sizeof(LevelInfo)/sizeof(LevelInfo[0])-1].m_MaxBitRate, options)
   {
     m_h323CapabilityType = PluginCodec_H323Codec_generic;
     m_h323CapabilityData = &MyH323GenericData;
@@ -591,8 +594,10 @@ static H264_PluginMediaFormat const MyMediaFormatInfo_xFlash("x" OPAL_H264_Flash
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class H264_Encoder : public VideoEncoder
+class H264_Encoder : public PluginVideoEncoder<MY_CODEC>
 {
+    typedef PluginVideoEncoder<MY_CODEC> BaseClass;
+
   protected:
     unsigned m_profile;
     unsigned m_level;
@@ -609,7 +614,7 @@ class H264_Encoder : public VideoEncoder
 
   public:
     H264_Encoder(const PluginCodec_Definition * defn)
-      : VideoEncoder(defn)
+      : BaseClass(defn)
       , m_profile(DefaultProfileInt)
       , m_level(DefaultLevelInt)
       , m_constraints(0)
@@ -717,7 +722,7 @@ class H264_Encoder : public VideoEncoder
       }
 
       // Base class sets bit rate and frame time
-      return VideoEncoder::SetOption(optionName, optionValue);
+      return BaseClass::SetOption(optionName, optionValue);
     }
 
 
@@ -793,7 +798,7 @@ class H264_Encoder : public VideoEncoder
 
 
     /// Get options that are "active" and may be different from the last SetOptions() call.
-    virtual bool GetActiveOptions(OptionMap & options)
+    virtual bool GetActiveOptions(PluginCodec_OptionMap & options)
     {
       options.SetUnsigned(m_frameTime, PLUGINCODEC_OPTION_FRAME_TIME);
       return true;
@@ -802,7 +807,7 @@ class H264_Encoder : public VideoEncoder
 
     virtual int GetStatistics(char * bufferPtr, unsigned bufferSize)
     {
-      size_t len = VideoEncoder::GetStatistics(bufferPtr, bufferSize);
+      size_t len = BaseClass::GetStatistics(bufferPtr, bufferSize);
       len += snprintf(bufferPtr+len, bufferSize-len, "Width=%u\nHeight=%u\n", m_width, m_height);
 
 #ifdef WHEN_WE_FIGURE_OUT_HOW_TO_GET_QUALITY_FROM_X264
@@ -843,11 +848,13 @@ class H264_Encoder : public VideoEncoder
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class H264_Decoder : public VideoDecoder, public FFMPEGCodec
+class H264_Decoder : public PluginVideoDecoder<MY_CODEC>, public FFMPEGCodec
 {
+    typedef PluginVideoDecoder<MY_CODEC> BaseClass;
+
   public:
     H264_Decoder(const PluginCodec_Definition * defn)
-      : VideoDecoder(defn)
+      : BaseClass(defn)
       , FFMPEGCodec(MY_CODEC_LOG, new H264Frame)
     {
       PTRACE(4, MY_CODEC_LOG, "Created decoder");
@@ -876,7 +883,7 @@ class H264_Decoder : public VideoDecoder, public FFMPEGCodec
 
     virtual int GetStatistics(char * bufferPtr, unsigned bufferSize)
     {
-      size_t len = VideoDecoder::GetStatistics(bufferPtr, bufferSize);
+      size_t len = BaseClass::GetStatistics(bufferPtr, bufferSize);
       len += snprintf(bufferPtr+len, bufferSize-len, "Width=%u\nHeight=%u\n", m_width, m_height);
       return (int)len;
     }
@@ -918,7 +925,7 @@ class H264_Decoder : public VideoDecoder, public FFMPEGCodec
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class H264_FlashEncoder : public H264_Encoder, protected FlashPacketizer
+class H264_FlashEncoder : public H264_Encoder, protected H264FlashPacketizer
 {
   public:
     H264_FlashEncoder(const PluginCodec_Definition * defn)
@@ -964,13 +971,15 @@ class H264_FlashEncoder : public H264_Encoder, protected FlashPacketizer
 };
 
 
-class H264_FlashDecoder : public VideoDecoder, public FFMPEGCodec
+class H264_FlashDecoder : public PluginVideoDecoder<MY_CODEC>, public FFMPEGCodec
 {
+    typedef PluginVideoDecoder<MY_CODEC> BaseClass;
+
     std::vector<uint8_t> m_sps_pps;
 
   public:
     H264_FlashDecoder(const PluginCodec_Definition * defn)
-      : VideoDecoder(defn)
+      : BaseClass(defn)
       , FFMPEGCodec(MY_CODEC_LOG, NULL)
     {
       PTRACE(4, MY_CODEC_LOG, "Created flash decoder");

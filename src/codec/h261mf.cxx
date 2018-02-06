@@ -33,6 +33,7 @@
 
 #include <opal/mediafmt.h>
 #include <codec/opalpluginmgr.h>
+#include <codec/opalplugin.hpp>
 #include <asn/h245.h>
 
 
@@ -43,7 +44,7 @@ static const char CIF_MPI[]  = PLUGINCODEC_CIF_MPI;
 
 /////////////////////////////////////////////////////////////////////////////
 
-static bool ClampSizes(MY_CODEC_NAMESPACE::OptionMap & original, MY_CODEC_NAMESPACE::OptionMap & changed)
+static bool ClampSizes(PluginCodec_OptionMap & original, PluginCodec_OptionMap & changed)
 {
   // find bounding box enclosing all MPI values
   int qcif_mpi = original.GetUnsigned(QCIF_MPI, PLUGINCODEC_MPI_DISABLED);

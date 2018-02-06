@@ -26,12 +26,20 @@
  *
  */
 
+#include <codec/opalplugin.hpp>
 #include <codec/known.h>
 
+#include <stdio.h>
 #include <vector>
 
 
 ///////////////////////////////////////////////////////////////////////////////
+
+#ifdef MY_CODEC
+  #define MY_CODEC_LOG STRINGIZE(MY_CODEC)
+#else
+  #define MY_CODEC_LOG "H.264"
+#endif
 
 static const char H264_Mode0_FormatName[] = OPAL_H264_MODE0;
 static const char H264_Mode1_FormatName[] = OPAL_H264_MODE1;
@@ -218,7 +226,7 @@ static unsigned hexbyte(const char * hex)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool MyToNormalised(OptionMap & original, OptionMap & changed)
+static bool MyToNormalised(PluginCodec_OptionMap & original, PluginCodec_OptionMap & changed)
 {
   size_t levelIndex = 0;
   size_t profileIndex = sizeof(ProfileInfo)/sizeof(ProfileInfo[0]);
@@ -246,13 +254,13 @@ static bool MyToNormalised(OptionMap & original, OptionMap & changed)
     maxBitRate = (original.GetUnsigned(MaxBR_H241_Name)%MAX_BR_H241)*SCALE_BR_H241;
 
     if (maxMBPS > 0)
-      Utilities::Change(maxMBPS, original, changed, MaxMBPS_SDP_Name); 
+      PluginCodec_Utilities::Change(maxMBPS, original, changed, MaxMBPS_SDP_Name); 
     if (maxSMBPS > 0)
-      Utilities::Change(maxSMBPS, original, changed, MaxSMBPS_SDP_Name);
+      PluginCodec_Utilities::Change(maxSMBPS, original, changed, MaxSMBPS_SDP_Name);
     if (maxFrameSizeInMB > 0)
-      Utilities::Change(maxFrameSizeInMB, original, changed, MaxFS_SDP_Name);
+      PluginCodec_Utilities::Change(maxFrameSizeInMB, original, changed, MaxFS_SDP_Name);
     if (maxBitRate > 0)
-      Utilities::Change((maxBitRate+SCALE_BR_SDP-1)/SCALE_BR_SDP, original, changed, MaxBR_SDP_Name); 
+      PluginCodec_Utilities::Change((maxBitRate+SCALE_BR_SDP-1)/SCALE_BR_SDP, original, changed, MaxBR_SDP_Name); 
   }
   else if (original[PLUGINCODEC_OPTION_PROTOCOL] == PLUGINCODEC_OPTION_PROTOCOL_SIP) {
     std::string sdpProfLevel = original[SDPProfileAndLevelName];
@@ -268,7 +276,7 @@ static bool MyToNormalised(OptionMap & original, OptionMap & changed)
     }
 
     unsigned sdpConstraints = hexbyte(&sdpProfLevel[2]);
-    Utilities::Change(sdpConstraints, original, changed, ConstraintFlagsName);
+    PluginCodec_Utilities::Change(sdpConstraints, original, changed, ConstraintFlagsName);
 
     unsigned sdpLevel = hexbyte(&sdpProfLevel[4]);
 
@@ -293,13 +301,13 @@ static bool MyToNormalised(OptionMap & original, OptionMap & changed)
     maxBitRate = (original.GetUnsigned(MaxBR_SDP_Name)%MAX_BR_SDP)*SCALE_BR_SDP;
 
     if (maxMBPS > 0)
-      Utilities::Change((maxMBPS+SCALE_MBPS_H241-1)/SCALE_MBPS_H241, original, changed, MaxMBPS_H241_Name); 
+      PluginCodec_Utilities::Change((maxMBPS+SCALE_MBPS_H241-1)/SCALE_MBPS_H241, original, changed, MaxMBPS_H241_Name); 
     if (maxSMBPS > 0)
-      Utilities::Change((maxSMBPS+SCALE_MBPS_H241-1)/SCALE_MBPS_H241, original, changed, MaxSMBPS_H241_Name);
+      PluginCodec_Utilities::Change((maxSMBPS+SCALE_MBPS_H241-1)/SCALE_MBPS_H241, original, changed, MaxSMBPS_H241_Name);
     if (maxFrameSizeInMB > 0)
-      Utilities::Change((maxFrameSizeInMB+SCALE_FS_H241-1)/SCALE_FS_H241, original, changed, MaxFS_H241_Name); 
+      PluginCodec_Utilities::Change((maxFrameSizeInMB+SCALE_FS_H241-1)/SCALE_FS_H241, original, changed, MaxFS_H241_Name); 
     if (maxBitRate > 0)
-      Utilities::Change((maxBitRate+SCALE_BR_H241-1)/SCALE_BR_H241, original, changed, MaxBR_H241_Name); 
+      PluginCodec_Utilities::Change((maxBitRate+SCALE_BR_H241-1)/SCALE_BR_H241, original, changed, MaxBR_H241_Name); 
   }
   else {
     std::string profileName = original[ProfileName];
@@ -319,12 +327,12 @@ static bool MyToNormalised(OptionMap & original, OptionMap & changed)
     maxBitRate = 0;
   }
 
-  Utilities::Change(ProfileInfo[profileIndex].m_Name, original, changed, ProfileName); 
-  Utilities::Change(LevelInfo[levelIndex].m_Name, original, changed, LevelName);
+  PluginCodec_Utilities::Change(ProfileInfo[profileIndex].m_Name, original, changed, ProfileName); 
+  PluginCodec_Utilities::Change(LevelInfo[levelIndex].m_Name, original, changed, LevelName);
 
   if (maxFrameSizeInMB < LevelInfo[levelIndex].m_MaxFrameSize)
     maxFrameSizeInMB = LevelInfo[levelIndex].m_MaxFrameSize;
-  Utilities::ClampResolution(original, changed,
+  PluginCodec_Utilities::ClampResolution(original, changed,
                                          original.GetUnsigned(PLUGINCODEC_OPTION_MAX_RX_FRAME_WIDTH),
                                          original.GetUnsigned(PLUGINCODEC_OPTION_MAX_RX_FRAME_HEIGHT),
                                          maxFrameSizeInMB);
@@ -332,20 +340,20 @@ static bool MyToNormalised(OptionMap & original, OptionMap & changed)
   // Frame rate
   if (maxMBPS < LevelInfo[levelIndex].m_MaxMBPS)
     maxMBPS = LevelInfo[levelIndex].m_MaxMBPS;
-  Utilities::ClampMin(Utilities::GetMacroBlocks(original.GetUnsigned(PLUGINCODEC_OPTION_MIN_RX_FRAME_WIDTH),
+  PluginCodec_Utilities::ClampMin(PluginCodec_Utilities::GetMacroBlocks(original.GetUnsigned(PLUGINCODEC_OPTION_MIN_RX_FRAME_WIDTH),
                                   original.GetUnsigned(PLUGINCODEC_OPTION_MIN_RX_FRAME_HEIGHT))*PLUGINCODEC_VIDEO_CLOCK/maxMBPS,
                                   original, changed, PLUGINCODEC_OPTION_FRAME_TIME);
 
   // Bit rate
   if (maxBitRate < LevelInfo[levelIndex].m_MaxBitRate)
     maxBitRate = LevelInfo[levelIndex].m_MaxBitRate;
-  Utilities::ClampMax(maxBitRate, original, changed, PLUGINCODEC_OPTION_MAX_BIT_RATE);
-  Utilities::ClampMax(maxBitRate, original, changed, PLUGINCODEC_OPTION_TARGET_BIT_RATE);
+  PluginCodec_Utilities::ClampMax(maxBitRate, original, changed, PLUGINCODEC_OPTION_MAX_BIT_RATE);
+  PluginCodec_Utilities::ClampMax(maxBitRate, original, changed, PLUGINCODEC_OPTION_TARGET_BIT_RATE);
   return true;
 }
 
 
-static bool MyToCustomised(OptionMap & original, OptionMap & changed)
+static bool MyToCustomised(PluginCodec_OptionMap & original, PluginCodec_OptionMap & changed)
 {
   if ((original.GetUnsigned(SDPForcedName)  != 0 && original[PLUGINCODEC_OPTION_PROTOCOL] == PLUGINCODEC_OPTION_PROTOCOL_SIP) ||
       (original.GetUnsigned(H241ForcedName) != 0 && original[PLUGINCODEC_OPTION_PROTOCOL] == PLUGINCODEC_OPTION_PROTOCOL_H323)) {
@@ -364,7 +372,7 @@ static bool MyToCustomised(OptionMap & original, OptionMap & changed)
       break;
   }
 
-  Utilities::Change(ProfileInfo[profileIndex].m_H241, original, changed, H241ProfilesName);
+  PluginCodec_Utilities::Change(ProfileInfo[profileIndex].m_H241, original, changed, H241ProfilesName);
 
   // get the current level 
   str = original[LevelName];
@@ -383,7 +391,7 @@ static bool MyToCustomised(OptionMap & original, OptionMap & changed)
   unsigned maxWidth = original.GetUnsigned(PLUGINCODEC_OPTION_MAX_RX_FRAME_WIDTH);
   unsigned maxHeight = original.GetUnsigned(PLUGINCODEC_OPTION_MAX_RX_FRAME_HEIGHT);
   unsigned frameTime = original.GetUnsigned(PLUGINCODEC_OPTION_FRAME_TIME);
-  unsigned maxMacroBlocks = Utilities::GetMacroBlocks(maxWidth, maxHeight);
+  unsigned maxMacroBlocks = PluginCodec_Utilities::GetMacroBlocks(maxWidth, maxHeight);
   unsigned macroBlocksPerSecond = maxMacroBlocks*PLUGINCODEC_VIDEO_CLOCK/frameTime;
   if (maxMacroBlocks > 0) {
     while (levelIndex > 0 &&
@@ -399,7 +407,7 @@ static bool MyToCustomised(OptionMap & original, OptionMap & changed)
   }
 
   // set the new level
-  Utilities::Change(LevelInfo[levelIndex].m_H241, original, changed, H241LevelName);
+  PluginCodec_Utilities::Change(LevelInfo[levelIndex].m_H241, original, changed, H241LevelName);
 
   // Calculate SDP parameters from the adjusted profile/level
   char sdpProfLevel[3*8*2+1];
@@ -407,73 +415,71 @@ static bool MyToCustomised(OptionMap & original, OptionMap & changed)
           ProfileInfo[profileIndex].m_H264,
           original.GetUnsigned(ConstraintFlagsName) | LevelInfo[levelIndex].m_constraints,
           LevelInfo[levelIndex].m_H264);
-  Utilities::Change(sdpProfLevel, original, changed, SDPProfileAndLevelName);
+  PluginCodec_Utilities::Change(sdpProfLevel, original, changed, SDPProfileAndLevelName);
 
   // Clamp other variables (width/height etc) according to the adjusted profile/level
-  Utilities::ClampResolution(original, changed, maxWidth, maxHeight, maxMacroBlocks);
+  PluginCodec_Utilities::ClampResolution(original, changed, maxWidth, maxHeight, maxMacroBlocks);
 
   // Do this afer the clamping, maxFrameSizeInMB may change
   if (maxMacroBlocks > LevelInfo[levelIndex].m_MaxFrameSize) {
-    Utilities::ClampMax(maxMacroBlocks, original, changed, MaxFS_SDP_Name, true);
-    Utilities::ClampMax((maxMacroBlocks+SCALE_FS_H241-1)/SCALE_FS_H241, original, changed, MaxFS_H241_Name, true);
+    PluginCodec_Utilities::ClampMax(maxMacroBlocks, original, changed, MaxFS_SDP_Name, true);
+    PluginCodec_Utilities::ClampMax((maxMacroBlocks+SCALE_FS_H241-1)/SCALE_FS_H241, original, changed, MaxFS_H241_Name, true);
   }
   else {
-    Utilities::Change(MAX_FS_SDP, original, changed, MaxFS_SDP_Name);
-    Utilities::Change(MAX_FS_H241, original, changed, MaxFS_H241_Name);
+    PluginCodec_Utilities::Change(MAX_FS_SDP, original, changed, MaxFS_SDP_Name);
+    PluginCodec_Utilities::Change(MAX_FS_H241, original, changed, MaxFS_H241_Name);
   }
 
   // Set exception to bit rate if necessary
   unsigned bitRate = original.GetUnsigned(PLUGINCODEC_OPTION_MAX_BIT_RATE);
   if (bitRate > LevelInfo[levelIndex].m_MaxBitRate) {
-    Utilities::ClampMax((bitRate+SCALE_BR_SDP-1)/SCALE_BR_SDP, original, changed, MaxBR_SDP_Name, true);
-    Utilities::ClampMax((bitRate+SCALE_BR_H241-1)/SCALE_BR_H241, original, changed, MaxBR_H241_Name, true);
+    PluginCodec_Utilities::ClampMax((bitRate+SCALE_BR_SDP-1)/SCALE_BR_SDP, original, changed, MaxBR_SDP_Name, true);
+    PluginCodec_Utilities::ClampMax((bitRate+SCALE_BR_H241-1)/SCALE_BR_H241, original, changed, MaxBR_H241_Name, true);
   }
   else {
-    Utilities::Change(MAX_BR_SDP, original, changed, MaxBR_SDP_Name);
-    Utilities::Change(MAX_BR_H241, original, changed, MaxBR_H241_Name);
+    PluginCodec_Utilities::Change(MAX_BR_SDP, original, changed, MaxBR_SDP_Name);
+    PluginCodec_Utilities::Change(MAX_BR_H241, original, changed, MaxBR_H241_Name);
   }
 
   // Set exception to frame rate if necessary
   if (macroBlocksPerSecond > LevelInfo[levelIndex].m_MaxMBPS) {
-    Utilities::ClampMax(macroBlocksPerSecond, original, changed, MaxMBPS_SDP_Name, true);
-    Utilities::ClampMax((macroBlocksPerSecond+SCALE_MBPS_H241-1)/SCALE_MBPS_H241, original, changed, MaxMBPS_H241_Name, true);
+    PluginCodec_Utilities::ClampMax(macroBlocksPerSecond, original, changed, MaxMBPS_SDP_Name, true);
+    PluginCodec_Utilities::ClampMax((macroBlocksPerSecond+SCALE_MBPS_H241-1)/SCALE_MBPS_H241, original, changed, MaxMBPS_H241_Name, true);
   }
   else {
-    Utilities::Change(MAX_MBPS_SDP, original, changed, MaxMBPS_SDP_Name);
-    Utilities::Change(MAX_MBPS_H241, original, changed, MaxMBPS_H241_Name);
+    PluginCodec_Utilities::Change(MAX_MBPS_SDP, original, changed, MaxMBPS_SDP_Name);
+    PluginCodec_Utilities::Change(MAX_MBPS_H241, original, changed, MaxMBPS_H241_Name);
   }
 
   return true;
 }
 
 
-namespace MY_CODEC_NAMESPACE {
-
-  class FlashPacketizer
-  {
+class H264FlashPacketizer
+{
   protected:
     std::vector<unsigned char> m_naluBuffer;
     bool m_firstFrame;
 
-    FlashPacketizer()
+    H264FlashPacketizer()
       : m_firstFrame(true)
     {
     }
 
-    virtual ~FlashPacketizer()
+    virtual ~H264FlashPacketizer()
     {
     }
 
 
     virtual bool GetNALU(const void * fromPtr, unsigned & fromLen, const uint8_t * & naluPtr, unsigned & naluLen, unsigned & flags) = 0;
 
-    static const size_t HeaderSize = 5 + 5 + 6 + 4;
+    static const size_t HeaderSize = 5+5+6+4;
 
     bool FlashTranscode(const void * fromPtr,
-                        unsigned & fromLen,
-                        void * toPtr,
-                        unsigned & toLen,
-                        unsigned & flags)
+                          unsigned & fromLen,
+                              void * toPtr,
+                          unsigned & toLen,
+                          unsigned & flags)
     {
       PluginCodec_RTP rtp(toPtr, toLen);
       uint8_t * pBuffer = rtp.GetPayloadPtr();
@@ -486,7 +492,7 @@ namespace MY_CODEC_NAMESPACE {
       bool bKey = (flags&PluginCodec_ReturnCoderIFrame) != 0;
 
       if (bKey && (naluPtr[0] & 0x1f) == 0x07) { // SPS
-        toLen -= 5 + 5 + 3 + 3;
+        toLen -= 5+5+3+3;
         if (naluLen > toLen)
           return false;
 
@@ -507,14 +513,14 @@ namespace MY_CODEC_NAMESPACE {
         /* Write SPSs */
         *pBuffer++ = 0xE1; // Only 1 for now
         *pBuffer++ = (uint8_t)(naluLen >> 8);
-        *pBuffer++ = (uint8_t)naluLen;
+        *pBuffer++ = (uint8_t) naluLen;
         memcpy(pBuffer, naluPtr, naluLen);
         pBuffer += naluLen;
         toLen -= naluLen;
 
         // We assume next thing is SPS
         if (!GetNALU(fromPtr, fromLen, naluPtr, naluLen, flags))
-          return false;
+            return false;
 
         if (naluLen > toLen)
           return false;
@@ -522,7 +528,7 @@ namespace MY_CODEC_NAMESPACE {
         /* Write PPSs */
         *pBuffer++ = 0x01; // Only 1 for now
         *pBuffer++ = (uint8_t)(naluLen >> 8);
-        *pBuffer++ = (uint8_t)naluLen;
+        *pBuffer++ = (uint8_t) naluLen;
         memcpy(pBuffer, naluPtr, naluLen);
         pBuffer += naluLen;
       }
@@ -558,18 +564,18 @@ namespace MY_CODEC_NAMESPACE {
         for (;;) {
           *pBuffer++ = (uint8_t)(naluLen >> 24);
           *pBuffer++ = (uint8_t)(naluLen >> 16);
-          *pBuffer++ = (uint8_t)(naluLen >> 8);
-          *pBuffer++ = (uint8_t)naluLen;
+          *pBuffer++ = (uint8_t)(naluLen >>  8);
+          *pBuffer++ = (uint8_t) naluLen;
           memcpy(pBuffer, naluPtr, naluLen);
           pBuffer += naluLen;
-          toLen -= naluLen + 4;
+          toLen -= naluLen+4;
 
           if ((flags&PluginCodec_ReturnCoderLastFrame) != 0)
             break;
 
           if (!GetNALU(fromPtr, fromLen, naluPtr, naluLen, flags))
             return false;
-          if (naluLen + 4 > toLen)
+          if (naluLen+4 > toLen)
             return false;
         }
 
@@ -582,8 +588,7 @@ namespace MY_CODEC_NAMESPACE {
       toLen = (unsigned)rtp.GetPacketSize();
       return true;
     }
-  };
-
 };
+
 
 // End of File ///////////////////////////////////////////////////////////////

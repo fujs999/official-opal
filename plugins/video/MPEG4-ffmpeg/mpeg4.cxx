@@ -45,23 +45,28 @@
  *
  */
 
-#include "../common/platform.h"
+#define _CRT_SECURE_NO_DEPRECATE
 
-#include <deque>
-#include <algorithm>
+#ifndef _MSC_VER
+#include "../common/platform.h"
+#endif
 
 #define MY_CODEC FF_MP4V  // Name of codec (use C variable characters)
-#include <codec/opalplugin.hpp>
+
+#include "../common/ffmpeg.h"
 
 #define OPAL_H323 1
 #define OPAL_SIP 1
 
 #include "../../../src/codec/mpeg4mf_inc.cxx"
 
-#include "../common/ffmpeg.h"
 
+// Needed C++ headers
+#include <deque>
+#include <vector>
+#include <algorithm>
 
-using namespace ::std;
+using namespace std;
 
 
 // FFMPEG specific headers
@@ -89,6 +94,8 @@ extern "C" {
 
 
 /////////////////////////////////////////////////////////////////////////////
+
+class MY_CODEC { };
 
 PLUGINCODEC_CONTROL_LOG_FUNCTION_DEF
 
@@ -209,11 +216,13 @@ static struct PluginCodec_H323GenericCodecData H323GenericMPEG4 = {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-class MPEG4_PluginMediaFormat : public VideoFormat
+class MPEG4_PluginMediaFormat : public PluginCodec_VideoFormat<MY_CODEC>
 {
 public:
+  typedef PluginCodec_VideoFormat<MY_CODEC> BaseClass;
+
   MPEG4_PluginMediaFormat()
-    : VideoFormat(MPEG4FormatName, MPEG4EncodingName, MyDescription, 8000000, OptionTable)
+    : BaseClass(MPEG4FormatName, MPEG4EncodingName, MyDescription, 8000000, OptionTable)
   {
     m_h323CapabilityType = PluginCodec_H323Codec_generic;
     m_h323CapabilityData = &H323GenericMPEG4;
@@ -333,11 +342,13 @@ class MPEG4_EncodedFrame : public OpalPluginFrame
 // define the encoding context
 //
 
-class MPEG4_Encoder : public VideoEncoder, public FFMPEGCodec
+class MPEG4_Encoder : public PluginVideoEncoder<MY_CODEC>, public FFMPEGCodec
 {
+    typedef PluginVideoEncoder<MY_CODEC> BaseClass;
+
   public:
     MPEG4_Encoder(const PluginCodec_Definition * defn)
-      : VideoEncoder(defn)
+      : BaseClass(defn)
       , FFMPEGCodec(MY_CODEC_LOG, new MPEG4_EncodedFrame)
     { 
       PTRACE(4, m_prefix, "Created encoder");
@@ -364,7 +375,7 @@ class MPEG4_Encoder : public VideoEncoder, public FFMPEGCodec
         m_context->level = profileLevel & 7;
       }
 
-      return VideoEncoder::SetOption(option, value);
+      return BaseClass::SetOption(option, value);
     }
 
 
@@ -431,11 +442,13 @@ class MPEG4_Encoder : public VideoEncoder, public FFMPEGCodec
 // Define the decoder context
 //
 
-class MPEG4_Decoder : public VideoDecoder, public FFMPEGCodec
+class MPEG4_Decoder : public PluginVideoDecoder<MY_CODEC>, public FFMPEGCodec
 {
+  typedef PluginVideoDecoder<MY_CODEC> BaseClass;
+
   public:
     MPEG4_Decoder(const PluginCodec_Definition * defn)
-      : VideoDecoder(defn)
+      : BaseClass(defn)
       , FFMPEGCodec(MY_CODEC_LOG, new MPEG4_EncodedFrame)
     {
     }

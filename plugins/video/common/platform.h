@@ -40,9 +40,7 @@
 
 #if defined (_MSC_VER)
   #define _CRT_NONSTDC_NO_DEPRECATE 1
-  #ifndef _CRT_SECURE_NO_WARNINGS
-    #define _CRT_SECURE_NO_WARNINGS 1
-  #endif
+  #define _CRT_SECURE_NO_WARNINGS 1
 
   #include "stdint.h"
 
