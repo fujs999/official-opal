@@ -353,10 +353,14 @@ bool OpalICEMediaTransport::GetCandidates(PString & user, PString & pass, PNatCa
 void OpalICEMediaTransport::GetStatistics(OpalMediaStatistics & statistics) const
 {
   OpalMediaTransport::GetStatistics(statistics);
-  if (m_selectedCandidate != NULL)
-    statistics.m_selectedCandidate = *m_selectedCandidate;
+
+  statistics.m_candidates.clear();
+  for (size_t subchannel = 0; subchannel < m_subchannels.size(); ++subchannel) {
+    for (CandidateStateList::const_iterator it = m_remoteCandidates[subchannel].begin(); it != m_remoteCandidates[subchannel].end(); ++it)
+      statistics.m_candidates.push_back(*it);
+  }
 }
-#endif
+#endif // OPAL_STATISTICS
 
 
 OpalICEMediaTransport::ICEChannel::ICEChannel(OpalICEMediaTransport & owner, SubChannels subchannel, PChannel * channel)
@@ -454,6 +458,10 @@ bool OpalICEMediaTransport::InternalHandleICE(SubChannels subchannel, const void
   }
 
   if (message.IsRequest()) {
+#if OPAL_STATISTICS
+    candidate->m_rxRequests.Count();
+#endif
+
     if (!m_server.OnReceiveMessage(message, PSTUNServer::SocketInfo(socket)))
       return false; // Probably a authentication error
 
@@ -499,6 +507,10 @@ bool OpalICEMediaTransport::InternalHandleICE(SubChannels subchannel, const void
   }
 
   InternalSetRemoteAddress(ap, subchannel, false PTRACE_PARAM(, "ICE"));
+#if OPAL_STATISTICS
+  for (CandidateStateList::iterator it = m_remoteCandidates[subchannel].begin(); it != m_remoteCandidates[subchannel].end(); ++it)
+    it->m_selected = &*it == candidate;
+#endif
   m_selectedCandidate = candidate;
   m_state = e_Completed;
 
