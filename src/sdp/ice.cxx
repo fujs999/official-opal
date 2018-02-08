@@ -470,15 +470,20 @@ bool OpalICEMediaTransport::InternalHandleICE(SubChannels subchannel, const void
       return false; // Just eat the STUN packet until we get an an answer
     }
 
-    /* Already got this candidate, so don't do any more processing, but still return
-       false as we don't want next layer in stack trying to use this STUN packet. */
-    if (m_state == e_Completed && PAssertNULL(m_selectedCandidate)->m_baseTransportAddress == ap)
-      return false;
-
     if (message.FindAttribute(PSTUNAttribute::USE_CANDIDATE) == NULL) {
       PTRACE_IF(4, m_state != e_Completed, *this << subchannel << ", ICE awaiting USE-CANDIDATE");
       return false;
     }
+
+#if OPAL_STATISTICS
+    ++candidate->m_nominations;
+    candidate->m_lastNomination.SetCurrentTime();
+#endif
+
+    /* Already got this candidate, so don't do any more processing, but still return
+       false as we don't want next layer in stack trying to use this STUN packet. */
+    if (m_state == e_Completed && PAssertNULL(m_selectedCandidate)->m_baseTransportAddress == ap)
+      return false;
 
     candidate->m_state = e_CandidateSucceeded;
     PTRACE(3, *this << subchannel << ", ICE found USE-CANDIDATE from " << ap);

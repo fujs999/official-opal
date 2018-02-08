@@ -82,6 +82,9 @@ struct OpalCandidateStatistics : PNatCandidate
   virtual void PrintOn(ostream & strm) const override;
 
   bool m_selected;
+  unsigned m_nominations;
+  PTime    m_lastNomination;
+
   struct STUN {
     STUN();
     void Count();

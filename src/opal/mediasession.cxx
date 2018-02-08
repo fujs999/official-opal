@@ -65,6 +65,8 @@ OpalCodecStatistics::OpalCodecStatistics()
 OpalCandidateStatistics::OpalCandidateStatistics(const PNatCandidate & cand)
   : PNatCandidate(cand)
   , m_selected(false)
+  , m_nominations(0)
+  , m_lastNomination(0)
 {
 }
 
@@ -99,6 +101,8 @@ void OpalCandidateStatistics::PrintOn(ostream & strm) const
   strm.width(-1);
   PNatCandidate::PrintOn(strm);
   strm << "  tx-requests:" << m_txRequests << "  rx-requests:" << m_rxRequests;
+  if (m_nominations > 0)
+    strm << "  nominations: count=" << m_nominations << ' ' << m_lastNomination.AsString(PTime::TodayFormat);
   if (m_selected)
     strm << " SELECTED";
 }
