@@ -1644,7 +1644,7 @@ bool RTP_ControlFrame::ParseApplDefined(ApplDefinedInfo & info)
 }
 
 
-int RTP_ControlFrame::GetLostPackets() const
+int RTP_ControlFrame::ReceiverReport::GetLostPackets() const
 {
   // Use explicit 32 bit integer to make sign extension easier
   int32_t bits = (lost[0] << 16U) + (lost[1] << 8U) + lost[2];
