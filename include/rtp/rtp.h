@@ -161,7 +161,7 @@ class RTP_ControlFrame : public PBYTEArray
       PUInt32b dlsr;      /* delay since last SR packet */
 
       unsigned GetLostPackets() const { return (lost[0]<<16U)+(lost[1]<<8U)+lost[2]; }
-      void SetLostPackets(unsigned lost);
+      void SetLostPackets(int lost);
     };
 
     bool ParseReceiverReport(

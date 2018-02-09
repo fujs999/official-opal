@@ -1644,8 +1644,13 @@ bool RTP_ControlFrame::ParseApplDefined(ApplDefinedInfo & info)
 }
 
 
-void RTP_ControlFrame::ReceiverReport::SetLostPackets(unsigned packets)
+void RTP_ControlFrame::ReceiverReport::SetLostPackets(int packets)
 {
+  if (packets < 0)
+    packets = 0x800000;
+  else if (packets > 0x7fffff)
+    packets = 0x7fffff;
+
   lost[0] = (BYTE)(packets >> 16);
   lost[1] = (BYTE)(packets >> 8);
   lost[2] = (BYTE)packets;
