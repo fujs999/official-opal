@@ -486,9 +486,9 @@ bool OpalICEMediaTransport::InternalHandleICE(SubChannels subchannel, const void
       }
     }
 
+    newCandidate.m_baseTransportAddress = ap;
     m_remoteCandidates[subchannel].push_back(newCandidate);
     candidate = &m_remoteCandidates[subchannel].back();
-    candidate->m_baseTransportAddress = ap;
     PTRACE(3, *this << subchannel << ", received STUN request for unknown ICE candidate, adding: " << newCandidate);
   }
 
