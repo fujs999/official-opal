@@ -9,7 +9,7 @@
 %global __os_install_post /usr/lib/rpm/brp-compress %{nil}
 
 Name:           bbcollab-libopal
-Version:        %{version_major}.%{version_minor}.%{version_patch}.43
+Version:        %{version_major}.%{version_minor}.%{version_patch}.44
 Release:        1%{?jenkins_release}%{?dist}
 Summary:        OpalVOIP library
 
