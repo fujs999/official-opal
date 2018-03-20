@@ -3,7 +3,7 @@ pipeline {
   stages {
     stage('package') {
       // Build environment is defined by the Dockerfile
-      agent { dockerfile true }
+      agent { dockerfile { customWorkspace "${JOB_NAME.replaceAll('%2F', '_')}" } }
       steps {
         // Create the rpmbuild directory tree
         sh "HOME=$WORKSPACE rpmdev-setuptree"
@@ -19,7 +19,7 @@ pipeline {
       post {
         success {
           fingerprint 'build-deps/*.rpm'
-          archive 'rpmbuild/RPMS/**/*'
+          archive 'rpmbuild/RPMS/**/*', fingerprint: true
         }
       }
     }
@@ -38,12 +38,13 @@ pipeline {
       options { skipDefaultCheckout() }
       environment {
         BASE_PATH = '/var/www/html/yum'
-        REPO = 'mcu-release'
       }
       steps {
         script {
           if (env.BRANCH_NAME == 'develop') {
             env.REPO = 'mcu-develop'
+          } else {
+            env.REPO = 'mcu-release'
           }
         }
         unarchive mapping:['rpmbuild/' : '.']
