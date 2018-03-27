@@ -808,10 +808,12 @@ class OpalMediaFormat : public PContainer
     virtual void AssignContents(const PContainer & c);
 
   public:
+    typedef OpalMediaFormatInternal Internal;
+
     /**Default constructor creates a PCM-16 media format.
       */
-    OpalMediaFormat(
-      OpalMediaFormatInternal * info = NULL,
+    explicit OpalMediaFormat(
+      Internal * info = NULL,
       bool dynamic = false
     );
 
@@ -1381,13 +1383,17 @@ class OpalMediaFormat : public PContainer
 };
 
 
+class OpalAudioFormatInternal;
+
 class OpalAudioFormat : public OpalMediaFormat
 {
     PCLASSINFO(OpalAudioFormat, OpalMediaFormat);
   public:
-    OpalAudioFormat(
-      OpalMediaFormatInternal * info = NULL
-    ) : OpalMediaFormat(info) { }
+    typedef OpalAudioFormatInternal Internal;
+    explicit OpalAudioFormat(
+      Internal * info = NULL,
+      bool dynamic = false
+    );
     OpalAudioFormat(
       const char * fullName
     ) : OpalMediaFormat(fullName) { }
@@ -1468,8 +1474,10 @@ class OpalVideoFormat : public OpalMediaFormat
 {
     PCLASSINFO(OpalVideoFormat, OpalMediaFormat);
   public:
-    OpalVideoFormat(
-      OpalVideoFormatInternal * info = NULL
+    typedef OpalVideoFormatInternal Internal;
+    explicit OpalVideoFormat(
+      Internal * info = NULL,
+      bool dynamic = false
     );
     OpalVideoFormat(
       const char * fullName
@@ -1593,6 +1601,45 @@ namespace OpalRtx {
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <codec/known.h>
+
+
+template <class MEDIA_FORMAT>
+class OpalMediaFormatStatic
+{
+protected:
+  MEDIA_FORMAT * m_mediaFormat;
+  MEDIA_FORMAT   m_previousFormat;
+public:
+  explicit OpalMediaFormatStatic(typename MEDIA_FORMAT::Internal * formatInfo)
+    : m_previousFormat(formatInfo->GetName())
+  {
+    if (this->m_previousFormat.IsEmpty()) {
+      this->m_mediaFormat = new MEDIA_FORMAT(formatInfo, true);
+    }
+    else {
+      this->m_mediaFormat = &this->m_previousFormat;
+      delete formatInfo;
+    }
+  }
+  operator const MEDIA_FORMAT &() const { return *this->m_mediaFormat; }
+};
+
+#if OPAL_H323
+class H323Capability;
+typedef PFactory<H323Capability> H323CapabilityFactory;
+
+template <class MEDIA_FORMAT, class H323_CAPABILITY>
+class OpalMediaFormatStaticH323 : public OpalMediaFormatStatic<MEDIA_FORMAT>
+{
+public:
+  OpalMediaFormatStaticH323(typename MEDIA_FORMAT::Internal * formatInfo)
+    : OpalMediaFormatStatic<MEDIA_FORMAT>(formatInfo)
+  {
+    if (this->m_mediaFormat != &this->m_previousFormat)
+      static H323CapabilityFactory::Worker<H323_CAPABILITY> capability(this->m_mediaFormat->GetName(), true);
+  }
+};
+#endif // OPAL_H323
 
 
 extern const OpalAudioFormat & GetOpalPCM16(unsigned clockRate, unsigned channels = 1);
