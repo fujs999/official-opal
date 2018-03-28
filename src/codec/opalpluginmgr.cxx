@@ -586,6 +586,7 @@ bool OpalPluginVideoFormatInternal::ToCustomisedOptions()
 OpalPluginTranscoder::OpalPluginTranscoder(const PluginCodec_Definition * defn, bool isEnc)
   : codecDef(defn)
   , isEncoder(isEnc)
+  , m_maxPayloadSize(PluginCodec_RTP_MaxPayloadSize)
   , setCodecOptionsControl(defn, PLUGINCODEC_CONTROL_SET_CODEC_OPTIONS)
   , getActiveOptionsControl(defn, PLUGINCODEC_CONTROL_GET_ACTIVE_OPTIONS)
   , freeOptionsControl(defn, PLUGINCODEC_CONTROL_FREE_CODEC_OPTIONS)
@@ -663,6 +664,25 @@ bool OpalPluginTranscoder::UpdateOptions(OpalMediaFormat & fmt)
     }
   }
 
+  m_maxPayloadSize = fmt.GetOptionInteger(OpalMediaFormat::MaxTxPacketSizeOption(), m_maxPayloadSize);
+  return ok;
+}
+
+
+bool OpalPluginTranscoder::SetCodecOption(const PString & optionName, const PString & optionValue)
+{
+  PTRACE(3, "OpalPlugin",
+         "Setting \"" << optionName << "\" "
+         "to \"" << optionValue << "\" "
+         "for " << (isEncoder ? codecDef->destFormat : codecDef->sourceFormat));
+
+  PStringToString opts;
+  opts.SetAt(optionName, optionValue);
+
+  char ** options = opts.ToCharArray(false);
+  bool ok = setCodecOptionsControl.Call(options, sizeof(options), context) != 0;
+  free(options);
+
   return ok;
 }
 
@@ -673,24 +693,12 @@ bool OpalPluginTranscoder::ExecuteCommand(const OpalMediaCommand & command)
     return false;
 
   const OpalMediaPacketLoss * pl = dynamic_cast<const OpalMediaPacketLoss *>(&command);
-  if (pl != NULL) {
-      PStringToString opts;
-      opts.SetAt(PLUGINCODEC_OPTION_DYNAMIC_PACKET_LOSS, pl->GetPacketLoss());
-      char ** options = opts.ToCharArray(false);
-      bool ok = setCodecOptionsControl.Call(options, sizeof(options), context) != 0;
-      free(options);
-      return ok;
-  }
+  if (pl != NULL)
+    return SetCodecOption(PLUGINCODEC_OPTION_DYNAMIC_PACKET_LOSS, pl->GetPacketLoss());
 
   const OpalMediaMaxPayload * mp = dynamic_cast<const OpalMediaMaxPayload *>(&command);
-  if (mp != NULL) {
-      PStringToString opts;
-      opts.SetAt(PLUGINCODEC_OPTION_MAX_TX_PACKET_SIZE, mp->GetPayloadSize());
-      char ** options = opts.ToCharArray(false);
-      bool ok = setCodecOptionsControl.Call(options, sizeof(options), context) != 0;
-      free(options);
-      return ok;
-  }
+  if (mp != NULL && mp->GetPayloadSize() < m_maxPayloadSize)
+    return SetCodecOption(OpalMediaFormat::MaxTxPacketSizeOption(), m_maxPayloadSize = mp->GetPayloadSize());
 
   OpalPluginControl cmd(codecDef, command.GetName());
   return cmd.Call(command.GetPlugInData(), command.GetPlugInSize(), context) > 0;
@@ -1587,13 +1595,6 @@ OpalPluginCodecManager::~OpalPluginCodecManager()
 {
 }
 
-void OpalPluginCodecManager::OnShutdown()
-{
-  for (PList<OpalMediaFormat>::iterator it = mediaFormatsOnHeap.begin(); it != mediaFormatsOnHeap.end(); ++it)
-    OpalMediaFormat::RemoveRegisteredMediaFormat(*it);
-  mediaFormatsOnHeap.RemoveAll();
-}
-
 void OpalPluginCodecManager::OnLoadPlugin(PDynaLink & dll, P_INT_PTR code)
 {
   PluginCodec_GetCodecFunction getCodecs;
@@ -1706,6 +1707,13 @@ bool OpalPluginCodecManager::AddMediaFormat(OpalPluginCodecHandler * handler,
     return false;
   }
 
+#if OPAL_VIDEO
+  if (GetOpalYUV420P() == fmtName) {
+    mediaFormat = GetOpalYUV420P();
+    return true;
+  }
+#endif
+
   // deal with codec having no info, or timestamp in future
   time_t timeStamp;
   if (codecDefn->info == NULL)
@@ -1783,12 +1791,15 @@ bool OpalPluginCodecManager::AddMediaFormat(OpalPluginCodecHandler * handler,
     return false;
   }
 
-  OpalMediaFormat * newMediaFormat = new OpalMediaFormat(mediaFormatInternal);
+  if (OpalMediaFormat(fmtName).IsEmpty())
+    new OpalMediaFormat(mediaFormatInternal, true); // Will be deleted (indirectly) in ~OpalManager
+  else {
+    // Create a temporary instance, so it will override the existing
+    // master list data, assuming the "timestamp" field is later
+    OpalMediaFormat dummy(mediaFormatInternal);
+  }
 
-  // Remember format so we can deallocate it on shut down
-  mediaFormatsOnHeap.Append(newMediaFormat);
-
-  mediaFormat = *newMediaFormat;
+  mediaFormat = fmtName;
   return true;
 }
 

@@ -323,7 +323,7 @@ class OpalManager : public PObject
       */
     virtual PBoolean HasCall(
       const PString & token  ///<  Token for identifying call
-    ) { return m_activeCalls.FindWithLock(token, PSafeReference) != NULL; }
+    ) { return m_activeCalls.Find(token, PSafeReference) != NULL; }
 
     /**Return the number of active calls.
       */
@@ -344,7 +344,7 @@ class OpalManager : public PObject
     PSafePtr<OpalCall> FindCallWithLock(
       const PString & token,  ///<  Token to identify connection
       PSafetyMode mode = PSafeReadWrite ///< Lock mode
-    ) const { return m_activeCalls.FindWithLock(token, mode); }
+    ) const { return m_activeCalls.Find(token, mode); }
 
     /**A call back function whenever a call is being terminated locally.
        An application may use this function to auto-answer an incoming call
@@ -2131,7 +2131,7 @@ class OpalManager : public PObject
 #endif
 
     RouteTable m_routeTable;
-    PMutex     m_routeMutex;
+    PDECLARE_MUTEX(m_routeMutex);
 
     // Dynamic variables
     PDECLARE_READ_WRITE_MUTEX(m_endpointsMutex);
@@ -2153,7 +2153,7 @@ class OpalManager : public PObject
 #endif // OPAL_HAS_PRESENCE
 
     atomic<PINDEX> m_clearingAllCallsCount;
-    PMutex         m_clearingAllCallsMutex;
+    PDECLARE_MUTEX(m_clearingAllCallsMutex);
     PSyncPoint     m_allCallsCleared;
     void InternalClearAllCalls(OpalConnection::CallEndReason reason, bool wait, bool first);
 

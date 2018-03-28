@@ -118,7 +118,9 @@ OpalNetworkStatistics::OpalNetworkStatistics()
   , m_NACKs(-1)
   , m_rtxSSRC(0)
   , m_rtxPackets(-1)
+  , m_rtxDuplicates(-1)
   , m_FEC(-1)
+  , m_unrecovered(-1)
   , m_packetsLost(-1)
   , m_maxConsecutiveLost(-1)
   , m_packetsOutOfOrder(-1)
@@ -1093,7 +1095,7 @@ bool OpalUDPMediaTransport::InternalSetRemoteAddress(const PIPSocket::AddressAnd
   m_subchannels[subchannel].m_remoteAddress = OpalTransportAddress(newAP, OpalTransportAddress::UdpPrefix());
   m_subchannels[subchannel].m_consecutiveUnavailableErrors = 0; // Prevent errors from previous address.
   if (socket->SetSendAddress(newAP, m_mtuDiscoverMode))
-    PTRACE_IF(3, m_mtuDiscoverMode >= 0, *this << source << " enabling MTU discvery mode " << m_mtuDiscoverMode);
+    PTRACE_IF(3, m_mtuDiscoverMode >= 0, *this << source << " enabling MTU discovery mode " << m_mtuDiscoverMode);
   else
     PTRACE(2, *this << source << " cannot enable MTU discovery: " << socket->GetErrorText());
   m_remoteAddressSet = true;

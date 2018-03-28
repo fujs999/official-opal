@@ -1945,7 +1945,7 @@ class OpalConnection : public PSafeObject
     OpalEndPoint       & m_endpoint;
 
   private:
-    PMutex               m_phaseMutex;
+    PDECLARE_MUTEX(      m_phaseMutex);
     Phases               m_phase;
 
   protected:
@@ -1974,7 +1974,9 @@ class OpalConnection : public PSafeObject
     OpalMediaFormat       m_filterMediaFormat;
 
     OpalMediaFormatList        m_localMediaFormats;
-    PSafeList<OpalMediaStream> m_mediaStreams;
+
+    typedef PSafeDictionary<PKey<OpalMediaStream*>, OpalMediaStream> StreamDict;
+    StreamDict m_mediaStreams;
 
     OpalJitterBuffer::Params m_jitterParams;
 
@@ -2031,7 +2033,7 @@ class OpalConnection : public PSafeObject
     ZeroTime m_phaseTime[NumPhases];
 
     std::set<unsigned> m_mediaSessionFailed;
-    PMutex             m_mediaSessionFailedMutex;
+    PDECLARE_MUTEX(    m_mediaSessionFailedMutex);
 
 
   private:
