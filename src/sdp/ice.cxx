@@ -193,7 +193,7 @@ void OpalICEMediaTransport::SetCandidates(const PString & user, const PString & 
   }
 
   if (noSuitableCandidates) {
-    PTRACE(2, *this << "no suitable ICE candidates from remote");
+    PTRACE(2, *this << "no suitable ICE candidates from remote: state=" << m_state);
     m_state = e_Disabled;
     return;
   }
@@ -298,6 +298,11 @@ bool OpalICEMediaTransport::GetCandidates(PString & user, PString & pass, PNatCa
   user = m_localUsername;
   pass = m_localPassword;
 
+  if (m_state == e_Completed) {
+    PTRACE(4, *this << "completed ICE unchanged, no candidates being provided");
+    return true;
+  }
+
   // Only do ICE-Lite right now so just offer "host" type using local address.
   static const char LiteFoundation[] = "xyzzy";
 
@@ -325,6 +330,11 @@ bool OpalICEMediaTransport::GetCandidates(PString & user, PString & pass, PNatCa
 
     candidates.push_back(candidate);
     newCandidates[it->m_subchannel].push_back(candidate);
+  }
+
+  if (candidates.empty()) {
+    PTRACE(3, *this << "ICE has no candidates to offer");
+    return false;
   }
 
   if (offering) {
@@ -370,9 +380,6 @@ bool OpalICEMediaTransport::GetCandidates(PString & user, PString & pass, PNatCa
     trace << PTrace::End;
   }
 #endif
-
-  if (candidates.empty())
-    return false;
 
   if (m_state == e_Answering)
     m_state = e_OfferAnswered;
@@ -578,7 +585,7 @@ bool OpalICEMediaTransport::InternalHandleICE(SubChannels subchannel, const void
     return false;
   }
 
-  InternalSetRemoteAddress(ap, subchannel, false PTRACE_PARAM(, "ICE"));
+  InternalSetRemoteAddress(ap, subchannel, e_RemoteAddressFromICE);
 #if OPAL_STATISTICS
   for (CandidateStateList::iterator it = m_remoteCandidates[subchannel].begin(); it != m_remoteCandidates[subchannel].end(); ++it)
     it->m_selected = &*it == candidate;
