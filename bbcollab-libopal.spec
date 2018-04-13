@@ -23,11 +23,11 @@ URL:            http://www.opalvoip.org/
 Source0:        zsdk-opal.src.tgz
 
 BuildRequires:  bbcollab-gcc = 5.1.0-2.7.el6
-BuildRequires:  bbcollab-ptlib-devel = 2.17.4.40-2.1.el6
-BuildRequires:  bbcollab-ffmpeg-devel = 2.6.3-8.9.el6
+BuildRequires:  bbcollab-ptlib-devel = 2.17.4.40-2.2.el6
+BuildRequires:  bbcollab-ffmpeg-devel = 2.6.3-9.2.el6
 BuildRequires:  opus-devel
 BuildRequires:  speex-devel
-BuildRequires:  libsrtp2-devel = 2.1.0-2.4.el6
+BuildRequires:  libsrtp2-devel = 2.1.0-3.2.el6
 BuildRequires:  libtheora-devel
 BuildRequires:  libvpx-devel
 BuildRequires:  x264-devel
@@ -39,8 +39,8 @@ OpalVOIP library
 Summary:        Development files for %{name}
 Group:          Development/Libraries
 Requires:       %{name} = %{version}-%{release}
-Requires:       bbcollab-ptlib-devel = 2.17.4.40-2.1.el6
-Requires:       libsrtp2-devel = 2.1.0-2.4.el6
+Requires:       bbcollab-ptlib-devel = 2.17.4.40-2.2.el6
+Requires:       libsrtp2-devel = 2.1.0-3.2.el6
 
 %description    devel
 The %{name}-devel package contains libraries and header files for
