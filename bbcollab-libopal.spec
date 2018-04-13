@@ -94,7 +94,7 @@ PKG_CONFIG_PATH=/opt/bbcollab/lib64/pkgconfig:/opt/bbcollab/lib/pkgconfig
         OPAL_MAJOR=%{version_major} \
         OPAL_MINOR=%{version_minor} \
         OPAL_BUILD=%{version_patch}
-make %{?_smp_mflags} all
+make %{?_smp_mflags} REVISION_FILE= all
 
 
 %install
