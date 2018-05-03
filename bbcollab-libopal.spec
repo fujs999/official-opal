@@ -13,7 +13,7 @@
 %global __os_install_post /usr/lib/rpm/brp-compress %{nil}
 
 Name:           bbcollab-libopal
-Version:        %{version_major}.%{version_minor}.%{version_patch}.47
+Version:        %{version_major}.%{version_minor}.%{version_patch}.48
 Release:        %{branch_id}%{?jenkins_release}%{?dist}
 Summary:        OpalVOIP library
 
@@ -23,7 +23,7 @@ URL:            http://www.opalvoip.org/
 Source0:        zsdk-opal.src.tgz
 
 BuildRequires:  bbcollab-gcc = 5.1.0
-BuildRequires:  bbcollab-ptlib-devel = 2.17.4.41
+BuildRequires:  bbcollab-ptlib-devel = 2.17.4.42
 BuildRequires:  bbcollab-ffmpeg-devel = 2.6.3
 BuildRequires:  opus-devel
 BuildRequires:  speex-devel
