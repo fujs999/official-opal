@@ -6,7 +6,6 @@ RUN yum install -y \
     && yum clean all
 RUN yum install -y epel-release && yum clean all
 RUN rpm --import http://nexus.bbcollab.net/tarballs/RPM-GPG-KEY.atrpms \
-    && yum-config-manager --add-repo="http://nexus.bbcollab.net/tarballs/atrpms.repo" \
     && yum clean all
 COPY mcu.repo /etc/yum.repos.d/
 
