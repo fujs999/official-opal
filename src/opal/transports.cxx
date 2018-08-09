@@ -890,7 +890,7 @@ OpalListenerUDP::OpalListenerUDP(OpalEndPoint & endpoint,
   , m_listenerBundle(PMonitoredSockets::Create(binding.GetHostName(),
                                                !m_exclusiveListener
                                                P_NAT_PARAM(&endpoint.GetManager().GetNatMethods())))
-  , m_bufferSize(32768)
+  , m_bufferSize(endpoint.GetMaxSizeUDP())
 {
   if (binding.GetHostName() == "*")
     m_binding.SetAddress(PIPSocket::GetInvalidAddress()); // Set invalid to distinguish between "*", "0.0.0.0" and "[::]"
@@ -947,7 +947,7 @@ OpalTransport * OpalListenerUDP::Accept(const PTimeInterval & timeout)
   param.m_timeout = timeout;
   m_listenerBundle->ReadFromBundle(param);
 
-  if (param.m_errorCode != PChannel::NoError)
+  if (param.m_errorCode != PChannel::NoError && param.m_errorCode != PChannel::BufferTooSmall)
     return NULL;
 
   pdu.SetSize(param.m_lastCount);
