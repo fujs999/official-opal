@@ -44,6 +44,17 @@ class OpalFarEndCameraControl;
 
 #define OPAL_LOCAL_PREFIX "local"
 
+/**Indicate how to handle Alerting for incoming calls.
+   If false, when an incoming call is answered, and an Alerting has not yet been
+   sent to the remote, one is sent to assure the sequence, maximimising
+   interoperability. However, this can sometimes have undesirable side effects,
+   so provision is made to prevent thos transmission, and it is only sent if
+   explicitly indicated.
+
+   Defaults to false.
+*/
+#define OPAL_OPT_EXPLICIT_ALERTING "Explicit-Alerting"
+
 
 /** Local EndPoint.
     This class represents an endpoint on the local machine that can receive
@@ -895,6 +906,8 @@ class OpalLocalMediaStream : public OpalMediaStream, public OpalMediaStreamPacin
     OpalLocalConnection            & m_connection;
     OpalLocalEndPoint::Synchronicity m_synchronicity;
     PBYTEArray                       m_silence;
+    PTRACE_THROTTLE(m_readLogThrottle, 3, 60000);
+    PTRACE_THROTTLE(m_writeLogThrottle, 3, 60000);
 };
 
 

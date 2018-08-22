@@ -57,17 +57,17 @@ const unsigned CandidateTypePriority[PNatCandidate::NumTypes] = {
   RelayTypePriority
 };
 
-bool operator==(const OpalICEMediaTransport::CandidatesArray & left, const OpalICEMediaTransport::CandidatesArray & right)
+bool operator!=(const OpalICEMediaTransport::CandidatesArray & left, const OpalICEMediaTransport::CandidatesArray & right)
 {
   if (left.size() != right.size())
-    return false;
+    return true;
 
   for (size_t i = 0; i < left.size(); ++i) {
     if (left[i] != right[i])
-      return false;
+      return true;
   }
 
-  return true;
+  return false;
 }
 
 
@@ -244,6 +244,7 @@ void OpalICEMediaTransport::SetCandidates(const PString & user, const PString & 
             itOld->m_networkId = itNew->m_networkId;
           if (itOld->m_networkCost == 0)
             itOld->m_networkCost = itNew->m_networkCost;
+          itOld->m_localTransportAddress = itNew->m_localTransportAddress;
           add = false;
           break;
         }
@@ -537,12 +538,14 @@ bool OpalICEMediaTransport::InternalHandleICE(SubChannels subchannel, const void
       }
     }
 
+    bool notUsingCandidate = message.FindAttribute(PSTUNAttribute::USE_CANDIDATE) == NULL;
     if (m_state == e_Offering) {
-      PTRACE(4, *this << subchannel << ", early STUN request in ICE.");
+      PTRACE(4, *this << subchannel << ", early STUN request in ICE"
+             << (notUsingCandidate ? "." : ", with USE-CANDIDATE."));
       return false; // Just eat the STUN packet until we get an an answer
     }
 
-    if (message.FindAttribute(PSTUNAttribute::USE_CANDIDATE) == NULL) {
+    if (notUsingCandidate) {
       PTRACE_IF(4, m_state != e_Completed, *this << subchannel << ", ICE awaiting USE-CANDIDATE");
       return false;
     }
