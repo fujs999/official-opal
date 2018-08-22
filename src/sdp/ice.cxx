@@ -119,6 +119,10 @@ bool OpalICEMediaTransport::Open(OpalMediaSession & session,
   if (!OpalUDPMediaTransport::Open(session, count, localInterface, remoteAddress))
       return false;
 
+  // Open the STUN server and set what credentials we have so far
+  m_server.Open(GetSubChannelAsSocket(e_Data), GetSubChannelAsSocket(e_Control));
+  m_server.SetCredentials(m_localUsername + ':' + m_remoteUsername, m_localPassword, PString::Empty());
+
   /* With ICE we start the thread straight away, as we need to respond to STUN
      requests before we get an answer back from the remote, which is when we
      would usually start the read thread. */
@@ -265,7 +269,6 @@ void OpalICEMediaTransport::SetCandidates(const PString & user, const PString & 
     m_client.SetIceRole(PSTUN::IceControlling);
   }
 
-  m_server.Open(GetSubChannelAsSocket(e_Data), GetSubChannelAsSocket(e_Control));
   m_server.SetCredentials(m_localUsername + ':' + m_remoteUsername, m_localPassword, PString::Empty());
   m_client.SetCredentials(m_remoteUsername + ':' + m_localUsername, m_remotePassword, PString::Empty());
 
@@ -535,12 +538,14 @@ bool OpalICEMediaTransport::InternalHandleICE(SubChannels subchannel, const void
       }
     }
 
+    bool notUsingCandidate = message.FindAttribute(PSTUNAttribute::USE_CANDIDATE) == NULL;
     if (m_state == e_Offering) {
-      PTRACE(4, *this << subchannel << ", early STUN request in ICE.");
+      PTRACE(4, *this << subchannel << ", early STUN request in ICE"
+             << (notUsingCandidate ? "." : ", with USE-CANDIDATE."));
       return false; // Just eat the STUN packet until we get an an answer
     }
 
-    if (message.FindAttribute(PSTUNAttribute::USE_CANDIDATE) == NULL) {
+    if (notUsingCandidate) {
       PTRACE_IF(4, m_state != e_Completed, *this << subchannel << ", ICE awaiting USE-CANDIDATE");
       return false;
     }
