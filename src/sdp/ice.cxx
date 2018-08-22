@@ -119,7 +119,7 @@ bool OpalICEMediaTransport::Open(OpalMediaSession & session,
   if (!OpalUDPMediaTransport::Open(session, count, localInterface, remoteAddress))
       return false;
 
-  // Open the STUN server and set wat credtials we have so far
+  // Open the STUN server and set what credentials we have so far
   m_server.Open(GetSubChannelAsSocket(e_Data), GetSubChannelAsSocket(e_Control));
   m_server.SetCredentials(m_localUsername + ':' + m_remoteUsername, m_localPassword, PString::Empty());
 
