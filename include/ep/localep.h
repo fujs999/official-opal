@@ -283,11 +283,11 @@ class OpalLocalEndPoint : public OpalEndPoint
        The default implementation fills the buffer with zeros and returns true.
       */
     virtual bool OnReadMediaData(
-      const OpalLocalConnection & connection, ///<  Connection for media
-      const OpalMediaStream & mediaStream,    ///<  Media stream data is required for
-      void * data,                            ///<  Data to send
-      PINDEX size,                            ///<  Maximum size of data buffer
-      PINDEX & length                         ///<  Number of bytes placed in buffer
+      OpalLocalConnection & connection, ///<  Connection for media
+      OpalMediaStream & mediaStream,    ///<  Media stream data is required for
+      void * data,                      ///<  Data to send
+      PINDEX size,                      ///<  Maximum size of data buffer
+      PINDEX & length                   ///<  Number of bytes placed in buffer
     );
 
     /**Call back to handle received media data.
@@ -701,10 +701,10 @@ class OpalLocalConnection : public OpalConnection
        The default implementation fills the buffer with zeros and returns true.
       */
     virtual bool OnReadMediaData(
-      const OpalMediaStream & mediaStream,    ///<  Media stream data is required for
-      void * data,                            ///<  Data to send
-      PINDEX size,                            ///<  Maximum size of data buffer
-      PINDEX & length                         ///<  Number of bytes placed in buffer
+      OpalMediaStream & mediaStream, ///<  Media stream data is required for
+      void * data,                   ///<  Data to send
+      PINDEX size,                   ///<  Maximum size of data buffer
+      PINDEX & length                ///<  Number of bytes placed in buffer
     );
 
     /**Call back to handle received media data.
@@ -906,8 +906,8 @@ class OpalLocalMediaStream : public OpalMediaStream, public OpalMediaStreamPacin
     OpalLocalConnection            & m_connection;
     OpalLocalEndPoint::Synchronicity m_synchronicity;
     PBYTEArray                       m_silence;
-    PTRACE_THROTTLE(m_readLogThrottle, 3, 60000);
-    PTRACE_THROTTLE(m_writeLogThrottle, 3, 60000);
+    PTRACE_THROTTLE(m_readLogThrottle, 3, 60000, 5);
+    PTRACE_THROTTLE(m_writeLogThrottle, 3, 60000, 5);
 };
 
 
