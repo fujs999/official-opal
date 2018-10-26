@@ -27,6 +27,7 @@ License:        MPL 1.0
 URL:            http://www.opalvoip.org/
 Source0:        zsdk-opal.src.tgz
 
+BuildRequires:  which
 %if 0%{?rhel} <= 6
 BuildRequires:  bbcollab-gcc = 5.1.0
 %else
