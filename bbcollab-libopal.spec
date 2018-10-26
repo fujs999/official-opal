@@ -5,12 +5,17 @@
 # Branch ID should be 0 for local builds/PRs
 # Jenkins builds should use 1 for develop, 2 for master (release builds)
 %{!?branch_id: %global branch_id 0}
+%{!?opal_stage: %global opal_stage -alpha}
 
 # Disable the separate debug package and automatic stripping, as detailed here:
 # http://fedoraproject.org/wiki/How_to_create_an_RPM_package
 %global _enable_debug_package 0
 %global debug_package %{nil}
 %global __os_install_post /usr/lib/rpm/brp-compress %{nil}
+
+%if 0%{?rhel} <= 6
+    %global _prefix /opt/bbcollab
+%endif
 
 Name:           bbcollab-libopal
 Version:        %{version_major}.%{version_minor}.%{version_patch}.69
@@ -22,7 +27,11 @@ License:        MPL 1.0
 URL:            http://www.opalvoip.org/
 Source0:        zsdk-opal.src.tgz
 
+%if 0%{?rhel} <= 6
 BuildRequires:  bbcollab-gcc = 5.1.0
+%else
+BuildRequires:  devtoolset-7-gcc-c++
+%endif
 BuildRequires:  bbcollab-ptlib-devel = 2.17.4.65
 BuildRequires:  bbcollab-ffmpeg-devel = 2.6.3
 BuildRequires:  opus-devel
@@ -62,21 +71,12 @@ developing applications that use %{name}.
 
 
 %build
+%if 0%{?rhel} <= 6
 PKG_CONFIG_PATH=/opt/bbcollab/lib64/pkgconfig:/opt/bbcollab/lib/pkgconfig
-./configure --prefix=/opt/bbcollab \
-        --exec-prefix=/opt/bbcollab \
-        --bindir=/opt/bbcollab/bin \
-        --sbindir=/opt/bbcollab/sbin \
-        --sysconfdir=/opt/bbcollab/etc \
-        --datadir=/opt/bbcollab/share \
-        --includedir=/opt/bbcollab/include \
-        --libdir=/opt/bbcollab/lib64 \
-        --libexecdir=/opt/bbcollab/libexec \
-        --localstatedir=/opt/bbcollab/var \
-        --sharedstatedir=/opt/bbcollab/var/lib \
-        --mandir=/opt/bbcollab/share/man \
-        --infodir=/opt/bbcollab/share/info \
-        --enable-localspeexdsp \
+%else
+source /opt/rh/devtoolset-7/enable
+%endif
+%configure --enable-localspeexdsp \
         --disable-h323 \
         --disable-iax2 \
         --disable-skinny \
@@ -88,17 +88,24 @@ PKG_CONFIG_PATH=/opt/bbcollab/lib64/pkgconfig:/opt/bbcollab/lib/pkgconfig
         --disable-presence \
         --disable-g.722.1 \
         --enable-cpp14 \
+%if 0%{?rhel} <= 6
         CC=/opt/bbcollab/bin/gcc \
         CXX=/opt/bbcollab/bin/g++ \
         LD=/opt/bbcollab/bin/g++ \
+%endif
         OPAL_MAJOR=%{version_major} \
         OPAL_MINOR=%{version_minor} \
+        OPAL_STAGE=%{opal_stage} \
         OPAL_BUILD=%{version_patch}
 make %{?_smp_mflags} REVISION_FILE= all
 
 
 %install
+%if 0%{?rhel} <= 6
 PKG_CONFIG_PATH=/opt/bbcollab/lib64/pkgconfig:/opt/bbcollab/lib/pkgconfig
+%else
+source /opt/rh/devtoolset-7/enable
+%endif
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT
 find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
@@ -108,27 +115,26 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 rm -rf $RPM_BUILD_ROOT
 
 
-# No need to call ldconfig, as we're not installing to the default dynamic linker path
-#%post -p /sbin/ldconfig
+%post -p /sbin/ldconfig
 
-#%postun -p /sbin/ldconfig
+%postun -p /sbin/ldconfig
 
 
 %files
 %defattr(-,root,root,-)
-/opt/bbcollab/lib64/*.so.*
-/opt/bbcollab/lib64/opal-%{version_major}.%{version_minor}.%{version_patch}
+%{_libdir}/*.so.*
+%{_libdir}/opal-%{version_major}.%{version_minor}.%{version_patch}
 
 %files devel
 %defattr(-,root,root,-)
-/opt/bbcollab/include/opal
-/opt/bbcollab/lib64/*.so
-/opt/bbcollab/lib64/pkgconfig/*.pc
-/opt/bbcollab/share/opal
+%{_includedir}/opal
+%{_libdir}/*.so
+%{_libdir}/pkgconfig/*.pc
+%{_datadir}/opal
 
 %files static
 %defattr(-,root,root,-)
-/opt/bbcollab/lib64/*.a
+%{_libdir}/*.a
 
 
 %changelog
