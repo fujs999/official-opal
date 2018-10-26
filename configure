@@ -797,7 +797,6 @@ infodir
 docdir
 oldincludedir
 includedir
-runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -952,7 +951,6 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
-runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1205,15 +1203,6 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
-  -runstatedir | --runstatedir | --runstatedi | --runstated \
-  | --runstate | --runstat | --runsta | --runst | --runs \
-  | --run | --ru | --r)
-    ac_prev=runstatedir ;;
-  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
-  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
-  | --run=* | --ru=* | --r=*)
-    runstatedir=$ac_optarg ;;
-
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1351,7 +1340,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir runstatedir
+		libdir localedir mandir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1504,7 +1493,6 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
-  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -6059,7 +6047,7 @@ fi
 
 
    oldCPPFLAGS="$CPPFLAGS"
-   CPPFLAGS="$CPPFLAGS -Werror -Wno-unknown-pragmas"
+   CPPFLAGS="$CPPFLAGS -Werror -Wunknown-pragmas -Wno-unknown-pragmas"
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking Disable unknown-pragmas warning (-Wno-unknown-pragmas)" >&5
 $as_echo_n "checking Disable unknown-pragmas warning (-Wno-unknown-pragmas)... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -6101,7 +6089,7 @@ ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
 
 
    oldCPPFLAGS="$CPPFLAGS"
-   CPPFLAGS="$CPPFLAGS -Werror -Wno-unused-private-field"
+   CPPFLAGS="$CPPFLAGS -Werror -Wunused-private-field -Wno-unused-private-field"
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking Disable unused-private-field warning (-Wno-unused-private-field)" >&5
 $as_echo_n "checking Disable unused-private-field warning (-Wno-unused-private-field)... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -6135,7 +6123,7 @@ fi
 
 
    oldCPPFLAGS="$CPPFLAGS"
-   CPPFLAGS="$CPPFLAGS -Werror -Wno-overloaded-virtual"
+   CPPFLAGS="$CPPFLAGS -Werror -Woverloaded-virtual -Wno-overloaded-virtual"
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking Disable overloaded-virtual warning (-Wno-overloaded-virtual)" >&5
 $as_echo_n "checking Disable overloaded-virtual warning (-Wno-overloaded-virtual)... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -6169,7 +6157,7 @@ fi
 
 
    oldCPPFLAGS="$CPPFLAGS"
-   CPPFLAGS="$CPPFLAGS -Werror -Wno-deprecated-declarations"
+   CPPFLAGS="$CPPFLAGS -Werror -Wdeprecated-declarations -Wno-deprecated-declarations"
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking Disable deprecated-declarations warning (-Wno-deprecated-declarations)" >&5
 $as_echo_n "checking Disable deprecated-declarations warning (-Wno-deprecated-declarations)... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -6203,7 +6191,7 @@ fi
 
 
    oldCPPFLAGS="$CPPFLAGS"
-   CPPFLAGS="$CPPFLAGS -Werror -Wno-potentially-evaluated-expression"
+   CPPFLAGS="$CPPFLAGS -Werror -Wpotentially-evaluated-expression -Wno-potentially-evaluated-expression"
    { $as_echo "$as_me:${as_lineno-$LINENO}: checking Disable potentially evaluated expression warning (-Wno-potentially-evaluated-expression)" >&5
 $as_echo_n "checking Disable potentially evaluated expression warning (-Wno-potentially-evaluated-expression)... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -6734,7 +6722,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -6756,7 +6744,7 @@ fi
     " "$LINENO" 5
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	as_fn_error $? "
       Cannot continue without PTLib!
@@ -7127,7 +7115,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -7149,7 +7137,7 @@ fi
 
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
                      SRTP_CFLAGS=""
@@ -7398,7 +7386,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -7420,7 +7408,7 @@ fi
 
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
                      ZRTP_CFLAGS=""
@@ -7652,7 +7640,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -7674,7 +7662,7 @@ fi
 
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
                      SPEEXDSP_CFLAGS=""
@@ -8016,7 +8004,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -8038,7 +8026,7 @@ fi
 
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
                      CAPI_CFLAGS=""
@@ -8296,7 +8284,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -8318,7 +8306,7 @@ fi
 
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
                      JAVA_CFLAGS=""
@@ -8593,7 +8581,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -8615,7 +8603,7 @@ fi
 
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
                      RUBY_CFLAGS="`ruby -e 'puts $:.join(" -I")'`"
@@ -10454,7 +10442,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -10476,7 +10464,7 @@ fi
 
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
                      DAHDI_CFLAGS=""
