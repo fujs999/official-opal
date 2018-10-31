@@ -1,18 +1,17 @@
 FROM centos:6
 RUN yum groupinstall -y "Development tools" && yum clean all
-RUN yum install -y \
-    rpmdevtools \
-    yum-utils \
-    && yum clean all
+RUN yum install -y rpmdevtools yum-utils && yum clean all
 RUN yum install -y epel-release && yum clean all
-RUN rpm --import http://nexus.bbcollab.net/tarballs/RPM-GPG-KEY.atrpms \
-    && yum clean all
-COPY mcu.repo /etc/yum.repos.d/
+COPY mcu-el6.repo /etc/yum.repos.d/
 
 ARG USERID=1000
 ARG GROUPID=1000
 RUN groupadd -g ${USERID} rpmbuild && useradd -u ${USERID} -g ${GROUPID} rpmbuild
 WORKDIR /home/rpmbuild
+
+# Uncomment if you want to install some local dependencies instead of using Nexus yum repos
+#COPY build-deps /tmp/build-deps/
+#RUN yum install -y /tmp/build-deps/*.rpm && yum clean all
 
 # Install dependencies referenced by the spec file, but cache the installed RPMs so they can be fingerprinted later
 ARG SPECFILE
