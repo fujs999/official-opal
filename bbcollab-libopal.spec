@@ -2,6 +2,13 @@
 %global version_minor  17
 %global version_patch  4
 
+%global ffmpeg_ver_el6 2.6.3-9.3.el6
+%global ffmpeg_ver_el7 2.6.3-10.4.el7
+%global ptlib_ver_el6 2.17.4.65
+%global ptlib_ver_el7 2.17.4.65
+%global srtp_ver_el6 2.1.0-3.2.el6
+%global srtp_ver_el7 2.1.0-4.3.el7
+
 # Branch ID should be 0 for local builds/PRs
 # Jenkins builds should use 1 for develop, 2 for master (release builds)
 %{!?branch_id: %global branch_id 0}
@@ -27,20 +34,30 @@ License:        MPL 1.0
 URL:            http://www.opalvoip.org/
 Source0:        zsdk-opal.src.tgz
 
-BuildRequires:  which
 %if 0%{?rhel} <= 6
-BuildRequires:  bbcollab-gcc = 5.1.0
+BuildRequires:  bbcollab-gcc = 5.1.0-3.2.el6
+BuildRequires:  bbcollab-ptlib-devel = %{ptlib_ver_el6}
+BuildRequires:  bbcollab-ffmpeg-devel = %{ffmpeg_ver_el6}
+BuildRequires:  libsrtp2-devel = %{srtp_ver_el6}
 %else
 BuildRequires:  devtoolset-7-gcc-c++
+BuildRequires:  bbcollab-ptlib-devel = %{ptlib_ver_el7}
+BuildRequires:  bbcollab-ffmpeg-devel = %{ffmpeg_ver_el7}
+BuildRequires:  libsrtp2-devel = %{srtp_ver_el7}
 %endif
-BuildRequires:  bbcollab-ptlib-devel = 2.17.4.65
-BuildRequires:  bbcollab-ffmpeg-devel = 2.6.3
+
 BuildRequires:  opus-devel
 BuildRequires:  speex-devel
-BuildRequires:  libsrtp2-devel
 BuildRequires:  libtheora-devel
 BuildRequires:  libvpx-devel
+BuildRequires:  which
 BuildRequires:  x264-devel
+
+# The PTLib so version does not tend to change, so relying on the automatic dependency
+# generator may not trigger upgrades when needed. Add an explicit package dependency instead.
+%if 0%{?rhel} >= 7
+Requires:       bbcollab-ptlib = %{ptlib_ver_el7}
+%endif
 
 %description
 OpalVOIP library
@@ -49,8 +66,13 @@ OpalVOIP library
 Summary:        Development files for %{name}
 Group:          Development/Libraries
 Requires:       %{name} = %{version}-%{release}
-Requires:       bbcollab-ptlib-devel = 2.17.4.65
-Requires:       libsrtp2-devel
+%if 0%{?rhel} <= 6
+Requires:       bbcollab-ptlib-devel = %{ptlib_ver_el6}
+Requires:       libsrtp2-devel = %{srtp_ver_el6}
+%else
+Requires:       bbcollab-ptlib-devel = %{ptlib_ver_el7}
+Requires:       libsrtp2-devel = %{srtp_ver_el7}
+%endif
 
 %description    devel
 The %{name}-devel package contains libraries and header files for
