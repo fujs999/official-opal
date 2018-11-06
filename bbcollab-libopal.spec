@@ -53,12 +53,6 @@ BuildRequires:  libvpx-devel
 BuildRequires:  which
 BuildRequires:  x264-devel
 
-# The PTLib so version does not tend to change, so relying on the automatic dependency
-# generator may not trigger upgrades when needed. Add an explicit package dependency instead.
-%if 0%{?rhel} >= 7
-Requires:       bbcollab-ptlib = %{ptlib_ver_el7}
-%endif
-
 %description
 OpalVOIP library
 
@@ -120,7 +114,7 @@ source /opt/rh/devtoolset-7/enable
         OPAL_MINOR=%{version_minor} \
         OPAL_STAGE=%{opal_stage} \
         OPAL_BUILD=%{version_patch}
-make %{?_smp_mflags} REVISION_FILE= all
+make %{?_smp_mflags} REVISION_FILE= OPAL_FILE_VERSION=%{version} all
 
 
 %install
@@ -130,7 +124,7 @@ PKG_CONFIG_PATH=/opt/bbcollab/lib64/pkgconfig:/opt/bbcollab/lib/pkgconfig
 source /opt/rh/devtoolset-7/enable
 %endif
 rm -rf $RPM_BUILD_ROOT
-make install DESTDIR=$RPM_BUILD_ROOT
+make install DESTDIR=$RPM_BUILD_ROOT OPAL_FILE_VERSION=%{version}
 find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 
