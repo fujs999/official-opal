@@ -4,8 +4,8 @@
 
 %global ffmpeg_ver_el6 2.6.3-9.3.el6
 %global ffmpeg_ver_el7 2.6.3-10.4.el7
-%global ptlib_ver_el6 2.17.4.65
-%global ptlib_ver_el7 2.17.4.65
+%global ptlib_ver_el6 
+%global ptlib_ver_el7 
 %global srtp_ver_el6 2.1.0-3.2.el6
 %global srtp_ver_el7 2.1.0-4.3.el7
 
@@ -25,7 +25,7 @@
 %endif
 
 Name:           bbcollab-libopal
-Version:        %{version_major}.%{version_minor}.%{version_patch}.69
+Version:        %{version_major}.%{version_minor}.%{version_patch}.70
 Release:        %{branch_id}%{?jenkins_release}%{?dist}
 Summary:        OpalVOIP library
 
