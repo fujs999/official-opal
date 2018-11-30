@@ -944,9 +944,6 @@
     <ClInclude Include="..\..\include\iax2\transmit.h">
       <Filter>Header Files\IAX2</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\iax2\version.h">
-      <Filter>Header Files\IAX2</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\im\im.h">
       <Filter>Header Files\IM</Filter>
     </ClInclude>
@@ -1316,9 +1313,11 @@
     <ClInclude Include="..\rtp\libsrtp\include\config.h">
       <Filter>Source Files\RTP\libSRTP\Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\sdp\bfcpinterface.h" />
     <ClInclude Include="..\..\include\ep\sockep.h">
       <Filter>Header Files\Endpoints</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\version.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

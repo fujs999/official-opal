@@ -719,7 +719,15 @@ void OpalConnection::AdjustMediaFormats(bool   local,
 PStringArray OpalConnection::GetMediaCryptoSuites() const
 {
   PStringArray overrides = m_stringOptions(OPAL_OPT_CRYPTO_SUITES).Lines();
-  return overrides.IsEmpty() ? m_endpoint.GetMediaCryptoSuites() : overrides;
+  if (overrides.IsEmpty())
+    return m_endpoint.GetMediaCryptoSuites();
+
+  if (overrides.GetSize() == 1 && overrides[0] == ('!' + OpalMediaCryptoSuite::ClearText())) {
+    overrides = m_endpoint.GetAllMediaCryptoSuites();
+    overrides.RemoveAt(0); // First entry is always Clear
+  }
+
+  return overrides;
 }
 
 
@@ -889,13 +897,20 @@ PBoolean OpalConnection::RemoveMediaStream(OpalMediaStream & stream)
 
 void OpalConnection::StartMediaStreams()
 {
+#if PTRACING
+  unsigned startCount = 0;
+#endif
   for (StreamDict::iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
     OpalMediaStreamPtr mediaStream = it->second;
-    if (mediaStream.SetSafetyMode(PSafeReadWrite))
+    if (mediaStream.SetSafetyMode(PSafeReadWrite)) {
       mediaStream->Start();
+#if PTRACING
+      ++startCount;
+#endif
+    }
   }
 
-  PTRACE(3, "Media stream threads started for " << *this);
+  PTRACE(3, "Started " << startCount << " media stream threads for " << *this);
 }
 
 

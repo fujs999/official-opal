@@ -199,7 +199,7 @@ PStringList SIPEndPoint::GetNetworkURIs(const PString & name) const
 
 void SIPEndPoint::NewIncomingConnection(OpalListener &, const OpalTransportPtr & transport)
 {
-  if (transport == NULL)
+  if (transport == NULL || m_shuttingDown)
     return;
 
   if (!transport->IsReliable()) {
@@ -2061,6 +2061,14 @@ void SIPEndPoint::SendNotifyDialogInfo(const SIPDialogNotification & info)
 void SIPEndPoint::OnRegInfoReceived(const SIPRegNotification & PTRACE_PARAM(info))
 {
   PTRACE(3, "Received registration info for \"" << info.m_aor << "\" state=" << info.GetStateName());
+}
+
+
+bool SIPEndPoint::OnReceivedInfoPackage(SIPConnection & /*connection*/,
+                                        const PString & /*package*/,
+                                        const PString & /*body*/)
+{
+  return false;
 }
 
 

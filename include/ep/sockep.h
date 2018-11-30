@@ -270,6 +270,26 @@ class OpalSockConnection : public OpalLocalConnection
   //@}
 
 
+#pragma pack(1)
+    /** Over the wire header for the socket interface.
+      */
+    struct MediaHeader {
+      uint8_t  m_headerSize;
+      enum {
+        Marker = 0x01,
+        Update = 0x02,
+        Bitrate = 0x04
+      };
+      uint8_t  m_flags;
+      PUInt16b m_length; // Big endian
+    };
+
+    struct MediaBitrate : MediaHeader {
+      PUInt32b rate;
+    };
+#pragma pack()
+
+
   protected:
     bool OpenMediaSockets();
     bool OpenMediaSocket(
@@ -283,6 +303,7 @@ class OpalSockConnection : public OpalLocalConnection
     PIPSocket        * m_audioSocket;
 #if OPAL_VIDEO
     PIPSocket        * m_videoSocket;
+    PDECLARE_MUTEX(m_writeMutex);
 #endif
 };
 

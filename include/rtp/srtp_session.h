@@ -93,7 +93,7 @@ class OpalSRTPKeyInfo : public OpalMediaCryptoKeyInfo
     const OpalSRTPCryptoSuite & m_cryptoSuite;
     PBYTEArray m_key;
     PBYTEArray m_salt;
-    BYTE       m_key_salt[32]; // libsrtp internal
+    PBYTEArray m_key_salt;
 
   friend class OpalSRTPSession;
 };
@@ -112,7 +112,6 @@ class OpalSRTPCryptoSuite : public OpalMediaCryptoSuite
     virtual bool Supports(const PCaselessString & proto) const;
     virtual bool ChangeSessionType(PCaselessString & mediaSession, KeyExchangeModes modes) const;
 
-    virtual PINDEX GetCipherKeyBits() const;
     virtual PINDEX GetAuthSaltBits() const;
     virtual OpalMediaCryptoKeyInfo * CreateKeyInfo() const;
 
