@@ -114,7 +114,8 @@ source /opt/rh/devtoolset-7/enable
         OPAL_MAJOR=%{version_major} \
         OPAL_MINOR=%{version_minor} \
         OPAL_STAGE=%{opal_stage} \
-        OPAL_BUILD=%{version_patch}
+        OPAL_PATCH=%{version_patch} \
+        OPAL_OEM=%{version_oem}
 make %{?_smp_mflags} REVISION_FILE= OPAL_FILE_VERSION=%{version} all
 
 
