@@ -142,7 +142,7 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 %{_libdir}/*.so.*
-%{_libdir}/opal-%{version}
+%{_libdir}/opal-%{version_major}.%{version_minor}.%{version_patch}-%{version_oem}
 
 %files devel
 %defattr(-,root,root,-)
