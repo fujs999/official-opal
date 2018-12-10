@@ -39,7 +39,7 @@
 #define MINOR_VERSION 19
 #define BUILD_TYPE AlphaCode
 #define PATCH_VERSION 1
-#define OEM_VERSION 1
+#define OEM_VERSION 2
 
 
 #endif  // _OPAL_VERSION_H
