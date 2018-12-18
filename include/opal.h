@@ -1651,7 +1651,7 @@ typedef enum OpalCallEndReason {
     OpalCallEndedByCertificateAuthority,   ///< When using TLS, the remote certifcate was not authenticated
     OpalCallEndedByIllegalAddress,         ///< Destination Address  format was incorrect format
     OpalCallEndedByCustomCode,             ///< End call with custom protocol specific code (e.g. SIP)
-    OpalCallEndedByMediaTransportFail      ///< End call due to media transport failire, typically ICE error
+    OpalCallEndedByMediaTransportFail      ///< End call due to media transport failure, typically ICE error
 } OpalCallEndReason;
 
 
