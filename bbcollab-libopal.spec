@@ -21,6 +21,11 @@
 %global debug_package %{nil}
 %global __os_install_post /usr/lib/rpm/brp-compress %{nil}
 
+# Fudge the auto-requires script to avoid a dependency on OpenH264
+# See https://fedoraproject.org/wiki/PackagingDrafts/FilteringAutomaticDependencies
+%define _use_internal_dependency_generator 0
+%define __find_requires %{SOURCE1}
+
 %if 0%{?rhel} <= 6
     %global _prefix /opt/bbcollab
 %endif
@@ -34,6 +39,7 @@ Group:          System Environment/Libraries
 License:        MPL 1.0
 URL:            http://www.opalvoip.org/
 Source0:        zsdk-opal.src.tgz
+Source1:        bbcollab-filter-requires.sh
 
 %if 0%{?rhel} <= 6
 BuildRequires:  bbcollab-gcc = 5.1.0-3.2.el6
