@@ -30,6 +30,7 @@ make $(pwd)/revision.h
 
 # Create the source tarball
 tar -czf $(rpm --eval "%{_sourcedir}")/$TARBALL --exclude-vcs --exclude=rpmbuild .
+cp bbcollab-filter-requires.sh $(rpm --eval "%{_sourcedir}")
 
 # Build the RPM(s)
 rpmbuild -ba "${BUILD_ARGS[@]}" $SPECFILE
