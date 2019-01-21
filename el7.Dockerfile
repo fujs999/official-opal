@@ -16,6 +16,10 @@ RUN yum install -y centos-release-scl-rh && \
     yum install -y --setopt=tsflags=nodocs devtoolset-7-gcc devtoolset-7-gcc-c++ devtoolset-7-gcc-gfortran devtoolset-7-gdb && \
     yum clean all
 
+# Install OpenH264
+ADD plugins/install_openh264.sh /tmp/
+RUN /tmp/install_openh264.sh /usr/local/lib64
+
 # Uncomment if you want to install some local dependencies instead of using Nexus yum repos
 #COPY build-deps /tmp/build-deps/
 #RUN yum install -y /tmp/build-deps/*.rpm && yum clean all

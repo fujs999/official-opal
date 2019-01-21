@@ -2,3 +2,4 @@
 !*.spec
 !*.repo
 !build-deps
+!plugins/install_openh264.sh
