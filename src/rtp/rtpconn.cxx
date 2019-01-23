@@ -465,6 +465,24 @@ void OpalRTPConnection::AddAudioVideoGroup(const PString & id)
       it->second->AddGroup(id, it->second->GetMediaType(), false);
   }
 }
+
+
+void OpalRTPConnection::SetAudioVideoMediaStreamIDs(OpalRTPSession::Direction direction)
+{
+  OpalRTPSession * audioSession = dynamic_cast<OpalRTPSession *>(FindSessionByMediaType(OpalMediaType::Audio()));
+  if (audioSession == NULL || !audioSession->GetMediaStreamId(0, direction).IsEmpty())
+    return;
+
+  OpalRTPSession * videoSession = dynamic_cast<OpalRTPSession *>(FindSessionByMediaType(OpalMediaType::Video()));
+  if (videoSession == NULL || !videoSession->GetMediaStreamId(0, direction).IsEmpty())
+    return;
+
+  PString id = PGloballyUniqueID().AsString();
+  audioSession->SetMediaStreamId(id, 0, direction);
+  videoSession->SetMediaStreamId(id, 0, direction);
+  PTRACE(4, "Setting A/V media stream ID to " << id);
+}
+
 #endif // OPAL_VIDEO
 
 
