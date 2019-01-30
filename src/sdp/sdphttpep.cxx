@@ -50,6 +50,7 @@ OpalSDPHTTPEndPoint::OpalSDPHTTPEndPoint(OpalManager & manager, const PCaselessS
   // This is almost always for WebRTC, so turn on some advanced features by default.
   m_defaultStringOptions.SetBoolean(OPAL_OPT_AV_BUNDLE, true);
   m_defaultStringOptions.SetBoolean(OPAL_OPT_USE_MEDIA_STREAMS, true);
+  m_defaultStringOptions.SetString(OPAL_OPT_CRYPTO_EXCHANGE, OPAL_OPT_CRYPTO_EXCHANGE_INBAND_KEY_EXCHANGE);
 }
 
 
@@ -101,7 +102,7 @@ PSafePtr<OpalConnection> OpalSDPHTTPEndPoint::MakeConnection(OpalCall & call,
     return NULL;
   }
 
-  connection->m_destination = party;
+  connection->m_destination = StripPrefixName(party);
   return connection;
 }
 
@@ -182,6 +183,8 @@ OpalSDPHTTPConnection::~OpalSDPHTTPConnection()
 
 PBoolean OpalSDPHTTPConnection::SetUpConnection()
 {
+  PTRACE(3, "Setting up SDP over HTTP connection to " << m_destination << " on " << *this);
+
   PHTTPClient http;
   if (!http.ConnectURL(m_destination))
     return false;

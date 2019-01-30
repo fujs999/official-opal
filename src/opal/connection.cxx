@@ -1578,11 +1578,7 @@ PString OpalConnection::GetCalledPartyURL()
 void OpalConnection::CopyPartyNames(const OpalConnection & other)
 {
   if (IsNetworkConnection()) {
-    m_localPartyName = other.GetRemoteIdentity();
-    if (m_localPartyName.NumCompare(other.GetPrefixName()+':') == EqualTo)
-      m_localPartyName.Delete(0, other.GetPrefixName().GetLength()+1);
-    if (m_localPartyName.NumCompare(GetPrefixName()+':') != EqualTo)
-      m_localPartyName.Splice(GetPrefixName()+':', 0);
+    m_localPartyName = m_endpoint.StripPrefixName(other.GetEndPoint().StripPrefixName(other.GetRemoteIdentity()));
     m_displayName = other.GetRemotePartyName();
   }
   else {
@@ -1707,7 +1703,19 @@ void OpalConnection::OnApplyStringOptions()
 {
   m_endpoint.GetManager().OnApplyStringOptions(*this, m_stringOptions);
 
-  PTRACE_IF(4, !m_stringOptions.IsEmpty(), "Applying string options to " << *this << ":\n" << m_stringOptions);
+#if PTRACING
+  static unsigned const Level = 4;
+  if (PTrace::CanTrace(Level)) {
+    ostream & trace = PTRACE_BEGIN(Level);
+    trace << "Applying ";
+    if (m_stringOptions.IsEmpty())
+      trace << "default ";
+    trace << "string options to " << *this;
+    if (!m_stringOptions.IsEmpty())
+      trace << ":\n" << m_stringOptions;
+    trace << PTrace::End;
+  }
+#endif
 
   if (LockReadWrite()) {
     PCaselessString str;
