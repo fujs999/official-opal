@@ -229,10 +229,10 @@ ostream & operator<<(ostream & strm, const OpalAudioJitterBuffer::AdjustResult a
 
 /////////////////////////////////////////////////////////////////////////////
 
-OpalJitterBuffer::Init::Init(const OpalManager & manager, unsigned timeUnits)
-  : Params(manager.GetJitterParameters())
+OpalJitterBuffer::Init::Init(const Params & params, unsigned timeUnits, PINDEX packetSize)
+  : Params(params)
   , m_timeUnits(timeUnits)
-  , m_packetSize(manager.GetMaxRtpPacketSize())
+  , m_packetSize(packetSize)
 {
 }
 
@@ -493,7 +493,7 @@ PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTi
     }
     else if (m_lastSequenceNum+1 == currentSequenceNum) {
       RTP_Timestamp delta = timestamp - m_lastTimestamp;
-      PTRACE_IF(std::min(sm_EveryPacketLogLevel,5U), m_packetTime == 0, "Wait frame time :"
+      PTRACE_IF(std::min(sm_EveryPacketLogLevel,5U), m_maxJitterDelay > 0 && m_packetTime == 0, "Wait frame time :"
                      " ts=" << timestamp << ","
                   " delta=" << delta << " (" << (delta/m_timeUnits) << "ms),"
                      " sn=" << currentSequenceNum);

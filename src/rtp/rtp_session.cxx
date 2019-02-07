@@ -500,7 +500,7 @@ OpalRTPSession::SyncSource::~SyncSource()
                "    total packets        = " << m_packets << "\n"
                "    total octets         = " << m_octets << "\n"
                "    bit rate             = " << (8 * m_octets / duration) << "\n"
-               "    missing packets      = " << m_packetsMissing << '\n' << "\n"
+               "    missing packets      = " << m_packetsMissing << "\n"
                "    RTX packets          = " << m_rtxPackets << '\n';
     if (m_direction == e_Receiver) {
       OpalJitterBuffer * jb = GetJitterBuffer();
@@ -1340,7 +1340,15 @@ void OpalRTPSession::SetMediaStreamId(const PString & id, RTP_SyncSourceId ssrc,
       info->m_mediaTrackId = PSTRSTRM(id << '+' << m_mediaType);
     info->m_mediaStreamId = id;
     info->m_mediaStreamId.MakeUnique();
-    PTRACE(4, *this << "set MediaStream id for SSRC=" << RTP_TRACE_SRC(ssrc) << " to \"" << id << '"');
+    PTRACE(4, *this << "set MediaStream id for " << dir <<
+           " SSRC=" << RTP_TRACE_SRC(info->m_sourceIdentifier) << " to \"" << id << '"');
+
+    // If have an RTX, set it as well
+    SyncSource * rtx;
+    if (dir == e_Sender && info->m_rtxSSRC != 0 && !info->IsRtx() && GetSyncSource(info->m_rtxSSRC, dir, rtx)) {
+      rtx->m_mediaStreamId = info->m_mediaStreamId;
+      rtx->m_mediaTrackId = info->m_mediaTrackId;
+    }
   }
 }
 
@@ -1360,7 +1368,13 @@ void OpalRTPSession::SetMediaTrackId(const PString & id, RTP_SyncSourceId ssrc, 
   if (GetSyncSource(ssrc, dir, info)) {
     info->m_mediaTrackId = id;
     info->m_mediaTrackId.MakeUnique();
-    PTRACE(4, *this << "set MediaStreamTrack id for SSRC=" << RTP_TRACE_SRC(ssrc) << " to \"" << id << '"');
+    PTRACE(4, *this << "set MediaStreamTrack id for " << dir <<
+           " SSRC=" << RTP_TRACE_SRC(info->m_sourceIdentifier) << " to \"" << id << '"');
+
+    // If have an RTX, set it as well
+    SyncSource * rtx;
+    if (dir == e_Sender && info->m_rtxSSRC != 0 && !info->IsRtx() && GetSyncSource(info->m_rtxSSRC, dir, rtx))
+      rtx->m_mediaTrackId = info->m_mediaTrackId;
   }
 }
 
@@ -1416,7 +1430,7 @@ bool OpalRTPSession::AddHeaderExtension(const RTPHeaderExtensionInfo & ext)
   P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   if (m_headerExtensions.Contains(ext)) {
-    PTRACE(4, "Header extension already present: " << ext);
+    PTRACE(4, *this << "header extension already present: " << ext);
     return true;
   }
 
@@ -1434,7 +1448,7 @@ bool OpalRTPSession::AddHeaderExtension(const RTPHeaderExtensionInfo & ext)
     return true;
   }
 
-  PTRACE(3, "Unsupported header extension: " << ext);
+  PTRACE(3, *this << "unsupported header extension: " << ext);
   return false;
 }
 

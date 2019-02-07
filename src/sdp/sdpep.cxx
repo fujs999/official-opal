@@ -78,6 +78,7 @@ PStringList OpalSDPEndPoint::GetAvailableStringOptions() const
       OPAL_OPT_OFFER_ICE,
     #endif
     OPAL_OPT_AV_BUNDLE,
+    OPAL_OPT_USE_MEDIA_STREAMS,
     OPAL_OPT_INACTIVE_AUDIO_FLOW,
     OPAL_OPT_MULTI_SSRC
   };
@@ -231,8 +232,13 @@ bool OpalSDPConnection::GetOfferSDP(SDPSessionDescription & offer, bool offerOpe
 PString OpalSDPConnection::GetOfferSDP(bool offerOpenMediaStreamsOnly)
 {
   std::auto_ptr<SDPSessionDescription> sdp(CreateSDP(PString::Empty()));
-  PTRACE_CONTEXT_ID_TO(sdp.get());
-  return sdp.get() != NULL && GetOfferSDP(*sdp, offerOpenMediaStreamsOnly) ? sdp->Encode() : PString::Empty();
+  if (sdp.get() == NULL) {
+    PTRACE(2, "Could not create SDP");
+    return false;
+  }
+
+  PTRACE_CONTEXT_ID_TO(*sdp);
+  return GetOfferSDP(*sdp, offerOpenMediaStreamsOnly) ? sdp->Encode() : PString::Empty();
 }
 
 
@@ -590,6 +596,8 @@ bool OpalSDPConnection::OnSendOfferSDP(SDPSessionDescription & sdpOut, bool offe
 #if OPAL_VIDEO
     if (m_stringOptions.GetBoolean(OPAL_OPT_AV_BUNDLE))
       AddAudioVideoGroup();
+    if (m_stringOptions.GetBoolean(OPAL_OPT_USE_MEDIA_STREAMS))
+      SetAudioVideoMediaStreamIDs(OpalRTPSession::e_Sender);
 #endif
 
     OpalMediaTransportPtr bundledTransport;
@@ -865,6 +873,11 @@ bool OpalSDPConnection::OnSendAnswerSDP(const SDPSessionDescription & sdpOffer, 
 #endif // OPAL_SRTP
 
   bundleMergeInfo.RemoveSessionSSRCs(m_sessions);
+
+#if OPAL_VIDEO
+  if (m_stringOptions.GetBoolean(OPAL_OPT_USE_MEDIA_STREAMS))
+    SetAudioVideoMediaStreamIDs(OpalRTPSession::e_Sender);
+#endif // OPAL_VIDEO
 
   // Fill in refusal for media sessions we didn't like
   bool gotNothing = true;
@@ -1196,6 +1209,7 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPSession(SDPMediaDescript
     }
   }
 
+  FinaliseRtx(sendStream, localMedia.get());
   FinaliseRtx(recvStream, localMedia.get());
 
   if (mediaType == OpalMediaType::Audio()) {
@@ -1406,6 +1420,7 @@ bool OpalSDPConnection::OnReceivedAnswerSDPSession(const SDPMediaDescription * m
   }
 
   FinaliseRtx(sendStream, NULL);
+  FinaliseRtx(recvStream, NULL);
 
   PINDEX maxFormats = 1;
   if (mediaType == OpalMediaType::Audio()) {
@@ -1440,24 +1455,24 @@ void OpalSDPConnection::FinaliseRtx(const OpalMediaStreamPtr & stream, SDPMediaD
 
   // Make sure rtx has correct PT
   RTP_DataFrame::PayloadTypes primaryPT = stream->GetMediaFormat().GetPayloadType();
-  RTP_DataFrame::PayloadTypes newPT = RTP_DataFrame::IllegalPayloadType;
+  RTP_DataFrame::PayloadTypes rtxPT = RTP_DataFrame::IllegalPayloadType;
   PString rtxName = OpalRtx::GetName(rtpSession->GetMediaType());
   OpalMediaFormatList remoteFormats = GetMediaFormats();
   for (OpalMediaFormatList::iterator it = remoteFormats.begin(); it != remoteFormats.end(); ++it) {
     if (it->GetName() == rtxName && it->GetOptionPayloadType(OpalRtx::AssociatedPayloadTypeOption()) == primaryPT) {
-      newPT = it->GetPayloadType();
+      rtxPT = it->GetPayloadType();
       if (sdp != NULL)
         sdp->AddMediaFormat(*it);
       break;
     }
   }
 
-  if (newPT == RTP_DataFrame::IllegalPayloadType) {
+  if (rtxPT == RTP_DataFrame::IllegalPayloadType) {
     PTRACE(4, "No RTX present for stream " << *stream);
     return;
   }
 
-  PTRACE(4, "Finalising RTX as " << newPT << " for primary " << primaryPT << " on stream " << *stream);
+  PTRACE(4, "Finalising RTX as " << rtxPT << " for primary " << primaryPT << " on stream " << *stream);
 
   OpalRTPSession::Direction dir = stream->IsSource() ? OpalRTPSession::e_Receiver : OpalRTPSession::e_Sender;
 
@@ -1466,8 +1481,13 @@ void OpalSDPConnection::FinaliseRtx(const OpalMediaStreamPtr & stream, SDPMediaD
   for (RTP_SyncSourceArray::iterator it = ssrcs.begin(); it != ssrcs.end(); ++it) {
     RTP_SyncSourceId primarySSRC = *it;
     RTP_SyncSourceId rtxSSRC = rtpSession->GetRtxSyncSource(primarySSRC, dir, true);
-    if (rtxSSRC != 0)
-      rtpSession->EnableSyncSourceRtx(primarySSRC, dir == OpalRTPSession::e_Receiver ? primaryPT : newPT, rtxSSRC);
+    if (dir == OpalRTPSession::e_Sender)
+      rtpSession->EnableSyncSourceRtx(primarySSRC, rtxPT, rtxSSRC); // If no rtxSSRC (==0), create one
+    else if (rtxSSRC != 0)
+      rtpSession->EnableSyncSourceRtx(primarySSRC, primaryPT, rtxSSRC);
+    else {
+      PTRACE(3, "Primary receiver SSRC=" << RTP_TRACE_SRC(primarySSRC) << " has no RTX SSRC, invalid SDP");
+    }
   }
 }
 
