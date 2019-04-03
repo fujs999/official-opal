@@ -732,13 +732,13 @@
     <ClCompile Include="..\rtp\libsrtp\crypto\hash\null_auth.c">
       <Filter>Source Files\RTP\libSRTP\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\rtp\libsrtp\crypto\hash\sha1.c">
+    <ClCompile Include="..\rtp\libsrtp\crypto\hash\sha1_opal.c">
       <Filter>Source Files\RTP\libSRTP\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\rtp\libsrtp\crypto\cipher\aes.c">
       <Filter>Source Files\RTP\libSRTP\Source</Filter>
     </ClCompile>
-    <ClCompile Include="..\rtp\libsrtp\crypto\cipher\aes_icm.c">
+    <ClCompile Include="..\rtp\libsrtp\crypto\cipher\aes_icm_opal.c">
       <Filter>Source Files\RTP\libSRTP\Source</Filter>
     </ClCompile>
     <ClCompile Include="..\rtp\libsrtp\crypto\cipher\cipher.c">
@@ -1318,6 +1318,9 @@
     </ClInclude>
     <ClInclude Include="..\..\version.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\rtp\libsrtp\crypto\include\cipher_types.h">
+      <Filter>Source Files\RTP\libSRTP\Headers\Crypto</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

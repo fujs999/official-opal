@@ -33,7 +33,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
@@ -90,19 +89,19 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>..\..\..\include;.\spandsp-0.0.6\src;.\tiff-3.8.2\libtiff;..\..\..\..\external\spandsp-0.0.6\src;..\..\..\..\external\tiff-3.8.2\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>.\spandsp-0.0.6\src\Debug;..\..\..\..\external\spandsp-0.0.6\src\Debug;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(UniversalCRT_LibraryPath_x86)</LibraryPath>
+    <LibraryPath>..\..\..\bin\plugins\$(Platform)\$(Configuration)\libspandsp;..\..\..\..\external\spandsp-0.0.6\src\$(Platform)\$(Configuration);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(UniversalCRT_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>..\..\..\include;.\spandsp-0.0.6\src;.\tiff-3.8.2\libtiff;..\..\..\..\external\spandsp-0.0.6\src;..\..\..\..\external\tiff-3.8.2\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>.\spandsp-0.0.6\src\x64\Debug;..\..\..\..\external\spandsp-0.0.6\src\x64\Debug;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);</LibraryPath>
+    <LibraryPath>..\..\..\bin\plugins\$(Platform)\$(Configuration)\libspandsp;..\..\..\..\external\spandsp-0.0.6\src\$(Platform)\$(Configuration);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>..\..\..\include;.\spandsp-0.0.6\src;.\tiff-3.8.2\libtiff;..\..\..\..\external\spandsp-0.0.6\src;..\..\..\..\external\tiff-3.8.2\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>.\spandsp-0.0.6\src\Release;..\..\..\..\external\spandsp-0.0.6\src\Release;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(UniversalCRT_LibraryPath_x86)</LibraryPath>
+    <LibraryPath>..\..\..\bin\plugins\$(Platform)\$(Configuration)\libspandsp;..\..\..\..\external\spandsp-0.0.6\src\$(Platform)\$(Configuration);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(UniversalCRT_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>..\..\..\include;.\spandsp-0.0.6\src;.\tiff-3.8.2\libtiff;..\..\..\..\external\spandsp-0.0.6\src;..\..\..\..\external\tiff-3.8.2\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
-    <LibraryPath>.\spandsp-0.0.6\src\x64\Release;..\..\..\..\external\spandsp-0.0.6\src\x64\Release;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);</LibraryPath>
+    <LibraryPath>..\..\..\bin\plugins\$(Platform)\$(Configuration)\libspandsp;..\..\..\..\external\spandsp-0.0.6\src\$(Platform)\$(Configuration);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Midl>
@@ -244,11 +243,9 @@ copy $(ProjectDir)$(Configuration)\libspandsp.pdb c:\ptlib_plugins
     </Link>
     <PostBuildEvent>
       <Message>Copying fax plug in and debug files</Message>
-      <Command>if not exist c:\ptlib_plugins exit
-copy $(TargetPath) c:\ptlib_plugins
-copy $(TargetDir)\$(TargetName).pdb c:\ptlib_plugins
-copy $(ProjectDir)$(Configuration)\libspandsp.dll c:\ptlib_plugins
-copy $(ProjectDir)$(Configuration)\libspandsp.pdb c:\ptlib_plugins
+      <Command>if not exist "$(ProgramW6432)\PTLib Plug Ins" exit
+xcopy /y/f "$(TargetDir)$(TargetName).*d*" "$(ProgramW6432)\PTLib Plug Ins"
+xcopy /y/f "$(OutDir)libspandsp\spandsp.*d*" "$(ProgramW6432)\PTLib Plug Ins"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -268,6 +265,11 @@ copy $(ProjectDir)$(Configuration)\libspandsp.pdb c:\ptlib_plugins
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;PLUGIN_CODEC_DLL_EXPORTS</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">WIN32;NDEBUG;_WINDOWS;_MBCS;_USRDLL;PLUGIN_CODEC_DLL_EXPORTS</PreprocessorDefinitions>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="libspandsp_2017.vcxproj">
+      <Project>{1cbb0077-18c5-455f-801c-0a0ce7b0bbf5}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -807,7 +807,7 @@ OpalMediaTransport::ChannelInfo::ChannelInfo(OpalMediaTransport & owner, SubChan
   , m_consecutiveUnavailableErrors(0)
   , m_remoteAddressSource(e_RemoteAddressUnknown)
   , m_lastError(PChannel::NoError)
-  , m_receivedData(false)
+  , m_remoteGoneError(PChannel::Unavailable)
 {
 }
 
@@ -827,9 +827,9 @@ void OpalMediaTransport::ChannelInfo::ThreadMain()
 
     if (m_channel->Read(data.GetPointer(), data.GetSize())) {
       data.SetSize(m_channel->GetLastReadCount());
-      PTRACE_IF(4, !m_receivedData, &m_owner, m_owner << m_subchannel << " first receive data: sz=" << data.GetSize());
+      PTRACE_IF(4, m_remoteGoneError != PChannel::Timeout, &m_owner, m_owner << m_subchannel << " first receive data: sz=" << data.GetSize());
       if (m_owner.InternalRxData(m_subchannel, data))
-        m_receivedData = true;
+        m_remoteGoneError = PChannel::Timeout;
     }
     else {
       P_INSTRUMENTED_LOCK_READ_ONLY2(lock, m_owner);
@@ -863,7 +863,7 @@ void OpalMediaTransport::ChannelInfo::ThreadMain()
           else {
             PTRACE(1, &m_owner, m_owner << m_subchannel << " timed out (" << m_owner.m_mediaTimeout << "s), closing");
             m_owner.InternalClose();
-            m_lastError = m_receivedData ? PChannel::Timeout : PChannel::ProtocolFailure;
+            m_lastError = m_remoteGoneError;
           }
           break;
 
@@ -910,7 +910,7 @@ bool OpalMediaTransport::ChannelInfo::HandleUnavailableError()
   PTRACE(2, &m_owner, m_owner << m_subchannel << ' ' << m_owner.m_maxNoTransmitTime
          << " seconds of transmit fails to " << m_owner.GetRemoteAddress(m_subchannel));
   m_owner.InternalClose();
-  m_lastError = m_receivedData ? PChannel::Timeout : PChannel::ProtocolFailure;
+  m_lastError = m_remoteGoneError;
   return false;
 }
 
