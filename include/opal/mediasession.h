@@ -591,7 +591,8 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
       PChannel::Errors     m_lastError;
       PChannel::Errors     m_remoteGoneError;  // Error to report if remote disappears
 
-      PTRACE_THROTTLE(m_throttleReadPacket,4,60000);
+      PTRACE_THROTTLE(m_throttleWritePacket,3,60000);
+      PTRACE_THROTTLE(m_throttleReadPacket,3,60000);
 
 #if defined(__GNUC__) && __cplusplus < 201103
       void operator=(const ChannelInfo &) { }
