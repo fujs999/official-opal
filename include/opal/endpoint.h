@@ -534,6 +534,9 @@ class OpalEndPoint : public PObject
        OpalCall instance. The first connection in that call that has this
        endpoint as it's endpoint is returned.
 
+       The \p string may also be the protocol specific identifier used, as
+       returned by OpalConnection::GetIdentifier().
+
        Finally, the \p token string may also be of the form prefix:name,
        e.g. ivr:fred, and the GetLocalPartyName() is used to locate the
        connection.
@@ -825,6 +828,9 @@ class OpalEndPoint : public PObject
       const PString & name
     ) const;
 
+    /// Strip the prefix off the party name.
+    PString StripPrefixName(const PString & partyName) const;
+
     /** Execute garbage collection for endpoint.
         Returns true if all garbage has been collected.
         Default behaviour deletes the objects in the connectionsActive list.
@@ -897,7 +903,10 @@ class OpalEndPoint : public PObject
 
     /**Set the default options for created connections.
       */
-    void SetDefaultStringOptions(const OpalConnection::StringOptions & opts) { m_defaultStringOptions = opts; }
+    void SetDefaultStringOptions(
+      const OpalConnection::StringOptions & opts, ///< Options to set
+      bool overwrite = false
+    );
 
     /**Set the default option for created connections.
       */

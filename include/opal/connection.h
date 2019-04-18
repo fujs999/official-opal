@@ -39,6 +39,7 @@
 
 #include <opal/mediafmt.h>
 #include <opal/mediastrm.h>
+#include <opal/mediasession.h>
 #include <opal/guid.h>
 #include <opal/transports.h>
 #include <ptclib/dtmf.h>
@@ -450,7 +451,8 @@ class OpalConnection : public PSafeObject
       EndedByCallCompletedElsewhere, ///< Call cleared because it was answered by another extension.
       EndedByCertificateAuthority,   ///< When using TLS, the remote certifcate was not authenticated
       EndedByIllegalAddress,         ///< Destination Address  format was incorrect format
-      EndedByCustomCode              ///< End call with custom protocol specific code (e.g. SIP)
+      EndedByCustomCode,             ///< End call with custom protocol specific code (e.g. SIP)
+      EndedByMediaTransportFail      ///< End call due to media transport failure, typically ICE error
     );
 
     struct CallEndReason {
@@ -1301,7 +1303,8 @@ class OpalConnection : public PSafeObject
        @Return true if the specific media session is to be aborted.
       */
     virtual bool OnMediaFailed(
-      unsigned sessionId   ///< Session ID of media that stopped.
+      unsigned sessionId,    ///< Session ID of media that stopped.
+      PChannel::Errors error ///< Error code for failure
     );
 
     /**Indicate all media sessions have failed.
@@ -1860,6 +1863,10 @@ class OpalConnection : public PSafeObject
       */
     virtual PString GetSupportedFeatures() const;
 
+    /**Get the audio jitter parameters.
+    */
+    const OpalJitterBuffer::Params & GetJitterParameters() const { return m_jitterParams; }
+
     /**Get the default maximum audio jitter delay parameter.
        Defaults to 50ms
      */
@@ -1905,7 +1912,6 @@ class OpalConnection : public PSafeObject
 
     /// Get the string options associated with this connection.
     const StringOptions & GetStringOptions() const { return m_stringOptions; }
-          StringOptions & GetStringOptions()       { return m_stringOptions; }
 
     /// Set the string options associated with this connection.
     void SetStringOptions(
@@ -1938,6 +1944,8 @@ class OpalConnection : public PSafeObject
     bool InternalRelease(CallEndReason reason);
     void InternalOnReleased();
     void InternalExecuteMediaCommand(OpalMediaCommand * command);
+
+    void InternalCreatedMediaTransport(const OpalMediaTransportPtr & transport) { m_mediaTransports.Append(transport); }
 
   protected:
   // Member variables
@@ -1987,6 +1995,8 @@ class OpalConnection : public PSafeObject
     };
     typedef PSafeDictionary<StreamKey, OpalMediaStream> StreamDict;
     StreamDict m_mediaStreams;
+
+    PSafeList<OpalMediaTransport> m_mediaTransports;
 
     OpalJitterBuffer::Params m_jitterParams;
 
@@ -2076,6 +2086,7 @@ class OpalConnection : public PSafeObject
     P_REMOVE_VIRTUAL(bool,Hold(bool,bool),false);
     P_REMOVE_VIRTUAL(bool,ExecuteMediaCommand(const OpalMediaCommand &,unsigned,const OpalMediaType &) const,0);
     P_REMOVE_VIRTUAL(bool,OnMediaFailed(unsigned,bool),false);
+    P_REMOVE_VIRTUAL(bool,OnMediaFailed(unsigned),false);
 };
 
 #endif // OPAL_OPAL_CONNECTION_H

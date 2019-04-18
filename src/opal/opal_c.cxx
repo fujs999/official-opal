@@ -2423,15 +2423,15 @@ void OpalManager_C::HandleUserInput(const OpalMessage & command, OpalMessageBuff
 void OpalManager_C::HandleClearCall(const OpalMessage & command, OpalMessageBuffer & response)
 {
   const char * callToken;
-  OpalConnection::CallEndReason reason;
+  OpalConnection::CallEndReason reason = OpalConnection::EndedByLocalUser;
 
-  if (m_apiVersion < 9) {
+  if (m_apiVersion < 9)
     callToken = command.m_param.m_callToken;
-    reason = OpalConnection::EndedByLocalUser;
-  }
   else {
     callToken = command.m_param.m_clearCall.m_callToken;
-    reason.code = (OpalConnection::CallEndReasonCodes)command.m_param.m_clearCall.m_reason;
+    reason.code = (OpalConnection::CallEndReason)command.m_param.m_clearCall.m_reason;
+    if (m_apiVersion >= 39)
+      reason.custom = command.m_param.m_clearCall.m_custom;
   }
 
   if (IsNullString(callToken)) {
@@ -2824,9 +2824,12 @@ void OpalManager_C::OnUserInputTone(OpalConnection & connection, char tone, int 
     PostMessage(message);
   }
 
-  connection.GetStringOptions().SetBoolean(AllowOnUserInputString, false);
+  OpalConnection::StringOptions options = connection.GetStringOptions();
+  options.SetBoolean(AllowOnUserInputString, false);
+  connection.SetStringOptions(options, true);
   OpalManager::OnUserInputTone(connection, tone, duration);
-  connection.GetStringOptions().Remove(AllowOnUserInputString);
+  options.Remove(AllowOnUserInputString);
+  connection.SetStringOptions(options, true);
 }
 
 

@@ -676,7 +676,7 @@ bool SIPConnection::InternalSetConnected(bool transfer)
   NotifyDialogState(SIPDialogNotification::Confirmed);
 
   // switch phase and if media was previously set up, then move to Established
-  return OpalConnection::SetConnected();
+  return OpalSDPConnection::SetConnected();
 }
 
 
@@ -756,7 +756,7 @@ OpalMediaFormatList SIPConnection::GetMediaFormats() const
 }
 
 
-int SIPConnection::SetRemoteMediaFormats(SIP_PDU & pdu)
+int SIPConnection::SetRemoteMediaFormatsFromPDU(SIP_PDU & pdu)
 {
   /* As SIP does not really do capability exchange, if we don't have an initial
      INVITE from the remote (indicated by sdp == NULL) then all we can do is
@@ -767,25 +767,7 @@ int SIPConnection::SetRemoteMediaFormats(SIP_PDU & pdu)
   if (!pdu.DecodeSDP(*this, m_multiPartMIME))
     return 0;
 
-  m_remoteFormatList = pdu.GetSDP()->GetMediaFormats();
-  AdjustMediaFormats(false, NULL, m_remoteFormatList);
-
-  if (m_remoteFormatList.IsEmpty()) {
-    PTRACE(2, "All possible media formats to offer were removed.");
-    return -1;
-  }
-
-#if OPAL_T38_CAPABILITY
-  /* We default to having T.38 included as most UAs do not actually
-     tell you that they support it or not. For the re-INVITE mechanism
-     to work correctly, the rest ofthe system has to assume that the
-     UA is capable of it, even it it isn't. */
-  m_remoteFormatList += OpalT38;
-#endif
-
-  PTRACE(4, "Remote media formats set:\n    " << setfill(',') << m_remoteFormatList << setfill(' '));
-
-  return 1;
+  return  SetRemoteMediaFormats(pdu.GetSDP()->GetMediaFormats()) ? 1 : -1;
 }
 
 
@@ -1675,7 +1657,7 @@ bool SIPConnection::OnReceivedResponseToINVITE(SIPTransaction & transaction, SIP
     return statusCode >= 200; // Don't send ACK if only provisional response
 
   // Empty INVITE means offer in remotes response, get the media formats out of it
-  if (SetRemoteMediaFormats(response) <= 0) {
+  if (SetRemoteMediaFormatsFromPDU(response) <= 0) {
     Release(EndedByCapabilityExchange);
     return true;
   }
@@ -2062,7 +2044,7 @@ void SIPConnection::OnReceivedResponse(SIPTransaction & transaction, SIP_PDU & r
 
   // For 180/183 may have some SDP that can be used as early remote media capbility
   if (responseClass == 1)
-    SetRemoteMediaFormats(response);
+    SetRemoteMediaFormatsFromPDU(response);
 
   bool handled = false;
 
@@ -2376,7 +2358,7 @@ void SIPConnection::OnReceivedINVITE(SIP_PDU & request)
 
     PTRACE(3, "OnIncomingConnection succeeded for INVITE from " << request.GetURI() << " for " << *this);
 
-    if (SetRemoteMediaFormats(*m_lastReceivedINVITE) < 0) {
+    if (SetRemoteMediaFormatsFromPDU(*m_lastReceivedINVITE) < 0) {
       Release(EndedByCapabilityExchange);
       return;
     }
@@ -2426,7 +2408,7 @@ void SIPConnection::OnReceivedINVITE(SIP_PDU & request)
     }
   }
 
-  if (SetRemoteMediaFormats(*m_lastReceivedINVITE) < 0) {
+  if (SetRemoteMediaFormatsFromPDU(*m_lastReceivedINVITE) < 0) {
     Release(EndedByCapabilityExchange);
     return;
   }
@@ -3390,8 +3372,14 @@ void SIPConnection::OnReceivedINFO(SIP_PDU & request)
           if (tokens.GetSize() > 1)
             val = tokens[1].Trim();
           if (tokens.GetSize() > 0) {
-            if (tokens[0] *= "signal")
-              tone = val[0];   // DTMF relay does not use RFC2833 encoding
+            if (tokens[0] *= "signal") {
+              if (val == "10")
+                tone = '*';
+              else if (val == "11")
+                tone = '#';
+              else
+                tone = val[0];   // DTMF relay does not use RFC2833 encoding
+            }
             else if (tokens[0] *= "duration")
               duration = val.AsInteger();
           }

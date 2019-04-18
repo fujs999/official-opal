@@ -725,14 +725,9 @@ PBoolean SDPMediaDescription::SetAddresses(const OpalTransportAddress & media,
 }
 
 
-bool SDPMediaDescription::FromSession(OpalMediaSession * session,
-                                      const SDPMediaDescription *
-#if OPAL_ICE
-                                                                  offer
-#endif
-                                      , RTP_SyncSourceId)
+bool SDPMediaDescription::FromSession(OpalMediaSession * session, const SDPMediaDescription * offer, RTP_SyncSourceId)
 {
-  if (session == NULL) {
+  if (session == NULL || (offer != NULL && offer->GetPort() == 0)) {
     m_port = 0;
     m_mediaAddress = OpalTransportAddress();
     m_controlAddress = OpalTransportAddress();
@@ -809,6 +804,7 @@ void SDPMediaDescription::MatchGroupInfo(const GroupDict & groups)
     for (it = groups.begin(); it != groups.end(); ++it) {
       if (it->second.GetValuesIndex(*mid) != P_MAX_INDEX) {
         m_groups.SetAt(it->first, *mid);
+        PTRACE(4, "Adding mid \"" << *mid << "\" to group \"" << it->first << '"');
         break;
       }
     }
@@ -844,7 +840,7 @@ bool SDPMediaDescription::Decode(const PStringArray & tokens)
   // check everything
   switch (m_port) {
     case 0 :
-      PTRACE(3, "Ignoring media session " << m_mediaType << " with port=0");
+      PTRACE(3, "Disabling media session " << m_mediaType << " with port=0");
       m_direction = Inactive;
       m_mediaAddress = m_controlAddress = OpalTransportAddress();
       break;
@@ -1845,7 +1841,7 @@ void SDPRTPAVPMediaDescription::OutputAttributes(ostream & strm) const
   else if (!m_controlAddress.IsEmpty()) {
     PIPSocket::Address ip;
     WORD port = 0;
-    if (m_controlAddress.GetIpAndPort(ip, port) && port != (m_port+1))
+    if (m_controlAddress.GetIpAndPort(ip, port) && port != (m_port + 1))
       strm << "a=rtcp:" << port << ' ' << GetConnectAddressString(m_mediaAddress) << CRLF;
   }
 
@@ -1856,22 +1852,31 @@ void SDPRTPAVPMediaDescription::OutputAttributes(ostream & strm) const
     strm << "a=label:" << m_label << CRLF;
 
   /* Specification does not seem to say to do this, but all the RFC examples group
-     the FID ssrc parameters together, so we do the same to maximise interoperability */
+   the FID ssrc parameters together, so we do the same to maximise interoperability */
   std::set<RTP_SyncSourceId> ssrcInfoDone;
 
-  for (vector<RTP_SyncSourceArray>::const_iterator it1 = m_flowSSRC.begin(); it1 != m_flowSSRC.end(); ++it1) {
-    strm << "a=ssrc-group:FID";
-    for (RTP_SyncSourceArray::const_iterator it2 = it1->begin(); it2 != it1->end(); ++it2)
-      strm << ' ' << *it2;
-    strm << CRLF;
+  if (m_direction&SendOnly) {
+    for (vector<RTP_SyncSourceArray>::const_iterator it1 = m_flowSSRC.begin(); it1 != m_flowSSRC.end(); ++it1) {
+      strm << "a=ssrc-group:FID";
+      for (RTP_SyncSourceArray::const_iterator it2 = it1->begin(); it2 != it1->end(); ++it2)
+        strm << ' ' << *it2;
+      strm << CRLF;
 
-    for (RTP_SyncSourceArray::const_iterator it2 = it1->begin(); it2 != it1->end(); ++it2) {
-      SsrcInfo::const_iterator it3 = m_ssrcInfo.find(*it2);
-      if (it3 != m_ssrcInfo.end()) {
-        for (PStringOptions::const_iterator it4 = it3->second.begin(); it4 != it3->second.end(); ++it4)
-          strm << "a=ssrc:" << *it2 << ' ' << it4->first << ':' << it4->second << CRLF;
-        ssrcInfoDone.insert(*it2);
+      for (RTP_SyncSourceArray::const_iterator it2 = it1->begin(); it2 != it1->end(); ++it2) {
+        SsrcInfo::const_iterator it3 = m_ssrcInfo.find(*it2);
+        if (it3 != m_ssrcInfo.end()) {
+          for (PStringOptions::const_iterator it4 = it3->second.begin(); it4 != it3->second.end(); ++it4)
+            strm << "a=ssrc:" << *it2 << ' ' << it4->first << ':' << it4->second << CRLF;
+          ssrcInfoDone.insert(*it2);
+        }
       }
+    }
+  }
+  else {
+    // We have no senders, but still want to output the primary SSRC for RTCP purposes
+    for (vector<RTP_SyncSourceArray>::const_iterator it1 = m_flowSSRC.begin(); it1 != m_flowSSRC.end(); ++it1) {
+      for (RTP_SyncSourceArray::const_iterator it2 = ++it1->begin(); it2 != it1->end(); ++it2)
+        ssrcInfoDone.insert(*it2); // Don't output these
     }
   }
 
@@ -3059,7 +3064,7 @@ bool SDPSessionDescription::Decode(const PStringArray & lines, const OpalMediaFo
               " ok=" << boolalpha << ok);
   }
 
-  {
+  if (!m_groups.IsEmpty() || mediaDescriptions.GetSize() > 1) {
     // Match up groups and mid's
     for (PINDEX i = 0; i < mediaDescriptions.GetSize(); ++i)
       mediaDescriptions[i].MatchGroupInfo(m_groups);
@@ -3146,7 +3151,9 @@ void SDPSessionDescription::SetAttribute(const PString & attr, const PString & v
 {
   if (attr *= "group") {
     PStringArray tokens = value.Tokenise(WhiteSpace, false); // Spec says space only, but lets be forgiving
-    if (tokens.GetSize() > 2) {
+    if (tokens.GetSize() < 2)
+      PTRACE(3, "Invalid group attribute: \"" << value << '"');
+    else {
       PString name = tokens[0];
       tokens.RemoveAt(0);
       m_groups.SetAt(name, new PStringArray(tokens));

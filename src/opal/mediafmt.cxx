@@ -1223,6 +1223,10 @@ bool OpalMediaFormat::RegisterKnownMediaFormats(const PString & name)
     KNOWN(MPEG4),
     KNOWN(VP8),
 #endif
+#if OPAL_T38_CAPABILITY
+    KNOWN(T38),
+    KNOWN(T38_RTP),
+#endif
   };
 
   bool atLeastOne = false;
@@ -1361,9 +1365,9 @@ void OpalMediaFormatInternal::DeconflictPayloadTypes(OpalMediaFormatList & forma
     inUse[format->GetPayloadType()] = true;
 
     // A conflict is when we are after an explicit payload type, we have found one already using it
-    if (rtpPayloadType > RTP_DataFrame::DynamicBase && rtpPayloadType  == format->GetPayloadType()) {
+    if (rtpPayloadType > RTP_DataFrame::DynamicBase && rtpPayloadType == format->GetPayloadType()) {
       // If it is a shared payload types, which happens when encoding name is the same, then allow it
-      if (!m_allowMultiple && rtpEncodingName == format->GetEncodingName())
+      if (m_allowMultiple && rtpEncodingName == format->GetEncodingName())
         return;
 
       // Have a conflicting media format, move it later when we know where to
@@ -2518,7 +2522,7 @@ namespace OpalRtx
 #if OPAL_VIDEO
                                                     mediaType == OpalMediaType::Video() ? VideoClockRate :
 #endif
-                                                    AudioClockRate), true)
+                                                    AudioClockRate, 0, true), true)
     {
       OpalMediaOptionUnsigned * opt = new OpalMediaOptionUnsigned(AssociatedPayloadTypeOption(),
                                           true, OpalMediaOption::EqualMerge, 0, 0, RTP_DataFrame::MaxPayloadType);

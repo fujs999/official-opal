@@ -87,12 +87,6 @@ OpalICEMediaTransport::OpalICEMediaTransport(const PString & name)
 }
 
 
-OpalICEMediaTransport::~OpalICEMediaTransport()
-{
-  InternalStop();
-}
-
-
 bool OpalICEMediaTransport::Open(OpalMediaSession & session,
                                  PINDEX count,
                                  const PString & localInterface,
@@ -139,12 +133,12 @@ bool OpalICEMediaTransport::IsEstablished() const
 }
 
 
-void OpalICEMediaTransport::InternalRxData(SubChannels subchannel, const PBYTEArray & data)
+bool OpalICEMediaTransport::InternalRxData(SubChannels subchannel, const PBYTEArray & data)
 {
   if (m_state == e_Disabled)
-    OpalUDPMediaTransport::InternalRxData(subchannel, data);
-  else
-    OpalMediaTransport::InternalRxData(subchannel, data);
+    return OpalUDPMediaTransport::InternalRxData(subchannel, data);
+
+  return OpalMediaTransport::InternalRxData(subchannel, data) && m_state == e_Completed;
 }
 
 
@@ -464,6 +458,9 @@ bool OpalICEMediaTransport::InternalHandleICE(SubChannels subchannel, const void
 
   if (m_state == e_Disabled)
     return true;
+
+  if (m_subchannels[subchannel].m_remoteGoneError == PChannel::Unavailable)
+    m_subchannels[subchannel].m_remoteGoneError = PChannel::ProtocolFailure;
 
   PUDPSocket * socket = GetSubChannelAsSocket(subchannel);
   PIPAddressAndPort ap;

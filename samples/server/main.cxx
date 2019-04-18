@@ -119,6 +119,16 @@ static const PConstString SignLanguageAnalyserDLLKey("Sign Language Analyser DLL
 static const PConstString ConfAudioOnlyKey("Conference Audio Only");
 static const PConstString ConfMediaPassThruKey("Conference Media Pass Through");
 static const PConstString ConfVideoResolutionKey("Conference Video Resolution");
+
+static const PConstString RecordAllCallsKey("Record All Calls");
+static const PConstString RecordFileTemplateKey("Record File Template");
+static const PConstString RecordStereoKey("Record Stereo");
+static const PConstString RecordAudioFormatKey("Record Audio Format");
+#if OPAL_VIDEO
+static const PConstString RecordVideoFormatKey("Record Video Format");
+static const PConstString RecordVideoMixingModeKey("Record Video Mixing Mode");
+static const PConstString RecordVideoResolutionKey("Record Video Resolution");
+#endif
 #endif
 
 #if OPAL_SCRIPT
@@ -314,7 +324,7 @@ PBoolean MyProcess::Initialise(const char * initMsg)
   // Create the home page
   PFilePath welcomeHtml = GetFile().GetDirectory() + "welcome.html";
   if (PFile::Exists(welcomeHtml))
-    m_httpNameSpace.AddResource(new PServiceHTTPFile(welcomeHtml), PHTTPSpace::Overwrite);
+    m_httpNameSpace.AddResource(new PServiceHTTPFile(welcomeHtml.GetFileName(), welcomeHtml), PHTTPSpace::Overwrite);
   else {
     PHTML html;
     html << PHTML::Title("Welcome to " + GetName())
@@ -661,6 +671,38 @@ PBoolean MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
 
   SetMediaTypeOfService(rsrc->AddIntegerField(RTPTOSKey, 0, 255, GetMediaTypeOfService(), "", "Value for DIFSERV Quality of Service"));
 
+#if OPAL_HAS_MIXER
+  rsrc->Add(new PHTTPDividerField());
+  m_recordingEnabled = rsrc->AddBooleanField(RecordAllCallsKey, false, "Enable recording of all calls");
+  m_recordingTemplate = rsrc->AddStringField(RecordFileTemplateKey, P_MAX_PATH, ".\\%DATE%_%TIME%_%FROM_%TO%.avi",
+    "Template for where recording files are placed, and what meta-information is used in it's name."
+    " Meta information is: %DATE%, %TIME%, %FROM%, %TO%, %HOST%"
+    " The file extension dictates the file container format, e.g. .avi, .mp4, etc.", 1, 50);
+  m_recordingOptions.m_stereo = rsrc->AddBooleanField(RecordStereoKey, m_recordingOptions.m_stereo,
+    "Record the two parties, each in their own channel of stereo audio. Otherwise mix them together in mono.");
+  m_recordingOptions.m_audioFormat = rsrc->AddStringField(RecordAudioFormatKey, 10, m_recordingOptions.m_audioFormat,
+    "Audio format: PCM-16, MP3, AAC etc. Note, not all file formats may be able to encode a given format.");
+#if OPAL_VIDEO
+  m_recordingOptions.m_videoFormat = rsrc->AddStringField(RecordVideoFormatKey, 10, m_recordingOptions.m_videoFormat,
+    "Video format: mpeg4video, h.264 etc. Note, not all file formats may be able to encode a given format.");
+
+  static const char * const MixingModes[] = { "SideBySideLetterbox", "SideBySideScaled", "StackedPillarbox", "StackedScaled" };
+  PString mode = rsrc->AddSelectField(RecordVideoMixingModeKey, PStringArray(PARRAYSIZE(MixingModes), MixingModes),
+    MixingModes[m_recordingOptions.m_videoMixing], "Video mixing mode.");
+  for (PINDEX i = 0; i < PARRAYSIZE(MixingModes); ++i) {
+    if (mode == MixingModes[i]) {
+      m_recordingOptions.m_videoMixing = (OpalRecordManager::VideoMode)i;
+      break;
+    }
+  }
+
+  PVideoFrameInfo::ParseSize(rsrc->AddStringField(RecordVideoResolutionKey, 10,
+    PVideoFrameInfo::AsString(m_recordingOptions.m_videoWidth, m_recordingOptions.m_videoHeight),
+    "Video resolution for recording, after mixing via the above mode"),
+    m_recordingOptions.m_videoWidth, m_recordingOptions.m_videoHeight);
+#endif
+#endif
+
 #if P_STUN
   rsrc->Add(new PHTTPDividerField());
   PSYSTEMLOG(Info, "Configuring NAT");
@@ -756,7 +798,7 @@ PBoolean MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
           "Interactive Voice Response directory to cache Text To Speech phrases", 1, 50));
     ivrEP->SetRecordDirectory(rsrc->AddStringField(IVRRecordDirKey, 0, ivrEP->GetRecordDirectory(),
           "Interactive Voice Response directory to save recorded messages", 1, 50));
-#if OPAL_VXML_VIDEO
+#if P_VXML_VIDEO
     m_signLanguageAnalyserDLL = rsrc->AddStringField(SignLanguageAnalyserDLLKey, 0, m_signLanguageAnalyserDLL,
           "Interactive Voice Response Sign Language Library", 1, 50);
     PVXMLSession::SetSignLanguageAnalyser(m_signLanguageAnalyserDLL);
@@ -933,6 +975,16 @@ void MyManager::OnStopMediaPatch(OpalConnection & connection, OpalMediaPatch & p
 {
   dynamic_cast<MyCall &>(connection.GetCall()).OnStopMediaPatch(patch);
   OpalManager::OnStopMediaPatch(connection, patch);
+}
+
+
+void MyManager::StartRecordingCall(MyCall & call) const
+{
+  if (!m_recordingEnabled)
+    return;
+
+  PFilePath filepath = m_recordingTemplate;
+  call.StartRecording(filepath.GetDirectory(), filepath.GetTitle(), filepath.GetType(), m_recordingOptions);
 }
 
 

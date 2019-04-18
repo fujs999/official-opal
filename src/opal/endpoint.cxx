@@ -136,8 +136,11 @@ bool OpalEndPoint::SetInitialBandwidth(OpalBandwidth::Direction dir, OpalBandwid
 PBoolean OpalEndPoint::GarbageCollection()
 {
   for (ConnectionDict::iterator it = m_connectionsActive.begin(); it != m_connectionsActive.end(); ++it) {
-    PTRACE_CONTEXT_ID_PUSH_THREAD(it->second);
-    it->second->GarbageCollection();
+    PSafePtr<OpalConnection> conn = it->second;
+    if (conn != NULL) {
+      PTRACE_CONTEXT_ID_PUSH_THREAD(*conn);
+      conn->GarbageCollection();
+    }
   }
 
   return m_connectionsActive.DeleteObjectsToBeRemoved();
@@ -413,12 +416,13 @@ PSafePtr<OpalConnection> OpalEndPoint::GetConnectionWithLock(const PString & tok
     }
   }
 
-  if (token.NumCompare(GetPrefixName()+':') != EqualTo)
-    return NULL;
-
-  PString name = token.Mid(GetPrefixName().GetLength()+1);
-  for (connection = PSafePtr<OpalConnection>(m_connectionsActive, PSafeReference); connection != NULL; ++connection) {
-    if (connection->GetLocalPartyName() == name)
+  PString name = StripPrefixName(token);
+  for (ConnectionDict::const_iterator it = m_connectionsActive.begin(); it != m_connectionsActive.end(); ++it) {
+    connection = it->second;
+    if (connection != NULL && (
+          connection->GetIdentifier()     == name ||
+          connection->GetLocalPartyName() == name ||
+          connection->GetLocalPartyName() == token))
       return connection.SetSafetyMode(mode) ? connection : NULL;
   }
 
@@ -455,7 +459,7 @@ OpalConnection * OpalEndPoint::AddConnection(OpalConnection * connection)
     return NULL;
   }
 
-  connection->SetStringOptions(m_defaultStringOptions, false);
+  connection->OnApplyStringOptions();
 
   m_connectionsActive.SetAt(token, connection);
 
@@ -755,6 +759,16 @@ PStringList OpalEndPoint::GetNetworkURIs(const PString & name) const
 }
 
 
+PString OpalEndPoint::StripPrefixName(const PString & partyName) const
+{
+  PINDEX prefixLength = m_prefixName.GetLength();
+  return partyName.GetLength() > prefixLength &&
+         partyName[prefixLength] == ':' &&
+         partyName.NumCompare(m_prefixName, prefixLength) == EqualTo
+       ? partyName.Mid(prefixLength+1) : partyName;
+}
+
+
 bool OpalEndPoint::FindListenerForProtocol(const char * protoPrefix, OpalTransportAddress & addr)
 {
   OpalTransportAddress compatibleTo("*", 0, protoPrefix);
@@ -806,6 +820,15 @@ void OpalEndPoint::OnMessageReceived(const OpalIM & message)
 }
 
 #endif // OPAL_HAS_IM
+
+
+void OpalEndPoint::SetDefaultStringOptions(const OpalConnection::StringOptions & opts, bool overwrite)
+{
+  if (overwrite)
+    m_defaultStringOptions = opts;
+  else
+    m_defaultStringOptions.Merge(opts, PStringOptions::e_MergeOverwrite);
+}
 
 
 PStringList OpalEndPoint::GetAvailableStringOptions() const

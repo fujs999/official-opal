@@ -35,10 +35,8 @@
 
 
 OpalSockEndPoint::OpalSockEndPoint(OpalManager & manager, const char * prefix)
-  : OpalLocalEndPoint(manager, prefix)
+  : OpalLocalEndPoint(manager, prefix, true, e_Asynchronous)
 {
-  m_defaultAudioSynchronicity = e_Asynchronous;
-  m_defaultVideoSourceSynchronicity = e_Asynchronous;
 }
 
 
@@ -54,12 +52,7 @@ PSafePtr<OpalConnection> OpalSockEndPoint::MakeConnection(OpalCall & call,
                                      OpalConnection::StringOptions * stringOptions)
 {
   OpalConnection::StringOptions localStringOptions;
-
-  // First strip of the prefix if present
-  if (remoteParty.Find(GetPrefixName() + ":") == 0)
-    PURL::SplitVars(remoteParty.Mid(GetPrefixName().GetLength() + 1), localStringOptions, ',', '=');
-  else
-    PURL::SplitVars(remoteParty, localStringOptions, ',', '=');
+  PURL::SplitVars(StripPrefixName(remoteParty), localStringOptions, ',', '=');
 
   if (stringOptions != NULL)
     localStringOptions.Merge(*stringOptions, PStringToString::e_MergeAppend);
