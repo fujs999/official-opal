@@ -1,7 +1,7 @@
 %global version_major  3
 %global version_minor  19
 %global version_patch  3
-%global version_oem    11
+%global version_oem    12
 
 %global ffmpeg_ver_el6 2.6.3-9.3.el6
 %global ffmpeg_ver_el7 2.6.3-10.4.el7
