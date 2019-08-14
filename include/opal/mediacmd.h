@@ -192,6 +192,30 @@ class OpalMediaMaxPayload : public OpalMediaCommand
 };
 
 
+/**This indicates that the audio level.
+  */
+class OpalMediaAudioLevel : public OpalMediaCommand
+{
+    PCLASSINFO_WITH_CLONE(OpalMediaAudioLevel, OpalMediaCommand);
+  public:
+    OpalMediaAudioLevel(
+      int level,                ///< Audio level from 0 to -127dBov
+      bool vad,                 ///< Voice Activity Detection (if known)
+      unsigned sessionID = 0,   ///< Session for media stream, 0 is use first \p mediaType stream
+      unsigned ssrc = 0         ///< Sync Source for media stream (if RTP)
+    );
+
+    virtual PString GetName() const;
+
+    int  GetLevel() const { return m_level; }
+    bool GetVAD() const { return m_vad; }
+
+  protected:
+    int  m_level;
+    bool m_vad;
+};
+
+
 #endif // OPAL_OPAL_MEDIACMD_H
 
 

@@ -647,7 +647,8 @@ class RTP_DataFrame : public PBYTEArray
     enum HeaderExtensionType {
       RFC3550,
       RFC5285_OneByte,
-      RFC5285_TwoByte
+      RFC5285_TwoByte,
+      RFC5285_Auto  /// Automatically choose OneByte or TwoByte depending on id value
     };
 
     static const unsigned MaxHeaderExtensionId = 65535;

@@ -330,6 +330,15 @@ BYTE * RTP_DataFrame::GetHeaderExtension(HeaderExtensionType type, unsigned idTo
   if (!GetExtension())
     return NULL;
 
+  if (type == RFC5285_Auto) {
+    if (idToFind <= MaxHeaderExtensionIdOneByte) {
+      BYTE * ext = GetHeaderExtension(RFC5285_OneByte, idToFind, length);
+      if (ext != NULL)
+        return ext;
+    }
+    type = RFC5285_TwoByte;
+  }
+
   BYTE * ptr = (BYTE *)&theArray[MinHeaderSize + 4*GetContribSrcCount()];
   unsigned idPresent = *(PUInt16b *)ptr;
   PINDEX extensionSize = *(PUInt16b *)(ptr += 2) * 4;
@@ -419,6 +428,9 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
     oldId = UINT_MAX; // definitely won't match anything
     extensionSize = 0;
   }
+
+  if (type == RFC5285_Auto)
+    type = id > MaxHeaderExtensionIdOneByte ? RFC5285_TwoByte : RFC5285_OneByte;
 
   switch (type) {
     case RFC3550 :
@@ -527,6 +539,10 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
           break;
         extensionSize -= currentLen;
       }
+      break;
+
+    default :
+      break;
   }
 
   // Calculate new RFC3550 header extension size, as we append new one to the end

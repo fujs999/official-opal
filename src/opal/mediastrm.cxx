@@ -1645,4 +1645,21 @@ PString OpalMediaMaxPayload::GetName() const
 }
 
 
+OpalMediaAudioLevel::OpalMediaAudioLevel(int level,
+                                         bool vad,
+                                         unsigned sessionID,
+                                         unsigned ssrc)
+  : OpalMediaCommand(OpalMediaType::Audio(), sessionID, ssrc)
+  , m_level(level)
+  , m_vad(vad)
+{
+}
+
+
+PString OpalMediaAudioLevel::GetName() const
+{
+  return "Audio Level";
+}
+
+
 // End of file ////////////////////////////////////////////////////////////////

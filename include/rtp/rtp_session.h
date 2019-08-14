@@ -63,6 +63,12 @@ class RTP_MetricsReport;
   */
 #define OPAL_OPT_RTP_ABS_SEND_TIME "RTP-Abs-Send-Time"
 
+/**OpalConnection::StringOption key to a boolean indicating the AudioLevel
+   header extension (urn:ietf:params:rtp-hdrext:ssrc-audio-level)
+   can be used. Default false.
+  */
+#define OPAL_OPT_RTP_AUDIO_LEVEL "RTP-Audio-Level"
+
 /**OpalConnection::StringOption key to a boolean indicating the transport
    wide congestion control header extension and RTCP support
    (http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions)
@@ -432,6 +438,7 @@ class OpalRTPSession : public OpalMediaSession
     bool AddHeaderExtension(const RTPHeaderExtensionInfo & ext);
 
     static const PString & GetAbsSendTimeHdrExtURI();
+    static const PString & GetAudioLevelHdrExtURI();
     static const PString & GetTransportWideSeqNumHdrExtURI();
 
     /**Get the source identifier for remote data to us.
@@ -628,6 +635,15 @@ class OpalRTPSession : public OpalMediaSession
       RTP_SyncSourceId ssrc = 0
     );
 
+    /**Set the audio level to send to remote in header extension.
+       @return false if the SSRC does not exist
+     */
+    bool SetAudioLevelToSend(
+      int level,                    /// Audio level from 0 to -127 dBov
+      bool vad,                     /// Voice activity detection (if known)
+      RTP_SyncSourceId ssrc = 0
+    );
+
 #if OPAL_VIDEO
     /** Tell the rtp session to send out an intra frame request control packet.
         This is called when the media stream receives an OpalVideoUpdatePicture
@@ -675,6 +691,8 @@ class OpalRTPSession : public OpalMediaSession
     PString             m_label;
     RTPHeaderExtensions m_headerExtensions;
     unsigned            m_absSendTimeHdrExtId;
+    unsigned            m_audioLevelHdrExtId;
+    bool                m_vadHdrExtEnabled;
     unsigned            m_transportWideSeqNumHdrExtId;
     bool                m_allowAnySyncSource;
     PTimeInterval       m_staleReceiverTimeout;
@@ -810,6 +828,13 @@ class OpalRTPSession : public OpalMediaSession
       uint32_t m_absSendTimeLowBits;
 #if PTRACING
       unsigned m_absSendTimeLoglevel;
+#endif
+
+      // Handling Audio-Level header extension byte to send
+      unsigned m_audioLevelCodeToSend;
+      unsigned m_audioLevelLastReceived;
+#if PTRACING
+      unsigned m_audioLevelLoglevel;
 #endif
 
       // Statistics gathered

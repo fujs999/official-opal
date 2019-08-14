@@ -103,6 +103,8 @@ OpalRTPSession::OpalRTPSession(const Init & init)
   , m_timeUnits(m_isAudio ? 8 : 90)
   , m_toolName(PProcess::Current().GetName())
   , m_absSendTimeHdrExtId(UINT_MAX)
+  , m_audioLevelHdrExtId(UINT_MAX)
+  , m_vadHdrExtEnabled(true)
   , m_transportWideSeqNumHdrExtId(UINT_MAX)
   , m_allowAnySyncSource(true)
   , m_staleReceiverTimeout(m_manager.GetStaleReceiverTimeout())
@@ -436,6 +438,11 @@ OpalRTPSession::SyncSource::SyncSource(OpalRTPSession & session, RTP_SyncSourceI
 #if PTRACING
   , m_absSendTimeLoglevel(6)
 #endif
+  , m_audioLevelCodeToSend(UINT_MAX)
+  , m_audioLevelLastReceived(UINT_MAX)
+#if PTRACING
+  , m_audioLevelLoglevel(6)
+#endif
   , m_firstPacketTime(0)
   , m_packets(0)
   , m_octets(0)
@@ -705,6 +712,11 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnSendData(RTP_Dat
     frame.SetHeaderExtension(m_session.m_absSendTimeHdrExtId, sizeof(data), data, RTP_DataFrame::RFC5285_OneByte);
   }
 
+  if (m_audioLevelCodeToSend != UINT_MAX) {
+    BYTE data = (BYTE)m_audioLevelCodeToSend;
+    frame.SetHeaderExtension(m_session.m_audioLevelHdrExtId, 1, &data, RTP_DataFrame::RFC5285_Auto);
+  }
+
   OpalMediaTransport::CongestionControl * cc = m_session.GetCongestionControl();
   if (cc != NULL) {
     PUInt16b sn((uint16_t)cc->HandleTransmitPacket(m_session.m_sessionId, frame.GetSyncSource()));
@@ -907,11 +919,31 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
       }
 
       frame.SetTransmitTimeNTP(highBits | ((uint64_t)ts << 14));
-      PTRACE(m_absSendTimeLoglevel, &m_session, *this << "set transmit time on RTP:"
+      PTRACE(m_absSendTimeLoglevel, &m_session, *this <<
+             "set transmit time from RTP:"
              " sn=" << frame.GetSequenceNumber() << ","
              " hdr=0x" << std::hex << setfill('0') << setw(6) << ts << ","
              " delta=0x" << setw(6) << delta << setfill(' ') << std::dec << ","
              " time=" << frame.GetMetaData().m_transmitTime.AsString(PTime::TodayFormat, PTrace::GetTimeZone()));
+    }
+
+    if ((exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_Auto, m_session.m_audioLevelHdrExtId, hdrlen)) != NULL) {
+      // Reduce the system load by only sending the level when it changes.
+      if (m_audioLevelLastReceived != *exthdr) {
+        m_audioLevelLastReceived = *exthdr;
+
+        OpalMediaAudioLevel cmd(-(int)(m_audioLevelLastReceived&0x7f),
+                                m_session.m_vadHdrExtEnabled && (m_audioLevelLastReceived&0x80) != 0,
+                                m_session.m_sessionId,
+                                m_sourceIdentifier);
+        PTRACE(m_audioLevelLoglevel, &m_session, *this <<
+               "received audio level from RTP:"
+               " sn=" << frame.GetSequenceNumber() << ","
+               " level=" << cmd.GetLevel() << ","
+               " vad=" << boolalpha << cmd.GetVAD() << ","
+               " raw=0x" << std::hex << setfill('0') << m_audioLevelLastReceived);
+        m_session.m_connection.ExecuteMediaCommand(cmd, true);
+      }
     }
 
     CalculateStatistics(frame, now);
@@ -1414,6 +1446,7 @@ RTPHeaderExtensions OpalRTPSession::GetHeaderExtensions() const
 
 
 const PString & OpalRTPSession::GetAbsSendTimeHdrExtURI() { static const PConstString s("http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time"); return s; }
+const PString & OpalRTPSession::GetAudioLevelHdrExtURI() { static const PConstString s("urn:ietf:params:rtp-hdrext:ssrc-audio-level"); return s; }
 const PString & OpalRTPSession::GetTransportWideSeqNumHdrExtURI() { static const PConstString s("http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01"); return s; }
 
 void OpalRTPSession::SetHeaderExtensions(const RTPHeaderExtensions & ext)
@@ -1437,8 +1470,19 @@ bool OpalRTPSession::AddHeaderExtension(const RTPHeaderExtensionInfo & ext)
   RTPHeaderExtensionInfo adjustedExt(ext);
   PCaselessString uri = ext.m_uri.AsString();
   if (uri == GetAbsSendTimeHdrExtURI() && m_stringOptions.GetBoolean(OPAL_OPT_RTP_ABS_SEND_TIME)) {
-    if (m_headerExtensions.AddUniqueID(adjustedExt))
+    if (m_headerExtensions.AddUniqueID(adjustedExt)) {
       m_absSendTimeHdrExtId = adjustedExt.m_id;
+      PTRACE(4, *this << "enabled abs send time header extension: id=" << m_absSendTimeHdrExtId);
+    }
+    return true;
+  }
+
+  if (uri == GetAudioLevelHdrExtURI() && m_stringOptions.GetBoolean(OPAL_OPT_RTP_AUDIO_LEVEL) && m_mediaType == OpalMediaType::Audio()) {
+    if (m_headerExtensions.AddUniqueID(adjustedExt)) {
+      m_audioLevelHdrExtId = adjustedExt.m_id;
+      m_vadHdrExtEnabled = ext.m_attributes.Find("vad=off") != P_MAX_INDEX;
+      PTRACE(4, *this << "enabled audio level header extension: id=" << m_audioLevelHdrExtId);
+    }
     return true;
   }
 
@@ -2812,6 +2856,17 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SendFlowControl(unsigned maxBi
   // Send it
   request.EndPacket();
   return WriteControl(request);
+}
+
+
+bool OpalRTPSession::SetAudioLevelToSend(int level, bool vad, RTP_SyncSourceId ssrc)
+{
+  SyncSource * sender;
+  if (!GetSyncSource(ssrc, e_Sender, sender))
+    return false;
+
+  sender->m_audioLevelCodeToSend = (level < -126 ? 127 : -level) | (vad ? 0x80 : 0);
+  return true;
 }
 
 
