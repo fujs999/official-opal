@@ -2044,6 +2044,11 @@ bool SDPRTPAVPMediaDescription::FromSession(OpalMediaSession * session,
         SetHeaderExtension(ext);
       }
 
+      if (m_stringOptions.GetBoolean(OPAL_OPT_RTP_AUDIO_LEVEL) && m_mediaType == OpalMediaType::Audio()) {
+        RTPHeaderExtensionInfo ext(OpalRTPSession::GetAudioLevelHdrExtURI());
+        SetHeaderExtension(ext);
+      }
+
       if (m_stringOptions.GetBoolean(OPAL_OPT_TRANSPORT_WIDE_CONGESTION_CONTROL)) {
         RTPHeaderExtensionInfo ext(OpalRTPSession::GetTransportWideSeqNumHdrExtURI());
         SetHeaderExtension(ext);
@@ -3189,7 +3194,7 @@ SDPMediaDescription::Direction SDPSessionDescription::GetDirection(unsigned sess
 }
 
 
-bool SDPSessionDescription::IsHold() const
+bool SDPSessionDescription::IsHold(bool allowMusicOnHold) const
 {
   if (defaultConnectAddress.IsEmpty()) // Old style "hold"
     return true;
@@ -3199,8 +3204,8 @@ bool SDPSessionDescription::IsHold() const
 
   PINDEX i;
   for (i = 0; i < mediaDescriptions.GetSize(); i++) {
-    SDPMediaDescription::Direction dir = mediaDescriptions[i].GetDirection();
-    if ((dir == SDPMediaDescription::Undefined) || ((dir & SDPMediaDescription::RecvOnly) != 0))
+    Direction dir = mediaDescriptions[i].GetDirection();
+    if (dir != Inactive && allowMusicOnHold && (dir == Undefined || (dir & RecvOnly) != 0))
       return false;
   }
 
