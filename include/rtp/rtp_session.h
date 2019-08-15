@@ -821,7 +821,7 @@ class OpalRTPSession : public OpalMediaSession
       unsigned m_absSendTimeLoglevel;
 #endif
 
-      // Handling Abs-Send-Time header extension
+      // Handling Audio-Level header extension
       unsigned m_consecutiveSilentVAD;
 #if PTRACING
       unsigned m_audioLevelLoglevel;
