@@ -698,6 +698,11 @@ class RTP_DataFrame : public PBYTEArray
     // Get the packet size including headers, padding etc.
     PINDEX GetPacketSize() const;
 
+    enum VAD {
+        UnknownVAD,
+        InactiveVAD,
+        ActiveVAD
+    };
     struct MetaData
     {
         MetaData();
@@ -709,7 +714,7 @@ class RTP_DataFrame : public PBYTEArray
         unsigned m_discontinuity;
         PString  m_lipSyncId;
         int      m_audioLevel;   // Audio level for this packet in dBov (-127..0) as per RFC6464, INT_MAX means not used
-        bool     m_vad;          // Indicate Voice Activity Detect has detected voice.
+        VAD      m_vad;          // Indicate Voice Activity Detect has detected voice.
     };
 
     /**Get meta data for RTP packet.
