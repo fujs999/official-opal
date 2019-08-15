@@ -437,10 +437,6 @@ OpalRTPSession::SyncSource::SyncSource(OpalRTPSession & session, RTP_SyncSourceI
   , m_absSendTimeLowBits(0)
 #if PTRACING
   , m_absSendTimeLoglevel(6)
-#endif
-  , m_audioLevelCodeToSend(UINT_MAX)
-  , m_audioLevelLastReceived(UINT_MAX)
-#if PTRACING
   , m_audioLevelLoglevel(6)
 #endif
   , m_firstPacketTime(0)
@@ -712,8 +708,9 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnSendData(RTP_Dat
     frame.SetHeaderExtension(m_session.m_absSendTimeHdrExtId, sizeof(data), data, RTP_DataFrame::RFC5285_OneByte);
   }
 
-  if (m_audioLevelCodeToSend != UINT_MAX) {
-    BYTE data = (BYTE)m_audioLevelCodeToSend;
+  int level = frame.GetMetaData().m_audioLevel;
+  if (level != INT_MAX) {
+    BYTE data = (BYTE)(std::min(std::max(-level, 0), 127) | (frame.GetMetaData().m_vad ? 0x80 : 0));
     frame.SetHeaderExtension(m_session.m_audioLevelHdrExtId, 1, &data, RTP_DataFrame::RFC5285_Auto);
   }
 
@@ -928,22 +925,15 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
     }
 
     if ((exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_Auto, m_session.m_audioLevelHdrExtId, hdrlen)) != NULL) {
-      // Reduce the system load by only sending the level when it changes.
-      if (m_audioLevelLastReceived != *exthdr) {
-        m_audioLevelLastReceived = *exthdr;
-
-        OpalMediaAudioLevel cmd(-(int)(m_audioLevelLastReceived&0x7f),
-                                m_session.m_vadHdrExtEnabled && (m_audioLevelLastReceived&0x80) != 0,
-                                m_session.m_sessionId,
-                                m_sourceIdentifier);
-        PTRACE(m_audioLevelLoglevel, &m_session, *this <<
-               "received audio level from RTP:"
-               " sn=" << frame.GetSequenceNumber() << ","
-               " level=" << cmd.GetLevel() << ","
-               " vad=" << boolalpha << cmd.GetVAD() << ","
-               " raw=0x" << std::hex << setfill('0') << m_audioLevelLastReceived);
-        m_session.m_connection.ExecuteMediaCommand(cmd, true);
-      }
+      RTP_DataFrame::MetaData & md = frame.GetWritableMetaData();
+      md.m_audioLevel = -(int)(*exthdr&0x7f);
+      md.m_vad = m_session.m_vadHdrExtEnabled && (*exthdr&0x80) != 0;
+      PTRACE(m_audioLevelLoglevel, &m_session, *this <<
+             "received audio level from RTP:"
+             " sn=" << frame.GetSequenceNumber() << ","
+             " level=" << md.m_audioLevel << ","
+             " vad=" << boolalpha << md.m_vad << ","
+             " raw=0x" << std::hex << setfill('0') << (unsigned)*exthdr);
     }
 
     CalculateStatistics(frame, now);
@@ -2856,17 +2846,6 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SendFlowControl(unsigned maxBi
   // Send it
   request.EndPacket();
   return WriteControl(request);
-}
-
-
-bool OpalRTPSession::SetAudioLevelToSend(int level, bool vad, RTP_SyncSourceId ssrc)
-{
-  SyncSource * sender;
-  if (!GetSyncSource(ssrc, e_Sender, sender))
-    return false;
-
-  sender->m_audioLevelCodeToSend = (level < -126 ? 127 : -level) | (vad ? 0x80 : 0);
-  return true;
 }
 
 

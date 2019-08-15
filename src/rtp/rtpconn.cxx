@@ -541,10 +541,6 @@ bool OpalRTPConnection::OnMediaCommand(OpalMediaStream & stream, const OpalMedia
   if (session == NULL)
     return OpalConnection::OnMediaCommand(stream, command);
 
-  const OpalMediaAudioLevel * level = dynamic_cast<const OpalMediaAudioLevel *>(&command);
-  if (level != NULL && session->SetAudioLevelToSend(level->GetLevel(), level->GetVAD(), level->GetSyncSource()))
-    return true;
-
 #if OPAL_VIDEO
 
   const OpalMediaFlowControl * flow = dynamic_cast<const OpalMediaFlowControl *>(&command);

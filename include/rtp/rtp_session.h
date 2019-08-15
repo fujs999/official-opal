@@ -635,15 +635,6 @@ class OpalRTPSession : public OpalMediaSession
       RTP_SyncSourceId ssrc = 0
     );
 
-    /**Set the audio level to send to remote in header extension.
-       @return false if the SSRC does not exist
-     */
-    bool SetAudioLevelToSend(
-      int level,                    /// Audio level from 0 to -127 dBov
-      bool vad,                     /// Voice activity detection (if known)
-      RTP_SyncSourceId ssrc = 0
-    );
-
 #if OPAL_VIDEO
     /** Tell the rtp session to send out an intra frame request control packet.
         This is called when the media stream receives an OpalVideoUpdatePicture
@@ -828,12 +819,6 @@ class OpalRTPSession : public OpalMediaSession
       uint32_t m_absSendTimeLowBits;
 #if PTRACING
       unsigned m_absSendTimeLoglevel;
-#endif
-
-      // Handling Audio-Level header extension byte to send
-      unsigned m_audioLevelCodeToSend;
-      unsigned m_audioLevelLastReceived;
-#if PTRACING
       unsigned m_audioLevelLoglevel;
 #endif
 

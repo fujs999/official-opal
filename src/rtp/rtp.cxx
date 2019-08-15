@@ -49,6 +49,8 @@ RTP_DataFrame::MetaData::MetaData()
   , m_transmitTime(0)
   , m_receivedTime(0)
   , m_discontinuity(0)
+  , m_audioLevel(INT_MAX)
+  , m_vad(false)
 {
 }
 

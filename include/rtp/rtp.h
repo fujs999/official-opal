@@ -708,11 +708,17 @@ class RTP_DataFrame : public PBYTEArray
         PTime    m_receivedTime; // Wall clock time packet physically read from socket
         unsigned m_discontinuity;
         PString  m_lipSyncId;
+        int      m_audioLevel;   // Audio level for this packet in dBov (-127..0) as per RFC6464, INT_MAX means not used
+        bool     m_vad;          // Indicate Voice Activity Detect has detected voice.
     };
 
     /**Get meta data for RTP packet.
       */
     const MetaData & GetMetaData() const { return m_metaData; }
+
+    /**Get writable meta data for RTP packet.
+      */
+    MetaData & GetWritableMetaData() { return m_metaData; }
 
     /**Set meta data for RTP packet.
       */
