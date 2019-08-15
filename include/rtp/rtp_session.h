@@ -819,6 +819,11 @@ class OpalRTPSession : public OpalMediaSession
       uint32_t m_absSendTimeLowBits;
 #if PTRACING
       unsigned m_absSendTimeLoglevel;
+#endif
+
+      // Handling Abs-Send-Time header extension
+      unsigned m_consecutiveSilentVAD;
+#if PTRACING
       unsigned m_audioLevelLoglevel;
 #endif
 

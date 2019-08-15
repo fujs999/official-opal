@@ -437,6 +437,9 @@ OpalRTPSession::SyncSource::SyncSource(OpalRTPSession & session, RTP_SyncSourceI
   , m_absSendTimeLowBits(0)
 #if PTRACING
   , m_absSendTimeLoglevel(6)
+#endif
+  , m_consecutiveSilentVAD(0)
+#if PTRACING
   , m_audioLevelLoglevel(6)
 #endif
   , m_firstPacketTime(0)
@@ -928,6 +931,14 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
       RTP_DataFrame::MetaData & md = frame.GetWritableMetaData();
       md.m_audioLevel = -(int)(*exthdr&0x7f);
       md.m_vad = m_session.m_vadHdrExtEnabled && (*exthdr&0x80) != 0;
+      
+      // If we get a lot of "digital silence" packets (level == -127) but the remote
+      // is saying there is voice activity, then it is bogus and we should ignore it.
+      if (md.m_vad && md.m_audioLevel <= -127 && ++m_consecutiveSilentVAD > 100) {
+        PTRACE(3, &m_session, *this << "The VAD indication in audio level RTP header extension cannot be trusted, disabling");
+        m_session.m_vadHdrExtEnabled = false;
+      }
+
       PTRACE(m_audioLevelLoglevel, &m_session, *this <<
              "received audio level from RTP:"
              " sn=" << frame.GetSequenceNumber() << ","
@@ -1470,8 +1481,9 @@ bool OpalRTPSession::AddHeaderExtension(const RTPHeaderExtensionInfo & ext)
   if (uri == GetAudioLevelHdrExtURI() && m_stringOptions.GetBoolean(OPAL_OPT_RTP_AUDIO_LEVEL) && m_mediaType == OpalMediaType::Audio()) {
     if (m_headerExtensions.AddUniqueID(adjustedExt)) {
       m_audioLevelHdrExtId = adjustedExt.m_id;
-      m_vadHdrExtEnabled = ext.m_attributes.Find("vad=off") != P_MAX_INDEX;
-      PTRACE(4, *this << "enabled audio level header extension: id=" << m_audioLevelHdrExtId);
+      static const PRegularExpression vadoff("vad[ \t]*=[ \t]*off", PRegularExpression::IgnoreCase);
+      m_vadHdrExtEnabled = ext.m_attributes.FindRegEx(vadoff) == P_MAX_INDEX;
+      PTRACE(4, *this << "enabled audio level header extension: id=" << m_audioLevelHdrExtId << ", vad=" << boolalpha << m_vadHdrExtEnabled);
     }
     return true;
   }
