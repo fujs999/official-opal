@@ -70,7 +70,7 @@ class OpalSilenceDetector : public PObject
         unsigned silenceDeadband = 400,        ///<  milliseconds of silence needed
         unsigned adaptivePeriod = 1000,        ///<  millisecond window for adaptive threshold
         unsigned shortTermPeriod = 200,        ///<  millisecond period to average levels over
-        unsigned longTermPeriod = 2000,        ///<  millisecond period to average levels over
+        unsigned longTermPeriod = 4000,        ///<  millisecond period to average levels over
         unsigned sampleRate = 8000             ///<  sample rate for audio
       )
         : m_mode(mode)
