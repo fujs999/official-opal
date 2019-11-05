@@ -1,12 +1,12 @@
 %global version_major  3
 %global version_minor  19
 %global version_patch  4
-%global version_oem    14
+%global version_oem    15
 
 %global ffmpeg_ver_el6 2.6.3-9.3.el6
 %global ffmpeg_ver_el7 2.6.3-10.4.el7
-%global ptlib_ver_el6 2.19.3.11
-%global ptlib_ver_el7 2.19.3.11
+%global ptlib_ver_el6 2.19.3.12
+%global ptlib_ver_el7 2.19.3.12
 %global srtp_ver_el6 2.1.0-3.2.el6
 %global srtp_ver_el7 2.1.0-4.3.el7
 
