@@ -433,7 +433,7 @@ OpalRTPSession::SyncSource::SyncSource(OpalRTPSession & session, RTP_SyncSourceI
   , m_reportTimestamp(0)
   , m_reportAbsoluteTime(0)
   , m_synthesizeAbsTime(true)
-  , m_absSendTimeNTP(PTime().GetNTP())
+  , m_absSendTimeNTP(0)
   , m_absSendTimeLowBits(UINT_MAX)
 #if PTRACING
   , m_absSendTimeLoglevel(6)
@@ -910,9 +910,16 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
   if (IsRtx())
     return OnReceiveRetransmit(frame, now);
 
+  // Set the base time for transmit to the remotes NTP time
+  if (m_absSendTimeNTP == 0 && m_ntpPassThrough != 0) {
+    m_absSendTimeNTP = m_ntpPassThrough;
+    PTRACE(m_absSendTimeLoglevel, &m_session, *this << "set transmit time base to "
+           << PTime().SetNTP(m_absSendTimeNTP).AsString(PTime::TodayFormat, PTrace::GetTimeZone()));
+  }
+
   BYTE * exthdr;
   PINDEX hdrlen;
-  if ((exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_OneByte, m_session.m_absSendTimeHdrExtId, hdrlen)) != NULL) {
+  if (m_absSendTimeNTP != 0 && (exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_OneByte, m_session.m_absSendTimeHdrExtId, hdrlen)) != NULL) {
     // 24 bits in middle of NTP time, as per http://webrtc.org/experiments/rtp-hdrext/abs-send-time/
     uint32_t lowBits = (exthdr[0] << 24) | (exthdr[1] << 16) | (exthdr[2] << 8);
 
