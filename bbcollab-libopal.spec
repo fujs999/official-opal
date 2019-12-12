@@ -3,9 +3,9 @@
 %global version_patch  4
 %global version_oem    18
 
-%global ffmpeg_ver 2.6.3-10.4.el7
-%global ptlib_ver 2.19.3.15
-%global srtp_ver 2.1.0-4.3.el7
+%global ffmpeg_ver_el7 2.6.3-10.4.el7
+%global ptlib_ver_el7 2.19.3.15
+%global srtp_ver_el7 2.1.0-4.3.el7
 
 # Branch ID should be 0 for local builds/PRs
 # Jenkins builds should use 1 for develop, 2 for master (release builds)
@@ -35,9 +35,9 @@ Source0:        zsdk-opal.src.tgz
 Source1:        bbcollab-filter-requires.sh
 
 BuildRequires:  devtoolset-7-gcc-c++
-BuildRequires:  bbcollab-ptlib-devel = %{ptlib_ver}
-BuildRequires:  bbcollab-ffmpeg-devel = %{ffmpeg_ver}
-BuildRequires:  libsrtp2-devel = %{srtp_ver}
+BuildRequires:  bbcollab-ptlib-devel = %{ptlib_ver_el7}
+BuildRequires:  bbcollab-ffmpeg-devel = %{ffmpeg_ver_el7}
+BuildRequires:  libsrtp2-devel = %{srtp_ver_el7}
 
 BuildRequires:  opus-devel
 BuildRequires:  speex-devel
@@ -53,8 +53,8 @@ OpalVOIP library
 Summary:        Development files for %{name}
 Group:          Development/Libraries
 Requires:       %{name} = %{version}-%{release}
-Requires:       bbcollab-ptlib-devel = %{ptlib_ver}
-Requires:       libsrtp2-devel = %{srtp_ver}
+Requires:       bbcollab-ptlib-devel = %{ptlib_ver_el7}
+Requires:       libsrtp2-devel = %{srtp_ver_el7}
 
 %description    devel
 The %{name}-devel package contains libraries and header files for
