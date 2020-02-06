@@ -227,7 +227,15 @@ PBoolean MyProcess::OnStart()
 
   if (m_manager == NULL)
     m_manager = new MyManager();
-  return m_manager->Initialise(GetArguments(), false) && PHTTPServiceProcess::OnStart();
+
+  if (!PHTTPServiceProcess::OnStart())
+    return false;
+
+  if (m_manager->Initialise(GetArguments(), false))
+    return true;
+
+  PSYSTEMLOG(Fatal, "Could not initialise from command line arguments");
+  return false;
 }
 
 
@@ -278,8 +286,10 @@ PBoolean MyProcess::Initialise(const char * initMsg)
 
   // Configure the core of the system
   PConfig cfg(params.m_section);
-  if (!m_manager->Configure(cfg, params.m_configPage))
+  if (!m_manager->Configure(cfg, params.m_configPage)) {
+    PSYSTEMLOG(Fatal, "Failed to configure system");
     return false;
+  }
 
   params.m_configPage->Add(new PHTTPDividerField());
 
@@ -398,6 +408,9 @@ bool MyManager::ConfigureCommon(OpalEndPoint * ep,
   else if (!ep->StartListeners(listeners)) {
     PSYSTEMLOG(Error, "Could not open any listeners for " << cfgPrefix);
   }
+  OpalConsoleEndPoint * cep = dynamic_cast<OpalConsoleEndPoint *>(ep);
+  if (cep != NULL)
+    cep->SetEndpointDisabled(disabled);
 
 #if OPAL_PTLIB_SSL
   PString securePrefix = normalPrefix + 's';
@@ -529,6 +542,9 @@ PBoolean MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
         m_cli->Start();
       }
     }
+#if PTRACING
+    m_outputStream = PTrace::GetStream();
+#endif
   }
 #endif //P_CLI && P_TELNET
 
@@ -631,16 +647,15 @@ PBoolean MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
           bool notSet = true;
           OpalMediaFormatList::const_iterator it;
           while ((it = all.FindFormat(wildcard, it)) != all.end()) {
-            if (const_cast<OpalMediaFormat &>(*it).SetOptionValue(option, value)) {
-              PSYSTEMLOG(Info, "Set media format \"" << *it << "\", option \"" << option << "\", to \"" << value << '"');
-              OpalMediaFormat::SetRegisteredMediaFormat(*it);
+            if (const_cast<OpalMediaFormat &>(*it).SetOptionValue(option, value) && OpalMediaFormat::SetRegisteredMediaFormat(*it)) {
+              PTRACE(3, "Set media format \"" << *it << "\" option \"" << option << "\" to \"" << value << '"');
               notSet = false;
             }
             else
-              PSYSTEMLOG(Warning, "Could not set media format \"" << *it << "\", option \"" << option << "\", to \"" << value << '"');
+              PTRACE(2, "Could not set media format \"" << *it << "\" option \"" << option << "\" to \"" << value << '"');
           }
           if (notSet) {
-            PSYSTEMLOG(Warning, "Could not set any media formats using wildcare \"" << wildcard << '"');
+            PTRACE(2, "Could not set any media formats using wildcard \"" << wildcard << '"');
             item[0].SetValue("false");
             optionsArray->SaveToConfig(cfg);
           }
@@ -977,6 +992,7 @@ void MyManager::OnStopMediaPatch(OpalConnection & connection, OpalMediaPatch & p
 }
 
 
+#if OPAL_HAS_MIXER
 void MyManager::StartRecordingCall(MyCall & call) const
 {
   if (!m_recordingEnabled)
@@ -985,6 +1001,7 @@ void MyManager::StartRecordingCall(MyCall & call) const
   PFilePath filepath = m_recordingTemplate;
   call.StartRecording(filepath.GetDirectory(), filepath.GetTitle(), filepath.GetType(), m_recordingOptions);
 }
+#endif //OPAL_HAS_MIXER
 
 
 ///////////////////////////////////////////////////////////////////////////////
