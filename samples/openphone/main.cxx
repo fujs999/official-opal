@@ -3598,7 +3598,7 @@ bool MyManager::CreateVideoInputDevice(const OpalConnection & connection,
                                        PVideoInputDevice * & device,
                                        PBoolean & autoDelete)
 {
-  if (m_primaryVideoGrabber == NULL || m_primaryVideoGrabber->GetDeviceName() != args.deviceName)
+  if (m_primaryVideoGrabber == NULL || args.deviceName.Find(m_primaryVideoGrabber->GetDeviceName()) == P_MAX_INDEX)
     return OpalManager::CreateVideoInputDevice(connection, args, device, autoDelete);
 
   device = m_primaryVideoGrabber;
@@ -4376,6 +4376,7 @@ BEGIN_EVENT_TABLE(OptionsDialog, wxDialog)
 #endif
   EVT_LISTBOX(XRCID("LocalInterfaces"), OptionsDialog::SelectedLocalInterface)
   EVT_CHOICE(XRCID("InterfaceProtocol"), OptionsDialog::ChangedInterfaceInfo)
+  EVT_COMBOBOX(XRCID("InterfaceAddress"), OptionsDialog::ChangedInterfaceInfo)
   EVT_TEXT(XRCID("InterfaceAddress"), OptionsDialog::ChangedInterfaceInfo)
   EVT_TEXT(XRCID("InterfacePort"), OptionsDialog::ChangedInterfaceInfo)
   EVT_BUTTON(XRCID("AddInterface"), OptionsDialog::AddInterface)
