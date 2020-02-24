@@ -454,9 +454,13 @@ static PBoolean SplitAddress(const PString & addr, PString & host, PString & dev
     pos = terminator;
   }
 
-  // parse optional service
+  // parse optional device/service
   if (addr[pos] == '%') {
     PINDEX colon = addr.Find(':', pos);
+    if (colon == P_MAX_INDEX) {
+      device = addr.Mid(pos);
+      return true;
+    }
     device = addr(pos, colon-1);
     pos = colon;
   }
