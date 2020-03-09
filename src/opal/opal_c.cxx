@@ -2270,7 +2270,7 @@ void OpalManager_C::HandleRegistration(const OpalMessage & command, OpalMessageB
         subParams.m_expire = command.m_param.m_registrationInfo.m_timeToLive;
 #else
         subParams.m_expire = m_apiVersion >= 13 ? command.m_param.m_registrationInfo.m_timeToLive
-                                               : *(unsigned*)&command.m_param.m_registrationInfo.m_eventPackage; // Backward compatibility
+                                               : static_cast<unsigned int>(*command.m_param.m_registrationInfo.m_eventPackage); // Backward compatibility
 #endif
         subParams.m_restoreTime = command.m_param.m_registrationInfo.m_restoreTime;
         bool ok = sip->Subscribe(subParams, aor);
@@ -2933,6 +2933,11 @@ void OpalManager_C::OnClearedCall(OpalCall & call)
   PTRACE(4, "OnClearedCall:"
             " token=\""  << message->m_param.m_callCleared.m_callToken << "\""
             " reason=\"" << message->m_param.m_callCleared.m_reason << '"');
+
+  PJSON json(PJSON::e_Object);
+  call.GetFinalStatistics().ToJSON(json.GetObject());
+  SET_MESSAGE_STRING(message, m_param.m_callCleared.m_statistics, json.AsString());
+
   PostMessage(message);
 
   OpalManager::OnClearedCall(call);

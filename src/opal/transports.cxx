@@ -454,17 +454,16 @@ static PBoolean SplitAddress(const PString & addr, PString & host, PString & dev
     pos = terminator;
   }
 
-  // parse optional device/service
+  // parse optional device name
   if (addr[pos] == '%') {
     PINDEX colon = addr.Find(':', pos);
-    if (colon == P_MAX_INDEX) {
-      device = addr.Mid(pos);
+    device = addr(pos, colon-1).Trim();
+    if (colon == P_MAX_INDEX)
       return true;
-    }
-    device = addr(pos, colon-1);
     pos = colon;
   }
 
+  // parse optional service
   service = addr.Mid(pos+1).Trim();
   if (!service.IsEmpty())
     return true;
@@ -526,7 +525,7 @@ PBoolean OpalInternalIPTransport::GetIpAndPort(const OpalTransportAddress & addr
   PString host, device, service;
   if (!SplitAddress(address, host, device, service))
     return PFalse;
-
+  
   if (host.IsEmpty() && device.IsEmpty()) {
     PTRACE(2, "Illegal IP transport address: \"" << address << '"');
     return PFalse;
@@ -551,7 +550,7 @@ PBoolean OpalInternalIPTransport::GetIpAndPort(const OpalTransportAddress & addr
     ip = PIPSocket::Address::GetAny(4);
   else if (host == "::" || host == "[::]")
     ip = PIPSocket::Address::GetAny(6);
-  else if (host.IsEmpty())
+  else if (host.IsEmpty() || host == "*")
     ip = PIPSocket::GetDefaultIpAny();
   else {
     if (!PIPSocket::GetHostAddress(host, ip)) {

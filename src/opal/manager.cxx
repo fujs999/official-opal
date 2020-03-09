@@ -828,7 +828,9 @@ void OpalManager::InternalClearAllCalls(OpalConnection::CallEndReason reason, bo
 
 void OpalManager::OnClearedCall(OpalCall & PTRACE_PARAM(call))
 {
-  PTRACE(3, "OnClearedCall " << call << " from \"" << call.GetPartyA() << "\" to \"" << call.GetPartyB() << '"');
+  PTRACE(3, "OnClearedCall " << call << '\n'
+         << setw(20) << "Call end reason" << ": " << call.GetCallEndReason() << '\n'
+         << setprecision(2) << PTrace::LogObject(call.GetFinalStatistics()));
 }
 
 
@@ -1435,16 +1437,13 @@ static void OnStartStopMediaPatch(PScriptLanguage * script, const char * fn, Opa
 
 void OpalManager::OnStartMediaPatch(OpalConnection & connection, OpalMediaPatch & patch)
 {
+  PTRACE(3, "OnStartMediaPatch " << patch << " on " << connection);
+
 #if OPAL_SCRIPT
   OnStartStopMediaPatch(m_script, "OnStartMedia", connection, patch);
 #endif
-  PTRACE(3, "OnStartMediaPatch " << patch << " on " << connection);
 
-  if (&patch.GetSource().GetConnection() == &connection) {
-    PSafePtr<OpalConnection> other = connection.GetOtherPartyConnection();
-    if (other != NULL)
-      other->OnStartMediaPatch(patch);
-  }
+  connection.GetCall().OnStartMediaPatch(connection, patch);
 }
 
 
@@ -1456,11 +1455,7 @@ void OpalManager::OnStopMediaPatch(OpalConnection & connection, OpalMediaPatch &
   OnStartStopMediaPatch(m_script, "OnStopMedia", connection, patch);
 #endif
 
-  if (&patch.GetSource().GetConnection() == &connection) {
-    PSafePtr<OpalConnection> other = connection.GetOtherPartyConnection();
-    if (other != NULL)
-      other->OnStopMediaPatch(patch);
-  }
+  connection.GetCall().OnStopMediaPatch(connection, patch);
 }
 
 

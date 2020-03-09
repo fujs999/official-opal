@@ -1378,12 +1378,6 @@ PString SIPConnection::GetPrefixName() const
 }
 
 
-PString SIPConnection::GetIdentifier() const
-{
-  return m_dialog.GetCallID();
-}
-
-
 void SIPConnection::OnTransactionFailed(SIPTransaction & transaction)
 {
   SIPTransactionOwner::OnTransactionFailed(transaction);
@@ -1645,7 +1639,9 @@ bool SIPConnection::OnReceivedResponseToINVITE(SIPTransaction & transaction, SIP
 
     // And end connect mode on the transport
     m_dialog.SetInterface(transaction.GetInterface());
-    m_contactAddress = transaction.GetMIME().GetContact();
+    SIPURL url = m_contactAddress = transaction.GetMIME().GetContact();
+    url.Sanitise(SIPURL::ExternalURI);
+    m_localPartyURL = url.AsString();
   }
 
   if (statusCode < 200) {
@@ -1839,6 +1835,8 @@ void SIPConnection::UpdateRemoteAddresses()
     m_localPartyName = m_dialog.GetLocalURI().GetUserName();
 
   m_ownerCall.SetPartyNames();
+
+  m_identifier = m_dialog.GetCallID();
 }
 
 
@@ -2311,7 +2309,9 @@ void SIPConnection::OnReceivedINVITE(SIP_PDU & request)
   // Fill in all the various connection info, note our to/from is their from/to
   mime.GetProductInfo(m_remoteProductInfo);
 
-  m_contactAddress = request.GetURI();
+  SIPURL url = m_contactAddress = request.GetURI();
+  url.Sanitise(SIPURL::ExternalURI);
+  m_localPartyURL = url.AsString();
 
   mime.SetTo(m_dialog.GetLocalURI());
 
@@ -3356,7 +3356,7 @@ void SIPConnection::OnReceivedPRACK(SIP_PDU & request)
 }
 
 
-void SIPConnection::OnUserInputInlineRFC2833(OpalRFC2833Info & info, INT type)
+void SIPConnection::OnUserInputInlineRFC2833(OpalRFC2833Info & info, OpalRFC2833Proto::NotifyState state)
 {
   switch (m_receivedUserInputMethod) {
     case ReceivedINFO :
@@ -3368,7 +3368,7 @@ void SIPConnection::OnUserInputInlineRFC2833(OpalRFC2833Info & info, INT type)
       // Do default case
 
     default:
-      OpalRTPConnection::OnUserInputInlineRFC2833(info, type);
+      OpalRTPConnection::OnUserInputInlineRFC2833(info, state);
   }
 }
 
@@ -3759,17 +3759,6 @@ void SIPConnection::OnSessionTimeout()
   //SIPTransaction * invite = new SIPInvite(*this, GetTransport(), rtpSessions);  
   //invite->Start();  
   //sessionTimer = 10000;
-}
-
-
-PString SIPConnection::GetLocalPartyURL() const
-{
-  if (m_contactAddress.IsEmpty())
-    return OpalRTPConnection::GetLocalPartyURL();
-
-  SIPURL url = m_contactAddress;
-  url.Sanitise(SIPURL::ExternalURI);
-  return url.AsString();
 }
 
 

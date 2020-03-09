@@ -1009,9 +1009,9 @@ OpalMixerConnection::OpalMixerConnection(PSafePtr<OpalMixerNode> node,
 
   const PStringSet & names = node->GetNames();
   if (names.IsEmpty())
-    m_localPartyName = node->GetGUID().AsString();
+    SetLocalPartyName(node->GetGUID().AsString());
   else
-    m_localPartyName = *names.begin();
+    SetLocalPartyName(*names.begin());
 
   PTRACE(4, "Constructed");
 }
@@ -1173,19 +1173,10 @@ PBoolean OpalMixerMediaStream::Open()
 
   SetPaused(IsSink() && m_listenOnly);
 
-  return OpalMediaStream::Open();
-}
-
-
-PBoolean OpalMixerMediaStream::Start()
-{
-  if (!OpalMediaStream::Start())
+  if (!IsPaused() && !m_node->AttachStream(this))
     return false;
 
-  if (IsSink() && m_listenOnly)
-    return true;
-
-  return m_node->AttachStream(this);
+  return OpalMediaStream::Open();
 }
 
 
