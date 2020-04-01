@@ -399,7 +399,7 @@ bool MyManager::ConfigureCommon(OpalEndPoint * ep,
     PSYSTEMLOG(Info, "Disabled " << cfgPrefix);
     ep->RemoveListener(NULL);
   }
-  else if (!ep->StartListeners(listeners)) {
+  else if (!ep->StartListeners(listeners, false)) {
     PSYSTEMLOG(Error, "Could not open any listeners for " << cfgPrefix);
   }
   OpalConsoleEndPoint * cep = dynamic_cast<OpalConsoleEndPoint *>(ep);
