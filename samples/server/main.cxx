@@ -288,6 +288,8 @@ PBoolean MyProcess::Initialise(const char * initMsg)
   }
 
   params.m_configPage->Add(new PHTTPDividerField());
+  params.m_configPage->AddStringField("User Information", P_MAX_INDEX, "", "Not used by any OPAL server functions", 10, 80);
+  params.m_configPage->Add(new PHTTPDividerField());
 
   // Finished the resource to add, generate HTML for it and add to name space
   PServiceHTML cfgHTML("System Parameters");
