@@ -4016,7 +4016,7 @@ PObject::Comparison SIPSubscribe::EventPackage::InternalCompare(PINDEX offset, P
       return EqualTo;
     if (theArray[idx+offset] == ';' || cstr[idx] == ';')
       break;
-    int c = internal_strncmp(theArray+offset, cstr+idx, 1);
+    int c = internal_strncmp(theArray+idx+offset, cstr+idx, 1);
     if (c != 0)
       return PObject::Compare2(c, 0);
     idx++;
