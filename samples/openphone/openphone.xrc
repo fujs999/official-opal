@@ -369,7 +369,7 @@
 	</object>
 	<object class="wxPanel" name="InCallPanel" subclass="InCallPanel">
 		<style>wxTAB_TRAVERSAL|wxBORDER_SUNKEN</style>
-		<size>610,358</size>
+		<size>686,358</size>
 		<object class="wxBoxSizer">
 			<orient>wxHORIZONTAL</orient>
 			<object class="sizeritem">
@@ -1831,8 +1831,9 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input1">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
-																<label>1</label>
+																<label>1\n </label>
 																<default>0</default>
 																<markup>0</markup>
 																<bitmap />
@@ -1843,6 +1844,7 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input2">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
 																<label>2\nabc</label>
 																<default>0</default>
@@ -1855,6 +1857,7 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input3">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
 																<label>3\ndef</label>
 																<default>0</default>
@@ -1867,6 +1870,7 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input4">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
 																<label>4\nghi</label>
 																<default>0</default>
@@ -1879,6 +1883,7 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input5">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
 																<label>5\njkl</label>
 																<default>0</default>
@@ -1891,6 +1896,7 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input6">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
 																<label>6\nmno</label>
 																<default>0</default>
@@ -1903,6 +1909,7 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input7">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
 																<label>7\npqrs</label>
 																<default>0</default>
@@ -1915,6 +1922,7 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input8">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
 																<label>8\ntuv</label>
 																<default>0</default>
@@ -1927,6 +1935,7 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input9">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
 																<label>9\nwxyz</label>
 																<default>0</default>
@@ -1939,8 +1948,9 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="InputStar">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
-																<label>*</label>
+																<label>\n*\n </label>
 																<default>0</default>
 																<markup>0</markup>
 																<bitmap />
@@ -1951,8 +1961,9 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input0">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
-																<label>0</label>
+																<label>\n0\n </label>
 																<default>0</default>
 																<markup>0</markup>
 																<bitmap />
@@ -1963,8 +1974,9 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="InputHash">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
-																<label>#</label>
+																<label>\n#\n </label>
 																<default>0</default>
 																<markup>0</markup>
 																<bitmap />
@@ -1973,11 +1985,12 @@
 													</object>
 												</object>
 												<object class="sizeritem">
-													<option>1</option>
+													<option>0</option>
 													<flag>wxEXPAND</flag>
 													<border>0</border>
 													<object class="wxButton" name="InputFlash">
-														<label>Hook Flash</label>
+														<style>wxBORDER_NONE</style>
+														<label>\nHook Flash\n </label>
 														<default>0</default>
 														<markup>0</markup>
 														<bitmap />
@@ -2172,13 +2185,13 @@
 							<orient>wxHORIZONTAL</orient>
 							<object class="spacer">
 								<option>2</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<size>5,20</size>
 							</object>
 							<object class="sizeritem">
 								<option>5</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<object class="wxButton" name="HangUp">
 									<font>
@@ -2196,13 +2209,13 @@
 							</object>
 							<object class="spacer">
 								<option>1</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<size>5,20</size>
 							</object>
 							<object class="sizeritem">
 								<option>5</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<object class="wxButton" name="Hold">
 									<font>
@@ -2220,13 +2233,13 @@
 							</object>
 							<object class="spacer">
 								<option>1</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<size>5,20</size>
 							</object>
 							<object class="sizeritem">
 								<option>5</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<object class="wxButton" name="Conference">
 									<enabled>0</enabled>
@@ -2245,13 +2258,13 @@
 							</object>
 							<object class="spacer">
 								<option>1</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<size>5,20</size>
 							</object>
 							<object class="sizeritem">
 								<option>5</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<object class="wxButton" name="SpeakerHandset">
 									<enabled>0</enabled>
@@ -2270,7 +2283,7 @@
 							</object>
 							<object class="spacer">
 								<option>2</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<size>5,20</size>
 							</object>
