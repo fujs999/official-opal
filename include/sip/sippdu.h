@@ -951,7 +951,7 @@ class SIPPoolTimer : public PPoolTimerArg3<SIPTimeoutWorkItem<Target_T>,
 
     ~SIPPoolTimer()
     {
-      m_stopped = true;
+      this->m_stopped = true;
     }
 
     virtual const char * GetGroup(const Work_T &) const { return m_token; }
