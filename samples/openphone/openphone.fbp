@@ -1824,7 +1824,7 @@
             <property name="minimum_size"></property>
             <property name="name">InCallPanel</property>
             <property name="pos"></property>
-            <property name="size">610,358</property>
+            <property name="size">686,358</property>
             <property name="subclass">InCallPanel</property>
             <property name="tooltip"></property>
             <property name="window_extra_style"></property>
@@ -2303,16 +2303,16 @@
                                         <property name="width">2</property>
                                     </object>
                                 </object>
-                                <object class="sizeritem" expanded="0">
+                                <object class="sizeritem" expanded="1">
                                     <property name="border">8</property>
                                     <property name="flag">wxBOTTOM|wxRIGHT|wxTOP</property>
                                     <property name="proportion">0</property>
-                                    <object class="wxBoxSizer" expanded="0">
+                                    <object class="wxBoxSizer" expanded="1">
                                         <property name="minimum_size"></property>
                                         <property name="name">bSizer17</property>
                                         <property name="orient">wxVERTICAL</property>
                                         <property name="permission">none</property>
-                                        <object class="sizeritem" expanded="0">
+                                        <object class="sizeritem" expanded="1">
                                             <property name="border">0</property>
                                             <property name="flag">wxEXPAND</property>
                                             <property name="proportion">0</property>
@@ -10179,11 +10179,11 @@
                                         <property name="width">2</property>
                                     </object>
                                 </object>
-                                <object class="sizeritem" expanded="0">
+                                <object class="sizeritem" expanded="1">
                                     <property name="border">8</property>
                                     <property name="flag">wxBOTTOM|wxRIGHT|wxTOP</property>
                                     <property name="proportion">0</property>
-                                    <object class="wxNotebook" expanded="0">
+                                    <object class="wxNotebook" expanded="1">
                                         <property name="BottomDockable">1</property>
                                         <property name="LeftDockable">1</property>
                                         <property name="RightDockable">1</property>
@@ -10236,11 +10236,11 @@
                                         <property name="window_extra_style"></property>
                                         <property name="window_name"></property>
                                         <property name="window_style"></property>
-                                        <object class="notebookpage" expanded="0">
+                                        <object class="notebookpage" expanded="1">
                                             <property name="bitmap"></property>
                                             <property name="label">Input</property>
                                             <property name="select">1</property>
-                                            <object class="wxPanel" expanded="0">
+                                            <object class="wxPanel" expanded="1">
                                                 <property name="BottomDockable">1</property>
                                                 <property name="LeftDockable">1</property>
                                                 <property name="RightDockable">1</property>
@@ -10291,16 +10291,16 @@
                                                 <property name="window_extra_style"></property>
                                                 <property name="window_name"></property>
                                                 <property name="window_style">wxTAB_TRAVERSAL</property>
-                                                <object class="wxBoxSizer" expanded="0">
+                                                <object class="wxBoxSizer" expanded="1">
                                                     <property name="minimum_size"></property>
                                                     <property name="name">bSizer24</property>
                                                     <property name="orient">wxVERTICAL</property>
                                                     <property name="permission">none</property>
-                                                    <object class="sizeritem" expanded="0">
+                                                    <object class="sizeritem" expanded="1">
                                                         <property name="border">0</property>
                                                         <property name="flag"></property>
                                                         <property name="proportion">0</property>
-                                                        <object class="wxGridSizer" expanded="0">
+                                                        <object class="wxGridSizer" expanded="1">
                                                             <property name="cols">3</property>
                                                             <property name="hgap">0</property>
                                                             <property name="minimum_size"></property>
@@ -10345,7 +10345,7 @@
                                                                     <property name="gripper">0</property>
                                                                     <property name="hidden"></property>
                                                                     <property name="id">wxID_ANY</property>
-                                                                    <property name="label">1</property>
+                                                                    <property name="label">1&#x0A; </property>
                                                                     <property name="margins"></property>
                                                                     <property name="markup">0</property>
                                                                     <property name="max_size"></property>
@@ -10367,7 +10367,7 @@
                                                                     <property name="resize">Resizable</property>
                                                                     <property name="show">1</property>
                                                                     <property name="size">40,40</property>
-                                                                    <property name="style"></property>
+                                                                    <property name="style">wxBORDER_NONE</property>
                                                                     <property name="subclass"></property>
                                                                     <property name="toolbar_pane">0</property>
                                                                     <property name="tooltip"></property>
@@ -10439,7 +10439,7 @@
                                                                     <property name="resize">Resizable</property>
                                                                     <property name="show">1</property>
                                                                     <property name="size">40,40</property>
-                                                                    <property name="style"></property>
+                                                                    <property name="style">wxBORDER_NONE</property>
                                                                     <property name="subclass"></property>
                                                                     <property name="toolbar_pane">0</property>
                                                                     <property name="tooltip"></property>
@@ -10511,7 +10511,7 @@
                                                                     <property name="resize">Resizable</property>
                                                                     <property name="show">1</property>
                                                                     <property name="size">40,40</property>
-                                                                    <property name="style"></property>
+                                                                    <property name="style">wxBORDER_NONE</property>
                                                                     <property name="subclass"></property>
                                                                     <property name="toolbar_pane">0</property>
                                                                     <property name="tooltip"></property>
@@ -10583,7 +10583,7 @@
                                                                     <property name="resize">Resizable</property>
                                                                     <property name="show">1</property>
                                                                     <property name="size">40,40</property>
-                                                                    <property name="style"></property>
+                                                                    <property name="style">wxBORDER_NONE</property>
                                                                     <property name="subclass"></property>
                                                                     <property name="toolbar_pane">0</property>
                                                                     <property name="tooltip"></property>
@@ -10655,7 +10655,7 @@
                                                                     <property name="resize">Resizable</property>
                                                                     <property name="show">1</property>
                                                                     <property name="size">40,40</property>
-                                                                    <property name="style"></property>
+                                                                    <property name="style">wxBORDER_NONE</property>
                                                                     <property name="subclass"></property>
                                                                     <property name="toolbar_pane">0</property>
                                                                     <property name="tooltip"></property>
@@ -10727,7 +10727,7 @@
                                                                     <property name="resize">Resizable</property>
                                                                     <property name="show">1</property>
                                                                     <property name="size">40,40</property>
-                                                                    <property name="style"></property>
+                                                                    <property name="style">wxBORDER_NONE</property>
                                                                     <property name="subclass"></property>
                                                                     <property name="toolbar_pane">0</property>
                                                                     <property name="tooltip"></property>
@@ -10799,7 +10799,7 @@
                                                                     <property name="resize">Resizable</property>
                                                                     <property name="show">1</property>
                                                                     <property name="size">40,40</property>
-                                                                    <property name="style"></property>
+                                                                    <property name="style">wxBORDER_NONE</property>
                                                                     <property name="subclass"></property>
                                                                     <property name="toolbar_pane">0</property>
                                                                     <property name="tooltip"></property>
@@ -10871,7 +10871,7 @@
                                                                     <property name="resize">Resizable</property>
                                                                     <property name="show">1</property>
                                                                     <property name="size">40,40</property>
-                                                                    <property name="style"></property>
+                                                                    <property name="style">wxBORDER_NONE</property>
                                                                     <property name="subclass"></property>
                                                                     <property name="toolbar_pane">0</property>
                                                                     <property name="tooltip"></property>
@@ -10943,7 +10943,7 @@
                                                                     <property name="resize">Resizable</property>
                                                                     <property name="show">1</property>
                                                                     <property name="size">40,40</property>
-                                                                    <property name="style"></property>
+                                                                    <property name="style">wxBORDER_NONE</property>
                                                                     <property name="subclass"></property>
                                                                     <property name="toolbar_pane">0</property>
                                                                     <property name="tooltip"></property>
@@ -10993,7 +10993,7 @@
                                                                     <property name="gripper">0</property>
                                                                     <property name="hidden"></property>
                                                                     <property name="id">wxID_ANY</property>
-                                                                    <property name="label">*</property>
+                                                                    <property name="label">&#x0A;*&#x0A; </property>
                                                                     <property name="margins"></property>
                                                                     <property name="markup">0</property>
                                                                     <property name="max_size"></property>
@@ -11015,7 +11015,7 @@
                                                                     <property name="resize">Resizable</property>
                                                                     <property name="show">1</property>
                                                                     <property name="size">40,40</property>
-                                                                    <property name="style"></property>
+                                                                    <property name="style">wxBORDER_NONE</property>
                                                                     <property name="subclass"></property>
                                                                     <property name="toolbar_pane">0</property>
                                                                     <property name="tooltip"></property>
@@ -11065,7 +11065,7 @@
                                                                     <property name="gripper">0</property>
                                                                     <property name="hidden"></property>
                                                                     <property name="id">wxID_ANY</property>
-                                                                    <property name="label">0</property>
+                                                                    <property name="label">&#x0A;0&#x0A; </property>
                                                                     <property name="margins"></property>
                                                                     <property name="markup">0</property>
                                                                     <property name="max_size"></property>
@@ -11087,7 +11087,7 @@
                                                                     <property name="resize">Resizable</property>
                                                                     <property name="show">1</property>
                                                                     <property name="size">40,40</property>
-                                                                    <property name="style"></property>
+                                                                    <property name="style">wxBORDER_NONE</property>
                                                                     <property name="subclass"></property>
                                                                     <property name="toolbar_pane">0</property>
                                                                     <property name="tooltip"></property>
@@ -11137,7 +11137,7 @@
                                                                     <property name="gripper">0</property>
                                                                     <property name="hidden"></property>
                                                                     <property name="id">wxID_ANY</property>
-                                                                    <property name="label">#</property>
+                                                                    <property name="label">&#x0A;#&#x0A; </property>
                                                                     <property name="margins"></property>
                                                                     <property name="markup">0</property>
                                                                     <property name="max_size"></property>
@@ -11159,7 +11159,7 @@
                                                                     <property name="resize">Resizable</property>
                                                                     <property name="show">1</property>
                                                                     <property name="size">40,40</property>
-                                                                    <property name="style"></property>
+                                                                    <property name="style">wxBORDER_NONE</property>
                                                                     <property name="subclass"></property>
                                                                     <property name="toolbar_pane">0</property>
                                                                     <property name="tooltip"></property>
@@ -11177,7 +11177,7 @@
                                                     <object class="sizeritem" expanded="0">
                                                         <property name="border">0</property>
                                                         <property name="flag">wxEXPAND</property>
-                                                        <property name="proportion">1</property>
+                                                        <property name="proportion">0</property>
                                                         <object class="wxButton" expanded="0">
                                                             <property name="BottomDockable">1</property>
                                                             <property name="LeftDockable">1</property>
@@ -11211,7 +11211,7 @@
                                                             <property name="gripper">0</property>
                                                             <property name="hidden"></property>
                                                             <property name="id">wxID_ANY</property>
-                                                            <property name="label">Hook Flash</property>
+                                                            <property name="label">&#x0A;Hook Flash&#x0A; </property>
                                                             <property name="margins"></property>
                                                             <property name="markup">0</property>
                                                             <property name="max_size"></property>
@@ -11233,7 +11233,7 @@
                                                             <property name="resize">Resizable</property>
                                                             <property name="show">1</property>
                                                             <property name="size"></property>
-                                                            <property name="style"></property>
+                                                            <property name="style">wxBORDER_NONE</property>
                                                             <property name="subclass"></property>
                                                             <property name="toolbar_pane">0</property>
                                                             <property name="tooltip"></property>
@@ -11982,7 +11982,7 @@
                                 </object>
                             </object>
                         </object>
-                        <object class="sizeritem" expanded="0">
+                        <object class="sizeritem" expanded="1">
                             <property name="border">0</property>
                             <property name="flag">wxEXPAND</property>
                             <property name="proportion">0</property>
@@ -11993,7 +11993,7 @@
                                 <property name="permission">none</property>
                                 <object class="sizeritem" expanded="0">
                                     <property name="border">0</property>
-                                    <property name="flag"></property>
+                                    <property name="flag">wxEXPAND</property>
                                     <property name="proportion">2</property>
                                     <object class="spacer" expanded="0">
                                         <property name="height"> 20</property>
@@ -12003,7 +12003,7 @@
                                 </object>
                                 <object class="sizeritem" expanded="0">
                                     <property name="border">0</property>
-                                    <property name="flag"></property>
+                                    <property name="flag">wxEXPAND</property>
                                     <property name="proportion">5</property>
                                     <object class="wxButton" expanded="0">
                                         <property name="BottomDockable">1</property>
@@ -12075,7 +12075,7 @@
                                 </object>
                                 <object class="sizeritem" expanded="0">
                                     <property name="border">0</property>
-                                    <property name="flag"></property>
+                                    <property name="flag">wxEXPAND</property>
                                     <property name="proportion">1</property>
                                     <object class="spacer" expanded="0">
                                         <property name="height"> 20</property>
@@ -12085,7 +12085,7 @@
                                 </object>
                                 <object class="sizeritem" expanded="0">
                                     <property name="border">0</property>
-                                    <property name="flag"></property>
+                                    <property name="flag">wxEXPAND</property>
                                     <property name="proportion">5</property>
                                     <object class="wxButton" expanded="0">
                                         <property name="BottomDockable">1</property>
@@ -12157,7 +12157,7 @@
                                 </object>
                                 <object class="sizeritem" expanded="0">
                                     <property name="border">0</property>
-                                    <property name="flag"></property>
+                                    <property name="flag">wxEXPAND</property>
                                     <property name="proportion">1</property>
                                     <object class="spacer" expanded="0">
                                         <property name="height"> 20</property>
@@ -12167,7 +12167,7 @@
                                 </object>
                                 <object class="sizeritem" expanded="0">
                                     <property name="border">0</property>
-                                    <property name="flag"></property>
+                                    <property name="flag">wxEXPAND</property>
                                     <property name="proportion">5</property>
                                     <object class="wxButton" expanded="0">
                                         <property name="BottomDockable">1</property>
@@ -12239,7 +12239,7 @@
                                 </object>
                                 <object class="sizeritem" expanded="0">
                                     <property name="border">0</property>
-                                    <property name="flag"></property>
+                                    <property name="flag">wxEXPAND</property>
                                     <property name="proportion">1</property>
                                     <object class="spacer" expanded="0">
                                         <property name="height"> 20</property>
@@ -12249,7 +12249,7 @@
                                 </object>
                                 <object class="sizeritem" expanded="0">
                                     <property name="border">0</property>
-                                    <property name="flag"></property>
+                                    <property name="flag">wxEXPAND</property>
                                     <property name="proportion">5</property>
                                     <object class="wxButton" expanded="0">
                                         <property name="BottomDockable">1</property>
@@ -12321,7 +12321,7 @@
                                 </object>
                                 <object class="sizeritem" expanded="0">
                                     <property name="border">0</property>
-                                    <property name="flag"></property>
+                                    <property name="flag">wxEXPAND</property>
                                     <property name="proportion">2</property>
                                     <object class="spacer" expanded="0">
                                         <property name="height"> 20</property>
