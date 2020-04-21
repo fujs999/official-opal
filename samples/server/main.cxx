@@ -292,10 +292,18 @@ PBoolean MyProcess::Initialise(const char * initMsg)
   }
 
   params.m_configPage->Add(new PHTTPDividerField());
+  params.m_configPage->AddStringField("User Information", P_MAX_INDEX, "", "Not used by any OPAL server functions", 10, 80);
+  params.m_configPage->Add(new PHTTPDividerField());
 
   // Finished the resource to add, generate HTML for it and add to name space
   PServiceHTML cfgHTML("System Parameters");
   params.m_configPage->BuildHTML(cfgHTML);
+
+  {
+    PJSON json;
+    params.m_configPage->SaveToJSON(json);
+    m_httpNameSpace.AddResource(new PHTTPString("Parameters.json", json.AsString(), PMIMEInfo::ApplicationJSON(), params.m_authority), PHTTPSpace::Overwrite);
+  }
 
 #if OPAL_PTLIB_HTTP && OPAL_PTLIB_SSL
   m_httpNameSpace.AddResource(new OpalHTTPConnector(*m_manager, "/websocket", params.m_authority), PHTTPSpace::Overwrite);
@@ -405,7 +413,7 @@ bool MyManager::ConfigureCommon(OpalEndPoint * ep,
     PSYSTEMLOG(Info, "Disabled " << cfgPrefix);
     ep->RemoveListener(NULL);
   }
-  else if (!ep->StartListeners(listeners)) {
+  else if (!ep->StartListeners(listeners, false)) {
     PSYSTEMLOG(Error, "Could not open any listeners for " << cfgPrefix);
   }
   OpalConsoleEndPoint * cep = dynamic_cast<OpalConsoleEndPoint *>(ep);

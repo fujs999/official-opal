@@ -1004,7 +1004,8 @@ bool OpalManager::OnRouteConnection(PStringSet & routesTried,
     if (MakeConnection(call, route, NULL, options, stringOptions) != NULL)
       return true;
 
-    if (call.GetConnection(0)->IsReleased())
+    PSafePtr<OpalConnection> pConn = call.GetConnection(0);
+    if (pConn == NULL || pConn->IsReleased())
       return false;
 
     // Recursively call with translated route

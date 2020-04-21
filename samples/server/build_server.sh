@@ -8,7 +8,7 @@ export PKG_CONFIG_PATH=$INSTALLDIR/lib/pkgconfig
 
 USAGE=true
 BOOTSTRAP=false
-UPDATE=false
+RESTART=false
 MAKE_TARGET="optdepend opt"
 
 while [ -n "$1" ]; do
@@ -17,22 +17,24 @@ while [ -n "$1" ]; do
     		MAKE_TARGET="all"
     	;;
 
+    	"--restart" )
+    		RESTART=true
+    	;;
+
     	"bootstrap" )
     		USAGE=false
     		BOOTSTRAP=true
-    		UPDATE=true
     	;;
 
     	"update" )
     		USAGE=false
-    		UPDATE=true
     	;;
     esac
     shift
 done
 
 if $USAGE; then
-    echo "usage: $0 [ --debug ] { bootstrap | update }"
+    echo "usage: $0 [ --debug ] [ -- restrt ] { bootstrap | update }"
     exit 1
 fi
 
@@ -42,6 +44,14 @@ if pwd | grep samples/server; then
 fi
 
 if $BOOTSTRAP; then
+    if [ -d ptlib -o -d opal ]; then
+        read -p "PTLib/OPAL already present, delete? "
+        if [ "$REPLY" != "Y" -a "$REPLY" != "y"]; then
+            exit
+        fi
+        rm -rf ptlib opal
+    fi
+
     if which apt > /dev/null 2> /dev/null; then
     	sudo apt install \
     		g++ git make autoconf libpcap-dev libexpat-dev libssl1.0-dev \
@@ -86,25 +96,33 @@ if $BOOTSTRAP; then
     make "CONFIG_PARMS=--prefix=$INSTALLDIR" config
     git checkout configure plugins/configure
     cd ..
-fi
-
-if $UPDATE; then
+else
     cd ptlib
+    echo "========================================================================"
     git pull --rebase
-    make $MAKE_TARGET
-    echo "----------------------------------------"
-    sudo -E make install
     echo "========================================================================"
     cd ../opal
     git pull --rebase
-    make $MAKE_TARGET
-    echo "----------------------------------------"
-    sudo -E make install
     echo "========================================================================"
-    cd samples/server
-    make $MAKE_TARGET
-    echo "----------------------------------------"
-    sudo -E make install
-    echo "========================================================================"
-    echo "Done"
 fi
+
+make $MAKE_TARGET
+echo "----------------------------------------"
+sudo -E make install
+echo "========================================================================"
+make $MAKE_TARGET
+echo "----------------------------------------"
+sudo -E make install
+echo "========================================================================"
+cd samples/server
+make $MAKE_TARGET
+echo "----------------------------------------"
+sudo -E make install
+echo "========================================================================"
+
+if $UPDATE; then
+    /opt/opalsrv/bin/stop.sh
+    /opt/opalsrv/bin/start.sh
+fi
+
+echo "Done"

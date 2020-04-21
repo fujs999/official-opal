@@ -388,7 +388,7 @@ bool OpalAudioMixer::MixStreams(RTP_DataFrame & frame)
 {
   // Expected to already be mutexed
 
-  if (m_stereo)
+  if (m_stereo && m_inputStreams.size() <= 2)
     MixStereo(frame);
   else {
     PreMixStreams();
@@ -615,7 +615,7 @@ bool OpalVideoMixer::MixVideo()
 
 bool OpalVideoMixer::StartMix(unsigned & x, unsigned & y, unsigned & w, unsigned & h, unsigned & left)
 {
-  switch (m_style) {
+  switch (m_inputStreams.size() > 2 ? eGrid : m_style) {
     case eSideBySideLetterbox:
       x = left = 0;
       y = m_height / 4;
@@ -1813,6 +1813,9 @@ bool OpalAudioStreamMixer::OnPush()
 
   for (StreamDict::iterator it = m_outputStreams.begin(); it != m_outputStreams.end(); ++it) {
     PSafePtr<OpalMixerMediaStream> stream = it->second;
+    if (stream == NULL)
+      continue;
+
     m_mutex.Wait(); // Signal() call for this mutex is inside PushOne()
 
     // Check for full participant, so can subtract their signal
