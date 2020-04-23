@@ -1677,8 +1677,8 @@ bool OpalConnection::HasPresentationRole() const
 void OpalConnection::SetAudioJitterDelay(unsigned minDelay, unsigned maxDelay)
 {
   if (minDelay != 0 || maxDelay != 0) {
-    minDelay = std::max(10U, std::min(minDelay, 999U));
-    maxDelay = std::max(minDelay, std::min(maxDelay, 999U));
+    minDelay = std::max(10U, std::min(minDelay, 9999U));
+    maxDelay = std::max(minDelay, std::min(maxDelay, 9999U));
   }
 
   m_jitterParams.m_minJitterDelay = minDelay;
