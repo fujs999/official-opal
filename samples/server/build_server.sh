@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -e
 
@@ -46,7 +46,7 @@ fi
 if $BOOTSTRAP; then
     if [ -d ptlib -o -d opal ]; then
         read -p "PTLib/OPAL already present, delete? "
-        if [ "$REPLY" != "Y" -a "$REPLY" != "y"]; then
+        if [ "$REPLY" != "Y" -a "$REPLY" != "y" ]; then
             exit
         fi
         rm -rf ptlib opal
@@ -74,7 +74,7 @@ if $BOOTSTRAP; then
     	exit 1
     fi
 
-    if [ -n $SOURCEFORGE_USERNAME ]; then
+    if [ -n "$SOURCEFORGE_USERNAME" ]; then
         GIT_PATH=ssh://$SOURCEFORGE_USERNAME@git.code.sf.net/p/opalvoip
     else
         GIT_PATH=git://git.code.sf.net/p/opalvoip
@@ -104,23 +104,23 @@ else
     cd ../opal
     git pull --rebase
     echo "========================================================================"
+    cd ..
 fi
 
-make $MAKE_TARGET
+make -C ptlib $MAKE_TARGET
 echo "----------------------------------------"
-sudo -E make install
+sudo -E make -C ptlib install
 echo "========================================================================"
-make $MAKE_TARGET
+make -C opal $MAKE_TARGET
 echo "----------------------------------------"
-sudo -E make install
+sudo -E make -C opal install
 echo "========================================================================"
-cd samples/server
-make $MAKE_TARGET
+make -C opal/samples/server $MAKE_TARGET
 echo "----------------------------------------"
-sudo -E make install
+sudo -E make -C opal/samples/server install
 echo "========================================================================"
 
-if $UPDATE; then
+if $RESTART; then
     /opt/opalsrv/bin/stop.sh
     /opt/opalsrv/bin/start.sh
 fi
