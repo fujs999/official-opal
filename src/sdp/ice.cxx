@@ -419,6 +419,10 @@ bool OpalICEMediaTransport::GetCandidates(PString & user, PString & pass, PNatCa
 #if OPAL_STATISTICS
 void OpalICEMediaTransport::GetStatistics(OpalMediaStatistics & statistics) const
 {
+  PSafeLockReadOnly lock(*this);
+  if (!lock.IsLocked())
+    return;
+
   OpalMediaTransport::GetStatistics(statistics);
 
   statistics.m_candidates.clear();
