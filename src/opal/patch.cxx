@@ -226,7 +226,7 @@ void OpalMediaPatch::Close()
 
 PBoolean OpalMediaPatch::AddSink(const OpalMediaStreamPtr & sinkStream)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   if (PAssertNULL(sinkStream) == NULL)
     return false;
@@ -250,7 +250,7 @@ PBoolean OpalMediaPatch::AddSink(const OpalMediaStreamPtr & sinkStream)
 
 bool OpalMediaPatch::ResetTranscoders()
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   for (PList<Sink>::iterator s = m_sinks.begin(); s != m_sinks.end(); ++s) {
     if (!s->CreateTranscoders())
@@ -419,7 +419,7 @@ void OpalMediaPatch::RemoveSink(const OpalMediaStream & stream)
 OpalMediaStreamPtr OpalMediaPatch::GetSink(PINDEX i) const
 {
   P_INSTRUMENTED_LOCK_READ_ONLY();
-  return i < m_sinks.GetSize() ? m_sinks[i].m_stream : OpalMediaStreamPtr();
+  return lock.IsLocked() && i < m_sinks.GetSize() ? m_sinks[i].m_stream : OpalMediaStreamPtr();
 }
 
 
@@ -531,7 +531,7 @@ OpalMediaPatch::Sink::~Sink()
 
 void OpalMediaPatch::AddFilter(const PNotifier & filter, const OpalMediaFormat & stage)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
 
   if (m_source.GetMediaFormat().GetMediaType() != stage.GetMediaType())
     return;
@@ -549,7 +549,7 @@ void OpalMediaPatch::AddFilter(const PNotifier & filter, const OpalMediaFormat &
 
 PBoolean OpalMediaPatch::RemoveFilter(const PNotifier & filter, const OpalMediaFormat & stage)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   for (PList<Filter>::iterator f = m_filters.begin(); f != m_filters.end(); ++f) {
     if (f->m_notifier == filter && f->m_stage == stage) {
@@ -576,7 +576,7 @@ void OpalMediaPatch::FilterFrame(RTP_DataFrame & frame, const OpalMediaFormat & 
 
 bool OpalMediaPatch::UpdateMediaFormat(const OpalMediaFormat & mediaFormat)
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
 
   bool atLeastOne = m_source.InternalUpdateMediaFormat(mediaFormat);
 
@@ -659,7 +659,7 @@ void OpalMediaPatch::InternalOnMediaCommand2(OpalMediaCommand * command)
 
 bool OpalMediaPatch::InternalSetPaused(bool pause, bool fromUser)
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
 
   bool atLeastOne = m_source.InternalSetPaused(pause, fromUser, true);
 
@@ -674,7 +674,7 @@ bool OpalMediaPatch::InternalSetPaused(bool pause, bool fromUser)
 
 bool OpalMediaPatch::OnStartMediaPatch()
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
 
   m_source.OnStartMediaPatch();
 
@@ -690,7 +690,7 @@ bool OpalMediaPatch::OnStartMediaPatch()
 
 bool OpalMediaPatch::EnableJitterBuffer(bool enab)
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
 
   if (m_bypassToPatch != NULL)
     enab = false;
@@ -798,7 +798,7 @@ void OpalMediaPatch::Main()
 
 bool OpalMediaPatch::SetBypassPatch(const OpalMediaPatchPtr & patch)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   if (!PAssert(m_bypassFromPatch == NULL, PLogicError))
     return false; // Can't be both!
