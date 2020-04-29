@@ -980,7 +980,7 @@ bool OpalMediaTransport::ChannelInfo::HandleUnavailableError()
 
 void OpalMediaTransport::InternalClose()
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return);
 
   m_opened = m_established = false;
 
@@ -1023,9 +1023,7 @@ void OpalMediaTransport::Start()
   if (m_started.exchange(true))
     return;
 
-  P_INSTRUMENTED_LOCK_READ_WRITE();
-  if (!lock.IsLocked())
-    return;
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
 
   PTRACE(4, *this << "starting read theads, " << m_subchannels.size() << " sub-channels");
   for (ChannelArray::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it) {
@@ -1204,9 +1202,7 @@ bool OpalUDPMediaTransport::InternalSetRemoteAddress(const PIPSocket::AddressAnd
   if (!newAP.IsValid())
     return false;
 
-  P_INSTRUMENTED_LOCK_READ_WRITE();
-  if (!lock.IsLocked())
-    return false;
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   PUDPSocket * socket = GetSubChannelAsSocket(subchannel);
   if (socket == NULL)
@@ -1641,7 +1637,7 @@ const PString & OpalMediaSession::GetBundleGroupId() { static PConstString const
 
 bool OpalMediaSession::AddGroup(const PString & groupId, const PString & mediaId, bool overwrite)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   if (!overwrite && m_groups.Contains(groupId)) {
     if (m_groups[groupId] == mediaId)
@@ -1659,21 +1655,21 @@ bool OpalMediaSession::AddGroup(const PString & groupId, const PString & mediaId
 
 bool OpalMediaSession::IsGroupMember(const PString & groupId) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
   return m_groups.Contains(groupId);
 }
 
 
 PStringArray OpalMediaSession::GetGroups() const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PStringArray());
   return m_groups.GetKeys();
 }
 
 
 PString OpalMediaSession::GetGroupMediaId(const PString & groupId) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
   PString str = m_groups(groupId);
   str.MakeUnique();
   return str;
@@ -1776,9 +1772,7 @@ const PCaselessString & OpalDummySession::GetSessionType() const
 
 bool OpalDummySession::Open(const PString &, const OpalTransportAddress &)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
-  if (!lock.IsLocked())
-    return false;
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   PSafePtr<OpalConnection> otherParty = m_connection.GetOtherPartyConnection();
   if (otherParty != NULL) {
@@ -1817,23 +1811,21 @@ bool OpalDummySession::IsOpen() const
 
 OpalTransportAddress OpalDummySession::GetLocalAddress(bool isMediaAddress) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return lock.IsLocked() ? m_localTransportAddress[isMediaAddress ? e_Media : e_Control] : OpalTransportAddress();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return OpalTransportAddress());
+  return m_localTransportAddress[isMediaAddress ? e_Media : e_Control];
 }
 
 
 OpalTransportAddress OpalDummySession::GetRemoteAddress(bool isMediaAddress) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return lock.IsLocked() ? m_remoteTransportAddress[isMediaAddress ? e_Media : e_Control] : OpalTransportAddress();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return OpalTransportAddress());
+  return m_remoteTransportAddress[isMediaAddress ? e_Media : e_Control];
 }
 
 
 bool OpalDummySession::SetRemoteAddress(const OpalTransportAddress & remoteAddress, bool isMediaAddress)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
-  if (!lock.IsLocked())
-    return false;
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   // Some code to keep the port if new one does not have it but old did.
   PIPSocket::Address ip;

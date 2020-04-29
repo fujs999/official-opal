@@ -352,7 +352,7 @@ RTP_SyncSourceId OpalRTPSession::EnableSyncSourceRtx(RTP_SyncSourceId primarySSR
                                                      RTP_DataFrame::PayloadTypes rtxPT,
                                                      RTP_SyncSourceId rtxSSRC)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return 0);
 
   SyncSourceMap::iterator it = m_SSRC.find(primarySSRC);
   if (it == m_SSRC.end()) {
@@ -1309,7 +1309,7 @@ OpalMediaTransportPtr OpalRTPSession::DetachTransport()
 
 bool OpalRTPSession::AddGroup(const PString & groupId, const PString & mediaId, bool overwrite)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   if (!OpalMediaSession::AddGroup(groupId, mediaId, overwrite))
     return false;
@@ -1486,7 +1486,7 @@ void OpalRTPSession::SetToolName(const PString & name)
 
 RTPHeaderExtensions OpalRTPSession::GetHeaderExtensions() const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return RTPHeaderExtensions());
   return m_headerExtensions;
 }
 
@@ -1546,14 +1546,14 @@ bool OpalRTPSession::AddHeaderExtension(const RTPHeaderExtensionInfo & ext)
 
 void OpalRTPSession::SetAnySyncSource(bool allow)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
   m_allowAnySyncSource = allow;
 }
 
 
 void OpalRTPSession::SetMaxOutOfOrderPackets(PINDEX packets)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
   m_maxOutOfOrderPackets = packets;
 }
 
