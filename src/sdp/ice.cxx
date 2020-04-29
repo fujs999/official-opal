@@ -420,7 +420,7 @@ void OpalICEMediaTransport::GetStatistics(OpalMediaStatistics & statistics) cons
   OpalMediaTransport::GetStatistics(statistics);
 
   statistics.m_candidates.clear();
-  for (size_t subchannel = 0; subchannel < m_subchannels.size(); ++subchannel) {
+  for (size_t subchannel = 0; subchannel < m_remoteCandidates.size(); ++subchannel) {
     for (CandidateStateList::const_iterator it = m_remoteCandidates[subchannel].begin(); it != m_remoteCandidates[subchannel].end(); ++it)
       statistics.m_candidates.push_back(*it);
   }
