@@ -1061,6 +1061,8 @@ bool OpalMediaTransport::GarbageCollection()
 
 void OpalMediaTransport::AddChannel(PChannel * channel)
 {
+  // Should already be locked, or in ctor
+
   SubChannels subchannel = (SubChannels)m_subchannels.size();
 
   PTRACE_CONTEXT_ID_TO(channel);
@@ -1348,6 +1350,8 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
                                  const PString & localInterface,
                                  const OpalTransportAddress & remoteAddress)
 {
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
+
   PTRACE_CONTEXT_ID_FROM(session);
 
   if (!PAssert(subchannelCount > 0, PInvalidParameter))
