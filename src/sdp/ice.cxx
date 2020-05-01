@@ -151,6 +151,7 @@ bool OpalICEMediaTransport::InternalOpenPinHole(PUDPSocket &)
 
 PChannel * OpalICEMediaTransport::AddWrapperChannels(SubChannels subchannel, PChannel * channel)
 {
+  // Should already be locked, or in ctor
   if (m_localCandidates.size() <= (size_t)subchannel)
     m_localCandidates.resize(subchannel + 1);
 
