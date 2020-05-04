@@ -8,6 +8,7 @@ export PKG_CONFIG_PATH=$INSTALLDIR/lib/pkgconfig
 
 USAGE=true
 BOOTSTRAP=false
+UPDATE=false
 RESTART=false
 MAKE_TARGET="optdepend opt"
 
@@ -28,13 +29,18 @@ while [ -n "$1" ]; do
 
     	"update" )
     		USAGE=false
+		UPDATE=true
+    	;;
+
+    	"buildonly" )
+    		USAGE=false
     	;;
     esac
     shift
 done
 
 if $USAGE; then
-    echo "usage: $0 [ --debug ] [ -- restrt ] { bootstrap | update }"
+    echo "usage: $0 [ --debug ] [ -- restrt ] { bootstrap | update | buildonly }"
     exit 1
 fi
 
@@ -96,7 +102,9 @@ if $BOOTSTRAP; then
     make "CONFIG_PARMS=--prefix=$INSTALLDIR" config
     git checkout configure plugins/configure
     cd ..
-else
+fi
+
+if $UPDATE; then
     cd ptlib
     echo "========================================================================"
     git pull --rebase
