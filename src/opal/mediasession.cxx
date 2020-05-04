@@ -980,9 +980,12 @@ bool OpalMediaTransport::ChannelInfo::HandleUnavailableError()
 
 void OpalMediaTransport::InternalClose()
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY(return);
+  P_INSTRUMENTED_LOCK_READ_ONLY();
 
-  m_opened = m_established = false;
+  m_opened = m_established = false; // Always do this, even if "deleted"
+
+  if (lock.IsLocked())
+    return;
 
   for (vector<ChannelInfo>::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it) {
     if (it->m_channel != NULL) {
