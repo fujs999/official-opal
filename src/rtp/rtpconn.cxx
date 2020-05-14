@@ -696,13 +696,11 @@ void OpalRTPConnection::OnPatchMediaStream(PBoolean isSource, OpalMediaPatch & p
 
 void OpalRTPConnection::OnUserInputInlineRFC2833(OpalRFC2833Info & info, OpalRFC2833Proto::NotifyState state)
 {
-  if (state == OpalRFC2833Proto::Started) {
-    GetEndPoint().GetManager().QueueDecoupledEvent(
+  GetEndPoint().GetManager().QueueDecoupledEvent(
             new PSafeWorkArg2<OpalConnection, char, unsigned>(
-                  this, info.GetTone(),
-                  info.GetDuration(),
-                  &OpalConnection::OnUserInputTone));
-  }
+                    this, info.GetTone(),
+                    state == OpalRFC2833Proto::Started ? 0 : info.GetDuration(),
+                    &OpalConnection::OnUserInputTone));
 }
 
 

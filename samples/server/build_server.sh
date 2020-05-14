@@ -8,7 +8,9 @@ export PKG_CONFIG_PATH=$INSTALLDIR/lib/pkgconfig
 
 USAGE=true
 BOOTSTRAP=false
+UPDATE=false
 RESTART=false
+NO_INSTALL=false
 MAKE_TARGET="optdepend opt"
 
 while [ -n "$1" ]; do
@@ -21,6 +23,10 @@ while [ -n "$1" ]; do
     		RESTART=true
     	;;
 
+    	"--no-install" )
+    		NO_INSTALL=true
+    	;;
+
     	"bootstrap" )
     		USAGE=false
     		BOOTSTRAP=true
@@ -28,13 +34,18 @@ while [ -n "$1" ]; do
 
     	"update" )
     		USAGE=false
+		UPDATE=true
+    	;;
+
+    	"buildonly" )
+    		USAGE=false
     	;;
     esac
     shift
 done
 
 if $USAGE; then
-    echo "usage: $0 [ --debug ] [ -- restrt ] { bootstrap | update }"
+    echo "usage: $0 [ --debug ] [ -- restrt ] { bootstrap | update | buildonly }"
     exit 1
 fi
 
@@ -96,7 +107,9 @@ if $BOOTSTRAP; then
     make "CONFIG_PARMS=--prefix=$INSTALLDIR" config
     git checkout configure plugins/configure
     cd ..
-else
+fi
+
+if $UPDATE; then
     cd ptlib
     echo "========================================================================"
     git pull --rebase
@@ -107,17 +120,22 @@ else
     cd ..
 fi
 
+if $NO_INSTALL; then
+    export PTLIBDIR=`pwd`/ptlib
+    export OPALDIR=`pwd`/opal
+fi
+
 make -C ptlib $MAKE_TARGET
 echo "----------------------------------------"
-sudo -E make -C ptlib install
+$NO_INSTALL || sudo -E make -C ptlib install
 echo "========================================================================"
 make -C opal $MAKE_TARGET
 echo "----------------------------------------"
-sudo -E make -C opal install
+$NO_INSTALL || sudo -E make -C opal install
 echo "========================================================================"
 make -C opal/samples/server $MAKE_TARGET
 echo "----------------------------------------"
-sudo -E make -C opal/samples/server install
+$NO_INSTALL || sudo -E make -C opal/samples/server install
 echo "========================================================================"
 
 if $RESTART; then
