@@ -285,12 +285,13 @@ bool OpalTransportAddressArray::AppendString(const PString & str)
 }
 
 
-bool OpalTransportAddressArray::AppendAddress(const OpalTransportAddress & addr)
+bool OpalTransportAddressArray::AppendAddress(const OpalTransportAddress & addr, bool unique)
 {
   if (addr.IsEmpty())
     return false;
 
-  Append(new OpalTransportAddress(addr));
+  if (!unique || GetValuesIndex(addr) == P_MAX_INDEX)
+    Append(new OpalTransportAddress(addr));
   return true;
 }
 

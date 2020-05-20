@@ -343,7 +343,8 @@ class OpalTransportAddressArray : public PArray<OpalTransportAddress>
 
     /// Append one address to array
     bool AppendAddress(
-      const OpalTransportAddress & address
+      const OpalTransportAddress & address,
+      bool unique = false
     );
 
     /** Append a string with special cases.
