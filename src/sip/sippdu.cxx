@@ -2214,10 +2214,9 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
   if (m_method == NumMethods)
     return status;
 
-  // Follow rules from RFC3261 8.2.2 and RFC3263 section 5
-
-  // First place to respond to, is where packet came from
-  m_responseAddresses.AppendAddress(m_transport->GetLastReceivedAddress());
+  // Follow rules from RFC3261 18.2.2 and RFC3263 section 5
+  // Note that the below only applies to unreliable (UDP) transport, or if
+  // the reliable transport fails.
 
   // Set the default return address for the response, must send back to Via address
   PString via = m_mime.GetFirstVia();
@@ -2227,7 +2226,7 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
 
   // get the protocol type from Via header
   PINDEX pos;
-  PString proto;
+  PCaselessString proto;
   if ((pos = via.FindLast('/', space)) != P_MAX_INDEX)
     proto = via(pos+1, space-1).ToLower();
 
@@ -2244,14 +2243,20 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
   if (colon != P_MAX_INDEX)
     port = (WORD)sent_by.Mid(colon).AsUnsigned();
 
-  // Now see if has received address, NAT!
+  // RFC3261 18.2.2 First possibility is if has received address, NAT!
   PINDEX start, end;
   if (LocateFieldParameter(via, "received", start, pos, end))
     m_responseAddresses.AppendAddress(OpalTransportAddress(via(pos, end), port, proto), true);
 
-  // Check maddr in via
+  // RFC3261 18.2.2 Second is maddr (multicast) in via
   if (LocateFieldParameter(via, "maddr", start, pos, end))
     m_responseAddresses.AppendAddress(OpalTransportAddress(via(pos, end), port, proto), true);
+
+  // From here it's RFC3263 section 5, starts with, if UDP, send to where packet came from
+  if (proto == "udp")
+    m_responseAddresses.AppendAddress(m_transport->GetLastReceivedAddress());
+
+  // If above fails, we try some other options.
 
   // See if sent-by is explicit IP address
   PIPAddress ip(sent_by.Left(pos));
