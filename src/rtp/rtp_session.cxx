@@ -2008,20 +2008,23 @@ bool OpalRTPSession::InternalSendReport(RTP_ControlFrame & report,
            << (receivers == 0 ? "empty " : "") << "ReceiverReport" << m_throttleTxReport);
   }
   else {
+    // Adjust the RTP timestamp from the last sent packet based on the current wall clock
+    const PTimeInterval elapsed = now - sender.m_reportAbsoluteTime;
+    const RTP_Timestamp srts = sender.m_reportTimestamp + static_cast<RTP_Timestamp>(elapsed.GetMilliSeconds() * m_timeUnits);
     rr = report.AddSenderReport(sender.m_sourceIdentifier,
-                                sender.m_reportAbsoluteTime,
-                                sender.m_reportTimestamp,
+                                now,
+                                srts,
                                 sender.m_packets,
                                 sender.m_octets,
                                 receivers);
 
-    sender.m_ntpPassThrough = sender.m_reportAbsoluteTime.GetNTP();
+    sender.m_ntpPassThrough = now.GetNTP();
     sender.m_lastSenderReportTime = now;
 
     PTRACE(logLevel, sender << "sending " << forcedStr << "SenderReport:"
-              " ntp=" << sender.m_reportAbsoluteTime.AsString(PTime::TodayFormat, PTrace::GetTimeZone())
+              " ntp=" << now.AsString(PTime::TodayFormat, PTrace::GetTimeZone())
            << " 0x" << hex << sender.m_ntpPassThrough << dec
-           << " rtp=" << sender.m_reportTimestamp
+           << " rtp=" << srts
            << " psent=" << sender.m_packets
            << " osent=" << sender.m_octets
            << m_throttleTxReport);
