@@ -850,7 +850,6 @@ class OpalRTPSession : public OpalMediaSession
       unsigned           m_maximumTimeAccum;
       unsigned           m_minimumTimeAccum;
       unsigned           m_jitterAccum;
-      RTP_Timestamp      m_lastJitterTimestamp;
 
       // Things to remember for filling in fields of sent SR/RR/DLRR
       unsigned           m_lastRRPacketsReceived;
