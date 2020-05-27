@@ -487,7 +487,6 @@ OpalRTPSession::SyncSource::SyncSource(OpalRTPSession & session, RTP_SyncSourceI
   , m_maximumTimeAccum(0)
   , m_minimumTimeAccum(UINT_MAX)
   , m_jitterAccum(0)
-  , m_lastJitterTimestamp(0)
   , m_lastRRPacketsReceived(0)
   , m_lastRRSequenceNumber(0)
   , m_rtcpDiscardRate(-1)
@@ -588,22 +587,23 @@ void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame
   if (m_session.IsAudio() ? frame.GetMarker() : (lastTimestamp == frame.GetTimestamp()))
     return;
 
-  unsigned diff = 0;
+  unsigned localDiff = 0;
+  RTP_Timestamp remoteDiff = 0;
   if (previousPacketNetTime.IsValid()) {
-    diff = (m_lastPacketNetTime - previousPacketNetTime).GetInterval();
+    localDiff = (m_lastPacketNetTime - previousPacketNetTime).GetInterval();
+    remoteDiff = frame.GetTimestamp() - lastTimestamp;
 
-    m_averageTimeAccum += diff;
-    if (diff > m_maximumTimeAccum)
-      m_maximumTimeAccum = diff;
-    if (diff < m_minimumTimeAccum)
-      m_minimumTimeAccum = diff;
+    m_averageTimeAccum += localDiff;
+    if (localDiff > m_maximumTimeAccum)
+      m_maximumTimeAccum = localDiff;
+    if (localDiff < m_minimumTimeAccum)
+      m_minimumTimeAccum = localDiff;
   }
 
   if (m_direction == e_Receiver) {
     // As per RFC3550 Appendix 8
-    diff *= m_session.m_timeUnits; // Convert to timestamp units
-    long variance = diff > m_lastJitterTimestamp ? (diff - m_lastJitterTimestamp) : (m_lastJitterTimestamp - diff);
-    m_lastJitterTimestamp = diff;
+    localDiff *= m_session.m_timeUnits; // Convert to timestamp units
+    long variance = localDiff > remoteDiff ? (localDiff - remoteDiff) : (remoteDiff - localDiff);
     m_jitterAccum += variance - ((m_jitterAccum + (1 << (JitterRoundingGuardBits - 1))) >> JitterRoundingGuardBits);
     m_currentjitter = (m_jitterAccum >> JitterRoundingGuardBits) / m_session.m_timeUnits;
     if (m_maximumJitter < m_currentjitter)
@@ -1656,7 +1656,7 @@ void OpalRTPSession::SyncSource::OnRxReceiverReport(const RTP_ReceiverReport & r
   PTRACE_IF(m_throttleInvalidLost, (unsigned)m_packetsMissing > m_packets, &m_session,
             m_session << "remote indicated packet loss (" << m_packetsMissing << ")"
             " larger than number of packets we sent (" << m_packets << ')' << m_throttleInvalidLost);
-  m_currentjitter = (report.jitter + m_session.m_timeUnits -1)/m_session.m_timeUnits;
+  m_currentjitter = (report.jitter + m_session.m_timeUnits / 2)/m_session.m_timeUnits;
   if (m_maximumJitter < m_currentjitter)
     m_maximumJitter = m_currentjitter;
 
