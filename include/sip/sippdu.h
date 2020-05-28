@@ -713,7 +713,7 @@ class SIP_PDU : public PSafeObject
     bool DecodeSDP(SIPConnection & connection, PString & sdpText, PMultiPartList & parts);
     bool IsContentSDP(bool emptyOK = false) const;
 
-    const PString & GetExternalTransportAddress() const { return m_externalTransportAddress; }
+    const OpalTransportAddressArray & GetResponseAddresses() const { return m_responseAddresses; }
     OpalTransportPtr GetTransport()  const    { return m_transport; }
     void SetTransport(const OpalTransportPtr & transport PTRACE_PARAM(, const char * location));
 
@@ -733,9 +733,9 @@ class SIP_PDU : public PSafeObject
 
     SDPSessionDescription * m_SDP;
 
-    const OpalTransportPtr m_transport;
-    OpalTransportAddress   m_viaAddress;
-    OpalTransportAddress   m_externalTransportAddress;
+    OpalTransportPtr          m_transport;
+    OpalTransportAddress      m_viaAddress;
+    OpalTransportAddressArray m_responseAddresses;
 };
 
 
@@ -820,7 +820,7 @@ class SIPDialogContext
     SIPURLList  m_routeSet;
     unsigned    m_lastSentCSeq;
     unsigned    m_lastReceivedCSeq;
-    OpalTransportAddress m_fixedTransportAddress;
+    OpalTransportAddressArray m_responseAddresses;
     bool        m_forking;
     SIPURL      m_proxy;
     PString     m_interface;

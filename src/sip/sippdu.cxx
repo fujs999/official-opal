@@ -2214,43 +2214,75 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
   if (m_method == NumMethods)
     return status;
 
-  // If a command coming in, figure out where reply goes. Sometimes via, sometimes where it came from.
-  OpalTransportAddress receivedAddress = m_transport->GetLastReceivedAddress();
+  // Follow rules from RFC3261 18.2.2 and RFC3263 section 5
+  // Note that the below only applies to unreliable (UDP) transport, or if
+  // the reliable transport fails.
 
   // Set the default return address for the response, must send back to Via address
   PString via = m_mime.GetFirstVia();
   PINDEX space = via.Find(' ');
-  if (via.IsEmpty() || space == P_MAX_INDEX) {
-    // Illegal via, send reply back from whence it came
-    m_viaAddress = receivedAddress;
-    return status;
-  }
+  if (via.IsEmpty() || space == P_MAX_INDEX)
+    return status; // Illegal via, only hope is IP sender
 
   // get the protocol type from Via header
   PINDEX pos;
-  PString proto;
+  PCaselessString proto;
   if ((pos = via.FindLast('/', space)) != P_MAX_INDEX)
     proto = via(pos+1, space-1).ToLower();
 
-  // Parse the via address
-  PIPSocketAddressAndPort addrport(SIPURL::DefaultPort);
-  addrport.Parse(via(space+1, via.Find(';', space)-1));
+  // Extract the sent-by component of the via
+  PString sent_by = via(space+1, via.Find(';', space)-1);
 
-  // Make OpalTransportAddress out the bits in Via
-  OpalTransportAddress viaAddress(addrport.AsString(), 5060, proto);
+  // Extract port from sent-by, if present
+  WORD port = SIPURL::DefaultPort;
+  PINDEX colon;
+  if (sent_by.Find('[') != P_MAX_INDEX) // IPv6?
+    colon = sent_by.Find(':', sent_by.Find(']'));
+  else
+    colon = sent_by.Find(':');
+  if (colon != P_MAX_INDEX)
+    port = (WORD)sent_by.Mid(colon).AsUnsigned();
 
-  // Now see if we are UDP, have rport, and received addr is different to Via,
-  // which means use actual received address not Via, NAT!
+  // RFC3261 18.2.2 First possibility is if has received address, NAT!
   PINDEX start, end;
-  if (receivedAddress.GetProtoPrefix() != OpalTransportAddress::UdpPrefix() ||
-        !LocateFieldParameter(via, "rport", start, pos, end) || receivedAddress == viaAddress) {
-    m_viaAddress = viaAddress;
+  if (LocateFieldParameter(via, "received", start, pos, end))
+    m_responseAddresses.AppendAddress(OpalTransportAddress(via(pos, end), port, proto), true);
+
+  // RFC3261 18.2.2 Second is maddr (multicast) in via
+  if (LocateFieldParameter(via, "maddr", start, pos, end))
+    m_responseAddresses.AppendAddress(OpalTransportAddress(via(pos, end), port, proto), true);
+
+  // From here it's RFC3263 section 5, starts with, if UDP, send to where packet came from
+  if (proto == "udp")
+    m_responseAddresses.AppendAddress(m_transport->GetLastReceivedAddress());
+
+  // If above fails, we try some other options.
+
+  // See if sent-by is explicit IP address
+  PIPAddress ip(sent_by.Left(pos));
+  if (ip.IsValid()) {
+    m_responseAddresses.AppendAddress(OpalTransportAddress(ip, port, proto), true);
     return status;
   }
 
-  // Is UDP and has rport, send reply back from whence it came, fill in received elsewhere
-  m_externalTransportAddress = m_viaAddress = receivedAddress;
-  PTRACE(4, "Detected rport, using " << receivedAddress << " as reply address");
+  // We have a DNS name, get all possible IP's
+  if (colon == P_MAX_INDEX) {
+    // No explicit port so use SRV
+    PIPSocketAddressAndPortVector addrs;
+    if (PDNS::LookupSRV(sent_by, "_sip._" + proto, port, addrs)) {
+      for (size_t i = 0; i < addrs.size(); ++i)
+        m_responseAddresses.AppendAddress(OpalTransportAddress(addrs[i], proto), true);
+      return status;
+    }
+  }
+
+  // Explicit port, so get all possible DNS addresses
+  PStringArray aliases = PIPSocket::GetHostAliases(sent_by.Left(colon));
+  for (PINDEX i = 0; i < aliases.GetSize(); ++i) {
+    if (ip.FromString(aliases[i]))
+      m_responseAddresses.AppendAddress(OpalTransportAddress(ip, port, proto), true);
+  }
+
   return status;
 }
 
@@ -2452,7 +2484,45 @@ bool SIP_PDU::Send()
     return false;
 
   PSafeLockReadWrite mutex(*m_transport);
-  return InternalSend(false) == Successful_OK;
+
+  // Just send for a command
+  if (m_method != NumMethods || m_responseAddresses.IsEmpty())
+    return InternalSend(false) == Successful_OK;
+
+  // Sending responses is a bit more complex
+  bool canDoReliable = false;
+  for (PINDEX index = 0; index < m_responseAddresses.GetSize(); index) {
+    if (m_responseAddresses[index].GetProto() != OpalTransportAddress::UdpPrefix())
+      canDoReliable = true;
+  }
+
+  bool requireReliable = false;
+  for (PINDEX index = 0; index < m_responseAddresses.GetSize(); index) {
+    OpalTransportAddress addr = m_responseAddresses[index];
+
+    if (requireReliable && addr.GetProto() != OpalTransportAddress::UdpPrefix())
+      continue;
+
+    if (m_transport->GetLocalAddress().GetProto() != addr.GetProto()) {
+      // Create new transport
+      m_transport = addr.CreateTransport(m_transport->GetEndPoint(), OpalTransportAddress::RouteInterface);
+      if (m_transport == NULL)
+        return false;
+    }
+    if (!m_transport->SetRemoteAddress(addr))
+      continue;
+
+    switch (InternalSend(canDoReliable)) {
+      case Successful_OK:
+        return true;
+
+      case Failure_MessageTooLarge :
+        requireReliable = true;
+        break;
+    }
+  }
+
+  return false;
 }
 
 
@@ -2460,7 +2530,7 @@ SIP_PDU::StatusCodes SIP_PDU::InternalSend(bool canDoTCP)
 {
   if (!m_transport->IsOpen()) {
     PTRACE(1, "Attempt to write PDU to closed transport " << *m_transport);
-    return Local_TransportError;
+    return Local_TransportLost;
   }
 
   SIPEndPoint & endpoint = dynamic_cast<SIPEndPoint &>(m_transport->GetEndPoint());
@@ -2477,17 +2547,15 @@ SIP_PDU::StatusCodes SIP_PDU::InternalSend(bool canDoTCP)
   // RFC3261 18.1.1 specifies maximum PDU size of 1300 bytes.
   if (!m_transport->IsReliable()) {
     if (pduLen > endpoint.GetMaxPacketSizeUDP()) {
+      PTRACE(4, "PDU is too large (" << pduLen << " bytes), trying compact form.");
       m_mime.SetCompactForm(true);
       Build(pduStr, pduLen);
-      if (canDoTCP && pduLen > endpoint.GetMaxPacketSizeUDP()) {
+      if (pduLen > endpoint.GetMaxPacketSizeUDP()) {
         PTRACE(2, "PDU is too large (" << pduLen << " bytes) for UDP datagram.");
-        return Failure_MessageTooLarge;
+        if (canDoTCP)
+          return Failure_MessageTooLarge;
       }
-      PTRACE(4, "PDU is too large (" << pduLen << " bytes) using compact form.");
     }
-
-    if (!m_viaAddress.IsEmpty())
-      m_transport->SetRemoteAddress(m_viaAddress);
   }
 
 #if PTRACING
@@ -2823,19 +2891,10 @@ void SIPDialogContext::Update(const SIP_PDU & pdu)
     PTRACE(4, "Set dialog URIs from command: local is " << m_localURI.AsQuotedString() << ", remote is " << m_remoteURI.AsQuotedString());
   }
 
-  m_fixedTransportAddress = pdu.GetExternalTransportAddress();
+  m_responseAddresses = pdu.GetResponseAddresses();
   OpalTransportPtr transport = pdu.GetTransport();
-  if (transport == NULL)
-    return;
-
-#if OPAL_PTLIB_SSL && OPAL_PTLIB_HTTP
-  if (m_fixedTransportAddress.IsEmpty() &&
-            (transport->GetProtoPrefix() == OpalTransportAddress::WsPrefix() ||
-             transport->GetProtoPrefix() == OpalTransportAddress::WssPrefix()))
-    m_fixedTransportAddress = transport->GetRemoteAddress();
-#endif
-
-  m_interface = transport->GetInterface();
+  if (transport != NULL)
+    m_interface = transport->GetInterface();
 }
 
 
@@ -2871,9 +2930,9 @@ OpalTransportAddress SIPDialogContext::GetRemoteTransportAddress(PINDEX dnsEntry
 {
   // In order of priority ...
 
-  if (!m_fixedTransportAddress.IsEmpty()) {
-    PTRACE(4, "Remote dialog address external (NAT/WebSocket): " << m_fixedTransportAddress);
-    return m_fixedTransportAddress;
+  if (dnsEntry < m_responseAddresses.GetSize()) {
+    PTRACE(4, "Remote dialog response address " << dnsEntry << ": " << m_responseAddresses[dnsEntry]);
+    return m_responseAddresses[dnsEntry];
   }
 
   OpalTransportAddress addr;
