@@ -2491,13 +2491,13 @@ bool SIP_PDU::Send()
 
   // Sending responses is a bit more complex
   bool canDoReliable = false;
-  for (PINDEX index = 0; index < m_responseAddresses.GetSize(); index) {
+  for (PINDEX index = 0; index < m_responseAddresses.GetSize(); ++index) {
     if (m_responseAddresses[index].GetProto() != OpalTransportAddress::UdpPrefix())
       canDoReliable = true;
   }
 
   bool requireReliable = false;
-  for (PINDEX index = 0; index < m_responseAddresses.GetSize(); index) {
+  for (PINDEX index = 0; index < m_responseAddresses.GetSize(); ++index) {
     OpalTransportAddress addr = m_responseAddresses[index];
 
     if (requireReliable && addr.GetProto() != OpalTransportAddress::UdpPrefix())
