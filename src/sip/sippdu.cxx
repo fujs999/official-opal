@@ -2519,6 +2519,9 @@ bool SIP_PDU::Send()
       case Failure_MessageTooLarge :
         requireReliable = true;
         break;
+
+      default :
+        break;
     }
   }
 
