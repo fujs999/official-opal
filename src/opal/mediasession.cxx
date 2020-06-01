@@ -984,7 +984,7 @@ void OpalMediaTransport::InternalClose()
 
   m_opened = m_established = false; // Always do this, even if "deleted"
 
-  if (lock.IsLocked())
+  if (!lock.IsLocked())
     return;
 
   for (vector<ChannelInfo>::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it) {
