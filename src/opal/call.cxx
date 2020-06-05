@@ -892,10 +892,12 @@ void OpalCall::OnStopMediaPatch(OpalConnection & connection, OpalMediaPatch & pa
 #if OPAL_STATISTICS
 void OpalCallStatistics::AddFinalMediaStreamStatistics(OpalMediaStream & mediaStream)
 {
+/*
   PStringStream name;
   name << (mediaStream.IsSource() ? "From " : "To ")
        << (mediaStream.GetConnection().GetToken() == m_connectionInfo.begin()->first ? 'A' : 'B');
   mediaStream.GetStatistics(m_mediaStatistics[name]);
+*/
 }
 
 
