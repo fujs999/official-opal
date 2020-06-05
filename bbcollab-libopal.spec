@@ -117,6 +117,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{_libdir}/*.so.*
 %{_libdir}/opal-%{version_major}.%{version_minor}.%{version_patch}-%{version_oem}
+%{_bindir}/conopal
 
 %files devel
 %defattr(-,root,root,-)

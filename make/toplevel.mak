@@ -41,6 +41,10 @@ ifeq ($(OPAL_PLUGINS),yes)
   SUBDIRS += $(OPAL_TOP_LEVEL_DIR)/plugins
 endif
 
+ifeq ($(OPAL_HAS_PCSS),yes)
+  SUBDIRS += $(OPAL_TOP_LEVEL_DIR)/samples/console
+endif
+
 ifeq ($(OPAL_SAMPLES),yes)
 
   SUBDIRS += $(OPAL_TOP_LEVEL_DIR)/samples/c_api
@@ -50,9 +54,8 @@ ifeq ($(OPAL_SAMPLES),yes)
   endif
 
   ifeq ($(OPAL_HAS_PCSS),yes)
-    SUBDIRS += $(OPAL_TOP_LEVEL_DIR)/samples/console
     ifneq (,$(shell which wx-config))
-      #SUBDIRS += $(OPAL_TOP_LEVEL_DIR)/samples/openphone
+      SUBDIRS += $(OPAL_TOP_LEVEL_DIR)/samples/openphone
     endif
   endif
   ifeq ($(OPAL_VIDEO),yes)
@@ -531,8 +534,8 @@ INCSUBDIRS:=asn codec ep h323 h460 h224 iax2 im lids opal rtp sdp sip t120 t38
 install:
 	for dir in $(DESTDIR)$(libdir) \
 	           $(DESTDIR)$(libdir)/pkgconfig \
-		   $(DESTDIR)$(includedir)/opal \
-                   $(DESTDIR)$(datarootdir)/opal/make ; \
+	           $(DESTDIR)$(includedir)/opal \
+	           $(DESTDIR)$(datarootdir)/opal/make ; \
 	do \
 	    $(MKDIR_P) $$dir ; \
 	    chmod 755 $$dir ; \
@@ -563,6 +566,9 @@ install:
 	$(INSTALL) -m 644 opal.pc $(DESTDIR)$(libdir)/pkgconfig
 ifeq ($(OPAL_PLUGINS),yes)
 	$(Q_MAKE) -C plugins install
+endif
+ifeq ($(OPAL_HAS_PCSS),yes)
+	$(Q_MAKE) -C $(OPAL_TOP_LEVEL_DIR)/samples/console install
 endif
 
 uninstall:
