@@ -3052,12 +3052,20 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
                     "[ --call <token> ]", "c-call: Token for call to hang up");
   m_cli->SetCommand("send input", PCREATE_NOTIFIER(CmdSendUserInput), "Send user input indication",
                     "[ --call <token> ] <string>", "c-call: Token for call.");
-  m_cli->SetCommand("show calls", PCREATE_NOTIFIER(CmdShowCalls), "Show all active calls");
-
   m_cli->SetCommand("wait phase", PCREATE_NOTIFIER(CmdWaitPhase),
                     "Wait for a call to enter a particular phase",
-                    "[ --call <token> ] { \"Proceeding\" | \"Alerting\" | \"Connected\" | \"Established\" | \"Forwarding\" | \"Releasing\" }",
-                    "c-call: Token for call.");
+                    "[ --call <token> ] [ --timeout <ms> ] { \"Proceeding\" | \"Alerting\" | \"Connected\" | \"Established\" | \"Forwarding\" | \"Releasing\" }",
+                    "c-call: Token for call.\r"
+                    "t-timeout: maximum time to wait in milliseconds");
+#if OPAL_STATISTICS
+  m_cli->SetCommand("wait packets", PCREATE_NOTIFIER(CmdWaitPackets),
+                    "Wait for media packets to arrive",
+                    "[ --call <token> ] [ --timeout <ms> ] { \"audio\" | \"video\" | <media-type> }",
+                    "c-call: Token for call.\r"
+                    "t-timeout: maximum time to wait in milliseconds");
+#endif
+  m_cli->SetCommand("show calls", PCREATE_NOTIFIER(CmdShowCalls), "Show all active calls");
+
   m_cli->SetCommand("delay", PCREATE_NOTIFIER(CmdDelay),
                     "Delay for the specified number of seconds",
                     "<seconds>");
@@ -3889,7 +3897,9 @@ void OpalManagerCLI::CmdWaitPhase(PCLI::Arguments & args, P_INT_PTR)
 
   call.SetSafetyMode(PSafeReference);
   args.GetContext() << "Awaiting " << waitPhase << endl;
-  for(;;) {
+
+  PSimpleTimer timeout(args.GetOptionString("timeout", "10000").AsUnsigned());
+  do {
     PSafePtr<OpalConnection> conn = call->GetConnection(0);
     if (!conn) {
       args.GetContext() << "Call disappeared." << endl;
@@ -3903,8 +3913,62 @@ void OpalManagerCLI::CmdWaitPhase(PCLI::Arguments & args, P_INT_PTR)
     }
 
     PThread::Sleep(100);
-  }
+  } while (timeout.IsRunning());
+
+  args.GetContext() << "Call never entered " << waitPhase << endl;
 }
+
+
+#if OPAL_STATISTICS
+void OpalManagerCLI::CmdWaitPackets(PCLI::Arguments & args, P_INT_PTR)
+{
+  if (args.GetCount() == 0) {
+    args.WriteUsage();
+    return;
+  }
+
+  OpalMediaType mediaType = args[0];
+  if (mediaType.GetDefinition() == NULL) {
+    args.WriteError("Unknown media type.");
+    return;
+  }
+
+  PSafePtr<OpalCall> call;
+  if (!GetCallFromArgs(args, call))
+    return;
+
+  PSafePtr<OpalConnection> connection = call->GetConnection(0);
+  if (connection == NULL)
+    return; // This really should not happen
+
+  if (!connection->IsNetworkConnection()) {
+    connection = connection->GetOtherPartyConnection();
+    if (connection == NULL)
+      return; // This really should not happen
+  }
+
+  OpalMediaStreamPtr mediaStream = connection->GetMediaStream(OpalMediaType::Audio(), false);
+  if (mediaStream == NULL) {
+    args.WriteError() << "Call has no receive " << mediaType << " stream." << endl;
+    return;
+  }
+
+  OpalMediaStatistics previous;
+  mediaStream->GetStatistics(previous);
+
+  PSimpleTimer timeout(args.GetOptionString("timeout", "500").AsUnsigned());
+  do {
+    OpalMediaStatistics current;
+    mediaStream->GetStatistics(current);
+    if (current.m_totalPackets > previous.m_totalPackets) {
+      args.GetContext() << "Received packets on " << mediaType << " stream" << endl;
+      return;
+    }
+  } while (timeout.IsRunning());
+
+  args.GetContext() << "Call never received " << mediaType << " packets" << endl;
+}
+#endif //OPAL_STATISTICS
 
 
 void OpalManagerCLI::CmdShowCalls(PCLI::Arguments & args, P_INT_PTR)
