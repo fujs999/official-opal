@@ -2939,9 +2939,9 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
 #if OPAL_PTLIB_NAT
   m_cli->SetCommand("nat list", PCREATE_NOTIFIER(CmdNatList),
                     "List NAT methods and server addresses");
-  m_cli->SetCommand("nat server", PCREATE_NOTIFIER(CmdNatAddress),
-                    "Set NAT server address for method, \"off\" deactivates method",
-                    "[ --interface <iface> ] <method> <address>",
+  m_cli->SetCommand("nat open\nnat server", PCREATE_NOTIFIER(CmdNatAddress),
+                    "Open NAT method, \"off\" deactivates method, \"default\" activates with default server",
+                    "[ --interface <iface> ] <method> { \"off\" | \"default\" | <address>",
                     "I-interface: Set interface to bind NAT method");
 #endif
 
@@ -3174,6 +3174,7 @@ void OpalManagerCLI::CmdNatList(PCLI::Arguments & args, P_INT_PTR)
   out << std::left
       << setw(12) << "Name"
       << setw(10) << "State"
+      << setw(18) << "Interface"
       << setw(20) << "Type"
       << setw(18) << "External IP"
       <<             "Server\n";
@@ -3181,6 +3182,7 @@ void OpalManagerCLI::CmdNatList(PCLI::Arguments & args, P_INT_PTR)
   for (PNatMethods::iterator it = GetNatMethods().begin(); it != GetNatMethods().end(); ++it) {
     out << setw(12) << it->GetMethodName()
         << setw(10) << (it->IsActive() ? "Active" : "Inactive")
+        << setw(18) << it->GetInterface()
         << setw(20);
 
     PNatMethod::NatTypes type = it->GetNatType();
@@ -3189,7 +3191,7 @@ void OpalManagerCLI::CmdNatList(PCLI::Arguments & args, P_INT_PTR)
     else
       out << "N/A";
 
-    out << setw(20);
+    out << setw(18);
     PIPSocket::Address externalAddress;
     if (it->GetExternalAddress(externalAddress))
       out << externalAddress;
@@ -3230,7 +3232,7 @@ void OpalManagerCLI::CmdNatAddress(PCLI::Arguments & args, P_INT_PTR)
     }
   }
 
-  if (!natMethod->SetServer(args[1])) {
+  if (!natMethod->SetServer((args[1] *= "default") ? natMethod->GetServer() : args[1])) {
     args.WriteError() << natMethod->GetMethodName() << " server address invalid \"" << args[1] << '"' << endl;
     return;
   }
@@ -3883,6 +3885,7 @@ void OpalManagerCLI::CmdWaitPhase(PCLI::Arguments & args, P_INT_PTR)
   if (!GetCallFromArgs(args, call))
     return;
 
+  call.SetSafetyMode(PSafeReference);
   args.GetContext() << "Awaiting " << waitPhase << endl;
   for(;;) {
     PSafePtr<OpalConnection> conn = call->GetConnection(0);
