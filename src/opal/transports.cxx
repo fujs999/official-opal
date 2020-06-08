@@ -922,8 +922,8 @@ bool OpalListenerUDP::ChangedNAT()
   if (m_listenerBundle == NULL)
     return false;
 
-  m_listenerBundle->Close();
-  return m_listenerBundle->Open(m_binding.GetPort());
+  CloseWait();
+  return Open(m_acceptHandler, m_threadMode);
 }
 
 
