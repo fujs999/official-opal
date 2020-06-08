@@ -587,6 +587,9 @@ class OpalManagerCLI : public OpalManagerConsole
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdHangUp);
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdSendUserInput);
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdWaitPhase);
+#if OPAL_STATISTICS
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdWaitPackets);
+#endif
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdShowCalls);
 
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdDelay);
