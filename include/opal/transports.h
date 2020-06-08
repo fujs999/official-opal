@@ -468,6 +468,12 @@ class OpalListener : public PObject
      */
     virtual void Close() = 0;
 
+#if OPAL_PTLIB_NAT
+    /**Indicate that the NAT methods have changed in some way.
+      */
+    virtual bool ChangedNAT() { return true; }
+#endif // OPAL_PTLIB_NAT
+
     /**Accept a new incoming transport.
       */
     virtual OpalTransport * Accept(
@@ -724,6 +730,12 @@ class OpalListenerUDP : public OpalListenerIP
     /**Stop the listener thread and no longer accept incoming connections.
      */
     virtual void Close();
+
+#if OPAL_PTLIB_NAT
+    /**Indicate that the NAT methods have changed in some way.
+    */
+    virtual bool ChangedNAT();
+#endif // OPAL_PTLIB_NAT
 
     /**Accept a new incoming transport.
       */
