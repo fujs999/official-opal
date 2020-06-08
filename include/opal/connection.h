@@ -595,7 +595,7 @@ class OpalConnection : public PSafeObject
     /**Different phases of a call, which are used in all OpalConnection
        instances. These phases are fully described in the documentation page
        \ref pageOpalConnections.  */
-    P_DECLARE_TRACED_ENUM(Phases,
+    P_DECLARE_STREAMABLE_ENUM(Phases,
       UninitialisedPhase,   //!< Indicates the OpalConnection instance has just been constructed
       SetUpPhase,           //!< Has just sent/received the initial SETUP/INVITE packet
       ProceedingPhase,      //!< The receipt of SETUP/INVITE has been acknowledged

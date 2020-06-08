@@ -1645,7 +1645,7 @@ void OpalConsolePCSSEndPoint::AddCommands(PCLI & cli)
                  "[ <percent> ]", "c-call: Call token");
 
   cli.SetCommand("audio device", PCREATE_NOTIFIER(CmdChangeAudioDevice),
-                 "Set audio device for active call", "[ --call ] [ --rx | --tx ] <device>",
+                 "Set audio device for active call", "[ --call <token> ] [ --rx | --tx ] <device>",
                  "c-call: Token for call to change\n"
                  "r-rx.   Receive audio device\n"
                  "t-tx.   Transmit audio device\n");
@@ -1660,7 +1660,7 @@ void OpalConsolePCSSEndPoint::AddCommands(PCLI & cli)
                     "-channel: Channel number.\n");
 
   cli.SetCommand("video device", PCREATE_NOTIFIER(CmdChangeVideoDevice),
-                 "Set video device for active call", "[ --call ] <device>",
+                 "Set video device for active call", "[ --call <token> ] <device>",
                  "c-call: Token for call to change");
   cli.SetCommand("video open", PCREATE_NOTIFIER(CmdOpenVideoStream),
                  "Open video stream for active call with a given role. Default is \"main\" if no\n"
@@ -1905,7 +1905,7 @@ void OpalConsoleMixerEndPoint::AddCommands(PCLI &)
 
 OpalManagerConsole::OpalManagerConsole(const char * endpointPrefixes)
   : m_endpointPrefixes(PConstString(endpointPrefixes).Tokenise(" \t\n"))
-  , m_interrupted(false)
+  , m_interrupted(0)
   , m_verbose(false)
   , m_outputStream(&cout)
 {
@@ -2429,9 +2429,32 @@ void OpalManagerConsole::Run()
 
 void OpalManagerConsole::EndRun(bool interrupt)
 {
-  PTRACE(2, "Shutting down " << (interrupt ? " via interrupt" : " normally"));
-  Broadcast(PSTRSTRM("\nShutting down " << PProcess::Current().GetName()
-                     << (interrupt ? " via interrupt" : " normally") << " . . . "));
+  if (interrupt)
+    ++m_interrupted;
+
+  switch (m_interrupted) {
+    case 0 :
+      PTRACE(2, "Shutting down normally");
+      Broadcast(PSTRSTRM("\nShutting down " << PProcess::Current().GetName() << " normally . . . "));
+      break;
+
+    case 1 :
+      PTRACE(2, "Shutting down via interrupt");
+      Broadcast(PSTRSTRM("\nShutting down " << PProcess::Current().GetName() << " via interrupt . . . "));
+      break;
+
+    case 2 :
+      PTRACE(2, "Second interrupted, terminating process.");
+      Broadcast(PSTRSTRM("\nInterrupted " << PProcess::Current().GetName() << " again . . . "));
+      PProcess::Current().Terminate();
+      break;
+
+    case 3 :
+      PTRACE(2, "Final interrupt, aborting process.");
+      Broadcast(PSTRSTRM("\nAborting " << PProcess::Current().GetName() << '.'));
+      std::abort();
+  }
+
 
   m_interrupted = interrupt;
   m_endRun.Signal();
@@ -2943,10 +2966,10 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
 #endif
 
   m_cli->SetCommand("audio codec", PCREATE_NOTIFIER(CmdAudioCodec),
-                    "Set audio codec for active call", "[ --call ] <codec>", "c-call: Token for call to change");
+                    "Set audio codec for active call", "[ --call <token> ] <codec>", "c-call: Token for call to change");
 #if OPAL_VIDEO
   m_cli->SetCommand("video codec", PCREATE_NOTIFIER(CmdVideoCodec),
-                    "Set video codec for active call", "[ --call ] <codec>", "c-call: Token for call to change");
+                    "Set video codec for active call", "[ --call <token> ] <codec>", "c-call: Token for call to change");
   m_cli->SetCommand("video default", PCREATE_NOTIFIER(CmdVideoDefault),
                     "Set default video parameters for active call",
                     "[ <options> ] [ <codec> ... ]",
@@ -2973,7 +2996,7 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
                     "i-intra.      Request Intra-Frame (key frame)\n");
   m_cli->SetCommand("video presentation", PCREATE_NOTIFIER(CmdPresentationToken),
                     "Request/release presentation token for active call",
-                    "[ --call ] [ request | release ]",
+                    "[ --call <token> ] [ request | release ]",
                     "c-call: Token for call to change");
 #endif // OPAL_VIDEO
 
@@ -3015,11 +3038,24 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
                     "Get/Set codec option value. The format may be @type (e.g. @video) and all codecs of that type are set.",
                     "<format> [ <name> [ <value> ] ]");
 
-  m_cli->SetCommand("show calls", PCREATE_NOTIFIER(CmdShowCalls), "Show all active calls");
-  m_cli->SetCommand("send input", PCREATE_NOTIFIER(CmdSendUserInput), "Send user input indication",
-                    "[ --call ] <string>", "c-call: Token for call.");
+  m_cli->SetCommand("call",        PCREATE_NOTIFIER(CmdCall),     "Start call between two endpoints",
+                    "[ <src> ] <dest>");
+  m_cli->SetCommand("hold",        PCREATE_NOTIFIER(CmdHold),     "Hold call",
+                    "[ --call <token> ]", "c-call: Token for call to hold");
+  m_cli->SetCommand("retrieve",    PCREATE_NOTIFIER(CmdRetrieve), "Retrieve call from hold",
+                    "[ v ]", "c-call: Token for call to retrieve");
+  m_cli->SetCommand("transfer",    PCREATE_NOTIFIER(CmdTransfer), "Transfer call",
+                    "[ --call <token> ] <uri>", "c-call: Token for call to hang up");
   m_cli->SetCommand("hangup", PCREATE_NOTIFIER(CmdHangUp), "Hang up call",
-                    "[ --call ]", "c-call: Token for call to hang up");
+                    "[ --call <token> ]", "c-call: Token for call to hang up");
+  m_cli->SetCommand("send input", PCREATE_NOTIFIER(CmdSendUserInput), "Send user input indication",
+                    "[ --call <token> ] <string>", "c-call: Token for call.");
+  m_cli->SetCommand("show calls", PCREATE_NOTIFIER(CmdShowCalls), "Show all active calls");
+
+  m_cli->SetCommand("wait phase", PCREATE_NOTIFIER(CmdWaitPhase),
+                    "Wait for a call to enter a particular phase",
+                    "[ --call <token> ] { \"Proceeding\" | \"Alerting\" | \"Connected\" | \"Established\" | \"Forwarding\" | \"Releasing\" }",
+                    "c-call: Token for call.");
   m_cli->SetCommand("delay", PCREATE_NOTIFIER(CmdDelay),
                     "Delay for the specified number of seconds",
                     "<seconds>");
@@ -3136,30 +3172,31 @@ void OpalManagerCLI::CmdNatList(PCLI::Arguments & args, P_INT_PTR)
 {
   PCLI::Context & out = args.GetContext();
   out << std::left
-      << setw(12) << "Name" << ' '
-      << setw(10) << "State" << ' '
-      << setw(20) << "Type" << ' '
-      << setw(20) << "Server" << ' '
-      <<             "External\n";
+      << setw(12) << "Name"
+      << setw(10) << "State"
+      << setw(20) << "Type"
+      << setw(18) << "External IP"
+      <<             "Server\n";
 
   for (PNatMethods::iterator it = GetNatMethods().begin(); it != GetNatMethods().end(); ++it) {
-    out << setw(12) << it->GetMethodName() << ' '
+    out << setw(12) << it->GetMethodName()
         << setw(10) << (it->IsActive() ? "Active" : "Inactive")
         << setw(20);
 
     PNatMethod::NatTypes type = it->GetNatType();
     if (type != PNatMethod::UnknownNat)
-      out << it->GetNatType();
+      out << type;
     else
-      out << "";
+      out << "N/A";
 
-    out << ' ' << setw(20) << it->GetServer();
-
+    out << setw(20);
     PIPSocket::Address externalAddress;
     if (it->GetExternalAddress(externalAddress))
-      out << ' ' << externalAddress;
+      out << externalAddress;
+    else
+      out << "N/A";
 
-    out << '\n';
+    out << it->GetServer() << '\n';
   }
   out << endl;
 }
@@ -3727,6 +3764,144 @@ void OpalManagerCLI::CmdCodecMask(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
+void OpalManagerCLI::CmdCall(PCLI::Arguments & args, P_INT_PTR)
+{
+  if (args.GetCount() < 1) {
+    args.WriteUsage();
+    return;
+  }
+
+  PString from, to;
+  if (args.GetCount() == 1)
+    to = args[0];
+  else {
+    from = args[0];
+    to = args[1];
+  }
+
+  AdjustCmdCallArguments(from, to);
+
+  PSafePtr<OpalCall> call = SetUpCall(from, to);
+  if (call == NULL)
+    args.WriteError() << "Could not start call." << endl;
+  else
+    args.GetContext() << "Started call from \"" << call->GetPartyA() << "\" to \"" << call->GetPartyB() << '"' << endl;
+}
+
+
+void OpalManagerCLI::AdjustCmdCallArguments(PString &, PString &)
+{
+}
+
+
+void OpalManagerCLI::CmdHold(PCLI::Arguments & args, P_INT_PTR)
+{
+  PSafePtr<OpalCall> call;
+  if (!GetCallFromArgs(args, call))
+    return;
+
+  if (!call->IsEstablished())
+    args.WriteError() << "Call not yet answered." << endl;
+  else if (call->IsOnHold())
+    args.WriteError() << "Call already on hold." << endl;
+  else if (!call->Hold())
+    args.WriteError() << "Call has disappeared." << endl;
+  else
+    args.GetContext() << "Holding call with \"" << call->GetRemoteParty() << '"' << endl;
+}
+
+
+void OpalManagerCLI::CmdRetrieve(PCLI::Arguments & args, P_INT_PTR)
+{
+  PSafePtr<OpalCall> call;
+  if (!GetCallFromArgs(args, call))
+    return;
+
+  if (!call->IsOnHold())
+    args.WriteError() << "No call is not on hold." << endl;
+  else if (!call->Retrieve())
+    args.WriteError() << "Call has disappeared." << endl;
+  else
+    args.GetContext() << "Retrieving call with \"" << call->GetRemoteParty() << '"' << endl;
+}
+
+
+void OpalManagerCLI::CmdTransfer(PCLI::Arguments & args, P_INT_PTR)
+{
+  PSafePtr<OpalCall> call;
+  if (!GetCallFromArgs(args, call))
+    return;
+
+  if (!call->IsEstablished())
+    args.WriteError() << "Call not yet answered." << endl;
+  else if (!call->Transfer(args[0]))
+    args.WriteError() << "Transfer failed." << endl;
+  else
+    args.GetContext() << "Transfering call with \"" << call->GetRemoteParty() << "\" to \"" << args[0] << '"' << endl;
+}
+
+
+void OpalManagerCLI::CmdHangUp(PCLI::Arguments & args, P_INT_PTR)
+{
+  PSafePtr<OpalCall> call;
+  if (GetCallFromArgs(args, call)) {
+    args.GetContext() << "Hanging up call from \"" << call->GetPartyA() << "\" to \"" << call->GetPartyB() << '"' << endl;
+    call->Clear();
+  }
+}
+
+
+void OpalManagerCLI::CmdSendUserInput(PCLI::Arguments & args, P_INT_PTR)
+{
+  if (args.GetCount() == 0) {
+    args.WriteUsage();
+    return;
+  }
+
+  PSafePtr<OpalLocalConnection> connection;
+  if (GetConnectionFromArgs(args, connection))
+    connection->OnUserInputString(args[0]);
+}
+
+
+void OpalManagerCLI::CmdWaitPhase(PCLI::Arguments & args, P_INT_PTR)
+{
+  if (args.GetCount() == 0) {
+    args.WriteUsage();
+    return;
+  }
+
+  OpalConnection::Phases waitPhase = OpalConnection::PhasesFromString(args[0]);
+  if (waitPhase == OpalConnection::NumPhases)
+    waitPhase = OpalConnection::PhasesFromString(args[0]+"Phase");
+  if (waitPhase == OpalConnection::NumPhases) {
+    args.WriteError() << "Unknown phase: \"" << args[0] << '"' << endl;
+    return;
+  }
+
+  PSafePtr<OpalCall> call;
+  if (!GetCallFromArgs(args, call))
+    return;
+
+  args.GetContext() << "Awaiting " << waitPhase << endl;
+  for(;;) {
+    PSafePtr<OpalConnection> conn = call->GetConnection(0);
+    if (!conn) {
+      args.GetContext() << "Call disappeared." << endl;
+      return;
+    }
+
+    OpalConnection::Phases currentPhase = conn->GetPhase();
+    if (currentPhase >= waitPhase)  {
+      args.GetContext() << "Call now in " << currentPhase << endl;
+      return;
+    }
+
+    PThread::Sleep(100);
+  }
+}
+
+
 void OpalManagerCLI::CmdShowCalls(PCLI::Arguments & args, P_INT_PTR)
 {
   ostream & out = args.GetContext();
@@ -3747,29 +3922,6 @@ void OpalManagerCLI::CmdShowCalls(PCLI::Arguments & args, P_INT_PTR)
         out << ", remote on hold";
       out << endl;
     }
-  }
-}
-
-
-void OpalManagerCLI::CmdSendUserInput(PCLI::Arguments & args, P_INT_PTR)
-{
-  if (args.GetCount() == 0) {
-    args.WriteUsage();
-    return;
-  }
-
-  PSafePtr<OpalLocalConnection> connection;
-  if (GetConnectionFromArgs(args, connection))
-    connection->OnUserInputString(args[0]);
-}
-
-
-void OpalManagerCLI::CmdHangUp(PCLI::Arguments & args, P_INT_PTR)
-{
-  PSafePtr<OpalCall> call;
-  if (GetCallFromArgs(args, call)) {
-    args.GetContext() << "Hanging up call from " << call->GetPartyA() << " to " << call->GetPartyB() << endl;
-    call->Clear();
   }
 }
 
