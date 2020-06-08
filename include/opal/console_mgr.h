@@ -482,7 +482,7 @@ class OpalManagerConsole : public OpalManager
     PStringArray m_endpointPrefixes;
 
     PSyncPoint m_endRun;
-    bool       m_interrupted;
+    unsigned   m_interrupted;
     bool       m_verbose;
     ostream  * m_outputStream;
     PDECLARE_MUTEX(m_outputMutex, OpalConsoleOutput);
@@ -578,9 +578,17 @@ class OpalManagerCLI : public OpalManagerConsole
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdCodecOrder);
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdCodecMask);
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdCodecOption);
-    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdShowCalls);
-    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdSendUserInput);
+
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdCall);
+    virtual void AdjustCmdCallArguments(PString & from, PString & to);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdHold);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdRetrieve);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdTransfer);
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdHangUp);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdSendUserInput);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdWaitPhase);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdShowCalls);
+
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdDelay);
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdVersion);
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdQuit);
