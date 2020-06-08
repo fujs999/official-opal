@@ -2232,34 +2232,35 @@ bool OpalManagerConsole::Initialise(PArgList & args, bool verbose, const PString
               "RTP payload size: " << GetMaxRtpPayloadSize() << '\n';
 
 #if OPAL_PTLIB_NAT
-  PString natMethod, natServer;
+  PStringArray natMethods, natServers, natInterfaces = args.GetOptionString("nat-interface").Lines();
   if (args.HasOption("translate")) {
-    natMethod = PNatMethod_Fixed::MethodName();
-    natServer = args.GetOptionString("translate");
+    natMethods.AppendString(PNatMethod_Fixed::MethodName());
+    natServers.AppendString(args.GetOptionString("translate"));
   }
 #if P_STUN
   else if (args.HasOption("stun")) {
-    natMethod = PSTUNClient::MethodName();
-    natServer = args.GetOptionString("stun");
+    natMethods.AppendString(PSTUNClient::MethodName());
+    natServers.AppendString(args.GetOptionString("stun"));
   }
 #endif
   else if (args.HasOption("nat-method")) {
-    natMethod = args.GetOptionString("nat-method");
-    natServer = args.GetOptionString("nat-server");
+    natMethods = args.GetOptionString("nat-method").Lines();
+    natServers = args.GetOptionString("nat-server").Lines();
   }
   else if (args.HasOption("nat-server")) {
 #if P_STUN
-    natMethod = PSTUNClient::MethodName();
+    natMethods.AppendString(PSTUNClient::MethodName());
 #else
-    natMethod = PNatMethod_Fixed::MethodName();
+    natMethods.AppendString(PNatMethod_Fixed::MethodName());
 #endif
-    natServer = args.GetOptionString("nat-server");
+    natServers.AppendString(args.GetOptionString("nat-server"));
   }
 
-  if (!natMethod.IsEmpty()) {
+  for (PINDEX i = 0; i < natMethods.GetSize(); ++i) {
+    PString natMethod = natMethods[i];
     if (verbose)
       output << "Establishing " << natMethod << " ..." << flush;
-    if (SetNATServer(natMethod, natServer, true, 0, args.GetOptionString("nat-interface"))) {
+    if (SetNATServer(natMethod, natServers[i], true, 0, natInterfaces[i])) {
       if (verbose)
         output << '\n' << *GetNatMethods().GetMethodByName(natMethod) << '\n';
     }
@@ -2939,10 +2940,11 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
 #if OPAL_PTLIB_NAT
   m_cli->SetCommand("nat list", PCREATE_NOTIFIER(CmdNatList),
                     "List NAT methods and server addresses");
-  m_cli->SetCommand("nat open\nnat server", PCREATE_NOTIFIER(CmdNatAddress),
+  m_cli->SetCommand("nat server", PCREATE_NOTIFIER(CmdNatServer),
                     "Open NAT method, \"off\" deactivates method, \"default\" activates with default server",
-                    "[ --interface <iface> ] <method> { \"off\" | \"default\" | <address>",
-                    "I-interface: Set interface to bind NAT method");
+                    "[ --interface <iface> ] [ --priority <n> ] <method> { \"off\" | \"default\" | <address>",
+                    "I-interface: Set interface to bind NAT method\r"
+                    "p-priority: Set the NAT method priority");
 #endif
 
 #if PTRACING
@@ -3204,7 +3206,7 @@ void OpalManagerCLI::CmdNatList(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdNatAddress(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdNatServer(PCLI::Arguments & args, P_INT_PTR)
 {
   if (args.GetCount() < 2) {
     args.WriteUsage();
@@ -3217,12 +3219,6 @@ void OpalManagerCLI::CmdNatAddress(PCLI::Arguments & args, P_INT_PTR)
     return;
   }
 
-  if (args[1] *= "off") {
-    args.GetContext() << natMethod->GetMethodName() << " deactivated.";
-    natMethod->Activate(false);
-    return;
-  }
-
   PIPSocket::Address iface(PIPSocket::GetDefaultIpAny());
   if (args.HasOption("interface")) {
     iface = args.GetOptionString("interface");
@@ -3232,13 +3228,19 @@ void OpalManagerCLI::CmdNatAddress(PCLI::Arguments & args, P_INT_PTR)
     }
   }
 
-  if (!natMethod->SetServer((args[1] *= "default") ? natMethod->GetServer() : args[1])) {
-    args.WriteError() << natMethod->GetMethodName() << " server address invalid \"" << args[1] << '"' << endl;
+  bool activate = true;
+  PCaselessString server = args[1];
+  if (server == "default" || server == "active")
+    server = natMethod->GetServer();
+  else if (server == "off" || server == "inactive")
+    activate = false;
+  if (!SetNATServer(natMethod->GetMethodName(), server, activate, args.GetOptionString("priority").AsUnsigned(), iface.AsString())) {
+    args.WriteError() << natMethod->GetMethodName() << " could not open \"" << server << "\" on \"" << iface << '"' << endl;
     return;
   }
 
-  if (!natMethod->Open(iface)) {
-    args.WriteError() << natMethod->GetMethodName() << " could not access  \"" << natMethod->GetServer() << '"' << endl;
+  if (!activate) {
+    args.GetContext() << natMethod->GetMethodName() << " deactivated.";
     return;
   }
 
@@ -3249,7 +3251,7 @@ void OpalManagerCLI::CmdNatAddress(PCLI::Arguments & args, P_INT_PTR)
     out << " with address " << externalAddress;
   out << endl;
 }
-#endif
+#endif // OPAL_PTLIB_NAT
 
 
 #if PTRACING
