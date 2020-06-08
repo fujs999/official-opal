@@ -2086,7 +2086,19 @@ bool OpalManager::SetNATServer(const PString & method,
     }
   }
 
-  PTRACE(3, "NAT: " << *natMethod);
+  // If NAT handlers changed, we need to restart UDP listeners
+  m_endpointsMutex.StartRead();
+  for (PList<OpalEndPoint>::iterator ep = m_endpointList.begin(); ep != m_endpointList.end(); ++ep) {
+    OpalListenerList listeners = ep->GetListeners();
+    for (OpalListenerList::iterator listener = listeners.begin(); listener != listeners.end(); ++listener) {
+      if (!listener->ChangedNAT()) {
+        PTRACE(2, "NAT " << *natMethod << " changed: could not re-open listener " << *listener);
+      }
+    }
+  }
+  m_endpointsMutex.EndRead();
+
+  PTRACE(3, "NAT changed: " << *natMethod);
   return true;
 }
 
