@@ -906,9 +906,13 @@ bool OpalMediaTransport::ChannelInfo::HandleUnavailableError()
 
 void OpalMediaTransport::InternalClose()
 {
+  if (!m_opened.exchange(false))
+    return;
+
+  // Continue even if lock failed, must close sockets!
   P_INSTRUMENTED_LOCK_READ_ONLY();
 
-  m_opened = m_established = false;
+  m_established = false;
 
   for (vector<ChannelInfo>::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it) {
     if (it->m_channel != NULL) {
@@ -969,10 +973,7 @@ void OpalMediaTransport::Start()
 
 bool OpalMediaTransport::GarbageCollection()
 {
-  if (m_opened) {
-    PTRACE(4, *this << "stopping " << m_subchannels.size() << " subchannel(s).");
-    InternalClose();
-  }
+  InternalClose();
 
   m_ccTimer.Stop();
 
