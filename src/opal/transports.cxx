@@ -917,6 +917,16 @@ void OpalListenerUDP::Close()
 }
 
 
+bool OpalListenerUDP::ChangedNAT()
+{
+  if (m_listenerBundle == NULL)
+    return false;
+
+  m_listenerBundle->Close();
+  return m_listenerBundle->Open(m_binding.GetPort());
+}
+
+
 OpalTransport * OpalListenerUDP::Accept(const PTimeInterval & timeout)
 {
   if (!IsOpen())
