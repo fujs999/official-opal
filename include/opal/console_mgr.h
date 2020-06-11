@@ -422,9 +422,9 @@ class OpalManagerConsole : public OpalManager
     __inline LockedStream LockedOutput() const { return *this; }
 
 
-    bool GetCallFromArgs(PCLI::Arguments & args, PSafePtr<OpalCall> & call) const;
+    bool GetCallFromArgs(PCLI::Arguments & args, PSafePtr<OpalCall> & call);
 
-    template <class CONTYPE> bool GetConnectionFromArgs(PCLI::Arguments & args, PSafePtr<CONTYPE> & connection) const
+    template <class CONTYPE> bool GetConnectionFromArgs(PCLI::Arguments & args, PSafePtr<CONTYPE> & connection)
     {
       PSafePtr<OpalCall> call;
       if (!GetCallFromArgs(args, call))
@@ -442,7 +442,7 @@ class OpalManagerConsole : public OpalManager
       const OpalMediaType & mediaType,
       bool source,
       PSafePtr<OpalMediaStream> & stream
-    ) const;
+    );
 
   protected:
     OpalConsoleEndPoint * GetConsoleEndPoint(const PString & prefix);
@@ -486,6 +486,8 @@ class OpalManagerConsole : public OpalManager
     bool       m_verbose;
     ostream  * m_outputStream;
     PDECLARE_MUTEX(m_outputMutex, OpalConsoleOutput);
+
+    PString m_lastCallToken;
 
 #if OPAL_STATISTICS
     PTimeInterval m_statsPeriod;
