@@ -66,19 +66,29 @@ bool OpalManagerConsole::GetCallFromArgs(PCLI::Arguments & args, PSafePtr<OpalCa
   }
 
   if (args.HasOption("call")) {
-    if ((call = FindCallWithLock(args.GetOptionString("call"))) != NULL)
+    PString token = args.GetOptionString("call");
+    if (token[0] == '#') {
+      PStringArray calls = GetAllCalls();
+      PINDEX idx = token.Mid(1).AsUnsigned();
+      if (idx < 1 || idx > calls.GetSize()) {
+        args.WriteError("Invalid call index.");
+        return false;
+      }
+      token = calls[idx-1];
+    }
+
+    if ((call = FindCallWithLock(token)) != NULL)
       return true;
-    args.WriteError("Specified token does not correspond to call.");
-    return false;
+  }
+  else {
+    PStringArray calls = GetAllCalls();
+    for (PINDEX i = 0; i < calls.GetSize(); ++i) {
+      if ((call = FindCallWithLock(calls[i])) != NULL)
+        return true;
+    }
   }
 
-  PStringArray calls = GetAllCalls();
-  for (PINDEX i = 0; i < calls.GetSize(); ++i) {
-    if ((call = FindCallWithLock(calls[i])) != NULL)
-      return true;
-  }
-
-  args.WriteError("Call(s) disappeared while locating.");
+  args.WriteError("Call no longer present.");
   return false;
 }
 
@@ -2809,9 +2819,8 @@ bool OpalManagerConsole::OutputCallStatistics(ostream & strm, OpalCall & call)
       connection = otherConnection;
   }
 
-  strm << '\n' << call.GetToken() << ": call from " << call.GetPartyA() << " to " << call.GetPartyB() << "\n"
-          "  started at " << call.GetStartTime();
-  strm << '\n';
+  strm << '\n' << call.GetToken() << ": call from " << call.GetPartyA() << " to " << call.GetPartyB() <<
+          "  started at " << call.GetStartTime().AsString(PTime::LoggingFormat) << '\n';
 
   bool noStreams = true;
   for (int direction = 0; direction < 2; ++direction) {
@@ -3027,7 +3036,8 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
 #endif // OPAL_HAS_MIXER
 
   m_cli->SetCommand("audio vad", PCREATE_NOTIFIER(CmdSilenceDetect),
-                    "Voice Activity Detection (aka Silence Detection)", "\"on\" | \"adaptive\" | <level>");
+                    "Voice Activity Detection (aka Silence Detection)",
+                    "{ \"off\" | \"on\" | \"adaptive\" | <level> }");
   m_cli->SetCommand("audio in-band-dtmf-disable", m_disableDetectInBandDTMF, "In-band (digital filter) DTMF detection");
 
   m_cli->SetCommand("auto-start", PCREATE_NOTIFIER(CmdAutoStart),
@@ -3051,7 +3061,7 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
   m_cli->SetCommand("hold",        PCREATE_NOTIFIER(CmdHold),     "Hold call",
                     "[ --call <token> ]", "c-call: Token for call to hold");
   m_cli->SetCommand("retrieve",    PCREATE_NOTIFIER(CmdRetrieve), "Retrieve call from hold",
-                    "[ v ]", "c-call: Token for call to retrieve");
+                    "[ --call <token> ]", "c-call: Token for call to retrieve");
   m_cli->SetCommand("transfer",    PCREATE_NOTIFIER(CmdTransfer), "Transfer call",
                     "[ --call <token> ] <uri>", "c-call: Token for call to hang up");
   m_cli->SetCommand("hangup", PCREATE_NOTIFIER(CmdHangUp), "Hang up call",
@@ -3869,7 +3879,7 @@ static void CmdCodecOrderMask(OpalManager & manager, PCLI::Arguments & args, boo
       manager.SetMediaFormatMask(formats);
   }
 
-  args.GetContext() << "Codec " << (order ? "Order" : "Mask") << ": " << setfill(',') << formats << endl;
+  args.GetContext() << "Codec " << (order ? "Order" : "Mask") << ": " << setfill(',') << formats << setfill(' ') << endl;
 }
 
 
