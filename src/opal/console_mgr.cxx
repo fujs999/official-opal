@@ -58,7 +58,7 @@ static void PrintVersion(ostream & strm)
 }
 
 
-bool OpalManagerConsole::GetCallFromArgs(PCLI::Arguments & args, PSafePtr<OpalCall> & call) const
+bool OpalManagerConsole::GetCallFromArgs(PCLI::Arguments & args, PSafePtr<OpalCall> & call)
 {
   if (GetCallCount() == 0) {
     args.WriteError("No calls active.");
@@ -77,26 +77,33 @@ bool OpalManagerConsole::GetCallFromArgs(PCLI::Arguments & args, PSafePtr<OpalCa
       token = calls[idx-1];
     }
 
-    if ((call = FindCallWithLock(token)) != NULL)
-      return true;
+    call = FindCallWithLock(token);
   }
+  else if (!m_lastCallToken.empty())
+    call = FindCallWithLock(m_lastCallToken);
   else {
     PStringArray calls = GetAllCalls();
     for (PINDEX i = 0; i < calls.GetSize(); ++i) {
       if ((call = FindCallWithLock(calls[i])) != NULL)
-        return true;
+        break;
     }
   }
 
-  args.WriteError("Call no longer present.");
-  return false;
+  if (call == NULL) {
+    args.WriteError("Call no longer present.");
+    m_lastCallToken.MakeEmpty();
+    return false;
+  }
+
+  m_lastCallToken = call->GetToken();
+  return true;
 }
 
 
 bool OpalManagerConsole::GetStreamFromArgs(PCLI::Arguments & args,
                                            const OpalMediaType & mediaType,
                                            bool source,
-                                           PSafePtr<OpalMediaStream> & stream) const
+                                           PSafePtr<OpalMediaStream> & stream)
 {
   PSafePtr<OpalLocalConnection> connection;
   if (!GetConnectionFromArgs(args, connection))
@@ -3056,13 +3063,12 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
                     "Get/Set codec option value. The format may be @type (e.g. @video) and all codecs of that type are set.",
                     "<format> [ <name> [ <value> ] ]");
 
-  m_cli->SetCommand("call",        PCREATE_NOTIFIER(CmdCall),     "Start call between two endpoints",
-                    "[ <src> ] <dest>");
-  m_cli->SetCommand("hold",        PCREATE_NOTIFIER(CmdHold),     "Hold call",
+  m_cli->SetCommand("call", PCREATE_NOTIFIER(CmdCall), "Start call between two endpoints", "[ <src> ] <dest>");
+  m_cli->SetCommand("hold", PCREATE_NOTIFIER(CmdHold), "Hold call",
                     "[ --call <token> ]", "c-call: Token for call to hold");
-  m_cli->SetCommand("retrieve",    PCREATE_NOTIFIER(CmdRetrieve), "Retrieve call from hold",
+  m_cli->SetCommand("retrieve", PCREATE_NOTIFIER(CmdRetrieve), "Retrieve call from hold",
                     "[ --call <token> ]", "c-call: Token for call to retrieve");
-  m_cli->SetCommand("transfer",    PCREATE_NOTIFIER(CmdTransfer), "Transfer call",
+  m_cli->SetCommand("transfer", PCREATE_NOTIFIER(CmdTransfer), "Transfer call",
                     "[ --call <token> ] <uri>", "c-call: Token for call to hang up");
   m_cli->SetCommand("hangup", PCREATE_NOTIFIER(CmdHangUp), "Hang up call",
                     "[ --call <token> ]", "c-call: Token for call to hang up");
@@ -3915,8 +3921,10 @@ void OpalManagerCLI::CmdCall(PCLI::Arguments & args, P_INT_PTR)
   PSafePtr<OpalCall> call = SetUpCall(from, to);
   if (call == NULL)
     args.WriteError() << "Could not start call." << endl;
-  else
-    args.GetContext() << "Started call from \"" << call->GetPartyA() << "\" to \"" << call->GetPartyB() << '"' << endl;
+  else {
+    m_lastCallToken = call->GetToken();
+    args.GetContext() << m_lastCallToken << ": Started call from \"" << call->GetPartyA() << "\" to \"" << call->GetPartyB() << '"' << endl;
+  }
 }
 
 
@@ -4118,10 +4126,8 @@ void OpalManagerCLI::CmdDelay(PCLI::Arguments & args, P_INT_PTR)
 {
   if (args.GetCount() < 1)
     args.WriteUsage();
-  else {
-    PTimeInterval delay(0, args[0].AsUnsigned());
-    m_endRun.Wait(delay);
-  }
+  else
+    m_endRun.Wait(PTimeInterval::Seconds(args[0].AsReal()));
 }
 
 
