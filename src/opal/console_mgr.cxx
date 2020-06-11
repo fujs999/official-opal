@@ -2926,7 +2926,13 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
 
   m_cli->SetPrompt(args.GetCommandName() + "> ");
 
-#if OPAL_PTLIB_SSL
+  m_cli->SetCommand("ip tcp ports", PCREATE_NOTIFIER(CmdIpTcpPorts), "Set TCP ports to use");
+  m_cli->SetCommand("ip udp ports", PCREATE_NOTIFIER(CmdIpUdpPorts), "Set UDP ports to use, not including RTP");
+  m_cli->SetCommand("ip rtp ports", PCREATE_NOTIFIER(CmdIpRtpPorts), "Set RTP ports to use");
+  m_cli->SetCommand("ip rtp tos", PCREATE_NOTIFIER(CmdIpRtpTos), "Set RTP Type Of Service (DiffServ)");
+  m_cli->SetCommand("ip rtp size", PCREATE_NOTIFIER(CmdIpRtpSize), "Set maximum RTP packet size");
+  m_cli->SetCommand("ip qos", PCREATE_NOTIFIER(CmdIpQoS), "Set media Quality of Service");
+  #if OPAL_PTLIB_SSL
   m_cli->SetCommand("ssl", PCREATE_NOTIFIER(CmdSSL),
                     "Set SSL/TLS certificates",
                     "[ --ca <ca-dir-file> ] [ --cert <cert> ] [ --key <key> ] [ --no-create ]",
@@ -3157,6 +3163,109 @@ PCLICurses * OpalManagerCLI::CreateCLICurses()
   return new PCLICurses();
 }
 #endif // P_CURSES
+
+
+static int GetPortRange(PCLI::Arguments & args, unsigned & basePort, unsigned & maxPort)
+{
+  basePort = 0;
+  maxPort = 0;
+  switch (args.GetCount()) {
+    case 0 :
+      return 0;
+    case 2 :
+      maxPort = args[1].AsUnsigned();
+    case 1 :
+      basePort = args[0].AsUnsigned();
+      if (maxPort < basePort)
+        maxPort = basePort;
+  }
+  if (basePort >= 1024 && basePort < 65536 && maxPort >= 1024 && maxPort < 65536)
+    return 1;
+
+  args.Usage();
+  return -1;
+}
+
+
+void OpalManagerCLI::CmdIpTcpPorts(PCLI::Arguments & args, P_INT_PTR)
+{
+  unsigned basePort, maxPort;
+  switch (GetPortRange(args, basePort, maxPort)) {
+    case 1 :
+      SetTCPPorts(basePort, maxPort);
+    case 0 :
+      args.GetContext() << "TCP ports: " << GetTCPPortRange();
+  }
+}
+
+
+void OpalManagerCLI::CmdIpUdpPorts(PCLI::Arguments & args, P_INT_PTR)
+{
+  unsigned basePort, maxPort;
+  switch (GetPortRange(args, basePort, maxPort)) {
+    case 1 :
+      SetUDPPorts(basePort, maxPort);
+    case 0 :
+      args.GetContext() << "UDP ports: " << GetUDPPortRange();
+  }
+}
+
+
+void OpalManagerCLI::CmdIpRtpPorts(PCLI::Arguments & args, P_INT_PTR)
+{
+  unsigned basePort, maxPort;
+  switch (GetPortRange(args, basePort, maxPort)) {
+    case 1 :
+      SetRtpIpPorts(basePort, maxPort);
+    case 0 :
+      args.GetContext() << "UDP ports: " << GetRtpIpPortRange();
+  }
+}
+
+
+void OpalManagerCLI::CmdIpRtpTos(PCLI::Arguments & args, P_INT_PTR)
+{
+  if (args.GetCount() > 0) {
+    unsigned tos = args[0].AsUnsigned();
+    if (tos > 255) {
+      args.Usage();
+      return;
+    }
+    SetMediaTypeOfService(tos);
+  }
+  args.GetContext() << "RTP Type Of Service: " << GetMediaTypeOfService();
+}
+
+
+void OpalManagerCLI::CmdIpRtpSize(PCLI::Arguments & args, P_INT_PTR)
+{
+  if (args.GetCount() > 0) {
+    unsigned sz = args[0].AsUnsigned();
+    if (sz < 100 && sz > 65535)       {
+      args.Usage();
+      return;
+    }
+    SetMaxRtpPayloadSize(sz);
+  }
+  args.GetContext() << "RTP maximum transmitted packet size: " << GetMaxRtpPayloadSize();
+}
+
+
+void OpalManagerCLI::CmdIpQoS(PCLI::Arguments & args, P_INT_PTR)
+{
+  switch (args.GetCount()) {
+    case 2 :
+      if (OpalMediaType(args[0]).GetDefinition() == NULL)
+        break;
+      SetMediaQoS(args[0], args[1]);
+    case 1 :
+      if (OpalMediaType(args[0]).GetDefinition() != NULL)
+        break;
+      args.GetContext() << "Media Quality of Service: " << args[0] << '=' << GetMediaQoS(args[0]);
+      return;
+  }
+  args.Usage();
+}
 
 
 #if OPAL_PTLIB_SSL
