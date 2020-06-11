@@ -540,7 +540,13 @@ class OpalManagerCLI : public OpalManagerConsole
     PCLICurses * CreateCLICurses();
 #endif
 
-#if OPAL_PTLIB_SSL
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdIpTcpPorts);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdIpUdpPorts);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdIpRtpPorts);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdIpRtpTos);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdIpRtpSize);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdIpQoS);
+    #if OPAL_PTLIB_SSL
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdSSL);
 #endif
 #if P_NAT
