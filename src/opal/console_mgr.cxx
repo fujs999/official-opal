@@ -3076,15 +3076,18 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
                     "[ --call <token> ] <string>", "c-call: Token for call.");
   m_cli->SetCommand("wait phase", PCREATE_NOTIFIER(CmdWaitPhase),
                     "Wait for a call to enter a particular phase",
-                    "[ --call <token> ] [ --timeout <ms> ] { \"Proceeding\" | \"Alerting\" | \"Connected\" | \"Established\" | \"Forwarding\" | \"Releasing\" }",
+                    "[ options ] { \"Proceeding\" | \"Alerting\" | \"Connected\" | \"Established\" | \"Forwarding\" | \"Releasing\" }",
                     "c-call: Token for call.\r"
-                    "t-timeout: maximum time to wait in milliseconds");
+                    "n-not. Wait till call leaves the phase.\r"
+                    "t-timeout: Maximum time to wait in milliseconds");
 #if OPAL_STATISTICS
   m_cli->SetCommand("wait packets", PCREATE_NOTIFIER(CmdWaitPackets),
                     "Wait for media packets to arrive",
-                    "[ --call <token> ] [ --timeout <ms> ] { \"audio\" | \"video\" | <media-type> }",
+                    "[ options ] { \"audio\" | \"video\" | <media-type> }",
                     "c-call: Token for call.\r"
-                    "t-timeout: maximum time to wait in milliseconds");
+                    "n-not. Wait till packets cease to arrive.\r"
+                    "d-deadband: Minimum time for packets arriving/ceasing.\r"
+                    "t-timeout: Maximum time to wait in milliseconds");
 #endif
   m_cli->SetCommand("show calls", PCREATE_NOTIFIER(CmdShowCalls), "Show all active calls");
 
@@ -3998,8 +4001,10 @@ void OpalManagerCLI::CmdSendUserInput(PCLI::Arguments & args, P_INT_PTR)
   }
 
   PSafePtr<OpalLocalConnection> connection;
-  if (GetConnectionFromArgs(args, connection))
+  if (GetConnectionFromArgs(args, connection)) {
     connection->OnUserInputString(args[0]);
+    args.GetContext() << connection->GetCall().GetToken() << ": Sent user input" << endl;
+  }
 }
 
 
@@ -4023,7 +4028,9 @@ void OpalManagerCLI::CmdWaitPhase(PCLI::Arguments & args, P_INT_PTR)
     return;
 
   call.SetSafetyMode(PSafeReference);
-  args.GetContext() << "Awaiting " << waitPhase << endl;
+
+  bool negative = args.HasOption('n');
+  args.GetContext() << "Awaiting " << (negative ? "entering " : "leaving ") << waitPhase << endl;
 
   PSimpleTimer timeout(args.GetOptionString("timeout", "10000").AsUnsigned());
   do {
@@ -4034,7 +4041,7 @@ void OpalManagerCLI::CmdWaitPhase(PCLI::Arguments & args, P_INT_PTR)
     }
 
     OpalConnection::Phases currentPhase = conn->GetPhase();
-    if (currentPhase >= waitPhase)  {
+    if (negative ? (currentPhase != waitPhase) : (currentPhase >= waitPhase))  {
       args.GetContext() << "Call now in " << currentPhase << endl;
       return;
     }
@@ -4083,12 +4090,19 @@ void OpalManagerCLI::CmdWaitPackets(PCLI::Arguments & args, P_INT_PTR)
   OpalMediaStatistics previous;
   mediaStream->GetStatistics(previous);
 
-  PSimpleTimer timeout(args.GetOptionString("timeout", "500").AsUnsigned());
+  bool negative = args.HasOption('n');
+  PTimeInterval deadband(args.GetOptionString("deadband", "100").AsUnsigned());
+  PSimpleTimer deadbandTimer = deadband;
+  PSimpleTimer timeout(args.GetOptionString("timeout", "1000").AsUnsigned());
+  bool lastState = false;
   do {
     OpalMediaStatistics current;
     mediaStream->GetStatistics(current);
-    if (current.m_totalPackets > previous.m_totalPackets) {
-      args.GetContext() << "Received packets on " << mediaType << " stream" << endl;
+    bool newState = negative ? (current.m_totalPackets == previous.m_totalPackets) : (current.m_totalPackets > previous.m_totalPackets);
+    if (newState != lastState)
+      deadbandTimer = deadband;
+    if (newState && deadbandTimer.HasExpired()) {
+      args.GetContext() << (negative ? "Packets ceased" : "Received packets") << " on " << mediaType << " stream" << endl;
       return;
     }
   } while (timeout.IsRunning());
