@@ -752,7 +752,7 @@ ostream & operator<<(ostream & strm, SIP_PDU::Methods method);
 
 /** Session Initiation Protocol dialog context information.
   */
-class SIPDialogContext
+class SIPDialogContext : public PObject
 {
   public:
     SIPDialogContext();

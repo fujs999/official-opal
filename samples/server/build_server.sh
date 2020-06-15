@@ -45,7 +45,15 @@ while [ -n "$1" ]; do
 done
 
 if $USAGE; then
-    echo "usage: $0 [ --debug ] [ -- restrt ] { bootstrap | update | buildonly }"
+    cat <<-EOM
+	usage: `basename $0` [ options] { bootstrap | update | buildonly }
+	          --debug       Include debug version
+	          --restart     Restart OPAL server daemon after install
+	          --no-install  Do not install - local build only
+	          bootstrap     Do full OS install of pre-requisites and freshd ownload
+	          update        Do git update and rebuild
+	          buildonly     Only do build, do not do git update
+	EOM
     exit 1
 fi
 
@@ -70,7 +78,7 @@ if $BOOTSTRAP; then
     		libncurses-dev libsdl2-dev libavformat-dev libswscale-dev \
     		libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgsm1-dev \
     		libspeex-dev libopus-dev libavcodec-dev libx264-dev libvpx-dev \
-    		libtheora-dev libspandsp-dev capiutils dahdi
+    		libtheora-dev libspandsp-dev capiutils dahdi festival-dev
     elif which yum > /dev/null 2> /dev/null; then
         sudo yum-config-manager --enable epel
     	sudo yum install \
@@ -79,7 +87,7 @@ if $BOOTSTRAP; then
     		ncurses-devel SDL2-devel libavformat-devel libswscale-devel \
     		gstreamer1.0-devel gstreamer-plugins-base1.0-devel gsm-devel \
     		speex-devel opus-devel avcodec-devel x264-devel libvpx-devel \
-    		theora-devel libspandsp-devel capiutils dahdi
+    		theora-devel libspandsp-devel capiutils dahdi festival-devel
     else
     	echo "What OS is this? No apt or yum!"
     	exit 1

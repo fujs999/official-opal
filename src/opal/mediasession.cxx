@@ -1366,6 +1366,9 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
   m_mediaTimeout = session.GetStringOptions().GetVar(OPAL_OPT_MEDIA_RX_TIMEOUT, manager.GetNoMediaTimeout());
   m_maxNoTransmitTime = session.GetStringOptions().GetVar(OPAL_OPT_MEDIA_TX_TIMEOUT, manager.GetTxMediaTimeout());
 
+  if (!PAssert(!localInterface.empty(), PLogicError))
+    return false;
+
   PIPAddress bindingIP(localInterface);
   if (!bindingIP.IsValid()) {
     PTRACE(2, session << "open failed, illegal local interface \"" << localInterface << '"');
