@@ -271,6 +271,7 @@ SIPConnection::SIPConnection(const Init & init)
 
   m_stringOptions.ExtractFromURL(adjustedDestination);
 
+  PTRACE_CONTEXT_ID_TO(m_dialog);
   m_dialog.SetRequestURI(adjustedDestination);
   m_dialog.SetRemoteURI(adjustedDestination);
   m_dialog.SetLocalTag(GetToken());
@@ -1234,12 +1235,13 @@ void SIPConnection::OnCreatingINVITE(SIPInvite & request)
 
     PString oldInterface = GetInterface();
 
-    PSafePtr<OpalTransport> transport = request.GetTransport();
+    OpalTransportPtr transport = request.GetTransport();
     if (transport != NULL) {
       PString newInterface = transport->GetInterface();
       if (newInterface.IsEmpty())
         newInterface = transport->GetLocalAddress().GetHostName();
-      m_dialog.SetInterface(newInterface);
+      if (!newInterface.IsEmpty())
+        m_dialog.SetInterface(newInterface);
     }
 
     SDPSessionDescription * sdp = GetEndPoint().CreateSDP(m_sdpSessionId, m_sdpVersion, OpalTransportAddress());
@@ -1252,7 +1254,8 @@ void SIPConnection::OnCreatingINVITE(SIPInvite & request)
       delete sdp;
       Release(EndedByCapabilityExchange);
     }
-    m_dialog.SetInterface(oldInterface);
+    if (!oldInterface.empty())
+      m_dialog.SetInterface(oldInterface);
   }
 }
 
@@ -1638,7 +1641,10 @@ bool SIPConnection::OnReceivedResponseToINVITE(SIPTransaction & transaction, SIP
     }
 
     // And end connect mode on the transport
-    m_dialog.SetInterface(transaction.GetInterface());
+    PString finalInterface = transaction.GetInterface();
+    if (!finalInterface.empty())
+      m_dialog.SetInterface(finalInterface);
+
     SIPURL url = m_contactAddress = transaction.GetMIME().GetContact();
     url.Sanitise(SIPURL::ExternalURI);
     m_localPartyURL = url.AsString();
