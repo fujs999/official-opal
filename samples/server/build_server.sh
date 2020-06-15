@@ -45,7 +45,15 @@ while [ -n "$1" ]; do
 done
 
 if $USAGE; then
-    echo "usage: $0 [ --debug ] [ -- restrt ] { bootstrap | update | buildonly }"
+    cat <<-EOM
+	usage: `basename $0` [ options] { bootstrap | update | buildonly }
+	          --debug       Include debug version
+	          --restart     Restart OPAL server daemon after install
+	          --no-install  Do not install - local build only
+	          bootstrap     Do full OS install of pre-requisites and freshd ownload
+	          update        Do git update and rebuild
+	          buildonly     Only do build, do not do git update
+	EOM
     exit 1
 fi
 

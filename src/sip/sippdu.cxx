@@ -1934,7 +1934,7 @@ void SIP_PDU::SetTransport(const OpalTransportPtr & transport PTRACE_PARAM(, con
     m_transport->Dereference();
   }
 
-  // THis is the one and only place we bypass the const-ness
+  // This is the one and only place we bypass the const-ness
   const_cast<OpalTransportPtr &>(m_transport) = transport;
 
   if (m_transport != NULL) {
@@ -3244,7 +3244,7 @@ SIPTransaction::SIPTransaction(Methods method,
 
   PAssert(m_owner->m_object.SafeReference(), "Transaction created on owner pending deletion.");
 
-  if (m_transport == NULL) {
+  if (m_transport == NULL || !m_transport->IsOpen()) {
     SIP_PDU::StatusCodes reason;
     SetTransport(GetEndPoint().GetTransport(*m_owner, reason) PTRACE_PARAM(, "SIPTransaction"));
   }
@@ -3257,7 +3257,10 @@ SIPTransaction::SIPTransaction(Methods method,
     InitialiseHeaders(*conn);
   }
 
-  PTRACE(4, method << " transaction id=" << GetTransactionID() << " created.");
+  if (m_transport != NULL)
+    PTRACE(4, method << " transaction created: id=" << GetTransactionID() << ", transport=" << *m_transport);
+  else
+    PTRACE(2, method << " transaction created: id=" << GetTransactionID() << ", no transport");
 }
 
 
