@@ -321,7 +321,7 @@ bool OpalRTPConsoleEndPoint::Initialise(PArgList & args, ostream & output, bool 
 #if P_CLI
 void OpalRTPConsoleEndPoint::CmdInterfaces(PCLI::Arguments & args, P_INT_PTR)
 {
-  if (args.GetCount() > 0 && !m_endpoint.StartListeners(args.GetParameters())) {
+  if (args.GetCount() > 0 && !m_endpoint.StartListeners(args.GetParameters(), !args.HasOption("clear"))) {
     args.WriteError("Could not start listening on specified interfaces.");
     return;
   }
@@ -399,8 +399,11 @@ void OpalRTPConsoleEndPoint::CmdStringOption(PCLI::Arguments & args, P_INT_PTR)
 
 void OpalRTPConsoleEndPoint::AddCommands(PCLI & cli)
 {
-  cli.SetCommand(m_endpoint.GetPrefixName() & "interfaces", PCREATE_NOTIFIER(CmdInterfaces),
-                  "Set listener interfaces");
+  cli.SetCommand(PSTRSTRM(m_endpoint.GetPrefixName() << " interfaces\n" << m_endpoint.GetPrefixName() << " listeners"),
+                 PCREATE_NOTIFIER(CmdInterfaces),
+                 "Set listener interfaces, if cleared and no interfaces specified, then defaults are used.",
+                 " --clear [ <iface> ... ]",
+                 "c-clear. Clear all previous listening interfaces");
   cli.SetCommand(m_endpoint.GetPrefixName() & "crypto", PCREATE_NOTIFIER(CmdCryptoSuites),
                   "Set crypto suites in priority order",
                   " --list | [ <suite> ... ]",
