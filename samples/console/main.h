@@ -51,6 +51,13 @@ class MyManager : public OpalManagerCLI
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdSpeedDial);
     virtual void AdjustCmdCallArguments(PString & from, PString & to);
 
+    enum AutoAnswerMode
+    {
+      NoAutoAnswer,
+      AutoAnswerImmediate,
+      AutoAnswerDelayed,
+      AutoAnswerRefuse
+    } m_autoAnswerMode;
     PTimeInterval      m_autoAnswerTime;
     PTimer             m_autoAnswerTimer;
     PStringToString    m_speedDial;
