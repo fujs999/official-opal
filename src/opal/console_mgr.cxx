@@ -2689,7 +2689,7 @@ void OpalManagerConsole::OnStartMediaPatch(OpalConnection & connection, OpalMedi
     OpalMediaStreamPtr stream(patch.GetSink());
     if (stream == NULL || &stream->GetConnection() != &connection)
       stream = &patch.GetSource();
-    stream->PrintDetail(LockedOutput(), "Started");
+    stream->PrintDetail(LockedOutput(), connection.GetCall().GetToken() + ": Started");
   }
 }
 
@@ -2707,7 +2707,7 @@ void OpalManagerConsole::OnClosedMediaStream(const OpalMediaStream & stream)
   OpalManager::OnClosedMediaStream(stream);
 
   if (m_verbose && stream.GetConnection().IsNetworkConnection())
-    stream.PrintDetail(LockedOutput(), "Stopped");
+    stream.PrintDetail(LockedOutput(), stream.GetConnection().GetCall().GetToken() + ": Stopped");
 
 #if OPAL_STATISTICS
   m_statsMutex.Wait();
@@ -3094,7 +3094,7 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
 #endif
   m_cli->SetCommand("show calls", PCREATE_NOTIFIER(CmdShowCalls), "Show all active calls");
 
-  m_cli->SetCommand("delay", PCREATE_NOTIFIER(CmdDelay),
+  m_cli->SetCommand("delay\nsleep", PCREATE_NOTIFIER(CmdDelay),
                     "Delay for the specified number of seconds",
                     "<seconds>");
   m_cli->SetCommand("version", PCREATE_NOTIFIER(CmdVersion),
@@ -3990,7 +3990,7 @@ void OpalManagerCLI::CmdHangUp(PCLI::Arguments & args, P_INT_PTR)
 {
   PSafePtr<OpalCall> call;
   if (GetCallFromArgs(args, call)) {
-    args.GetContext() << "Hanging up call from \"" << call->GetPartyA() << "\" to \"" << call->GetPartyB() << '"' << endl;
+    args.GetContext() << call->GetToken() << ": Hanging up call from \"" << call->GetPartyA() << "\" to \"" << call->GetPartyB() << '"' << endl;
     call->Clear();
   }
 }
@@ -4006,7 +4006,7 @@ void OpalManagerCLI::CmdSendUserInput(PCLI::Arguments & args, P_INT_PTR)
   PSafePtr<OpalLocalConnection> connection;
   if (GetConnectionFromArgs(args, connection)) {
     connection->OnUserInputString(args[0]);
-    args.GetContext() << connection->GetCall().GetToken() << ": Sent user input" << endl;
+    args.GetContext() << connection->GetCall().GetToken() << ": Sent user input " << args[0].ToLiteral() << endl;
   }
 }
 
@@ -4033,7 +4033,7 @@ void OpalManagerCLI::CmdWaitPhase(PCLI::Arguments & args, P_INT_PTR)
   call.SetSafetyMode(PSafeReference);
 
   bool negative = args.HasOption('n');
-  args.GetContext() << "Awaiting " << (negative ? "entering " : "leaving ") << waitPhase << endl;
+  args.GetContext() << call->GetToken() << ": Awaiting " << (negative ? "leaving " : "entering ") << waitPhase << endl;
 
   PSimpleTimer timeout(args.GetOptionString("timeout", "10000").AsUnsigned());
   do {
@@ -4045,7 +4045,7 @@ void OpalManagerCLI::CmdWaitPhase(PCLI::Arguments & args, P_INT_PTR)
 
     OpalConnection::Phases currentPhase = conn->GetPhase();
     if (negative ? (currentPhase != waitPhase) : (currentPhase >= waitPhase))  {
-      args.GetContext() << "Call now in " << currentPhase << endl;
+      args.GetContext() << call->GetToken() << ": Call now in " << currentPhase << endl;
       return;
     }
 
@@ -4105,7 +4105,7 @@ void OpalManagerCLI::CmdWaitPackets(PCLI::Arguments & args, P_INT_PTR)
     if (newState != lastState)
       deadbandTimer = deadband;
     if (newState && deadbandTimer.HasExpired()) {
-      args.GetContext() << (negative ? "Packets ceased" : "Received packets") << " on " << mediaType << " stream" << endl;
+      args.GetContext() << call->GetToken() << ": " << (negative ? "Packets ceased" : "Received packets") << " on " << mediaType << " stream" << endl;
       return;
     }
   } while (timeout.IsRunning());
@@ -4143,8 +4143,11 @@ void OpalManagerCLI::CmdDelay(PCLI::Arguments & args, P_INT_PTR)
 {
   if (args.GetCount() < 1)
     args.WriteUsage();
-  else
-    m_endRun.Wait(PTimeInterval::Seconds(args[0].AsReal()));
+  else {
+    PTimeInterval delay(PTimeInterval::Seconds(args[0].AsReal()));
+    args.GetContext() << "Delaying for " << delay.AsString(3, PTimeInterval::SecondsSI) << endl;
+    m_endRun.Wait(delay);
+  }
 }
 
 
