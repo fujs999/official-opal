@@ -34,7 +34,7 @@ URL:            http://www.opalvoip.org/
 Source0:        zsdk-opal.src.tgz
 Source1:        bbcollab-filter-requires.sh
 
-BuildRequires:  devtoolset-7-gcc-c++
+BuildRequires:  devtoolset-9-gcc-c++
 BuildRequires:  bbcollab-ptlib-devel = %{ptlib_ver_el7}
 BuildRequires:  bbcollab-ffmpeg-devel = %{ffmpeg_ver_el7}
 BuildRequires:  libsrtp2-devel = %{srtp_ver_el7}
@@ -76,7 +76,7 @@ developing applications that use %{name}.
 
 
 %build
-source /opt/rh/devtoolset-7/enable
+source /opt/rh/devtoolset-9/enable
 %configure --enable-localspeexdsp \
         --disable-h323 \
         --disable-iax2 \
@@ -98,7 +98,7 @@ make %{?_smp_mflags} REVISION_FILE= OPAL_FILE_VERSION=%{version} all
 
 
 %install
-source /opt/rh/devtoolset-7/enable
+source /opt/rh/devtoolset-9/enable
 rm -rf $RPM_BUILD_ROOT
 make install DESTDIR=$RPM_BUILD_ROOT OPAL_FILE_VERSION=%{version}
 find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
