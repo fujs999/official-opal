@@ -746,6 +746,7 @@ void OpalMediaPatch::Main()
   while (m_source.IsOpen()) {
     if (m_source.IsPaused()) {
       PThread::Sleep(100);
+      PWaitAndSignal m(m_patchThreadMutex);
       if (m_patchThread == NULL)
         break; // Shutting down
       continue;
