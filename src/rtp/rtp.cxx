@@ -1408,8 +1408,9 @@ void RTP_ControlFrame::AddTWCC(RTP_SyncSourceId syncSourceOut, const RTP_Transpo
   twcc->referenceTime[1] = (uint8_t)(ms >> 13);
   twcc->referenceTime[2] = (uint8_t)(ms >> 5);
   twcc->rtcpSN = (uint8_t)info.m_rtcpSequenceNumber;
-  memcpy(twcc+1, statusChunks.data(), statusSize);
-  memcpy((BYTE *)(twcc+1)+statusSize, deltas.data(), deltaSize);
+  BYTE * data = (BYTE *)(twcc+1);
+  memcpy(data, statusChunks.data(), statusSize);
+  memcpy(data+statusSize, deltas.data(), deltaSize);
 }
 
 
