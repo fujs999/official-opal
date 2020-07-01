@@ -1471,6 +1471,9 @@ bool OpalManager::OnMediaFailed(OpalConnection & connection, unsigned, PChannel:
       case PChannel::Unavailable :
         connection.Release(OpalConnection::EndedByMediaTransportFail);
         break;
+      case PChannel::NoError :
+        connection.Release(OpalConnection::EndedByMediaTransportClosed);
+        break;
       default :
         connection.Release(OpalConnection::CallEndReason(OpalConnection::EndedByCustomCode, (unsigned)error));
     }
