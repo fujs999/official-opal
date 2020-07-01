@@ -60,10 +60,14 @@
 
 ostream & operator<<(ostream & out, OpalConnection::CallEndReason reason)
 {
-  if (reason.code != OpalConnection::EndedByQ931Cause)
-    return out << (OpalConnection::CallEndReasonCodes)reason.code;
-  else
-    return out << "Q.931[0x" << hex << reason.q931 << dec << ']';
+  switch (reason) {
+    case OpalConnection::EndedByQ931Cause :
+      return out << "EndedByQ.931[0x" << hex << reason.q931 << dec << ']';
+    case OpalConnection::EndedByCustomCode :
+      return out << "EndedByCustom[" << reason.q931 << ']';
+    default :
+      return out << reason.code;
+  }
 }
 
 #endif
