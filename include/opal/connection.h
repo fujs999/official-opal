@@ -476,7 +476,8 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
       EndedByCertificateAuthority,   ///< When using TLS, the remote certifcate was not authenticated
       EndedByIllegalAddress,         ///< Destination Address  format was incorrect format
       EndedByCustomCode,             ///< End call with custom protocol specific code (e.g. SIP)
-      EndedByMediaTransportFail      ///< End call due to media transport failure, typically ICE error
+      EndedByMediaTransportFail,     ///< End call due to media transport failure, typically ICE error
+      EndedByMediaTransportClosed    ///< End call due to media transport closed
     );
 
     struct CallEndReason {
