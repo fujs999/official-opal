@@ -2484,7 +2484,7 @@ bool SIP_PDU::Send()
   if (PAssertNULL(m_transport) == NULL)
     return false;
 
-  PSafeLockReadWrite mutex(*m_transport);
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   // Just send for a command
   if (m_method != NumMethods || m_responseAddresses.IsEmpty())
@@ -3291,6 +3291,13 @@ SIPConnection * SIPTransaction::GetConnection() const
 }
 
 
+PString SIPTransaction::GetInterface() const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
+  return m_localInterface;
+}
+
+
 void SIPTransaction::SetParameters(const SIPParameters & params)
 {
   if (params.m_minRetryTime != PMaxTimeInterval)
@@ -3318,7 +3325,7 @@ void SIPTransaction::SetParameters(const SIPParameters & params)
 
 bool SIPTransaction::Start()
 {
-  PSafeLockReadWrite lock(*this);
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   if (!PAssert(m_state == NotStarted, PLogicError))
     return false;
@@ -3392,12 +3399,16 @@ bool SIPTransaction::Start()
 
 void SIPTransaction::WaitForCompletion()
 {
-  if (IsCompleted())
-    return;
+  {
+    P_INSTRUMENTED_LOCK_READ_ONLY(return);
 
-  if (m_state == NotStarted) {
-    if (!Start())
+    if (IsCompleted())
       return;
+
+    if (m_state == NotStarted) {
+      if (!Start())
+        return;
+    }
   }
 
   PTRACE(4, "Awaiting completion of " << GetMethod() << " transaction id=" << GetTransactionID());
@@ -3407,7 +3418,7 @@ void SIPTransaction::WaitForCompletion()
 
 PBoolean SIPTransaction::Cancel()
 {
-  PSafeLockReadWrite lock(*this);
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   if (m_state == NotStarted || m_state >= Cancelling) {
     PTRACE(3, GetMethod() << " transaction id=" << GetTransactionID() << " cannot be cancelled as in state " << m_state);
@@ -3480,12 +3491,11 @@ PBoolean SIPTransaction::OnReceivedResponse(SIP_PDU & response)
      "issues" according to the spec but
      */
   if (IsInProgress()) {
+    bool completed = false;
     if (response.GetStatusCode()/100 == 1) {
       PTRACE(3, GetMethod() << " transaction id=" << GetTransactionID() << " proceeding.");
 
-      PSafeLockReadWrite lock(*this);
-      if (!lock.IsLocked())
-        return false;
+      P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
       if (m_state == Trying)
         m_state = Proceeding;
@@ -3507,8 +3517,10 @@ PBoolean SIPTransaction::OnReceivedResponse(SIP_PDU & response)
     }
     else {
       PTRACE(4, GetMethod() << " transaction id=" << GetTransactionID() << " completing.");
+      P_INSTRUMENTED_LOCK_READ_WRITE(return false);
       m_state = Completed;
       m_statusCode = response.GetStatusCode();
+      completed = true;
     }
 
     if (m_owner->m_object.LockReadWrite()) {
@@ -3516,7 +3528,7 @@ PBoolean SIPTransaction::OnReceivedResponse(SIP_PDU & response)
       m_owner->m_object.UnlockReadWrite();
     }
 
-    if (m_state == Completed) {
+    if (completed) {
       if (LockReadWrite()) {
         OnCompleted(response);
         UnlockReadWrite();
@@ -3618,8 +3630,17 @@ void SIPTransaction::OnTimeout()
 }
 
 
+SIPTransaction::States SIPTransaction::GetState() const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return NotStarted);
+  return m_state;
+}
+
+
 void SIPTransaction::SetTerminated(States newState)
 {
+  // Assumes caller is holding ReadWrite lock
+
   if (!PAssert(newState >= Terminated_Success, PInvalidParameter))
     return;
 
@@ -3856,7 +3877,7 @@ SIPTransaction * SIPResponse::CreateDuplicate() const
 
 bool SIPResponse::Send()
 {
-  PSafeLockReadWrite lock(*this);
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   if (m_state == NotStarted) {
     GetEndPoint().AddTransaction(this);
