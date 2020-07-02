@@ -296,7 +296,7 @@ OpalAudioJitterBuffer::OpalAudioJitterBuffer(const Init & init)
   , m_jitterDriftPeriod(init.m_jitterDriftPeriod*m_timeUnits)
   , m_overrunFactor(init.m_overrunFactor)
   , m_closed(false)
-  , m_currentJitterDelay(init.m_minJitterDelay*m_timeUnits)
+  , m_currentJitterDelay(std::min(m_maxJitterDelay, init.m_minJitterDelay*m_timeUnits))
   , m_consecutiveMarkerBits(0)
   , m_maxConsecutiveMarkerBits(10)
   , m_consecutiveLatePackets(0)
@@ -320,6 +320,8 @@ OpalAudioJitterBuffer::~OpalAudioJitterBuffer()
 
 void OpalAudioJitterBuffer::Close()
 {
+  PWaitAndSignal mutex(m_bufferMutex);
+
   m_closed = true;
   m_frameCount.Signal();
 #ifndef NO_ANALYSER
@@ -331,17 +333,18 @@ void OpalAudioJitterBuffer::Close()
 
 void OpalAudioJitterBuffer::Restart()
 {
-  m_bufferMutex.Wait();
+  PTRACE_J(3, "Explicit restart of " << *this);
+
+  PWaitAndSignal mutex(m_bufferMutex);
 
   InternalReset();
   m_closed = false;
-
-  m_bufferMutex.Signal();
 }
 
 
 void OpalAudioJitterBuffer::PrintOn(ostream & strm) const
 {
+  PWaitAndSignal mutex(m_bufferMutex);
   strm << "this=" << (void *)this
        << " packets=" << m_frames.size()
        <<   " rate=" << m_timeUnits << "kHz"
@@ -357,7 +360,7 @@ void OpalAudioJitterBuffer::PrintOn(ostream & strm) const
 
 void OpalAudioJitterBuffer::SetDelay(const Init & init)
 {
-  m_bufferMutex.Wait();
+  PWaitAndSignal mutex(m_bufferMutex);
 
   OpalJitterBuffer::SetDelay(init);
 
@@ -378,8 +381,6 @@ void OpalAudioJitterBuffer::SetDelay(const Init & init)
   PTRACE_J(3, "Delays set to " << *this);
 
   InternalReset();
-
-  m_bufferMutex.Signal();
 }
 
 
@@ -402,6 +403,7 @@ void OpalAudioJitterBuffer::InternalReset()
   m_synchronisationState = e_SynchronisationStart;
 
   m_frames.clear();
+  m_frameCount.Reset();
 }
 
 
@@ -421,6 +423,8 @@ RTP_Timestamp OpalAudioJitterBuffer::GetPacketTime() const
 
 PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTimeInterval & tick)
 {
+  PWaitAndSignal mutex(m_bufferMutex);
+
   if (m_closed)
     return false;
 
@@ -428,8 +432,6 @@ PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTi
     PTRACE_J(2, "Writing invalid RTP data frame.");
     return true; // Don't abort, but ignore
   }
-
-  PWaitAndSignal mutex(m_bufferMutex);
 
   RTP_Timestamp timestamp = frame.GetTimestamp();
   RTP_SequenceNumber currentSequenceNum = frame.GetSequenceNumber();
@@ -582,6 +584,8 @@ PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTi
 
 RTP_Timestamp OpalAudioJitterBuffer::CalculateRequiredTimestamp(RTP_Timestamp playOutTimestamp) const
 {
+  // Assumes m_bufferMutex is already held on entry
+
   RTP_Timestamp timestamp = playOutTimestamp + m_timestampDelta;
   return timestamp > (RTP_Timestamp)m_currentJitterDelay ? (timestamp - m_currentJitterDelay) : 0;
 }
@@ -589,6 +593,8 @@ RTP_Timestamp OpalAudioJitterBuffer::CalculateRequiredTimestamp(RTP_Timestamp pl
 
 OpalAudioJitterBuffer::AdjustResult OpalAudioJitterBuffer::AdjustCurrentJitterDelay(int delta)
 {
+  // Assumes m_bufferMutex is already held on entry
+
   int minJitterDelay = max(m_minJitterDelay, 2*m_packetTime);
   int maxJitterDelay = max(m_minJitterDelay, m_maxJitterDelay);
 
@@ -618,8 +624,7 @@ PBoolean OpalAudioJitterBuffer::ReadData(RTP_DataFrame & frame, const PTimeInter
   frame.SetPayloadType(RTP_DataFrame::CN);
   frame.SetPayloadSize(0);
 
-  if (m_maxJitterDelay == 0) {
-    m_currentJitterDelay = 0;
+  if (GetCurrentJitterDelay() == 0) {
     m_frameCount.Wait(); // Go synchronous
     PWaitAndSignal mutex(m_bufferMutex);
     if (m_frames.empty()) {
