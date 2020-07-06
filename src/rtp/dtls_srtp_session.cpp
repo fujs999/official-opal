@@ -422,8 +422,11 @@ OpalDTLSSRTPSession::~OpalDTLSSRTPSession()
 
 void OpalDTLSSRTPSession::SetPassiveMode(bool passive)
 {
-  PTRACE(4, *this << "set DTLS to " << (passive ? "passive" : " active") << " mode");
-  m_passiveMode = passive;
+  {
+    P_INSTRUMENTED_LOCK_READ_WRITE(return);
+    PTRACE(4, *this << "set DTLS to " << (passive ? "passive" : " active") << " mode");
+    m_passiveMode = passive;
+  }
 
   OpalMediaTransportPtr transport = m_transport;
   if (transport == NULL)
@@ -454,17 +457,19 @@ void OpalDTLSSRTPSession::SetRemoteFingerprint(const PSSLCertificateFingerprint&
     return;
   }
 
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+
   OpalMediaTransportPtr transport = m_transport;
   if (transport == NULL)
     m_earlyRemoteFingerprint = fp;
   else if (dynamic_cast<OpalDTLSMediaTransport &>(*transport).SetRemoteFingerprint(fp))
     ApplyKeysToSRTP(*transport);
-
 }
 
 
 OpalMediaTransport * OpalDTLSSRTPSession::CreateMediaTransport(const PString & name)
 {
+  P_INSTRUMENTED_LOCK_READ_ONLY(return nullptr);
   return new OpalDTLSMediaTransport(name, m_passiveMode, m_earlyRemoteFingerprint);
 }
 
