@@ -138,13 +138,16 @@ class OpalICEMediaTransport : public OpalUDPMediaTransport
     CandidatesArray m_localCandidates;
     CandidatesArray m_remoteCandidates;
 
-    enum {
+    enum ICEState
+    {
       e_Disabled, // Note values and order are important
       e_Completed,
       e_Offering,
       e_OfferAnswered,
       e_Answering
-    } m_state;
+    };
+    ICEState m_state;
+    ICEState GetICEState() const;
 
     PSTUNServer m_server;
     PSTUNClient m_client;
