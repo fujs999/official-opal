@@ -1209,12 +1209,15 @@ bool OpalRTPSession::SyncSource::HandlePendingFrames(const PTime & now)
 
 void OpalRTPSession::AttachTransport(const OpalMediaTransportPtr & newTransport)
 {
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
   InternalAttachTransport(newTransport PTRACE_PARAM(, "attached"));
 }
 
 
 void OpalRTPSession::InternalAttachTransport(const OpalMediaTransportPtr & newTransport PTRACE_PARAM(, const char * from))
 {
+  // Assumes read/write lock is already held
+
   OpalMediaSession::AttachTransport(newTransport);
   if (!IsOpen())
     return;
@@ -3128,6 +3131,8 @@ bool OpalRTPSession::Open(const PString & localInterface, const OpalTransportAdd
 
 bool OpalRTPSession::SetQoS(const PIPSocket::QoS & qos)
 {
+  // Assumes read/write lock is already held
+
   OpalMediaTransportPtr transport = m_transport; // This way avoids races
   if (transport == NULL || !transport->IsOpen())
     return false;
@@ -3135,8 +3140,6 @@ bool OpalRTPSession::SetQoS(const PIPSocket::QoS & qos)
   PIPSocket * socket = dynamic_cast<PIPSocket *>(transport->GetChannel(e_Data));
   if (socket == NULL)
     return false;
-
-  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
 
   PIPAddress remoteAddress;
   WORD remotePort;
