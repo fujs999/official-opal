@@ -147,9 +147,10 @@ class OpalRFC2833Proto : public PObject
     PDECLARE_NOTIFIER(PTimer, OpalRFC2833Proto, ReceiveTimeout);
     PDECLARE_NOTIFIER(PTimer, OpalRFC2833Proto, TransmitTimeout);
 
-    OpalMediaFormat                m_baseMediaFormat;
-    RTP_DataFrame::PayloadTypes    m_txPayloadType;
-    RTP_DataFrame::PayloadTypes    m_rxPayloadType;
+    const OpalMediaFormat          m_baseMediaFormat;
+    // PTs are atomic as mutex usage is inconsistent
+    std::atomic<RTP_DataFrame::PayloadTypes>    m_txPayloadType;
+    std::atomic<RTP_DataFrame::PayloadTypes>    m_rxPayloadType;
     OpalRFC2833EventsMask          m_txEvents;
     OpalRFC2833EventsMask          m_rxEvents;
     Notifier                       m_receiveNotifier;
