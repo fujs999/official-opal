@@ -769,7 +769,7 @@ OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnReceiveData(RTP_DataFrame &
   if (UseSyncSource(ssrc, e_Receiver, false) == NULL)
     return e_IgnorePacket;
 
-  int len = frame.GetPacketSize();
+  int len = frame.GetSize();
 
   frame.MakeUnique();
 
