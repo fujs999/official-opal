@@ -143,6 +143,7 @@ class OpalSRTPSession : public OpalRTPSession
     virtual SendReceiveStatus OnSendControl(RTP_ControlFrame & frame, const PTime & now);
     virtual SendReceiveStatus OnReceiveData(RTP_DataFrame & frame, ReceiveType rxType, const PTime & now);
     virtual SendReceiveStatus OnReceiveControl(RTP_ControlFrame & frame, const PTime & now);
+    virtual bool IsEncrypted() const { return true; }
 
     virtual SendReceiveStatus OnReceiveDecodedControl(RTP_ControlFrame & frame, const PTime & now);
 
