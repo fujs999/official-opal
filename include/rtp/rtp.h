@@ -544,7 +544,7 @@ class RTP_DataFrame : public PBYTEArray
   public:
     RTP_DataFrame(PINDEX payloadSize = 0, PINDEX bufferSize = 0);
     RTP_DataFrame(const BYTE * data, PINDEX len, bool dynamic = true);
-    RTP_DataFrame(const PBYTEArray data);
+    RTP_DataFrame(const PBYTEArray & data);
 
     enum {
       ProtocolVersion = 2,

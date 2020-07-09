@@ -160,6 +160,8 @@ class OpalMediaFileRecordManager : public OpalRecordManager
 
   protected:
     mutable PDECLARE_MUTEX(m_mutex);
+    PFilePath m_tempFile;
+    PFilePath m_finalFile;
     PSmartPtr<PMediaFile> m_file;
 
     // Audio
@@ -239,13 +241,17 @@ bool OpalMediaFileRecordManager::OpenFile(const PFilePath & fn)
     return false;
 
   m_file = PMediaFile::Create(fn);
-  if (m_file == NULL)
+  if (m_file == NULL) {
+    PTRACE(2, "Cannot use media file type of " << fn);
     return false;
+  }
 
   PTRACE_CONTEXT_ID_TO(*m_file);
 
-  if (!m_file->OpenForWriting(fn)) {
-    PTRACE(2, "Cannot open media file for writing: " << m_file->GetErrorText());
+  m_finalFile = m_tempFile = fn;
+  m_tempFile.SetType(".recording" + m_finalFile.GetType());
+  if (!m_file->OpenForWriting(m_tempFile)) {
+    PTRACE(2, "Cannot open media file \"" << m_tempFile << "\" for writing: " << m_file->GetErrorText());
     m_file = NULL;
     return false;
   }
@@ -337,6 +343,10 @@ bool OpalMediaFileRecordManager::Close()
 
   PSmartPtr<PMediaFile> file = m_file;
   m_file = NULL;
+
+  if (!file.IsNULL() && !PFile::Rename(m_tempFile, m_finalFile, true)) {
+    PTRACE(2, "Could not rename \"" << m_tempFile << "\" to \"" << m_finalFile << '"');
+  }
 
   m_mutex.Signal();
 
