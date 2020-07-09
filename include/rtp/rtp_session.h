@@ -264,6 +264,7 @@ class OpalRTPSession : public OpalMediaSession
     virtual SendReceiveStatus OnPreReceiveData(RTP_DataFrame & frame, const PTime & now);
     virtual SendReceiveStatus OnReceiveData(RTP_DataFrame & frame, ReceiveType rxType, const PTime & now);
     virtual SendReceiveStatus OnReceiveControl(RTP_ControlFrame & frame, const PTime & now);
+    virtual bool IsEncrypted() const { return false; }
 
     virtual void OnRxSenderReport(const RTP_SenderReport & sender, const PTime & now);
     virtual void OnRxReceiverReports(RTP_SyncSourceId src, const RTP_ControlFrame::ReceiverReport * rr, unsigned count, const PTime & now);

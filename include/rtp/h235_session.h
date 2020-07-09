@@ -120,10 +120,8 @@ class H2356_Session : public OpalRTPSession
     virtual OpalMediaCryptoKeyInfo * IsCryptoSecured(bool rx) const;
 
     virtual SendReceiveStatus OnSendData(RewriteMode & rewrite, RTP_DataFrame & frame, const PTime & now);
-#if !H235_6_CODED_TO_CORRECT_SPECIFICATION
-    virtual SendReceiveStatus OnPreReceiveData(RTP_DataFrame & frame, const PTime & now);
-#endif
     virtual SendReceiveStatus OnReceiveData(RTP_DataFrame & frame, ReceiveType rxType, const PTime & now);
+    virtual bool IsEncrypted() const { return true; }
 
   protected:
     struct Context {

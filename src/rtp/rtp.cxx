@@ -76,18 +76,12 @@ RTP_DataFrame::RTP_DataFrame(const BYTE * data, PINDEX len, bool dynamic)
 }
 
 
-RTP_DataFrame::RTP_DataFrame(const PBYTEArray data)
+RTP_DataFrame::RTP_DataFrame(const PBYTEArray & data)
   : PBYTEArray(data)
   , m_headerSize(MinHeaderSize)
   , m_payloadSize(0)
   , m_paddingSize(0)
 {
-  if (SetPacketSize(data.GetSize()))
-    m_metaData.m_receivedTime.SetCurrentTime();
-  else {
-    SetSize(MinHeaderSize);
-    theArray[0] = 0; // Make illegal RTP frame
-  }
 }
 
 
