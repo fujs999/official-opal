@@ -3306,8 +3306,10 @@ void OpalRTPSession::OnRxDataPacket(OpalMediaTransport &, PBYTEArray data)
   }
   else {
     RTP_DataFrame frame(data);
-    if (OnPreReceiveData(frame, PTime()) == e_AbortTransport)
-      SessionFailed(e_Data PTRACE_PARAM(, "OnReceiveData abort"));
+    if ((data.GetSize() > RTP_DataFrame::MinHeaderSize && IsEncrypted()) || frame.SetPacketSize(data.GetSize())) {
+      if (OnPreReceiveData(frame, PTime()) == e_AbortTransport)
+        SessionFailed(e_Data PTRACE_PARAM(, "OnReceiveData abort"));
+    }
   }
 }
 

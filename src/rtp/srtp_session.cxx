@@ -784,7 +784,7 @@ OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnReceiveData(RTP_DataFrame &
 
   OPAL_SRTP_TRACE(3, e_Receiver, e_Data, ssrc, 2, "unprotected RTP packet: " << frame.GetPacketSize() << "->" << len);
 
-  frame.SetPayloadSize(len - frame.GetHeaderSize());
+  frame.SetPacketSize(len); // Do sanity checks now after len adjusted in srtp_unprotect
 
   return OpalRTPSession::OnReceiveData(frame, rxType, now);
 }
