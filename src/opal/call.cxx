@@ -965,7 +965,7 @@ bool OpalCall::StartRecording(const PFilePath & fn, const OpalRecordManager::Opt
 
   OpalRecordManager * newManager = OpalRecordManager::Factory::CreateInstance(fn.GetType());
   if (newManager == NULL) {
-    PTRACE(2, "Cannot record to file type " << fn);
+    PTRACE(2, "Cannot record to file type of " << fn);
     return false;
   }
 
@@ -973,13 +973,17 @@ bool OpalCall::StartRecording(const PFilePath & fn, const OpalRecordManager::Opt
 
   // create the mixer entry
   if (!newManager->Open(fn, options)) {
+    PTRACE(2, "Cannot open recording to file " << fn);
     delete newManager;
     return false;
   }
 
   PSafeLockReadWrite lock(*this);
-  if (!lock.IsLocked())
+  if (!lock.IsLocked()) {
+    PTRACE(2, "Cannot record, call " << *this << " abandoned.");
+    delete newManager;
     return false;
+  }
 
   m_recordManager = newManager;
 
