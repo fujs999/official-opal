@@ -117,8 +117,16 @@ void OpalCall::OnEstablishedCall()
 }
 
 
+OpalConnection::CallEndReason OpalCall::GetCallEndReason() const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return OpalConnection::NumCallEndReasons);
+  return m_callEndReason;
+}
+
+
 void OpalCall::SetCallEndReason(OpalConnection::CallEndReason reason)
 {
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
   // Only set reason if not already set to something
   if (m_callEndReason == OpalConnection::NumCallEndReasons &&
      (reason != OpalConnection::EndedByCallForwarded || m_connectionsActive.GetSize() <= 1))

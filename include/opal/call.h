@@ -111,11 +111,11 @@ class OpalCall : public PSafeObject
 
        If the call is still active then this will return OpalConnection::NumCallEndReasons.
       */
-    OpalConnection::CallEndReason GetCallEndReason() const { return m_callEndReason; }
+    OpalConnection::CallEndReason GetCallEndReason() const;
 
     /**Get the reason for this connection shutting down as text.
       */
-    PString GetCallEndReasonText() const { return OpalConnection::GetCallEndReasonText(m_callEndReason); }
+    PString GetCallEndReasonText() const { return OpalConnection::GetCallEndReasonText(GetCallEndReason()); }
 
     /**Set the call clearance reason.
        An application should have no cause to use this function. It is present
