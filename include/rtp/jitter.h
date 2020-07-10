@@ -174,31 +174,33 @@ class OpalJitterBuffer : public PObject
     
     /**Get minimum delay for jitter buffer.
       */
-    RTP_Timestamp GetMinJitterDelay() const { return m_minJitterDelay; }
+    RTP_Timestamp GetMinJitterDelay() const;
     
     /**Get maximum delay for jitter buffer.
       */
-    RTP_Timestamp GetMaxJitterDelay() const { return m_maxJitterDelay; }
+    RTP_Timestamp GetMaxJitterDelay() const;
 
     /**Get total number received packets too late to go into jitter buffer.
       */
-    unsigned GetPacketsTooLate() const { return m_packetsTooLate; }
+    unsigned GetPacketsTooLate() const;
 
     /**Get total number received packets that overran the jitter buffer.
       */
-    unsigned GetBufferOverruns() const { return m_bufferOverruns; }
+    unsigned GetBufferOverruns() const;
   //@}
 
   protected:
-    unsigned      m_timeUnits;
-    PINDEX        m_packetSize;
-    RTP_Timestamp m_minJitterDelay;      ///< Minimum jitter delay in timestamp units
-    RTP_Timestamp m_maxJitterDelay;      ///< Maximum jitter delay in timestamp units
-    unsigned      m_packetsTooLate;
-    unsigned      m_bufferOverruns;
+    const unsigned  m_timeUnits;
+    PINDEX          m_packetSize;
+    RTP_Timestamp   m_minJitterDelay;      ///< Minimum jitter delay in timestamp units
+    RTP_Timestamp   m_maxJitterDelay;      ///< Maximum jitter delay in timestamp units
+    unsigned        m_packetsTooLate;
+    unsigned        m_bufferOverruns;
 
     class Analyser;
     Analyser * m_analyser;
+
+    PDECLARE_MUTEX(m_bufferMutex);
 };
 
 
@@ -335,7 +337,6 @@ class OpalAudioJitterBuffer : public OpalJitterBuffer
 
     typedef std::map<RTP_Timestamp, RTP_DataFrame> FrameMap;
     FrameMap   m_frames;
-    PDECLARE_MUTEX(m_bufferMutex);
     PSemaphore m_frameCount;
 
     PTimeInterval m_lastInsertTick;

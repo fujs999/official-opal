@@ -272,9 +272,39 @@ OpalJitterBuffer * OpalJitterBuffer::Create(const OpalMediaType & mediaType, con
 void OpalJitterBuffer::SetDelay(const Init & init)
 {
   PAssert(m_timeUnits == init.m_timeUnits, PInvalidParameter);
+
+  PWaitAndSignal mutex(m_bufferMutex);
   m_packetSize     = init.m_packetSize;
   m_minJitterDelay = init.m_minJitterDelay*m_timeUnits;
   m_maxJitterDelay = init.m_maxJitterDelay*m_timeUnits;
+}
+
+
+RTP_Timestamp OpalJitterBuffer::GetMinJitterDelay() const
+{
+  PWaitAndSignal mutex(m_bufferMutex);
+  return m_minJitterDelay;
+}
+
+
+RTP_Timestamp OpalJitterBuffer::GetMaxJitterDelay() const
+{
+  PWaitAndSignal mutex(m_bufferMutex);
+  return m_maxJitterDelay;
+}
+
+
+unsigned OpalJitterBuffer::GetPacketsTooLate() const
+{
+  PWaitAndSignal mutex(m_bufferMutex);
+  return m_packetsTooLate;
+}
+
+
+unsigned OpalJitterBuffer::GetBufferOverruns() const
+{
+  PWaitAndSignal mutex(m_bufferMutex);
+  return m_bufferOverruns;
 }
 
 
