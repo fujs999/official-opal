@@ -97,7 +97,6 @@ class OpalDTLSContext : public PSSLContext
 OpalDTLSMediaTransport::DTLSChannel::DTLSChannel(OpalDTLSMediaTransport & transport, PChannel * channel)
   : PSSLChannelDTLS(new OpalDTLSContext(transport), true)
   , m_transport(transport)
-  , m_lastReceivedLength(0)
   , m_lastResponseLength(0)
 {
   SetMTU(m_transport.m_MTU);
@@ -123,8 +122,9 @@ bool OpalDTLSMediaTransport::DTLSChannel::Read(void * buf, PINDEX size)
       if (!PSSLChannelDTLS::Read(buf, size))
         return false;
       // Cache the most recent packet data passed up to us (probably ClientHello)
-      m_lastReceivedLength = GetLastReadCount();
-      memcpy(m_lastReceivedData.GetPointer(m_lastReceivedLength), buf, m_lastReceivedLength);
+      m_lastReceivedPackets.push_back(PBYTEArray(static_cast<BYTE*>(buf), GetLastReadCount(), true));
+      if (m_lastReceivedPackets.size() > 2)
+        m_lastReceivedPackets.pop_front();
     }
 
     // In here, DTLSChannel::BioRead is called instead of DTLSChannel::Read
@@ -203,12 +203,15 @@ bool OpalDTLSMediaTransport::DTLSChannel::Read(void * buf, PINDEX size)
 
 int OpalDTLSMediaTransport::DTLSChannel::BioRead(char * buf, int len)
 {
-  if (m_lastReceivedLength > 0) {
-    // In case it was a ClientHello, return last received packet first instead of
-    // waiting for the next retransmission.
-    if (static_cast<PINDEX>(len) >= m_lastReceivedLength)
-      memcpy(buf, m_lastReceivedData.GetPointer(), m_lastReceivedLength);
-    m_lastReceivedLength = 0;
+  if (!m_lastReceivedPackets.empty()) {
+    // First return packets received before we were ready to handshake
+    PBYTEArray & packet = m_lastReceivedPackets.front();
+    size_t packetLen = packet.size();
+    if (static_cast<size_t>(len) >= packetLen)
+      memcpy(buf, packet.GetPointer(), packetLen);
+    m_lastReceivedPackets.pop_front();
+    PTRACE(5, "Read " << packetLen << " bytes from pre-handshake cache");
+    return packetLen;
   }
 
   int result = PSSLChannelDTLS::BioRead(buf, len);

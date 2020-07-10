@@ -86,9 +86,10 @@ class OpalDTLSMediaTransport : public OpalDTLSMediaTransportParent
         virtual int BioWrite(const char * buf, int len);
       protected:
         OpalDTLSMediaTransport & m_transport;
-        // Used to cache a ClientHello received before we're ready for the handshake
-        PBYTEArray               m_lastReceivedData;
-        PINDEX                   m_lastReceivedLength;
+        // Used to cache a ClientHello received before we're ready to handshake.
+        // Unfortunately Firefox likes to fragment this over two packets after the
+        // first 3 ignored attempts (~350ms).
+        std::list<PBYTEArray>    m_lastReceivedPackets;
         // The final handshake response packet (for retransmission in case it is lost)
         PBYTEArray               m_lastResponseData;
         PINDEX                   m_lastResponseLength;
