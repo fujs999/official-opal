@@ -108,15 +108,19 @@ bool OpalMediaPatch::CanStart() const
     return false;
   }
 
-  if (m_sinks.IsEmpty()) {
-    PTRACE(4, "Delaying patch start till have sink stream: " << *this);
-    return false;
-  }
+  {
+    P_INSTRUMENTED_LOCK_READ_ONLY(return false);
 
-  for (PList<Sink>::const_iterator s = m_sinks.begin(); s != m_sinks.end(); ++s) {
-    if (!s->m_stream->IsOpen()) {
-      PTRACE(4, "Delaying patch start till sink stream open: " << *this);
+    if (m_sinks.IsEmpty()) {
+      PTRACE(4, "Delaying patch start till have sink stream: " << *this);
       return false;
+    }
+
+    for (PList<Sink>::const_iterator s = m_sinks.begin(); s != m_sinks.end(); ++s) {
+      if (!s->m_stream->IsOpen()) {
+        PTRACE(4, "Delaying patch start till sink stream open: " << *this);
+        return false;
+      }
     }
   }
 
@@ -160,8 +164,11 @@ void OpalMediaPatch::Start()
 
   if (CanStart()) {
     PString threadName = m_source.GetPatchThreadName();
-    if (threadName.IsEmpty() && !m_sinks.empty())
-      threadName = m_sinks.front().m_stream->GetPatchThreadName();
+    if (threadName.IsEmpty()) {
+      P_INSTRUMENTED_LOCK_READ_ONLY2(lock, *this);
+      if (lock.IsLocked() && !m_sinks.empty())
+        threadName = m_sinks.front().m_stream->GetPatchThreadName();
+    }
     if (threadName.IsEmpty())
       threadName = "Media Patch";
     m_patchThread = new PThreadObj<OpalMediaPatch>(*this, &OpalMediaPatch::Main, false, threadName, PThread::HighPriority);
@@ -786,7 +793,13 @@ void OpalMediaPatch::Main()
 
   m_source.OnStopMediaPatch(*this);
 
-  if (m_sinks.IsEmpty() && m_source.GetPatch() == this) {
+  bool noSinks = false;
+  {
+    P_INSTRUMENTED_LOCK_READ_ONLY(return);
+    noSinks = m_sinks.IsEmpty();
+  }
+
+  if (noSinks && m_source.GetPatch() == this) {
     PTRACE(4, "Closing source media stream as no sinks in " << *this);
     m_source.GetConnection().GetEndPoint().GetManager().QueueDecoupledEvent(
                 new PSafeWorkArg1<OpalConnection, OpalMediaStreamPtr, bool>(&m_source.GetConnection(),
