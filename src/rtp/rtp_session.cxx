@@ -1261,12 +1261,15 @@ bool OpalRTPSession::SyncSource::HandlePendingFrames(const PTime & now)
 
 void OpalRTPSession::AttachTransport(const OpalMediaTransportPtr & newTransport)
 {
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
   InternalAttachTransport(newTransport PTRACE_PARAM(, "attached"));
 }
 
 
 void OpalRTPSession::InternalAttachTransport(const OpalMediaTransportPtr & newTransport PTRACE_PARAM(, const char * from))
 {
+  // Assumes read/write lock is already held
+
   OpalMediaSession::AttachTransport(newTransport);
   if (!IsOpen())
     return;
@@ -1281,7 +1284,7 @@ void OpalRTPSession::InternalAttachTransport(const OpalMediaTransportPtr & newTr
   if (newTransport->GetLocalAddress(e_Media).GetIpAddress(localAddress))
     m_packetOverhead = localAddress.GetVersion() != 6 ? (20 + 8 + 12) : (40 + 8 + 12);
 
-  SetQoS(m_qos);
+  InternalSetQoS(m_qos);
 
   if (!m_reportTimer.IsRunning())
     m_reportTimer.RunContinuous(m_reportTimer.GetResetTime());
@@ -3147,7 +3150,7 @@ bool OpalRTPSession::UpdateMediaFormat(const OpalMediaFormat & mediaFormat)
     m_qos.m_transmit.m_maxJitter = m_qos.m_receive.m_maxJitter = 250000; // 250ms
   }
 
-  SetQoS(m_qos);
+  InternalSetQoS(m_qos);
 
   PTRACE(4, *this << "updated media format " << mediaFormat << ": timeUnits=" << m_timeUnits << " maxBitRate=" << maxBitRate << ", feedback=" << m_feedback);
   return true;
@@ -3203,8 +3206,10 @@ bool OpalRTPSession::Open(const PString & localInterface, const OpalTransportAdd
 }
 
 
-bool OpalRTPSession::SetQoS(const PIPSocket::QoS & qos)
+bool OpalRTPSession::InternalSetQoS(const PIPSocket::QoS & qos)
 {
+  // Assumes read/write lock is already held
+
   OpalMediaTransportPtr transport = m_transport; // This way avoids races
   if (transport == NULL || !transport->IsOpen())
     return false;
@@ -3212,8 +3217,6 @@ bool OpalRTPSession::SetQoS(const PIPSocket::QoS & qos)
   PIPSocket * socket = dynamic_cast<PIPSocket *>(transport->GetChannel(e_Data));
   if (socket == NULL)
     return false;
-
-  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
 
   PIPAddress remoteAddress;
   WORD remotePort;

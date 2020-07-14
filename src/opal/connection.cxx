@@ -419,6 +419,13 @@ void OpalConnection::OnHold(bool fromRemote, bool onHold)
 }
 
 
+OpalConnection::CallEndReason OpalConnection::GetCallEndReason() const
+{
+  PWaitAndSignal mutex(m_phaseMutex);
+  return m_callEndReason;
+}
+
+
 PString OpalConnection::GetCallEndReasonText(CallEndReason reason)
 {
   return psprintf(CallEndReasonStrings(reason.code), reason.q931);
@@ -433,21 +440,27 @@ void OpalConnection::SetCallEndReasonText(CallEndReasonCodes reasonCode, const P
 
 void OpalConnection::SetCallEndReason(CallEndReason reason)
 {
-  PWaitAndSignal mutex(m_phaseMutex);
+  const CallEndReason ownerCallReason = m_ownerCall.GetCallEndReason();
+  if (ownerCallReason != OpalConnection::NumCallEndReasons) {
+    PTRACE_IF(3, ownerCallReason != reason, "Call end reason for "
+              << *this << " not set to " << reason << ", using call value " << ownerCallReason);
+    reason = ownerCallReason;
+  }
 
-  // Only set reason if not already set to something
-  if (m_callEndReason == NumCallEndReasons) {
-    if (m_ownerCall.GetCallEndReason() != OpalConnection::NumCallEndReasons) {
-      m_callEndReason = m_ownerCall.GetCallEndReason();
-      PTRACE_IF(3, m_callEndReason != reason, "Call end reason for "
-                << *this << " not set to " << reason << ", using call value " << m_callEndReason);
-    }
-    else {
+  {
+    PWaitAndSignal mutex(m_phaseMutex);
+
+    // Only set reason if not already set to something
+    if (m_callEndReason == NumCallEndReasons) {
       PTRACE(3, "Call end reason for " << *this << " set to " << reason);
       m_callEndReason = reason;
-      m_ownerCall.SetCallEndReason(reason);
     }
+    else
+      return;
   }
+
+  if (ownerCallReason == OpalConnection::NumCallEndReasons)
+    m_ownerCall.SetCallEndReason(reason);
 }
 
 
@@ -509,8 +522,6 @@ void OpalConnection::Release(CallEndReason reason, bool synchronous)
 
 bool OpalConnection::InternalRelease(CallEndReason reason)
 {
-  PWaitAndSignal mutex(m_phaseMutex);
-
   if (IsReleased()) {
     PTRACE(3, "Already released " << *this);
     return true;
@@ -556,7 +567,7 @@ void OpalConnection::OnReleased()
   SetPhase(ReleasedPhase);
 
   PTRACE(3, "Connection " << *this << " released\n"
-         << setw(19) << "Call end reason" << ": " << m_callEndReason << '\n'
+         << setw(19) << "Call end reason" << ": " << GetCallEndReason() << '\n'
          << setprecision(2) << PTrace::LogObject(GetConnectionInfo()));
 }
 

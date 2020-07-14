@@ -279,7 +279,7 @@ class OpalMediaStatistics : public PObject
 #endif
 
 
-/** Class for contianing the cryptographic keys for use by OpalMediaCryptoSuite.
+/** Class for containing the cryptographic keys for use by OpalMediaCryptoSuite.
   */
 class OpalMediaCryptoKeyInfo : public PObject
 {
@@ -317,8 +317,8 @@ struct OpalMediaCryptoKeyList : PList<OpalMediaCryptoKeyInfo>
 };
 
 
-/** Class for desribing the crytpographic mechanism used by an OpalMediaSession.
-    These are singletons that descibe the cypto suite in use
+/** Class for describing the cryptographic mechanism used by an OpalMediaSession.
+    These are singletons that describe the crypto suite in use
   */
 class OpalMediaCryptoSuite : public PObject
 {
