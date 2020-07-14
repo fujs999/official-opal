@@ -675,7 +675,7 @@ class OpalRTPSession : public OpalMediaSession
     virtual OpalMediaTransport * CreateMediaTransport(const PString & name);
     void InternalAttachTransport(const OpalMediaTransportPtr & transport PTRACE_PARAM(, const char * from));
 
-    bool SetQoS(const PIPSocket::QoS & qos);
+    bool InternalSetQoS(const PIPSocket::QoS & qos);
 
     PDECLARE_MediaReadNotifier(OpalRTPSession, OnRxDataPacket);
     PDECLARE_MediaReadNotifier(OpalRTPSession, OnRxControlPacket);
