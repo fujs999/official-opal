@@ -664,14 +664,14 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
 
        If the call is still active then this will return NumCallEndReasons.
       */
-    CallEndReason GetCallEndReason() const { return m_callEndReason; }
+    CallEndReason GetCallEndReason() const;
 
     /**Get the reason for this connection shutting down as text.
       */
     static PString GetCallEndReasonText(CallEndReason reason);
-    PString GetCallEndReasonText() const { return GetCallEndReasonText(m_callEndReason); }
+    PString GetCallEndReasonText() const { return GetCallEndReasonText(GetCallEndReason()); }
 
-    /**Get the reason for this connection shutting down as text.
+    /**Set the reason for this connection shutting down as text.
       */
     static void SetCallEndReasonText(CallEndReasonCodes reasonCode, const PString & newText);
 

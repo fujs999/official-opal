@@ -621,7 +621,7 @@ class OpalRTPSession : public OpalMediaSession
     /**Get round trip time to remote.
        This is calculated according to the RFC 3550 algorithm.
       */
-    int GetRoundTripTime() const { return m_roundTripTime; }
+    int GetRoundTripTime() const;
   //@}
 
     /// Send BYE command
@@ -675,7 +675,7 @@ class OpalRTPSession : public OpalMediaSession
     virtual OpalMediaTransport * CreateMediaTransport(const PString & name);
     void InternalAttachTransport(const OpalMediaTransportPtr & transport PTRACE_PARAM(, const char * from));
 
-    bool SetQoS(const PIPSocket::QoS & qos);
+    bool InternalSetQoS(const PIPSocket::QoS & qos);
 
     PDECLARE_MediaReadNotifier(OpalRTPSession, OnRxDataPacket);
     PDECLARE_MediaReadNotifier(OpalRTPSession, OnRxControlPacket);

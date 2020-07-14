@@ -1066,13 +1066,13 @@ class SIPTransaction : public SIPTransactionBase
     virtual SIPTransaction * CreateDuplicate() const = 0;
 
     bool Start();
-    bool IsTrying()     const { return m_state == Trying; }
-    bool IsProceeding() const { return m_state == Proceeding; }
-    bool IsInProgress() const { return m_state == Trying || m_state == Proceeding; }
-    bool IsFailed()     const { return m_state > Terminated_Success; }
-    bool IsCompleted()  const { return m_state >= Completed; }
-    bool IsCanceled()   const { return m_state == Cancelling || m_state == Terminated_Cancelled || m_state == Terminated_Aborted; }
-    bool IsTerminated() const { return m_state >= Terminated_Success; }
+    bool IsTrying()     const { return GetState() == Trying; }
+    bool IsProceeding() const { return GetState() == Proceeding; }
+    bool IsInProgress() const { const States state = GetState(); return state == Trying || state == Proceeding; }
+    bool IsFailed()     const { return GetState() > Terminated_Success; }
+    bool IsCompleted()  const { return GetState() >= Completed; }
+    bool IsCanceled()   const { const States state = GetState(); return state == Cancelling || state == Terminated_Cancelled || state == Terminated_Aborted; }
+    bool IsTerminated() const { return GetState() >= Terminated_Success; }
 
     void WaitForCompletion();
     PBoolean Cancel();
@@ -1084,7 +1084,7 @@ class SIPTransaction : public SIPTransactionBase
 
     SIPEndPoint & GetEndPoint() const { return m_owner->GetEndPoint(); }
     SIPConnection * GetConnection() const;
-    PString         GetInterface()  const { return m_localInterface; }
+    PString         GetInterface()  const;
 
     static PString GenerateCallID();
 
@@ -1110,10 +1110,11 @@ class SIPTransaction : public SIPTransactionBase
       Terminated_Cancelled,
       Terminated_Aborted
     );
+    States GetState() const;
     virtual void SetTerminated(States newState);
 
-    SIPTransactionOwner * m_owner;
-    bool                  m_deleteOwner;
+    SIPTransactionOwner * const m_owner;
+    const bool                  m_deleteOwner;
 
     PTimeInterval m_retryTimeoutMin; 
     PTimeInterval m_retryTimeoutMax; 
