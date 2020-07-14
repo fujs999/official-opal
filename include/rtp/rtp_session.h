@@ -621,7 +621,7 @@ class OpalRTPSession : public OpalMediaSession
     /**Get round trip time to remote.
        This is calculated according to the RFC 3550 algorithm.
       */
-    int GetRoundTripTime() const { return m_roundTripTime; }
+    int GetRoundTripTime() const;
   //@}
 
     /// Send BYE command

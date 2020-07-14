@@ -1561,6 +1561,13 @@ void OpalRTPSession::SetMaxOutOfOrderPackets(PINDEX packets)
 }
 
 
+int OpalRTPSession::GetRoundTripTime() const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return -1);
+  return m_roundTripTime;
+}
+
+
 bool OpalRTPSession::SyncSource::OnSendReceiverReport(RTP_ControlFrame::ReceiverReport * report,
                                                       const PTime & now
                                                       PTRACE_PARAM(, unsigned logLevel))
