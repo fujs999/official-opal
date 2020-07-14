@@ -100,11 +100,11 @@ class OpalDTLSMediaTransport : public OpalDTLSMediaTransportParent
     virtual bool PerformHandshake(DTLSChannel & channel);
     PDECLARE_SSLVerifyNotifier(OpalDTLSMediaTransport, OnVerify);
 
-    bool            m_passiveMode;
-    PTimeInterval   m_handshakeTimeout;
-    unsigned        m_MTU;
-    PSSLCertificate m_certificate;
-    PSSLPrivateKey  m_privateKey;
+    std::atomic<bool>   m_passiveMode;
+    PTimeInterval       m_handshakeTimeout;
+    unsigned            m_MTU;
+    PSSLCertificate     m_certificate;
+    PSSLPrivateKey      m_privateKey;
     PSSLCertificateFingerprint m_remoteFingerprint;
     std::auto_ptr<OpalMediaCryptoKeyInfo> m_keyInfo[2];
 
