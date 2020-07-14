@@ -501,12 +501,10 @@ bool OpalSRTPSession::ResequenceOutOfOrderPackets(SyncSource &) const
 
 OpalMediaCryptoKeyList & OpalSRTPSession::GetOfferedCryptoKeys()
 {
-  PSafeLockReadOnly lock(*this);
+  PSafeLockReadOnly lock(*this); // protects read of m_keyInfo; m_offeredCryptokeys should be safe
 
-  if (m_offeredCryptokeys.IsEmpty() && m_keyInfo[e_Sender] != NULL) {
-    PSafeLockReadWrite wlock(*this);
+  if (m_offeredCryptokeys.IsEmpty() && m_keyInfo[e_Sender] != NULL)
     m_offeredCryptokeys.Append(m_keyInfo[e_Sender]->CloneAs<OpalMediaCryptoKeyInfo>());
-  }
 
   return OpalRTPSession::GetOfferedCryptoKeys();
 }

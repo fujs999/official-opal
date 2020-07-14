@@ -1646,15 +1646,12 @@ void OpalMediaSession::OfferCryptoSuite(const PString & cryptoSuiteName)
 
   OpalMediaCryptoKeyInfo * keyInfo = cryptoSuite->CreateKeyInfo();
   keyInfo->Randomise();
-
-  P_INSTRUMENTED_LOCK_READ_WRITE(return);
   m_offeredCryptokeys.Append(keyInfo);
 }
 
 
 OpalMediaCryptoKeyList & OpalMediaSession::GetOfferedCryptoKeys()
 {
-  PSafeLockReadOnly lock(*this);
   return m_offeredCryptokeys;
 }
 
