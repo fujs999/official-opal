@@ -2700,6 +2700,8 @@ bool SIP_PDU::DecodeSDP(SIPConnection & connection, PString & sdpText, PMultiPar
   if (!m_mime.GetSDP(m_entityBody, sdpText, parts))
     return false;
 
+  parts.push_back(PMultiPartInfo(m_mime.AsString(), "x-sip/headers"));
+
   m_SDP = connection.GetEndPoint().CreateSDP(0, 0, OpalTransportAddress());
   if (m_SDP == NULL)
     return false;
