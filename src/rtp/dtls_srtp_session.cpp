@@ -314,7 +314,6 @@ bool OpalDTLSMediaTransport::GetKeyInfo(OpalMediaCryptoKeyInfo * keyInfo[2])
 
 void OpalDTLSMediaTransport::SetPassiveMode(bool passive)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE(return);
   m_passiveMode = passive;
 }
 
@@ -370,12 +369,7 @@ bool OpalDTLSMediaTransport::InternalPerformHandshake(DTLSChannel * channel)
 
 bool OpalDTLSMediaTransport::PerformHandshake(DTLSChannel & channel)
 {
-  bool passiveMode;
-  {
-    P_INSTRUMENTED_LOCK_READ_ONLY(return false);
-    passiveMode = m_passiveMode;
-  }
-
+  const bool passiveMode = m_passiveMode;
   if (!(passiveMode ? channel.Accept() : channel.Connect())) {
     PTRACE(2, *this << "could not " << (passiveMode ? "accept" : "connect") << " DTLS channel");
     return false;
