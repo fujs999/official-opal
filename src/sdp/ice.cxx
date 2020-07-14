@@ -139,7 +139,7 @@ void OpalICEMediaTransport::InternalRxData(SubChannels subchannel, const PBYTEAr
   if (GetICEState() == e_Disabled)
     return OpalUDPMediaTransport::InternalRxData(subchannel, data);
 
-  return OpalMediaTransport::InternalRxData(subchannel, data) && GetICEState() == e_Completed;
+  OpalMediaTransport::InternalRxData(subchannel, data);
 }
 
 
