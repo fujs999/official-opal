@@ -127,6 +127,7 @@ bool OpalICEMediaTransport::Open(OpalMediaSession & session,
 
 bool OpalICEMediaTransport::IsEstablished() const
 {
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
   if (m_state != e_Disabled && m_selectedCandidate.m_type == PNatCandidate::EndTypes)
     return false;
   return OpalUDPMediaTransport::IsEstablished();
@@ -135,10 +136,10 @@ bool OpalICEMediaTransport::IsEstablished() const
 
 bool OpalICEMediaTransport::InternalRxData(SubChannels subchannel, const PBYTEArray & data)
 {
-  if (m_state == e_Disabled)
+  if (GetICEState() == e_Disabled)
     return OpalUDPMediaTransport::InternalRxData(subchannel, data);
 
-  return OpalMediaTransport::InternalRxData(subchannel, data) && m_state == e_Completed;
+  return OpalMediaTransport::InternalRxData(subchannel, data) && GetICEState() == e_Completed;
 }
 
 
@@ -440,7 +441,7 @@ OpalICEMediaTransport::ICEChannel::ICEChannel(OpalICEMediaTransport & owner, Sub
 PBoolean OpalICEMediaTransport::ICEChannel::Read(void * data, PINDEX size)
 {
   for (;;) {
-    SetReadTimeout(m_owner.m_state <= e_Completed ? m_owner.m_mediaTimeout : m_owner.m_iceTimeout);
+    SetReadTimeout(m_owner.GetICEState() <= e_Completed ? m_owner.m_mediaTimeout : m_owner.m_iceTimeout);
     if (!PIndirectChannel::Read(data, size))
       return false;
     if (m_owner.InternalHandleICE(m_subchannel, data, GetLastReadCount()))
@@ -449,6 +450,12 @@ PBoolean OpalICEMediaTransport::ICEChannel::Read(void * data, PINDEX size)
 }
 
 
+/*
+ * Process STUN binding requests received on the channel.
+ * 
+ * @return true if the data should be passed up for processing by another layer,
+ *         false if the data was processed here or should be discarded.
+ */
 bool OpalICEMediaTransport::InternalHandleICE(SubChannels subchannel, const void * data, PINDEX length)
 {
   P_INSTRUMENTED_LOCK_READ_WRITE(return true);
@@ -463,16 +470,19 @@ bool OpalICEMediaTransport::InternalHandleICE(SubChannels subchannel, const void
   PIPAddressAndPort ap;
   socket->GetLastReceiveAddress(ap);
 
-  PSTUNMessage message((BYTE *)data, length, ap);
-  if (!message.IsValid()) {
-    /* During ICE restart, continue to accept traffic from previously-selected candidate
-       until a new one is selected. */
-    if (m_state == e_Completed && m_selectedCandidate.m_baseTransportAddress == ap)
-      return true; // Only process non-STUN packets from the selected candidate
+  // Demultiplex based on https://tools.ietf.org/html/rfc7983
+  const BYTE *byteData = static_cast<const BYTE*>(data);
+  if (byteData[0] > 3) {
+    /* As per https://tools.ietf.org/html/rfc5245#section-11.2, receiving media
+       is not dependent on having a selected candidate pair; that only applies to
+       sending media. */
+    return true;
+  }
 
-    PTRACE(5, *this << subchannel << ", ignoring data "
-           << (m_state == e_Completed ? "from un-selected ICE candidate" : "before ICE completed")
-           << ": from=" << ap << " len=" << length);
+  PSTUNMessage message(byteData, length, ap);
+  if (!message.IsValid()) {
+    PTRACE(2, *this << subchannel << ", discarding invalid message from=" << ap << " len=" << length
+            << ": " << PHexDump(data, std::min(length, static_cast<PINDEX>(16))));
     return false;
   }
 
@@ -615,7 +625,7 @@ bool OpalICEMediaTransport::InternalHandleICE(SubChannels subchannel, const void
 #endif
   m_selectedCandidate = *candidate;
 
-  // Do not compelte, if we just got an early USE-CANDIDATE
+  // Do not complete, if we just got an early USE-CANDIDATE
   if (m_state != e_Offering) {
     InternalSetRemoteAddress(ap, subchannel, e_RemoteAddressFromICE);
     m_state = e_Completed;
@@ -623,6 +633,13 @@ bool OpalICEMediaTransport::InternalHandleICE(SubChannels subchannel, const void
 
   // Don't pass this STUN packet up the protocol stack
   return false;
+}
+
+
+OpalICEMediaTransport::ICEState OpalICEMediaTransport::GetICEState() const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return e_Disabled);
+  return m_state;
 }
 
 
