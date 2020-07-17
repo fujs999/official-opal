@@ -177,14 +177,14 @@ void OpalCall::OnEstablishedCall()
 
 OpalConnection::CallEndReason OpalCall::GetCallEndReason() const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY(return OpalConnection::NumCallEndReasons);
+  PWaitAndSignal lock(m_callEndReasonMutex);
   return m_callEndReason;
 }
 
 
 void OpalCall::SetCallEndReason(OpalConnection::CallEndReason reason)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+  PWaitAndSignal lock(m_callEndReasonMutex);
   // Only set reason if not already set to something
   if (m_callEndReason == OpalConnection::NumCallEndReasons &&
      (reason != OpalConnection::EndedByCallForwarded || m_connectionsActive.GetSize() <= 1))

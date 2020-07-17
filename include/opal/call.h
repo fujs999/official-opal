@@ -725,6 +725,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
     bool    m_handlingHold;
     atomic<bool> m_isCleared;
 
+    PCriticalSection        m_callEndReasonMutex;
     std::list<PSyncPoint *> m_endCallSyncPoint;
 
     PSafeArray<OpalConnection> m_connectionsActive;
