@@ -149,8 +149,8 @@ class OpalRFC2833Proto : public PObject
 
     const OpalMediaFormat          m_baseMediaFormat;
     // PTs are atomic as mutex usage is inconsistent
-    std::atomic<RTP_DataFrame::PayloadTypes>    m_txPayloadType;
-    std::atomic<RTP_DataFrame::PayloadTypes>    m_rxPayloadType;
+    atomic<RTP_DataFrame::PayloadTypes>    m_txPayloadType;
+    atomic<RTP_DataFrame::PayloadTypes>    m_rxPayloadType;
     OpalRFC2833EventsMask          m_txEvents;
     OpalRFC2833EventsMask          m_rxEvents;
     Notifier                       m_receiveNotifier;
