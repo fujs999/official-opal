@@ -510,7 +510,7 @@ void OpalDTLSSRTPSession::SetRemoteFingerprint(const PSSLCertificateFingerprint&
 
 OpalMediaTransport * OpalDTLSSRTPSession::CreateMediaTransport(const PString & name)
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY(return nullptr);
+  P_INSTRUMENTED_LOCK_READ_ONLY(return NULL);
   return new OpalDTLSMediaTransport(name, m_passiveMode, m_earlyRemoteFingerprint);
 }
 
