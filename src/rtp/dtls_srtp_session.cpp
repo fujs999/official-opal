@@ -245,7 +245,7 @@ int OpalDTLSMediaTransport::DTLSChannel::BioWrite(const char * buf, int len)
     if (PTrace::CanTrace(Level)) {
       PUDPSocket * udp = dynamic_cast<PUDPSocket *>(GetBaseReadChannel());
       if (udp != NULL)
-        PTRACE_BEGIN(Level) << "Written " << result << " bytes from " << udp->GetSendAddress() << PTrace::End;
+        PTRACE_BEGIN(Level) << "Written " << result << " bytes to " << udp->GetSendAddress() << PTrace::End;
     }
 #endif // PTRACING
   }
