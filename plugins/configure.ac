@@ -341,7 +341,11 @@ OPAL_SYSTEM_PLUGIN(
    [],
    [-lvpx],
    [#include <vpx/vpx_encoder.h>],
-   [vpx_codec_iface_t * bp8 = vpx_codec_vp8_cx();]
+   [
+      vpx_codec_iface_t *iface = 0;
+      vpx_codec_enc_cfg_t *cfg = 0;
+      vpx_codec_err_t err = vpx_codec_enc_config_default(iface, cfg, 1U);
+   ]
 )
 
 OPAL_SYSTEM_PLUGIN(
