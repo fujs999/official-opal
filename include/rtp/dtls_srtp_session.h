@@ -100,7 +100,7 @@ class OpalDTLSMediaTransport : public OpalDTLSMediaTransportParent
     virtual bool PerformHandshake(DTLSChannel & channel);
     PDECLARE_SSLVerifyNotifier(OpalDTLSMediaTransport, OnVerify);
 
-    std::atomic<bool>   m_passiveMode;
+    atomic<bool>        m_passiveMode;
     PTimeInterval       m_handshakeTimeout;
     unsigned            m_MTU;
     PSSLCertificate     m_certificate;

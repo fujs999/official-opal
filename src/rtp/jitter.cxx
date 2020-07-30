@@ -625,6 +625,11 @@ OpalAudioJitterBuffer::AdjustResult OpalAudioJitterBuffer::AdjustCurrentJitterDe
 {
   // Assumes m_bufferMutex is already held on entry
 
+  if (m_minJitterDelay == 0 && m_maxJitterDelay == 0) {
+    m_currentJitterDelay = 0;
+    return e_Unchanged;
+  }
+
   int minJitterDelay = max(m_minJitterDelay, 2*m_packetTime);
   int maxJitterDelay = max(m_minJitterDelay, m_maxJitterDelay);
 

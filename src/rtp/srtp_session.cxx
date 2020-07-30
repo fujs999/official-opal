@@ -578,7 +578,7 @@ bool OpalSRTPSession::ApplyKeyToSRTP(const OpalMediaCryptoKeyInfo & keyInfo, Dir
 
 OpalMediaCryptoKeyInfo * OpalSRTPSession::IsCryptoSecured(bool rx) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY(return nullptr);
+  P_INSTRUMENTED_LOCK_READ_ONLY(return NULL);
   return m_keyInfo[rx ? e_Receiver : e_Sender];
 }
 
