@@ -451,7 +451,7 @@ OpalMediaFormat OpalRFC2833Proto::GetRxMediaFormat() const
 
 
 static void SetXxMediaFormat(const OpalMediaFormat & mediaFormat,
-                             std::atomic<RTP_DataFrame::PayloadTypes> & payloadType,
+                             atomic<RTP_DataFrame::PayloadTypes> & payloadType,
                              OpalRFC2833EventsMask & events)
 {
   if (mediaFormat.IsValid()) {
