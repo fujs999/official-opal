@@ -76,13 +76,11 @@ struct OpalCodecStatistics
 };
 
 #if OPAL_ICE
-struct OpalCandidateStatistics : PNatCandidate
+struct OpalCandidateStatisticsInfo
 {
-  OpalCandidateStatistics(const PNatCandidate & cand);
+  OpalCandidateStatisticsInfo();
 
-  virtual void PrintOn(ostream & strm) const;
-
-  bool m_selected;
+  bool     m_selected;
   unsigned m_nominations;
   PTime    m_lastNomination;
 
@@ -94,6 +92,15 @@ struct OpalCandidateStatistics : PNatCandidate
     PTime    m_last;
     unsigned m_count;
   } m_rxRequests, m_txRequests;
+};
+
+struct OpalCandidateStatistics : PNatCandidate, OpalCandidateStatisticsInfo
+{
+  OpalCandidateStatistics() { }
+  OpalCandidateStatistics(const PNatCandidate & candidate) : PNatCandidate(candidate) { }
+  OpalCandidateStatistics(const OpalCandidateStatistics & other) : PNatCandidate(other), OpalCandidateStatisticsInfo(other) { }
+
+  virtual void PrintOn(ostream & strm) const;
 };
 #endif // OPAL_ICE
 

@@ -62,22 +62,21 @@ OpalCodecStatistics::OpalCodecStatistics()
 
 
 #if OPAL_ICE
-OpalCandidateStatistics::OpalCandidateStatistics(const PNatCandidate & cand)
-  : PNatCandidate(cand)
-  , m_selected(false)
+OpalCandidateStatisticsInfo::OpalCandidateStatisticsInfo()
+  : m_selected(false)
   , m_nominations(0)
   , m_lastNomination(0)
 {
 }
 
-OpalCandidateStatistics::STUN::STUN()
+OpalCandidateStatisticsInfo::STUN::STUN()
   : m_first(0)
   , m_last(0)
   , m_count(0)
 {
 }
 
-void OpalCandidateStatistics::STUN::Count()
+void OpalCandidateStatisticsInfo::STUN::Count()
 {
   if (!m_first.IsValid())
     m_first.SetCurrentTime();
