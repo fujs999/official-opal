@@ -64,9 +64,9 @@ struct OpalCallStatistics
   ConnectionInfoMap m_connectionInfo;
 
 #if OPAL_STATISTICS
-  typedef std::map<PString, OpalMediaStatistics> MediaStatisticsMap;
+  typedef std::map<std::string, OpalMediaStatistics> MediaStatisticsMap;
   MediaStatisticsMap m_mediaStatistics;
-  void AddFinalMediaStreamStatistics(OpalMediaStream & stream);
+  void AddFinalMediaStreamStatistics(const OpalMediaStream & stream);
 #endif
 
   OpalCallStatistics();
