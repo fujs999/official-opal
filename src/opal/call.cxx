@@ -898,11 +898,10 @@ void OpalCall::OnStopMediaPatch(OpalConnection & connection, OpalMediaPatch & pa
 
 
 #if OPAL_STATISTICS
-void OpalCallStatistics::AddFinalMediaStreamStatistics(OpalMediaStream & mediaStream)
+void OpalCallStatistics::AddFinalMediaStreamStatistics(const OpalMediaStream & mediaStream)
 {
-  PStringStream name;
-  name << (mediaStream.IsSource() ? "From " : "To ")
-       << (mediaStream.GetConnection().GetToken() == m_connectionInfo.begin()->first ? 'A' : 'B');
+  std::string name(mediaStream.IsSource() ? "From " : "To ");
+  name += mediaStream.GetConnection().GetToken() == m_connectionInfo.begin()->first ? 'A' : 'B';
   mediaStream.GetStatistics(m_mediaStatistics[name]);
 }
 
