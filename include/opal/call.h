@@ -66,6 +66,7 @@ struct OpalCallStatistics
 #if OPAL_STATISTICS
   typedef std::map<std::string, OpalMediaStatistics> MediaStatisticsMap;
   MediaStatisticsMap m_mediaStatistics;
+  PDECLARE_MUTEX(m_mediaStatisticsMutex);
   void AddFinalMediaStreamStatistics(const OpalMediaStream & stream);
 #endif
 
