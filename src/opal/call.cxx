@@ -74,6 +74,7 @@ void OpalCallStatistics::ToLogging(ostream & strm) const
   // Don't log Connections as they are logged in OnRelease
 
 #if OPAL_STATISTICS
+  PWaitAndSignal lock(m_mediaStatisticsMutex);
   for (MediaStatisticsMap::const_iterator it = m_mediaStatistics.begin(); it != m_mediaStatistics.end(); ++it)
     strm << setw(indent) << "Stream" << ": " << it->first << '\n' << setprecision(indent-14) << it->second;
 #endif
@@ -98,6 +99,7 @@ void OpalCallStatistics::ToJSON(PJSON::Object & obj) const
     it->second.ToJSON(conns.AppendObject());
 
 #if OPAL_STATISTICS
+  PWaitAndSignal lock(m_mediaStatisticsMutex);
   PJSON::Array & strms = obj.SetArray("MediaStreams");
   for (MediaStatisticsMap::const_iterator it = m_mediaStatistics.begin(); it != m_mediaStatistics.end(); ++it) {
     PJSON::Object & strmstat = strms.AppendObject();
@@ -900,6 +902,7 @@ void OpalCall::OnStopMediaPatch(OpalConnection & connection, OpalMediaPatch & pa
 #if OPAL_STATISTICS
 void OpalCallStatistics::AddFinalMediaStreamStatistics(const OpalMediaStream & mediaStream)
 {
+  PWaitAndSignal lock(m_mediaStatisticsMutex);
   std::string name(mediaStream.IsSource() ? "From " : "To ");
   name += mediaStream.GetConnection().GetToken() == m_connectionInfo.begin()->first ? 'A' : 'B';
   mediaStream.GetStatistics(m_mediaStatistics[name]);
