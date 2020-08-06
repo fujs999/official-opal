@@ -1840,8 +1840,11 @@ OpalMediaFormatList OpalConnection::GetMediaFormats() const
 
 OpalMediaFormatList OpalConnection::GetLocalMediaFormats()
 {
-  if (m_localMediaFormats.IsEmpty())
+  P_INSTRUMENTED_LOCK_READ_WRITE();
+  if (lock.IsLocked() && m_localMediaFormats.IsEmpty()) {
     m_localMediaFormats = m_ownerCall.GetMediaFormats(*this);
+    m_localMediaFormats.MakeUnique();
+  }
   return m_localMediaFormats;
 }
 
