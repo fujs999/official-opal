@@ -2694,13 +2694,22 @@ bool SIP_PDU::DecodeSDP(SIPConnection & connection, PMultiPartList & parts)
 
 bool SIP_PDU::DecodeSDP(SIPConnection & connection, PString & sdpText, PMultiPartList & parts)
 {
-  if (m_SDP != NULL)
-    return true;
+  bool createSDP = m_SDP == NULL && m_mime.GetSDP(m_entityBody, sdpText, parts);
 
-  if (!m_mime.GetSDP(m_entityBody, sdpText, parts))
+  static PConstString const x_sip_headers("x-sip/headers");
+  for (PMultiPartList::iterator it = parts.begin(); ; ++it) {
+    if (it == parts.end()) {
+      parts.push_back(PMultiPartInfo(m_mime.AsString(), x_sip_headers));
+      break;
+    }
+    if (it->m_contentType == x_sip_headers) {
+      it->m_textBody = m_mime.AsString();
+      break;
+    }
+  }
+
+  if (!createSDP)
     return false;
-
-  parts.push_back(PMultiPartInfo(m_mime.AsString(), "x-sip/headers"));
 
   m_SDP = connection.GetEndPoint().CreateSDP(0, 0, OpalTransportAddress());
   if (m_SDP == NULL)
