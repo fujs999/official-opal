@@ -1108,7 +1108,10 @@ class H264_Decoder : public PluginVideoDecoder<MY_CODEC>
 
         if ((flags & PluginCodec_ReturnCoderBufferTooSmall) == 0) {
           int id = 0;
-          if (m_decoder->GetOption(DECODER_OPTION_IDR_PIC_ID, &id) == cmResultSuccess && m_lastId != id) {
+          long result = m_decoder->GetOption(DECODER_OPTION_IDR_PIC_ID, &id);
+          if (result != cmResultSuccess)
+            PTRACE(4, MY_CODEC_LOG, "Error determining key frame: 0x" << std::hex << result);
+          else if (m_lastId != id) {
             m_lastId = id;
             flags |= PluginCodec_ReturnCoderIFrame;
           }
