@@ -221,7 +221,8 @@ void OpalRTPMediaStream::SetSyncSource(RTP_SyncSourceId ssrc)
   if (m_syncSource == ssrc)
     return;
 
-  if (IsSource()) {
+  bool adjustSession = IsOpen() && IsSource();
+  if (adjustSession) {
       m_rtpSession.SetJitterBuffer(NULL, m_syncSource);
       m_rtpSession.RemoveDataNotifier(m_receiveNotifier, m_syncSource);
   }
@@ -229,7 +230,7 @@ void OpalRTPMediaStream::SetSyncSource(RTP_SyncSourceId ssrc)
   PTRACE(3, "Changing SSRC=" << RTP_TRACE_SRC(m_syncSource) << " to SSRC=" << RTP_TRACE_SRC(ssrc) << " on stream " << *this);
   m_syncSource = ssrc;
 
-  if (IsSource()) {
+  if (adjustSession) {
     m_rtpSession.SetJitterBuffer(m_jitterBuffer, m_syncSource);
     m_rtpSession.AddDataNotifier(m_notifierPriority, m_receiveNotifier, m_syncSource);
   }
