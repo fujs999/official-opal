@@ -800,6 +800,7 @@ bool SDPMediaDescription::FromSession(OpalMediaSession * session, const SDPMedia
   }
 #endif // OPAL_ICE
 
+  m_bundleOnly = offer == NULL && m_stringOptions.GetBoolean(OPAL_OPT_BUNDLE_ONLY);
   return true;
 }
 
@@ -1124,11 +1125,14 @@ void SDPMediaDescription::Encode(const OpalTransportAddress & commonAddr, ostrea
 {
   /* output media header, note the order is important according to RFC!
      Must be icbka */
-  strm << "m="
-       << GetSDPMediaType() << ' '
-       << m_port;
-  if (m_portCount > 1)
-    strm << '/' << m_portCount;
+  strm << "m=" << GetSDPMediaType() << ' ';
+  if (m_bundleOnly)
+    strm << '0';
+  else {
+    strm << m_port;
+    if (m_portCount > 1)
+      strm << '/' << m_portCount;
+  }
 
   strm << ' ' << GetSDPTransportType();
 
@@ -1157,6 +1161,9 @@ void SDPMediaDescription::Encode(const OpalTransportAddress & commonAddr, ostrea
 void SDPMediaDescription::OutputAttributes(ostream & strm) const
 {
   SDPCommonAttributes::OutputAttributes(strm);
+
+  if (m_bundleOnly)
+    strm << "a=bundle-only" << CRLF;
 
   for (PStringToString::const_iterator it = m_groups.begin(); it != m_groups.end(); ++it) 
     strm << "a=mid:" << it->second << CRLF;

@@ -102,6 +102,11 @@
 */
 #define OPAL_OPT_ALLOW_MUSIC_ON_HOLD "SDP-Music-On-Hold"
 
+/**Enable "bundle only" option as per draft-ietf-mmusic-sdp-bundle-negotiation.
+   Defaults to false.
+*/
+#define OPAL_OPT_BUNDLE_ONLY "SDP-Bundle-Only"
+
 
 /////////////////////////////////////////////////////////
 
@@ -380,7 +385,7 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
     WORD                 m_port;
     WORD                 m_portCount;
     OpalMediaType        m_mediaType;
-    bool                 m_bundleOnly; // draft-ietf-mmusic-sdp-bundle-negotiation-52
+    bool                 m_bundleOnly; // draft-ietf-mmusic-sdp-bundle-negotiation
     PStringList          m_mids;
     PStringToString      m_groups;
 #if OPAL_ICE
