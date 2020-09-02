@@ -480,6 +480,7 @@ class SDPRTPAVPMediaDescription : public SDPMediaDescription
     virtual bool IsSecure() const;
 #endif
     virtual void SetAttribute(const PString & attr, const PString & value);
+    virtual bool PostDecode(const OpalMediaFormatList & mediaFormats);
     virtual bool FromSession(OpalMediaSession * session, const SDPMediaDescription * offer, RTP_SyncSourceId ssrc);
     virtual bool ToSession(OpalMediaSession * session, RTP_SyncSourceArray & ssrcs) const;
 
@@ -688,8 +689,6 @@ class SDPSessionDescription : public PObject, public SDPCommonAttributes
     OpalTransportAddress defaultConnectAddress;
 
     GroupDict    m_groups;
-
-    PStringArray m_mediaStreamIds;
 };
 
 /////////////////////////////////////////////////////////
