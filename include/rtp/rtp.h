@@ -268,6 +268,13 @@ class RTP_ControlFrame : public PBYTEArray
       e_TOOL,
       e_NOTE,
       e_PRIV,
+      e_H323_CADDR,
+      e_ASPI,                // RFC6776
+      e_RGRP,                // https://www.iana.org/go/draft-ietf-avtcore-rtp-multi-stream-optimisation
+      e_RtpStreamId,         // https://www.iana.org/go/draft-ietf-avtext-rid
+      e_RepairedRtpStreamId, // https://www.iana.org/go/draft-ietf-avtext-rid
+      e_CCID,                // https://www.iana.org/go/draft-ietf-clue-rtp-mapping
+      e_MID,                 // https://www.iana.org/go/draft-ietf-mmusic-sdp-bundle-negotiation
       NumDescriptionTypes
     };
 
@@ -304,6 +311,7 @@ class RTP_ControlFrame : public PBYTEArray
       RTP_SyncSourceId ssrc,
       const PString & cname,
       const PString & toolName,
+      const PString & mid,
       bool endPacket = true
     );
 

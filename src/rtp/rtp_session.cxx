@@ -2089,7 +2089,7 @@ bool OpalRTPSession::InternalSendReport(RTP_ControlFrame & report,
 
   // Add the SDES part to compound RTCP packet
   PTRACE(logLevel, sender << "sending SDES cname=\"" << sender.m_canonicalName << '"');
-  report.AddSourceDescription(sender.m_sourceIdentifier, sender.m_canonicalName, m_toolName);
+  report.AddSourceDescription(sender.m_sourceIdentifier, sender.m_canonicalName, m_toolName, GetGroupMediaId(GetBundleGroupId()));
 
   // Count receivers that have had a RRTR
   receivers = 0;
