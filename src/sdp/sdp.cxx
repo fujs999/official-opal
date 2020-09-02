@@ -1888,17 +1888,6 @@ bool SDPRTPAVPMediaDescription::IsSecure() const
 #endif // OPAL_SRTP
 
 
-static void SetMediaStreamAndTrackIds(const PString & msid, PStringOptions & info)
-{
-  info.SetAt("msid", msid);
-
-  PString stream, track;
-  msid.Split(' ', stream, track);
-  info.SetAt("mslabel", stream);
-  info.SetAt("label", track);
-}
-
-
 void SDPRTPAVPMediaDescription::SetAttribute(const PString & attr, const PString & value)
 {
   /* NOTE: must make sure anything passed through to a SDPFormat isntance does
@@ -1980,10 +1969,6 @@ void SDPRTPAVPMediaDescription::SetAttribute(const PString & attr, const PString
 
   if (attr *= "msid") {
     m_msid = value;
-    for (SsrcInfo::iterator it = m_ssrcInfo.begin(); it != m_ssrcInfo.end(); ++it) {
-      SetMediaStreamAndTrackIds(value, it->second);
-      PTRACE(4, "SSRC: " << RTP_TRACE_SRC(it->first) << " m level msid: \"" << m_msid << '"');
-    }
     return;
   }
 
@@ -1995,17 +1980,10 @@ void SDPRTPAVPMediaDescription::SetAttribute(const PString & attr, const PString
       PTRACE(2, "Cannot decode ssrc attribute: \"" << value << '"');
     }
     else {
-      if (!m_msid.IsEmpty()) {
-        SetMediaStreamAndTrackIds(m_msid, m_ssrcInfo[ssrc]);
-        PTRACE(4, "SSRC: " << RTP_TRACE_SRC(ssrc) << " m level msid: \"" << m_msid << '"');
-      }
-
       PCaselessString key = value(space + 1, endToken - 1);
       PString val = value.Mid(endToken + 1);
       m_ssrcInfo[ssrc].SetAt(key, val);
       PTRACE_IF(4, key == "cname", "SSRC: " << RTP_TRACE_SRC(ssrc) << " CNAME: " << val);
-      if (key == "msid" && m_ssrcInfo[ssrc].GetString("mslabel").IsEmpty())
-        SetMediaStreamAndTrackIds(val, m_ssrcInfo[ssrc]);
     }
     return;
   }
@@ -2022,6 +2000,30 @@ void SDPRTPAVPMediaDescription::SetAttribute(const PString & attr, const PString
   }
 
   SDPMediaDescription::SetAttribute(attr, value);
+}
+
+
+bool SDPRTPAVPMediaDescription::PostDecode(const OpalMediaFormatList & mediaFormats)
+{
+  if (m_msid.IsEmpty()) {
+    // Check for backward compatibility mode, no longer per specification
+    for (SsrcInfo::iterator it = m_ssrcInfo.begin(); it != m_ssrcInfo.end(); ++it) {
+      PString msid = it->second.GetString("mslabel");
+      if (!msid.IsEmpty()) {
+        msid &= it->second.GetString("label");
+        it->second.SetAt("msid", msid);
+        PTRACE(4, "SSRC: " << RTP_TRACE_SRC(it->first) << " m level msid: \"" << msid << '"');
+      }
+    }
+  }
+  else {
+    for (SsrcInfo::iterator it = m_ssrcInfo.begin(); it != m_ssrcInfo.end(); ++it) {
+      it->second.SetAt("msid", m_msid);
+      PTRACE(4, "SSRC: " << RTP_TRACE_SRC(it->first) << " m level msid: \"" << m_msid << '"');
+    }
+  }
+
+  return SDPMediaDescription::PostDecode(mediaFormats);
 }
 
 
@@ -2095,12 +2097,13 @@ bool SDPRTPAVPMediaDescription::FromSession(OpalMediaSession * session,
         PString cname = rtpSession->GetCanonicalName(ssrc);
         if (!cname.IsEmpty())
           info.SetAt("cname", cname);
-        PString mslabel = rtpSession->GetMediaStreamId(ssrc, OpalRTPSession::e_Sender);
-        if (!mslabel.IsEmpty()) {
-          PString label = rtpSession->GetMediaTrackId(ssrc, OpalRTPSession::e_Sender);
-          info.SetAt("mslabel", mslabel);
-          info.SetAt("label", label);
-          info.SetAt("msid", mslabel & label);
+        PString msid = rtpSession->GetMediaStreamId(ssrc, OpalRTPSession::e_Sender);
+        if (!msid.IsEmpty()) {
+          PString appdata = rtpSession->GetMediaTrackId(ssrc, OpalRTPSession::e_Sender);
+          info.SetAt("msid", msid & appdata);
+          // These two are for backward compatibility, not in current standard.
+          info.SetAt("mslabel", msid);
+          info.SetAt("label", appdata);
         }
 
         RTP_SyncSourceId rtxSSRC = rtpSession->GetRtxSyncSource(ssrc, OpalRTPSession::e_Sender, true);
@@ -2169,8 +2172,10 @@ bool SDPRTPAVPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSo
         if (rtpSession->AddSyncSource(ssrc, OpalRTPSession::e_Receiver, cname) == ssrc) {
           PTRACE(4, *rtpSession << "added receiver SSRC " << RTP_TRACE_SRC(ssrc));
         }
-        rtpSession->SetMediaTrackId(it->second.GetString("label"), ssrc, OpalRTPSession::e_Receiver);
-        rtpSession->SetMediaStreamId(it->second.GetString("mslabel"), ssrc, OpalRTPSession::e_Receiver);
+        PString msid, appdata;
+        it->second.GetString("msid").Split(' ', msid, appdata);
+        rtpSession->SetMediaTrackId(msid, ssrc, OpalRTPSession::e_Receiver);
+        rtpSession->SetMediaStreamId(appdata, ssrc, OpalRTPSession::e_Receiver);
       }
     }
 
@@ -2831,15 +2836,19 @@ void SDPSessionDescription::PrintOn(ostream & strm) const
   }
 #endif //OPAL_ICE
 
-  // Check for MediaStream stuff: draft-alvestrand-mmusic-msid
+  // It appears that https://tools.ietf.org/html/draft-ietf-mmusic-msid no longer requires
+  // this field, but we put it in anyway as browsers are still supplying it too.
   PString msid_semantic;
   for (PINDEX i = 0; i < mediaDescriptions.GetSize(); i++) {
     const SDPRTPAVPMediaDescription * avp = dynamic_cast<const SDPRTPAVPMediaDescription *>(&mediaDescriptions[i]);
     if (avp != NULL) {
       for (SDPRTPAVPMediaDescription::SsrcInfo::const_iterator it = avp->GetSsrcInfo().begin(); it != avp->GetSsrcInfo().end(); ++it) {
-        PString mslabel = it->second.GetString("mslabel");
-        if (!mslabel.IsEmpty() && msid_semantic.Find(mslabel) == P_MAX_INDEX)
-          msid_semantic &= mslabel;
+        PString msid = it->second.GetString("msid");
+        if (!msid.IsEmpty()) {
+          msid.Delete(msid.Find(' '), P_MAX_INDEX);
+          if (msid_semantic.Find(msid) == P_MAX_INDEX)
+            msid_semantic &= msid;
+        }
       }
     }
   }
@@ -3079,21 +3088,6 @@ bool SDPSessionDescription::Decode(const PStringArray & lines, const OpalMediaFo
   }
 #endif // OPAL_ICE
 
-  if (m_mediaStreamIds.GetSize() == 1 && m_mediaStreamIds[0] == "*") {
-    m_mediaStreamIds.RemoveAll();
-    for (PINDEX mdIdx = 1; mdIdx <= mediaDescriptions.GetSize(); ++mdIdx) {
-      const SDPRTPAVPMediaDescription * avp = dynamic_cast<const SDPRTPAVPMediaDescription *>(GetMediaDescriptionByIndex(mdIdx));
-      if (avp != NULL) {
-        for (SDPRTPAVPMediaDescription::SsrcInfo::const_iterator ssrc = avp->GetSsrcInfo().begin(); ssrc != avp->GetSsrcInfo().end(); ++ssrc) {
-          PString mslabel = ssrc->second.GetString("mslabel");
-          if (!mslabel.IsEmpty() && m_mediaStreamIds.GetValuesIndex(mslabel) == P_MAX_INDEX)
-            m_mediaStreamIds.AppendString(mslabel);
-        }
-      }
-    }
-  }
-  PTRACE_IF(4, !m_mediaStreamIds.empty(), "Media stream identifiers: " << setfill(',') << m_mediaStreamIds);
-
 #if OPAL_SRTP
   // Reset setup flag for session...
   m_setupMode = SetupNotSet;
@@ -3118,8 +3112,7 @@ void SDPSessionDescription::SetAttribute(const PString & attr, const PString & v
   }
 
   if (attr *= "msid-semantic") {
-    if (value.NumCompare("WMS") == EqualTo)
-      m_mediaStreamIds = value.Mid(3).Tokenise(' ', false);
+    // https://tools.ietf.org/html/draft-ietf-mmusic-msid is silent on what to do with this, so we ignore it
     return;
   }
 
