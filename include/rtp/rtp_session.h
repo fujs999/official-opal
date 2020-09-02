@@ -80,6 +80,7 @@ class RTP_MetricsReport;
 ///////////////////////////////////////////////////////////////////////////////
 
 /**This class is for encpsulating the IETF Real Time Protocol interface.
+   This embodies an "RTP Session" as defined by RFC7656.
  */
 class OpalRTPSession : public OpalMediaSession
 {
@@ -450,6 +451,7 @@ class OpalRTPSession : public OpalMediaSession
     static const PString & GetAbsSendTimeHdrExtURI();
     static const PString & GetAudioLevelHdrExtURI();
     static const PString & GetTransportWideSeqNumHdrExtURI();
+    static const PString & GetBundleMediaIdExtURI();
 
     /**Get the source identifier for remote data to us.
       */
@@ -695,6 +697,7 @@ class OpalRTPSession : public OpalMediaSession
     unsigned            m_audioLevelHdrExtId;
     bool                m_vadHdrExtEnabled;
     unsigned            m_transportWideSeqNumHdrExtId;
+    unsigned            m_groupMediaIdHdrExtId;
     bool                m_allowAnySyncSource;
     PTimeInterval       m_staleReceiverTimeout;
     PINDEX              m_maxOutOfOrderPackets; // Number of packets before we give up waiting for an out of order packet

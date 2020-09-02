@@ -51,6 +51,7 @@ OpalSDPHTTPEndPoint::OpalSDPHTTPEndPoint(OpalManager & manager, const PCaselessS
   m_defaultStringOptions.SetBoolean(OPAL_OPT_AV_BUNDLE, true);
   m_defaultStringOptions.SetBoolean(OPAL_OPT_RTCP_MUX, true);
   m_defaultStringOptions.SetBoolean(OPAL_OPT_USE_MEDIA_STREAMS, true);
+  m_defaultStringOptions.SetBoolean(OPAL_OPT_RTP_ABS_SEND_TIME, true);
   m_defaultStringOptions.SetString(OPAL_OPT_CRYPTO_EXCHANGE, OPAL_OPT_CRYPTO_EXCHANGE_INBAND_KEY_EXCHANGE);
 }
 

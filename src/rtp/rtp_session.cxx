@@ -106,6 +106,7 @@ OpalRTPSession::OpalRTPSession(const Init & init)
   , m_audioLevelHdrExtId(UINT_MAX)
   , m_vadHdrExtEnabled(true)
   , m_transportWideSeqNumHdrExtId(UINT_MAX)
+  , m_groupMediaIdHdrExtId(UINT_MAX)
   , m_allowAnySyncSource(true)
   , m_staleReceiverTimeout(m_manager.GetStaleReceiverTimeout())
   , m_maxOutOfOrderPackets(20)
@@ -743,6 +744,14 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnSendData(RTP_Dat
   if (cc != NULL) {
     PUInt16b sn((uint16_t)cc->HandleTransmitPacket(m_session.m_sessionId, frame.GetSyncSource()));
     frame.SetHeaderExtension(m_session.m_transportWideSeqNumHdrExtId, 2, (const BYTE *)&sn, RTP_DataFrame::RFC5285_OneByte);
+  }
+
+  // Only need to send for the first few seconds
+  static const PTimeInterval GroupMediaIdHdrExtTime(0, 4);
+  if (m_session.m_groupMediaIdHdrExtId <= RTP_DataFrame::MaxHeaderExtensionIdTwoByte && (now - m_firstPacketTime) < GroupMediaIdHdrExtTime) {
+    PString mid = m_session.GetGroupMediaId(GetBundleGroupId());
+    if (!mid.empty())
+      frame.SetHeaderExtension(m_session.m_groupMediaIdHdrExtId, mid.length(), (const BYTE *)mid.c_str(), RTP_DataFrame::RFC5285_Auto);
   }
 
   CalculateStatistics(frame, now);
@@ -1497,6 +1506,7 @@ RTPHeaderExtensions OpalRTPSession::GetHeaderExtensions() const
 const PString & OpalRTPSession::GetAbsSendTimeHdrExtURI() { static const PConstString s("http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time"); return s; }
 const PString & OpalRTPSession::GetAudioLevelHdrExtURI() { static const PConstString s("urn:ietf:params:rtp-hdrext:ssrc-audio-level"); return s; }
 const PString & OpalRTPSession::GetTransportWideSeqNumHdrExtURI() { static const PConstString s("http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01"); return s; }
+const PString & OpalRTPSession::GetBundleMediaIdExtURI() { static const PConstString s("urn:ietf:params:rtp-hdrext:sdes:mid"); return s; }
 
 void OpalRTPSession::SetHeaderExtensions(const RTPHeaderExtensions & ext)
 {
@@ -1539,6 +1549,12 @@ bool OpalRTPSession::AddHeaderExtension(const RTPHeaderExtensionInfo & ext)
   if (uri == GetTransportWideSeqNumHdrExtURI() && m_stringOptions.GetBoolean(OPAL_OPT_TRANSPORT_WIDE_CONGESTION_CONTROL)) {
     if (m_headerExtensions.AddUniqueID(adjustedExt))
       m_transportWideSeqNumHdrExtId = adjustedExt.m_id;
+    return true;
+  }
+
+  if (uri == GetBundleMediaIdExtURI() && !GetGroupMediaId(GetBundleGroupId()).empty()) {
+    if (m_headerExtensions.AddUniqueID(adjustedExt))
+      m_groupMediaIdHdrExtId = adjustedExt.m_id;
     return true;
   }
 
@@ -1825,9 +1841,21 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnPreReceiveData(RTP_DataFrame
 
   RTP_SyncSourceId ssrc = frame.GetSyncSource();
   SyncSource * receiver = UseSyncSource(ssrc, e_Receiver, false);
+
   if (receiver == NULL) {
-      PTRACE_IF(2, m_loggedBadSSRC.insert(ssrc).second, *this << "ignoring unknown SSRC: " << setw(1) << frame);
-      return e_IgnorePacket;
+    BYTE * exthdr;
+    PINDEX hdrlen;
+    if ((exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_Auto, m_groupMediaIdHdrExtId, hdrlen)) != NULL) {
+      PString mid((const char *)exthdr, hdrlen);
+      PTRACE(3, "Received header extension for BUNDLE mid: \"" << mid << '"');
+      if (mid == GetGroupMediaId(GetBundleGroupId()))
+        receiver = UseSyncSource(ssrc, e_Receiver, true);
+    }
+  }
+
+  if (receiver == NULL) {
+    PTRACE_IF(2, m_loggedBadSSRC.insert(ssrc).second, *this << "ignoring unknown SSRC: " << setw(1) << frame);
+    return e_IgnorePacket;
   }
 
   return receiver->OnReceiveData(frame, e_RxFromNetwork, now);
