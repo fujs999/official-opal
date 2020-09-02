@@ -11,8 +11,7 @@
             this.peerConnection = null;
             this.httpRequest = null;
 
-            this.constraints = {
-                voiceActivityDetection: false,
+            this.offerOptions = {
                 offerToReceiveAudio: true,
                 offerToReceiveVideo: true
             };
@@ -21,7 +20,7 @@
             this.start = function () {
                 this.peerConnection = new RTCPeerConnection({ bundlePolicy: "max-bundle" });
                 this.peerConnection.onicecandidate = this.onIceCandidate.bind(this);
-                this.peerConnection.oniceconnectionstatechange = this.onIceConnectionStateChanged.bind(this);
+                this.peerConnection.onconnectionstatechange = this.onConnectionStateChanged.bind(this);
                 this.peerConnection.ontrack = this.onRemoteTrackAdded.bind(this);
 
                 // Get the tx devices (microphone/camera) to use
@@ -41,8 +40,12 @@
             };
 
 
-            this.onIceConnectionStateChanged = function (evt) {
-                console.info("WebRTC ICE connection state:", this.peerConnection.iceConnectionState);
+            this.onConnectionStateChanged = function (evt) {
+                if (this.peerConnection) {
+                    console.info("WebRTC ICE connection state:", this.peerConnection.connectionState);
+                    if (this.peerConnection.connectionState == "closed")
+                        this.stop();
+                }
             };
 
 
@@ -51,8 +54,8 @@
                 this.preview.srcObject = stream;
                 this.peerConnection.addStream(stream);
 
-                console.debug("WebRTC creating offer:", JSON.stringify(this.constraints));
-                this.peerConnection.createOffer(this.constraints)
+                console.debug("WebRTC creating offer:", JSON.stringify(this.offerOptions));
+                this.peerConnection.createOffer(this.offerOptions)
                     .then(sessionDescription => this.peerConnection.setLocalDescription(sessionDescription))
                     .catch(error => console.error("WebRTC failed to create offer:", error.toString()));
             };
