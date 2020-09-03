@@ -312,7 +312,9 @@ class RTP_ControlFrame : public PBYTEArray
       const PString & cname,
       const PString & toolName,
       const PString & mid,
-      bool endPacket = true
+      const PString & rtpStreamId,
+      bool rtx,
+      bool endPacket
     );
 
     // Add RFC2032 Intra Frame Request
