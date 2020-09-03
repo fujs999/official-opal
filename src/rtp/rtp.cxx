@@ -1170,6 +1170,8 @@ void RTP_ControlFrame::AddSourceDescription(RTP_SyncSourceId ssrc,
                                             const PString & cname,
                                             const PString & toolName,
                                             const PString & mid,
+                                            const PString & rtpStreamId,
+                                            bool rtx,
                                             bool endPacket)
 {
   StartNewPacket(RTP_ControlFrame::e_SourceDescription);
@@ -1180,6 +1182,8 @@ void RTP_ControlFrame::AddSourceDescription(RTP_SyncSourceId ssrc,
   AddSourceDescriptionItem(RTP_ControlFrame::e_TOOL, toolName);
   if (!mid.IsEmpty())
     AddSourceDescriptionItem(RTP_ControlFrame::e_MID, mid);
+  if (!rtpStreamId.IsEmpty())
+    AddSourceDescriptionItem(rtx ? RTP_ControlFrame::e_RepairedRtpStreamId : RTP_ControlFrame::e_RtpStreamId, rtpStreamId);
 
   if (endPacket)
     EndPacket();
