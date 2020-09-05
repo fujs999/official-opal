@@ -2478,6 +2478,44 @@ void SIP_PDU_Work::Work()
 }
 
 
+OpalTransportAddress SIPEndPoint::NextSRVAddress(const SIPURL & url)
+{
+  PWaitAndSignal lock(m_SRVIndexMutex);
+  if (GetSRVIndex(url) == P_MAX_INDEX)
+    return OpalTransportAddress();
+
+  // After GetSRVIndex() we know it exists in map
+  SRVIndexMap::iterator it = m_SRVIndex.find(url.GetHostName());
+  OpalTransportAddress addr = url.GetTransportAddress(++it->second);
+  if (addr.IsEmpty()) {
+    PTRACE(4, "Reached last SRV record, trying again from beginning");
+    it->second = 0;
+    addr = url.GetTransportAddress(0);
+  }
+
+  return addr;
+}
+
+
+PINDEX SIPEndPoint::GetSRVIndex(const SIPURL & url)
+{
+  PWaitAndSignal lock(m_SRVIndexMutex);
+  SRVIndexMap::iterator it = m_SRVIndex.find(url.GetHostName());
+  if (it == m_SRVIndex.end())
+    it = m_SRVIndex.insert(std::make_pair(url.GetHostName(), url.CanLookupSRV() ? 0 : P_MAX_INDEX)).first;
+  return it->second;
+}
+
+
+void SIPEndPoint::ResetSRVIndex(const SIPURL & url)
+{
+  PWaitAndSignal lock(m_SRVIndexMutex);
+  SRVIndexMap::iterator it = m_SRVIndex.find(url.GetHostName());
+  if (it != m_SRVIndex.end() && it->second != P_MAX_INDEX)
+    it->second = 0;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 void SIPEndPoint::OnHighPriorityInterfaceChange(PInterfaceMonitor &, PInterfaceMonitor::InterfaceChange entry)
@@ -2514,4 +2552,6 @@ void SIPEndPoint::OnLowPriorityInterfaceChange(PInterfaceMonitor &, PInterfaceMo
     }
   }
 }
+
+
 #endif // OPAL_SIP

@@ -536,6 +536,21 @@ OpalTransportAddress SIPURL::GetTransportAddress(PINDEX entry) const
   return OpalTransportAddress(GetHostName(), m_port, proto);
 }
 
+bool SIPURL::CanLookupSRV() const
+{
+#if OPAL_PTLIB_DNS_RESOLVER
+  // RFC3263 states we do not do lookup if explicit port mentioned
+  if (GetPortSupplied()) {
+    PTRACE(5, "No SRV lookup, as has explicit port number.");
+    return false;
+  }
+
+  PIPSocketAddressAndPortVector dummy;
+  return PDNS::LookupSRV(GetHostName(), "_sip._" + GetTransportProto(), GetPort(), dummy);
+#else
+  return false;
+#endif // OPAL_PTLIB_DNS_RESOLVER
+}
 
 void SIPURL::SetHostAddress(const OpalTransportAddress & addr)
 {
@@ -3580,6 +3595,17 @@ void SIPTransaction::OnRetry()
   if (m_retry >= GetEndPoint().GetMaxRetries()) {
     SetTerminated(Terminated_RetriesExceeded);
     return;
+  }
+
+  PTRACE(3, "OnRetry: m_retry: " << m_retry << "  m_uri: " << m_uri
+         << "  m_remoteAddress: " << m_transport->GetRemoteAddress());
+  if (m_retry >= 4) {
+    OpalTransportAddress myOpalTransAddr = GetEndPoint().NextSRVAddress(m_uri);
+    if (!myOpalTransAddr.IsEmpty()) {
+      m_transport->SetRemoteAddress(myOpalTransAddr);
+      PTRACE(3, "Switching to next SRV record: " << myOpalTransAddr);
+      m_retry = 0;
+    }
   }
 
   if (m_state > Trying)
