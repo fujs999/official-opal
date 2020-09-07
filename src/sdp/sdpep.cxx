@@ -79,7 +79,9 @@ PStringList OpalSDPEndPoint::GetAvailableStringOptions() const
     #endif
     OPAL_OPT_ALLOW_MUSIC_ON_HOLD,
     OPAL_OPT_AV_BUNDLE,
+    OPAL_OPT_BUNDLE_ONLY,
     OPAL_OPT_USE_MEDIA_STREAMS,
+    OPAL_OPT_ENABLE_RID,
     OPAL_OPT_INACTIVE_AUDIO_FLOW,
     OPAL_OPT_MULTI_SSRC
   };
@@ -1216,6 +1218,19 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPSession(SDPMediaDescript
     }
   }
 
+  // Handle restrictions draft-ietf-mmusic-rid
+  if (m_stringOptions.GetBoolean(OPAL_OPT_ENABLE_RID)) {
+    SDPMediaDescription::Restrictions restrictions = incomingMedia->GetRestrictions();
+    for (SDPMediaDescription::Restrictions::iterator it = restrictions.begin(); it != restrictions.end(); ) {
+      if (OnReceivedOfferRestriction(*incomingMedia, *localMedia, it->second))
+        ++it;
+      else
+        it = restrictions.erase(it);
+    }
+    PTRACE(4, restrictions.size() << " restrictions (rid) answered.");
+    localMedia->SetRestrictions(restrictions);
+  }
+
   FinaliseRtx(sendStream, localMedia.get());
   FinaliseRtx(recvStream, localMedia.get());
 
@@ -1237,8 +1252,20 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPSession(SDPMediaDescript
     localMedia->AddMediaFormat(*it);
 #endif
 
-	PTRACE(4, "Answered offer for media type " << mediaType << ' ' << localMedia->GetMediaAddress());
+  PTRACE(4, "Answered offer for media type " << mediaType << ' ' << localMedia->GetMediaAddress());
   return localMedia.release();
+}
+
+
+bool OpalSDPConnection::OnReceivedOfferRestriction(const SDPMediaDescription & /*offer*/,
+                                                   SDPMediaDescription & answer,
+                                                   SDPMediaDescription::Restriction & restriction)
+{
+  PTRACE(4, "Answering offer for rid: \"" << restriction.m_id << '"');
+
+  // Default is to remove "pt" option and have it re3calculated based on restriction.m_mediaFormats
+  restriction.m_options.Remove(SDPMediaDescription::RestrictionPayloadTypeKey());
+  return restriction.AnswerOffer(answer.GetMediaFormats());
 }
 
 

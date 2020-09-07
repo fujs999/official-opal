@@ -107,6 +107,19 @@
 */
 #define OPAL_OPT_BUNDLE_ONLY "SDP-Bundle-Only"
 
+/**Enable multiple sync sources in single session.
+This allows multiple SSRC values to be attached to a single SDP media
+descriptor, m= line. Each SSRC must use the same media format selected for
+the session. If false, and multiple SSRC's are attached to the session,
+then each SSRC will create a separate SDP media descriptor section. Note
+in this latter case, OPAL_OPT_AV_BUNDLE must also be used.
+
+For WebRTC this is known as "Plan B".
+
+Defaults to false.
+*/
+#define OPAL_OPT_MULTI_SSRC "Multi-SSRC"
+
 
 /////////////////////////////////////////////////////////
 
@@ -377,6 +390,28 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
     virtual OpalVideoFormat::ContentRole GetContentRole() const { return OpalVideoFormat::eNoRole; }
 #endif
 
+    // draft-ietf-mmusic-rid
+    struct Restriction : PObject
+    {
+      PString             m_id;
+      Direction           m_direction;
+      OpalMediaFormatList m_mediaFormats;
+      PStringOptions      m_options;
+
+      Restriction() : m_direction(Undefined) { }
+      bool AnswerOffer(const OpalMediaFormatList & selectedFormats);
+      bool Parse(const PString & params);
+      bool PostDecode(const SDPMediaDescription & md, const OpalMediaFormatList & selectedFormats);
+      bool PreEncode(const PString & id, const OpalMediaFormatList & selectedFormats);
+      void Output(ostream & strm) const;
+      friend ostream & operator<<(ostream & strm, const Restriction & restriction) { restriction.Output(strm); return strm; }
+    };
+    typedef std::map<PString, Restriction> Restrictions;
+    Restrictions GetRestrictions() const { return m_restrictions; }
+    void SetRestrictions(const Restrictions & restrictions) { m_restrictions = restrictions; }
+    static const PString & RestrictionPayloadTypeKey();
+    static const PString & RestrictionDependsKey();
+
   protected:
     virtual SDPMediaFormat * FindFormat(PString & str) const;
 
@@ -392,6 +427,7 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
     PNatCandidateList    m_candidates;
 #endif //OPAL_ICE
     SDPMediaFormatList   m_formats;
+    Restrictions         m_restrictions;
 
   P_REMOVE_VIRTUAL(SDPMediaFormat *,CreateSDPMediaFormat(const PString &),0);
   P_REMOVE_VIRTUAL(OpalTransportAddress,GetTransportAddress(),OpalTransportAddress());
