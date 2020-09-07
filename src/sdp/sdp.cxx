@@ -963,6 +963,17 @@ bool SDPMediaDescription::PostDecode(const OpalMediaFormatList & mediaFormats)
       m_formats.erase(format++);
   }
 
+  if (!m_restrictions.empty()) {
+    OpalMediaFormatList selectedFormats = GetMediaFormats();
+    for (Restrictions::iterator it = m_restrictions.begin(); it != m_restrictions.end(); ) {
+      if (it->second.PostDecode(*this, selectedFormats))
+        ++it;
+      else
+        it = m_restrictions.erase(it);
+    }
+    PTRACE(3, m_restrictions.size() << " restrictions (rid) received.");
+  }
+
   return true;
 }
 
@@ -1006,6 +1017,19 @@ void SDPMediaDescription::SetAttribute(const PString & attr, const PString & val
 
   if (attr *= "mid") {
     m_mids += value;
+    return;
+  }
+
+  if (attr *= "rid") {
+    Restriction restriction;
+    PTRACE_CONTEXT_ID_TO(restriction);
+    if (restriction.Parse(value)) {
+      std::pair<Restrictions::iterator, bool> result = m_restrictions.insert(std::make_pair(restriction.m_id, restriction));
+      if (!result.second) {
+        PTRACE(2, "Duplicate rid: \"" << value << '"');
+        result.first->second.m_direction = Inactive;
+      }
+    }
     return;
   }
 
@@ -1117,6 +1141,19 @@ bool SDPMediaDescription::PreEncode()
     if (!format->PreEncode())
       return false;
   }
+
+  if (!m_restrictions.empty()) {
+    OpalMediaFormatList selectedFormats = GetMediaFormats();
+    for (Restrictions::iterator it = m_restrictions.begin(); it != m_restrictions.end(); ) {
+      PTRACE_CONTEXT_ID_TO(it->second);
+      if (it->second.PreEncode(it->first, selectedFormats))
+        ++it;
+      else
+        it = m_restrictions.erase(it);
+    }
+    PTRACE(4, "Encoding " << m_restrictions.size() << " rid restrictions");
+  }
+
   return true;
 }
 
@@ -1167,6 +1204,9 @@ void SDPMediaDescription::OutputAttributes(ostream & strm) const
 
   for (PStringToString::const_iterator it = m_groups.begin(); it != m_groups.end(); ++it) 
     strm << "a=mid:" << it->second << CRLF;
+
+  for (Restrictions::const_iterator it = m_restrictions.begin(); it != m_restrictions.end(); ++it)
+    strm << "a=rid:" << it->first << ' '  << it->second << CRLF;
 
 #if OPAL_ICE
   if (m_username.IsEmpty() || m_password.IsEmpty())
@@ -1362,6 +1402,263 @@ PString SDPMediaDescription::GetSDPPortList() const
     strm << ' ' << format->GetEncodingName();
 
   return strm;
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+
+bool SDPMediaDescription::Restriction::AnswerOffer(const OpalMediaFormatList & selectedFormats)
+{
+  for (OpalMediaFormatList::iterator it = m_mediaFormats.begin(); it != m_mediaFormats.end(); ) {
+    if (selectedFormats.FindFormat(*it) != selectedFormats.end())
+      ++it;
+    else
+      m_mediaFormats.erase(it++);
+  }
+
+  if (m_mediaFormats.empty()) {
+    PTRACE(2, "No common codecs in rid \"" << m_id << '"');
+    return false;
+  }
+
+  m_direction = m_direction == SendOnly ? RecvOnly : SendOnly;
+
+  return true;
+}
+
+
+bool SDPMediaDescription::Restriction::Parse(const PString & params)
+{
+  PINDEX space1 = params.Find(' ');
+  PINDEX space2 = params.Find(' ', space1+2);
+  if (space1 == 0 || space1 == P_MAX_INDEX) {
+    PTRACE(2, "Invalid rid: \"" << params << '"');
+    return false;
+  }
+
+  m_id = params.Left(space1);
+
+  PString dir = params(space1+1, space2-1);
+  if (dir == "send")
+    m_direction = SendOnly;
+  else if (dir == "recv")
+    m_direction = RecvOnly;
+  else {
+    m_direction = Inactive;
+    PTRACE(2, "Illegal direction in rid: \"" << dir << '"');
+    return false;
+  }
+
+  if (space2 != P_MAX_INDEX) {
+    // EBNF guarantees we can just use ";" as separator of options
+    PStringArray opts = params.Mid(space2+1).Tokenise(";");
+    for (PINDEX i = 0; i < opts.GetSize(); ++i) {
+      PString key, value;
+      opts[i].Split('=', key, value, PString::SplitDefaultToBefore);
+      m_options.Set(key, value);
+    }
+  }
+
+  PTRACE(4, "Parsed rid: id=\"" << m_id << "\", dir=" << dir << ", opts=" << m_options.size());
+  return true;
+}
+
+
+const PString & SDPMediaDescription::RestrictionPayloadTypeKey() { static const PConstString s("pt");      return s; }
+const PString & SDPMediaDescription::RestrictionDependsKey()     { static const PConstString s("depends"); return s; }
+
+bool SDPMediaDescription::Restriction::PostDecode(const SDPMediaDescription & md, const OpalMediaFormatList & selectedFormats)
+{
+  if (m_direction != RecvOnly && m_direction != SendOnly)
+    return false;
+
+  if (m_options.Has(RestrictionDependsKey())) {
+    PStringArray rids = m_options.Get(RestrictionDependsKey()).Tokenise(",");
+    for (PINDEX i = 0; i < rids.GetSize(); ++i) {
+      if (md.m_restrictions.find(rids[i]) == md.m_restrictions.end()) {
+        PTRACE(3, "Dependency on non-existant rid \"" << rids[i] << "\" in rid \"" << m_id << '"');
+        return false;
+      }
+    }
+  }
+
+  // See if restriction has a subset of the media formats that were in m= line
+  if (!m_options.Has(RestrictionPayloadTypeKey())) {
+    m_mediaFormats = selectedFormats;
+    m_mediaFormats.MakeUnique();
+  }
+  else {
+    PStringArray pt = m_options.Get(RestrictionPayloadTypeKey()).Tokenise(",");
+    for (PINDEX i = 0; i < pt.GetSize(); ++i) {
+      OpalMediaFormatList::const_iterator foundMediaFormat = selectedFormats.FindFormat((RTP_DataFrame::PayloadTypes)pt[i].AsUnsigned());
+      if (foundMediaFormat == selectedFormats.end())
+        PTRACE(3, "Payload type " << pt[i] << " does not exist in rid \"" << m_id << '"');
+      m_mediaFormats += *foundMediaFormat;
+    }
+    if (m_mediaFormats.empty()) {
+      PTRACE(3, "No payload types exist in rid \"" << m_id << '"');
+      return false;
+    }
+  }
+
+  // Now adjust our restricted media formats against "standard" options
+  for (OpalMediaFormatList::iterator itFormat = m_mediaFormats.begin(); itFormat != m_mediaFormats.end(); ++itFormat) {
+    OpalMediaFormat mediaFormat = *itFormat;
+    bool changed = false;
+    unsigned value;
+
+    if (mediaFormat.GetMediaType() == OpalMediaType::Video()) {
+      if ((value = m_options.GetInteger("max-width")) > 16) {
+        mediaFormat.SetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::FrameWidthOption() : OpalVideoFormat::MaxRxFrameWidthOption(), value);
+        changed = true;
+      }
+
+      if ((value = m_options.GetInteger("max-height")) > 16) {
+        mediaFormat.SetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::FrameHeightOption() : OpalVideoFormat::MaxRxFrameHeightOption(), value);
+        changed = true;
+      }
+
+      if ((value = m_options.GetInteger("max-fs")) > 256) {
+        unsigned width = mediaFormat.GetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::FrameWidthOption() : OpalVideoFormat::MaxRxFrameWidthOption());
+        unsigned height = mediaFormat.GetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::FrameHeightOption() : OpalVideoFormat::MaxRxFrameHeightOption());
+        while (width*height > value) {
+          width = (width * 100 / 90) & 0xfffffffc;
+          height = (height * 100 / 90) & 0xfffffffc;
+        }
+        mediaFormat.SetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::FrameWidthOption() : OpalVideoFormat::MaxRxFrameWidthOption(), width);
+        mediaFormat.SetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::FrameHeightOption() : OpalVideoFormat::MaxRxFrameHeightOption(), height);
+        changed = true;
+      }
+
+      if ((value = m_options.GetInteger("max-fps")) > 0) {
+        mediaFormat.SetOptionInteger(OpalVideoFormat::FrameTimeOption(), OpalVideoFormat::VideoClockRate/value);
+        changed = true;
+      }
+
+      if ((value = m_options.GetInteger("max-pps")) > 256) {
+        unsigned width = mediaFormat.GetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::FrameWidthOption() : OpalVideoFormat::MaxRxFrameWidthOption());
+        unsigned height = mediaFormat.GetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::FrameHeightOption() : OpalVideoFormat::MaxRxFrameHeightOption());
+        mediaFormat.SetOptionInteger(OpalVideoFormat::FrameTimeOption(), OpalVideoFormat::VideoClockRate*width*height/value);
+        changed = true;
+      }
+    }
+
+    if ((value = m_options.GetInteger("max-br")) != 0) {
+      mediaFormat.SetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::TargetBitRateOption() : OpalVideoFormat::MaxBitRateOption(), value);
+      changed = true;
+    }
+
+    if (changed && !itFormat->Merge(mediaFormat)) {
+      PTRACE(2, "Merge of rid \"" << m_id << "\" restriction failed for " << mediaFormat);
+    }
+  }
+
+  PTRACE(4, "Decoded rid:"
+            " id=\"" << m_id << "\","
+            " dir=" << (m_direction == SendOnly ? "send" : "recv") << ","
+            " mf=" << setfill(';') << m_mediaFormats << ","
+            " opts=" << m_options);
+  return true;
+}
+
+
+bool SDPMediaDescription::Restriction::PreEncode(const PString & id, const OpalMediaFormatList & selectedFormats)
+{
+  if (!PAssert(m_direction == SendOnly || m_direction == RecvOnly, PInvalidParameter))
+    return false;
+
+  if (m_id.empty())
+    m_id = id;
+  else if (m_id != id) {
+    PTRACE(2, "Restriction (rid) id \"" << m_id << "\" and index id \"" << id << "\" do not match.");
+    return false;
+  }
+
+  // We trust caller, if they have put in the "pt" level restrictions
+  if (m_options.Has(RestrictionPayloadTypeKey()))
+    return true;
+
+  // Don't put in "pt" level restrictions if empty
+  if (m_mediaFormats.empty())
+    return true;
+
+  // Get the selected payload types
+  std::vector<bool> selected(RTP_DataFrame::MaxPayloadType+2);
+  for (OpalMediaFormatList::const_iterator it = selectedFormats.begin(); it != selectedFormats.end(); ++it)
+    selected[it->GetPayloadType()] = true;
+  selected[RTP_DataFrame::IllegalPayloadType] = false;
+
+  // Remove unselected and incompatible media formats
+  std::vector<bool> restricted(RTP_DataFrame::MaxPayloadType+1);
+  for (OpalMediaFormatList::iterator it = m_mediaFormats.begin(); it != m_mediaFormats.end(); ) {
+    RTP_DataFrame::PayloadTypes pt = it->GetPayloadType();
+    if (selected[pt]) {
+      OpalMediaFormatList::const_iterator itSelect = selectedFormats.FindFormat(*it);
+      if (itSelect != selectedFormats.end() && *itSelect == *it) {
+        restricted[pt] = true;
+        ++it;
+        continue;
+      }
+    }
+    PTRACE(2, "Incompatible rid restriction, "<< *it << "( " << pt << "), in \"" << m_id << '"');
+    m_mediaFormats.erase(it++);
+  }
+
+  // Should not now be empty!
+  if (m_mediaFormats.empty()) {
+    PTRACE(4, "No compatible media formats in rid \"" << m_id << '"');
+    return false;
+  }
+
+  // Do not need "pt" section if restrictions payload types same as the selected ones
+  // Build "pt" list along the way
+  bool hasRestriction = false;
+  bool needComma = false;
+  PStringStream ptList;
+  for (int pt = 0; pt <= RTP_DataFrame::MaxPayloadType; ++pt) {
+    if (restricted[pt] != selected[pt])
+      hasRestriction = false;
+    if (restricted[pt]) {
+      if (needComma)
+        ptList << ',';
+      else
+        needComma = true;
+      ptList << pt;
+    }
+  }
+
+  if (hasRestriction)
+    m_options.Set(RestrictionPayloadTypeKey(), ptList);
+
+  return true;
+}
+
+
+void SDPMediaDescription::Restriction::Output(ostream & strm) const
+{
+  strm << (m_direction == SendOnly ? "send " : "recv ");
+
+  bool outputSemicolon = false;
+
+  // The "pt" always goes first, when present
+  PString ptList = m_options.Get(RestrictionPayloadTypeKey());
+  if (!ptList.empty()) {
+    strm << RestrictionPayloadTypeKey << '=' << ptList;
+    outputSemicolon = true;
+  }
+
+  // Output all options that are not "pt"
+  for (PStringOptions::const_iterator opt = m_options.begin(); opt != m_options.end(); ++opt) {
+    if (opt->first == RestrictionPayloadTypeKey())
+      continue;
+
+    if (outputSemicolon)
+      strm << ';';
+    else
+      outputSemicolon = true;
+
+    strm << opt->first << '=' << opt->second;
+  }
 }
 
 
@@ -1807,40 +2104,44 @@ void SDPRTPAVPMediaDescription::OutputAttributes(ostream & strm) const
   if (!m_label.IsEmpty())
     strm << "a=label:" << m_label << CRLF;
 
-  /* Specification does not seem to say to do this, but all the RFC examples group
-   the FID ssrc parameters together, so we do the same to maximise interoperability */
-  std::set<RTP_SyncSourceId> ssrcInfoDone;
+  // If we have restrictions and are using "Unified Plan" then we do not need the
+  // SSRC values in the SDP, as they are transferred in the RTP
+  if (m_stringOptions.GetBoolean(OPAL_OPT_MULTI_SSRC) || m_restrictions.empty()) {
+    /* Specification does not seem to say to do this, but all the RFC examples group
+     the FID ssrc parameters together, so we do the same to maximise interoperability */
+    std::set<RTP_SyncSourceId> ssrcInfoDone;
 
-  if (m_direction&SendOnly) {
-    for (vector<RTP_SyncSourceArray>::const_iterator it1 = m_flowSSRC.begin(); it1 != m_flowSSRC.end(); ++it1) {
-      strm << "a=ssrc-group:FID";
-      for (RTP_SyncSourceArray::const_iterator it2 = it1->begin(); it2 != it1->end(); ++it2)
-        strm << ' ' << *it2;
-      strm << CRLF;
+    if (m_direction&SendOnly) {
+      for (vector<RTP_SyncSourceArray>::const_iterator it1 = m_flowSSRC.begin(); it1 != m_flowSSRC.end(); ++it1) {
+        strm << "a=ssrc-group:FID";
+        for (RTP_SyncSourceArray::const_iterator it2 = it1->begin(); it2 != it1->end(); ++it2)
+          strm << ' ' << *it2;
+        strm << CRLF;
 
-      for (RTP_SyncSourceArray::const_iterator it2 = it1->begin(); it2 != it1->end(); ++it2) {
-        SsrcInfo::const_iterator it3 = m_ssrcInfo.find(*it2);
-        if (it3 != m_ssrcInfo.end()) {
-          for (PStringOptions::const_iterator it4 = it3->second.begin(); it4 != it3->second.end(); ++it4)
-            strm << "a=ssrc:" << *it2 << ' ' << it4->first << ':' << it4->second << CRLF;
-          ssrcInfoDone.insert(*it2);
+        for (RTP_SyncSourceArray::const_iterator it2 = it1->begin(); it2 != it1->end(); ++it2) {
+          SsrcInfo::const_iterator it3 = m_ssrcInfo.find(*it2);
+          if (it3 != m_ssrcInfo.end()) {
+            for (PStringOptions::const_iterator it4 = it3->second.begin(); it4 != it3->second.end(); ++it4)
+              strm << "a=ssrc:" << *it2 << ' ' << it4->first << ':' << it4->second << CRLF;
+            ssrcInfoDone.insert(*it2);
+          }
         }
       }
     }
-  }
-  else {
-    // We have no senders, but still want to output the primary SSRC for RTCP purposes
-    for (vector<RTP_SyncSourceArray>::const_iterator it1 = m_flowSSRC.begin(); it1 != m_flowSSRC.end(); ++it1) {
-      for (RTP_SyncSourceArray::const_iterator it2 = ++it1->begin(); it2 != it1->end(); ++it2)
-        ssrcInfoDone.insert(*it2); // Don't output these
+    else {
+      // We have no senders, but still want to output the primary SSRC for RTCP purposes
+      for (vector<RTP_SyncSourceArray>::const_iterator it1 = m_flowSSRC.begin(); it1 != m_flowSSRC.end(); ++it1) {
+        for (RTP_SyncSourceArray::const_iterator it2 = ++it1->begin(); it2 != it1->end(); ++it2)
+          ssrcInfoDone.insert(*it2); // Don't output these
+      }
     }
-  }
 
-  // Output any SSRC parameters not in an FID
-  for (SsrcInfo::const_iterator it1 = m_ssrcInfo.begin(); it1 != m_ssrcInfo.end(); ++it1) {
-    if (ssrcInfoDone.find(it1->first) == ssrcInfoDone.end()) {
-      for (PStringOptions::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
-        strm << "a=ssrc:" << it1->first << ' ' << it2->first << ':' << it2->second << CRLF;
+    // Output any SSRC parameters not in an FID
+    for (SsrcInfo::const_iterator it1 = m_ssrcInfo.begin(); it1 != m_ssrcInfo.end(); ++it1) {
+      if (ssrcInfoDone.find(it1->first) == ssrcInfoDone.end()) {
+        for (PStringOptions::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+          strm << "a=ssrc:" << it1->first << ' ' << it2->first << ':' << it2->second << CRLF;
+      }
     }
   }
 

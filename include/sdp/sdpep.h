@@ -58,17 +58,6 @@ class OpalSDPHTTPConnection;
 */
 #define OPAL_OPT_USE_MEDIA_STREAMS "Use-Media-Stream"
 
-/**Enable multiple sync sources in single session.
-   This allows multiple SSRC values to be attached to a single SDP media
-   descriptor, m= line. Each SSRC must use the same media format selected for
-   the session. If false, and multiple SSRC's are attached to the session,
-   then each SSRC will create a separate SDP media descriptor section. Note
-   in this latter case, OPAL_OPT_AV_BUNDLE must also be used.
-
-   Defaults to false.
-*/
-#define OPAL_OPT_MULTI_SSRC "Multi-SSRC"
-
 /**Indicate audio will continue to flow when audio is inactive.
    Usually, the media patch thread for received audio is halted completely
    when the remote indicates no media will flow, via the SDP "recvonly" or
@@ -78,6 +67,12 @@ class OpalSDPHTTPConnection;
    Defaults to false.
   */
 #define OPAL_OPT_INACTIVE_AUDIO_FLOW "Inactive-Audio-Flow"
+
+/**Indicate media format restrictions are supported.
+   See draft-ietf-mmusic-rid.
+   Defaults to false.
+  */
+#define OPAL_OPT_ENABLE_RID "Enable-rid"
 
 
 /**Base class for endpoint types that use SDP for media transport.
@@ -280,6 +275,12 @@ class OpalSDPConnection : public OpalRTPConnection
       bool transfer,
       SDPMediaDescription::Direction otherSidesDir,
       BundleMergeInfo & bundleMergeInfo
+    );
+
+    virtual bool OnReceivedOfferRestriction(
+      const SDPMediaDescription & offer,
+      SDPMediaDescription & answer,
+      SDPMediaDescription::Restriction & restriction
     );
 
     virtual bool OnReceivedAnswerSDP(
