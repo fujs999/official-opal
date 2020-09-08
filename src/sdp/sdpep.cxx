@@ -122,6 +122,14 @@ OpalSDPConnection::~OpalSDPConnection()
 }
 
 
+void OpalSDPConnection::SetSimulcastOffers(const SimulcastOffer & sendOffer, const SimulcastOffer & recvOffer)
+{
+  m_simulcastOffers[SDPMediaDescription::e_Send] = sendOffer;
+  m_simulcastOffers[SDPMediaDescription::e_Recv] = recvOffer;
+  m_stringOptions.SetBoolean(OPAL_OPT_SIMULCAST, true);
+}
+
+
 OpalMediaFormatList OpalSDPConnection::GetMediaFormats() const
 {
   // Need to limit the media formats to what the other side provided in it's offer
@@ -772,6 +780,22 @@ bool OpalSDPConnection::OnSendOfferSDPSession(OpalMediaSession * mediaSession,
     localMedia->SetDirection((SDPMediaDescription::Direction)(3&(unsigned)GetAutoStart(mediaType)));
   }
 
+  if (!m_simulcastOffers[SDPMediaDescription::e_Send].empty() || !m_simulcastOffers[SDPMediaDescription::e_Recv].empty()) {
+    SDPMediaDescription::Restrictions restrictions;
+    SDPMediaDescription::Simulcast simulcast;
+    for (SDPMediaDescription::Directions dir = SDPMediaDescription::BeginDirections; dir < SDPMediaDescription::EndDirections; ++dir) {
+      for (SimulcastOffer::iterator it = m_simulcastOffers[dir].begin(); it != m_simulcastOffers[dir].end(); ++it) {
+        SDPMediaDescription::Restriction & restriction = restrictions[it->first];
+        restriction.m_id = it->first;
+        restriction.m_direction = dir;
+        restriction.m_options = it->second;
+        simulcast[dir].push_back(SDPMediaDescription::SimulcastAlternative(1, restriction.m_id));
+      }
+    }
+    localMedia->SetRestrictions(restrictions);
+    localMedia->SetSimulcast(simulcast);
+  }
+
   localMedia->FromSession(mediaSession, NULL, ssrc);
 
   if (mediaType == OpalMediaType::Audio()) {
@@ -1221,15 +1245,21 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPSession(SDPMediaDescript
   // Handle restrictions draft-ietf-mmusic-rid
   if (m_stringOptions.GetBoolean(OPAL_OPT_ENABLE_RID)) {
     SDPMediaDescription::Restrictions restrictions = incomingMedia->GetRestrictions();
-    for (SDPMediaDescription::Restrictions::iterator it = restrictions.begin(); it != restrictions.end(); ) {
-      if (OnReceivedOfferRestriction(*incomingMedia, *localMedia, it->second))
-        ++it;
-      else
-        it = restrictions.erase(it);
+    if (!restrictions.empty()) {
+      for (SDPMediaDescription::Restrictions::iterator it = restrictions.begin(); it != restrictions.end(); ) {
+        if (OnReceivedOfferRestriction(*incomingMedia, *localMedia, it->second))
+          ++it;
+        else
+          it = restrictions.erase(it);
+      }
+      PTRACE(4, restrictions.size() << " restrictions (rid) answered.");
+      localMedia->SetRestrictions(restrictions);
     }
-    PTRACE(4, restrictions.size() << " restrictions (rid) answered.");
-    localMedia->SetRestrictions(restrictions);
   }
+
+  // Handle draft-ietf-mmusic-sdp-simulcast
+  if (m_stringOptions.GetBoolean(OPAL_OPT_SIMULCAST))
+    OnReceivedOfferSimulcast(*incomingMedia, *localMedia);
 
   FinaliseRtx(sendStream, localMedia.get());
   FinaliseRtx(recvStream, localMedia.get());
@@ -1266,6 +1296,32 @@ bool OpalSDPConnection::OnReceivedOfferRestriction(const SDPMediaDescription & /
   // Default is to remove "pt" option and have it re3calculated based on restriction.m_mediaFormats
   restriction.m_options.Remove(SDPMediaDescription::RestrictionPayloadTypeKey());
   return restriction.AnswerOffer(answer.GetMediaFormats());
+}
+
+
+void OpalSDPConnection::OnReceivedOfferSimulcast(const SDPMediaDescription & offer, SDPMediaDescription & answer)
+{
+  SDPMediaDescription::Simulcast simulcast = offer.GetSimulcast();
+  if (simulcast.IsValid()) {
+    // Accept it as is
+    PTRACE(4, "Answering offer for simulcast.");
+    std::swap(simulcast[SDPMediaDescription::e_Send], simulcast[SDPMediaDescription::e_Recv]);
+    answer.SetSimulcast(simulcast);
+  }
+}
+
+
+void OpalSDPConnection::OnReceivedAnswerSimulcast(const SDPMediaDescription & answer, OpalRTPSession & session)
+{
+  SDPMediaDescription::SimulcastStreams simulcast = answer.GetSimulcast()[SDPMediaDescription::e_Recv];
+  if (simulcast.empty() || simulcast.front().empty())
+    return;
+
+  PTRACE(4, "Received simulcast answer.");
+  for (SDPMediaDescription::SimulcastStreams::const_iterator it = simulcast.begin(); it != simulcast.end(); ++it) {
+    if (!it->empty())
+      session.SetRtpStreamId(it->front().m_rid, session.AddSyncSource(0, OpalRTPSession::e_Sender), OpalRTPSession::e_Sender);
+  }
 }
 
 
@@ -1453,6 +1509,12 @@ bool OpalSDPConnection::OnReceivedAnswerSDPSession(const SDPMediaDescription * m
       OnMediaStreamOpenFailed(true);
   }
 
+  if (m_stringOptions.GetBoolean(OPAL_OPT_SIMULCAST)) {
+    OpalRTPSession * rtpSession = dynamic_cast<OpalRTPSession *>(mediaSession);
+    if (rtpSession != NULL)
+      OnReceivedAnswerSimulcast(*mediaDescription, *rtpSession);
+  }
+
   FinaliseRtx(sendStream, NULL);
   FinaliseRtx(recvStream, NULL);
 
@@ -1473,7 +1535,7 @@ bool OpalSDPConnection::OnReceivedAnswerSDPSession(const SDPMediaDescription * m
   NegotiateFECMediaFormats(*mediaSession);
 #endif
 
-	PTRACE_IF(3, otherSidesDir == SDPMediaDescription::Inactive, "No streams opened as " << mediaType << " inactive");
+  PTRACE_IF(3, otherSidesDir == SDPMediaDescription::Inactive, "No streams opened as " << mediaType << " inactive");
   return true;
 }
 

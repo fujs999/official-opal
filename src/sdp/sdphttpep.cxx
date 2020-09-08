@@ -51,8 +51,6 @@ OpalSDPHTTPEndPoint::OpalSDPHTTPEndPoint(OpalManager & manager, const PCaselessS
   m_defaultStringOptions.SetBoolean(OPAL_OPT_AV_BUNDLE, true);
   m_defaultStringOptions.SetBoolean(OPAL_OPT_RTCP_MUX, true);
   m_defaultStringOptions.SetBoolean(OPAL_OPT_USE_MEDIA_STREAMS, true);
-  m_defaultStringOptions.SetBoolean(OPAL_OPT_USE_MEDIA_STREAMS, true);
-  m_defaultStringOptions.SetBoolean(OPAL_OPT_ENABLE_RID, true);
   m_defaultStringOptions.SetString(OPAL_OPT_CRYPTO_EXCHANGE, OPAL_OPT_CRYPTO_EXCHANGE_INBAND_KEY_EXCHANGE);
 }
 
@@ -316,6 +314,11 @@ bool OpalSDPHTTPConnection::OnReceivedHTTP(PHTTPRequest & request)
   if (OpalSDPEndPoint::ContentType() != request.inMIME.Get(PHTTP::ContentTypeTag())) {
     PTRACE(1, "HTTP does not have " << PHTTP::ContentTypeTag() << " of " << OpalSDPEndPoint::ContentType());
     return request.OnError(PHTTP::NoneAcceptable, "Must be " + OpalSDPEndPoint::ContentType());
+  }
+
+  if (parameters(OPAL_SDP_HTTP_SIMULCAST_QUERY_PARAM) *= "true") {
+    m_stringOptions.SetBoolean(OPAL_OPT_ENABLE_RID, true);
+    m_stringOptions.SetBoolean(OPAL_OPT_SIMULCAST, true);
   }
 
   SetPhase(SetUpPhase);

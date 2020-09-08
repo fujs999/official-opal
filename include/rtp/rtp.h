@@ -731,6 +731,7 @@ class RTP_DataFrame : public PBYTEArray
         PTime    m_receivedTime;  //< Local wall clock time packet was physically read from socket
         unsigned m_discontinuity; //< Number of packets lost since the last one
         PString  m_lipSyncId;     //< Identifier for pairing audio and video packets.
+        PString  m_simulcastId;   //< Identifier for simulcast stream
         int      m_audioLevel;    //< Audio level for this packet in dBov (-127..0) as per RFC6464, INT_MAX means not used
         VAD      m_vad;           //< Indicate Voice Activity Detect has detected voice.
     };
@@ -780,6 +781,14 @@ class RTP_DataFrame : public PBYTEArray
         "lip synch" purposes.
     */
     void SetLipSyncId(const PString & id) { m_metaData.m_lipSyncId = id; }
+
+    /** Get the identifier that indicates the simulcast sub-stream.
+    */
+    const PString & GetSimulcastId() const { return m_metaData.m_simulcastId; }
+
+    /** Set the identifier that indicates the simulcast sub-stream.
+    */
+    void SetSimulcastId(const PString & id) { m_metaData.m_simulcastId = id; }
 
     // backward compatibility
     P_DEPRECATED const PString & GetBundleId() const { return m_metaData.m_lipSyncId; }

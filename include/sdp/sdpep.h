@@ -74,6 +74,12 @@ class OpalSDPHTTPConnection;
   */
 #define OPAL_OPT_ENABLE_RID "Enable-rid"
 
+/**Indicate media simulcast is supported.
+   See draft-ietf-mmusic-sdp-simulcast.
+   Defaults to false.
+  */
+#define OPAL_OPT_SIMULCAST "Simulcast"
+
 
 /**Base class for endpoint types that use SDP for media transport.
    Protocols such as SIP, RTSP or WebRTC.
@@ -243,6 +249,21 @@ class OpalSDPConnection : public OpalRTPConnection
 
     /// Get the remote media address to initialise the RTP session on making offer.
     virtual OpalTransportAddress GetRemoteMediaAddress() = 0;
+
+    /** Simulcast options.
+        The map index is the simulcast stream to offer, the data part is the restriction
+        options that apply.
+        There are some predefined option values that will be stripped before
+        sending in the SDP. These have alternate
+        */
+    typedef std::map<PString, PStringOptions> SimulcastOffer;
+
+    /** Set the simulcast options to offer in a call.
+      */
+    virtual void SetSimulcastOffers(
+      const SimulcastOffer & sendOffer,
+      const SimulcastOffer & recvOffer
+    );
   //@}
 
   protected:
@@ -283,6 +304,11 @@ class OpalSDPConnection : public OpalRTPConnection
       SDPMediaDescription::Restriction & restriction
     );
 
+    virtual void OnReceivedOfferSimulcast(
+      const SDPMediaDescription & offer,
+      SDPMediaDescription & answer
+    );
+
     virtual bool OnReceivedAnswerSDP(
       const SDPSessionDescription & sdp,
       bool & multipleFormats
@@ -294,6 +320,11 @@ class OpalSDPConnection : public OpalRTPConnection
       SDPMediaDescription::Direction otherSidesDir,
       bool & multipleFormats,
       BundleMergeInfo & bundleMergeInfo
+    );
+
+    virtual void OnReceivedAnswerSimulcast(
+      const SDPMediaDescription & answer,
+      OpalRTPSession & session
     );
 
     virtual bool OnReceivedSDP(
@@ -347,6 +378,8 @@ class OpalSDPConnection : public OpalRTPConnection
     };
     HoldState m_holdToRemote;
     bool      m_holdFromRemote;
+
+    SimulcastOffer m_simulcastOffers[SDPMediaDescription::NumDirections];
 };
 
 #endif // OPAL_SDP
