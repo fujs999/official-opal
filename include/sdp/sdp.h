@@ -210,6 +210,8 @@ class SDPCommonAttributes
       SendRecv
     };
 
+    P_DECLARE_ENUM(Directions, e_Send, e_Recv);
+
 #if OPAL_SRTP // DTLS
     P_DECLARE_BITWISE_ENUM_EX(SetupModes, 3, (
       SetupNotSet,
@@ -394,11 +396,11 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
     struct Restriction : PObject
     {
       PString             m_id;
-      Direction           m_direction;
+      Directions          m_direction;
       OpalMediaFormatList m_mediaFormats;
       PStringOptions      m_options;
 
-      Restriction() : m_direction(Undefined) { }
+      Restriction() : m_direction(EndDirections) { }
       bool AnswerOffer(const OpalMediaFormatList & selectedFormats);
       bool Parse(const PString & params);
       bool PostDecode(const SDPMediaDescription & md, const OpalMediaFormatList & selectedFormats);
@@ -411,6 +413,31 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
     void SetRestrictions(const Restrictions & restrictions) { m_restrictions = restrictions; }
     static const PString & RestrictionPayloadTypeKey();
     static const PString & RestrictionDependsKey();
+
+    // draft-ietf-mmusic-sdp-simulcast
+    struct SimulcastStream
+    {
+      PString m_rid;
+      bool    m_paused;
+
+      SimulcastStream(const PString & rid = PString::Empty(), bool paused = false) : m_rid(rid), m_paused(paused) { }
+      bool Parse(const PString & param);
+      void Output(ostream & strm) const;
+    };
+    typedef std::vector<SimulcastStream> SimulcastAlternative;
+    typedef std::vector<SimulcastAlternative> SimulcastStreams;
+    struct Simulcast : std::vector<SimulcastStreams>
+    {
+      Simulcast() : std::vector<SimulcastStreams>(NumDirections) { }
+
+      bool IsValid() const;
+      bool Parse(const PString & params);
+      bool PostDecode(const Restrictions & restrictions);
+      void Output(ostream & strm) const;
+      friend ostream & operator<<(ostream & strm, const Simulcast & simulcast) { simulcast.Output(strm); return strm; }
+    };
+    Simulcast GetSimulcast() const { return m_simulcast; }
+    void SetSimulcast(const Simulcast & simulcast) { m_simulcast = simulcast; }
 
   protected:
     virtual SDPMediaFormat * FindFormat(PString & str) const;
@@ -428,6 +455,7 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
 #endif //OPAL_ICE
     SDPMediaFormatList   m_formats;
     Restrictions         m_restrictions;
+    Simulcast            m_simulcast;
 
   P_REMOVE_VIRTUAL(SDPMediaFormat *,CreateSDPMediaFormat(const PString &),0);
   P_REMOVE_VIRTUAL(OpalTransportAddress,GetTransportAddress(),OpalTransportAddress());

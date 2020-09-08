@@ -320,6 +320,10 @@ bool OpalRTPMediaStream::InternalExecuteCommand(const OpalMediaCommand & command
 
 void OpalRTPMediaStream::OnReceivedPacket(OpalRTPSession &, OpalRTPSession::Data & data)
 {
+  if (m_syncSource == 0 && !data.m_frame.GetSimulcastId().empty() &&
+          (m_simulcastId.empty() || data.m_frame.GetSimulcastId() == m_simulcastId))
+    SetSyncSource(data.m_frame.GetSyncSource());
+
   if (m_passThruStream == NULL) {
     if (m_jitterBuffer != NULL)
       m_jitterBuffer->WriteData(data.m_frame);

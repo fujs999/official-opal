@@ -73,6 +73,7 @@ static struct {
   { "goog-remb", OpalMediaFormat::e_REMB }
 };
 
+static const PConstString SendRecvNames[SDPCommonAttributes::NumDirections+1] = { "send", "recv", "<invalid>" };
 
 
 /////////////////////////////////////////////////////////
@@ -974,6 +975,11 @@ bool SDPMediaDescription::PostDecode(const OpalMediaFormatList & mediaFormats)
     PTRACE(3, m_restrictions.size() << " restrictions (rid) received.");
   }
 
+  if (!m_simulcast.PostDecode(m_restrictions)) {
+    PTRACE(2, "Simulcast has invalid restrictions (rid) specified.");
+    m_simulcast.clear();
+  }
+
   return true;
 }
 
@@ -1027,8 +1033,16 @@ void SDPMediaDescription::SetAttribute(const PString & attr, const PString & val
       std::pair<Restrictions::iterator, bool> result = m_restrictions.insert(std::make_pair(restriction.m_id, restriction));
       if (!result.second) {
         PTRACE(2, "Duplicate rid: \"" << value << '"');
-        result.first->second.m_direction = Inactive;
+        result.first->second.m_direction = EndDirections;
       }
+    }
+    return;
+  }
+
+  if (attr *= "simulcast") {
+    if (!m_simulcast.Parse(value)) {
+      PTRACE(2, "Invalid simulcast: \"" << value << '"');
+      m_simulcast.clear();
     }
     return;
   }
@@ -1207,6 +1221,9 @@ void SDPMediaDescription::OutputAttributes(ostream & strm) const
 
   for (Restrictions::const_iterator it = m_restrictions.begin(); it != m_restrictions.end(); ++it)
     strm << "a=rid:" << it->first << ' '  << it->second << CRLF;
+
+  if (m_simulcast.IsValid())
+    strm << "a=simulcast:" << m_simulcast << CRLF;
 
 #if OPAL_ICE
   if (m_username.IsEmpty() || m_password.IsEmpty())
@@ -1421,7 +1438,7 @@ bool SDPMediaDescription::Restriction::AnswerOffer(const OpalMediaFormatList & s
     return false;
   }
 
-  m_direction = m_direction == SendOnly ? RecvOnly : SendOnly;
+  m_direction = m_direction == e_Send ? e_Recv : e_Send;
 
   return true;
 }
@@ -1439,12 +1456,12 @@ bool SDPMediaDescription::Restriction::Parse(const PString & params)
   m_id = params.Left(space1);
 
   PString dir = params(space1+1, space2-1);
-  if (dir == "send")
-    m_direction = SendOnly;
-  else if (dir == "recv")
-    m_direction = RecvOnly;
+  if (dir == SendRecvNames[e_Send])
+    m_direction = e_Send;
+  else if (dir == SendRecvNames[e_Recv])
+    m_direction = e_Recv;
   else {
-    m_direction = Inactive;
+    m_direction = EndDirections;
     PTRACE(2, "Illegal direction in rid: \"" << dir << '"');
     return false;
   }
@@ -1469,7 +1486,7 @@ const PString & SDPMediaDescription::RestrictionDependsKey()     { static const 
 
 bool SDPMediaDescription::Restriction::PostDecode(const SDPMediaDescription & md, const OpalMediaFormatList & selectedFormats)
 {
-  if (m_direction != RecvOnly && m_direction != SendOnly)
+  if (m_direction != e_Recv && m_direction != e_Send)
     return false;
 
   if (m_options.Has(RestrictionDependsKey())) {
@@ -1509,24 +1526,24 @@ bool SDPMediaDescription::Restriction::PostDecode(const SDPMediaDescription & md
 
     if (mediaFormat.GetMediaType() == OpalMediaType::Video()) {
       if ((value = m_options.GetInteger("max-width")) > 16) {
-        mediaFormat.SetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::FrameWidthOption() : OpalVideoFormat::MaxRxFrameWidthOption(), value);
+        mediaFormat.SetOptionInteger(m_direction == e_Send ? OpalVideoFormat::FrameWidthOption() : OpalVideoFormat::MaxRxFrameWidthOption(), value);
         changed = true;
       }
 
       if ((value = m_options.GetInteger("max-height")) > 16) {
-        mediaFormat.SetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::FrameHeightOption() : OpalVideoFormat::MaxRxFrameHeightOption(), value);
+        mediaFormat.SetOptionInteger(m_direction == e_Send ? OpalVideoFormat::FrameHeightOption() : OpalVideoFormat::MaxRxFrameHeightOption(), value);
         changed = true;
       }
 
       if ((value = m_options.GetInteger("max-fs")) > 256) {
-        unsigned width = mediaFormat.GetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::FrameWidthOption() : OpalVideoFormat::MaxRxFrameWidthOption());
-        unsigned height = mediaFormat.GetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::FrameHeightOption() : OpalVideoFormat::MaxRxFrameHeightOption());
+        unsigned width = mediaFormat.GetOptionInteger(m_direction == e_Send ? OpalVideoFormat::FrameWidthOption() : OpalVideoFormat::MaxRxFrameWidthOption());
+        unsigned height = mediaFormat.GetOptionInteger(m_direction == e_Send ? OpalVideoFormat::FrameHeightOption() : OpalVideoFormat::MaxRxFrameHeightOption());
         while (width*height > value) {
           width = (width * 100 / 90) & 0xfffffffc;
           height = (height * 100 / 90) & 0xfffffffc;
         }
-        mediaFormat.SetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::FrameWidthOption() : OpalVideoFormat::MaxRxFrameWidthOption(), width);
-        mediaFormat.SetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::FrameHeightOption() : OpalVideoFormat::MaxRxFrameHeightOption(), height);
+        mediaFormat.SetOptionInteger(m_direction == e_Send ? OpalVideoFormat::FrameWidthOption() : OpalVideoFormat::MaxRxFrameWidthOption(), width);
+        mediaFormat.SetOptionInteger(m_direction == e_Send ? OpalVideoFormat::FrameHeightOption() : OpalVideoFormat::MaxRxFrameHeightOption(), height);
         changed = true;
       }
 
@@ -1536,15 +1553,15 @@ bool SDPMediaDescription::Restriction::PostDecode(const SDPMediaDescription & md
       }
 
       if ((value = m_options.GetInteger("max-pps")) > 256) {
-        unsigned width = mediaFormat.GetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::FrameWidthOption() : OpalVideoFormat::MaxRxFrameWidthOption());
-        unsigned height = mediaFormat.GetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::FrameHeightOption() : OpalVideoFormat::MaxRxFrameHeightOption());
+        unsigned width = mediaFormat.GetOptionInteger(m_direction == e_Send ? OpalVideoFormat::FrameWidthOption() : OpalVideoFormat::MaxRxFrameWidthOption());
+        unsigned height = mediaFormat.GetOptionInteger(m_direction == e_Send ? OpalVideoFormat::FrameHeightOption() : OpalVideoFormat::MaxRxFrameHeightOption());
         mediaFormat.SetOptionInteger(OpalVideoFormat::FrameTimeOption(), OpalVideoFormat::VideoClockRate*width*height/value);
         changed = true;
       }
     }
 
     if ((value = m_options.GetInteger("max-br")) != 0) {
-      mediaFormat.SetOptionInteger(m_direction == SendOnly ? OpalVideoFormat::TargetBitRateOption() : OpalVideoFormat::MaxBitRateOption(), value);
+      mediaFormat.SetOptionInteger(m_direction == e_Send ? OpalVideoFormat::TargetBitRateOption() : OpalVideoFormat::MaxBitRateOption(), value);
       changed = true;
     }
 
@@ -1555,7 +1572,7 @@ bool SDPMediaDescription::Restriction::PostDecode(const SDPMediaDescription & md
 
   PTRACE(4, "Decoded rid:"
             " id=\"" << m_id << "\","
-            " dir=" << (m_direction == SendOnly ? "send" : "recv") << ","
+            " dir=" << SendRecvNames[m_direction] << ","
             " mf=" << setfill(';') << m_mediaFormats << ","
             " opts=" << m_options);
   return true;
@@ -1564,7 +1581,7 @@ bool SDPMediaDescription::Restriction::PostDecode(const SDPMediaDescription & md
 
 bool SDPMediaDescription::Restriction::PreEncode(const PString & id, const OpalMediaFormatList & selectedFormats)
 {
-  if (!PAssert(m_direction == SendOnly || m_direction == RecvOnly, PInvalidParameter))
+  if (!PAssert(m_direction == e_Send || m_direction == e_Recv, PInvalidParameter))
     return false;
 
   if (m_id.empty())
@@ -1636,7 +1653,7 @@ bool SDPMediaDescription::Restriction::PreEncode(const PString & id, const OpalM
 
 void SDPMediaDescription::Restriction::Output(ostream & strm) const
 {
-  strm << (m_direction == SendOnly ? "send " : "recv ");
+  strm << SendRecvNames[m_direction] << ' ';
 
   bool outputSemicolon = false;
 
@@ -1659,6 +1676,106 @@ void SDPMediaDescription::Restriction::Output(ostream & strm) const
 
     strm << opt->first << '=' << opt->second;
   }
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+
+bool SDPMediaDescription::Simulcast::IsValid() const
+{
+  return size() == NumDirections &&
+      ((!at(e_Send).empty() && !at(e_Send).front().empty()) ||
+       (!at(e_Recv).empty() && !at(e_Recv).front().empty()));
+}
+
+
+bool SDPMediaDescription::Simulcast::Parse(const PString & params)
+{
+  for (Directions dir = BeginDirections; dir < EndDirections; ++dir) {
+    PINDEX pos;
+    if ((pos = params.Find(SendRecvNames[dir])) != P_MAX_INDEX) {
+      pos += 5;
+      PStringArray strms = params(pos, params.Find(' ', pos)-1).Tokenise(";");
+      SimulcastStreams & streams = at(dir);
+      streams.resize(strms.size());
+      for (size_t s = 0; s < strms.size(); ++s) {
+        PStringArray alts = strms[s].Tokenise(",");
+        if (alts.empty())
+          return false;
+        streams[s].resize(alts.size());
+        for (size_t a = 0; a < alts.size(); ++a) {
+          if (!streams[s][a].Parse(alts[a]))
+            return false;
+        }
+      }
+    }
+  }
+
+  return IsValid();
+}
+
+
+bool SDPMediaDescription::SimulcastStream::Parse(const PString & param)
+{
+  if (param.empty())
+    return false;
+
+  if (param[0] != '~') {
+    m_paused = false;
+    m_rid = param;
+    return true;
+  }
+
+  if (param.length() < 2)
+    return false;
+
+  m_paused = true;
+  m_rid = param.Mid(1);
+  return true;
+}
+
+
+bool SDPMediaDescription::Simulcast::PostDecode(const Restrictions & restrictions)
+{
+  for (const_iterator itDir = begin(); itDir != end(); ++itDir) {
+    for (SimulcastStreams::const_iterator itStrm = itDir->begin(); itStrm != itDir->end(); ++itStrm) {
+      for (SimulcastAlternative::const_iterator itAlt = itStrm->begin(); itAlt < itStrm->end(); ++itAlt) {
+        if (restrictions.find(itAlt->m_rid) == restrictions.end())
+          return false;
+      }
+    }
+  }
+
+  return true;
+}
+
+
+void SDPMediaDescription::Simulcast::Output(ostream & strm) const
+{
+  for (Directions dir = BeginDirections; dir < EndDirections; ++dir) {
+    const SimulcastStreams & streams = at(dir);
+    for (SimulcastStreams::const_iterator itStrm = streams.begin(); itStrm != streams.end(); ++itStrm) {
+      if (itStrm != streams.begin())
+        strm << ';';
+      else
+        strm << SendRecvNames[dir] << ' ';
+      for (SimulcastAlternative::const_iterator itAlt = itStrm->begin(); itAlt < itStrm->end(); ++itAlt) {
+        if (itAlt != itStrm->begin())
+          strm << ',';
+        itAlt->Output(strm);
+      }
+    }
+    if (!at(e_Send).empty() && !at(e_Recv).empty())
+      strm << ' ';
+  }
+}
+
+
+void SDPMediaDescription::SimulcastStream::Output(ostream & strm) const
+{
+  if (m_paused)
+    strm << '~';
+  strm << m_rid;
 }
 
 
@@ -2896,16 +3013,14 @@ void SDPVideoMediaDescription::Format::ParseImageAttr(const PString & params)
     while (isspace(params[pos]))
       ++pos;
 
-    static PConstString send("send");
-    if (params.NumCompare(send, send.GetLength(), pos) == EqualTo) {
-      pos +=send.GetLength();
+    if (params.NumCompare(SendRecvNames[e_Send], SendRecvNames[e_Send].GetLength(), pos) == EqualTo) {
+      pos += SendRecvNames[e_Send].GetLength();
       sendAttr = true;
       continue;
     }
 
-    static PConstString recv("recv");
-    if (params.NumCompare(recv, recv.GetLength(), pos) == EqualTo) {
-      pos += recv.GetLength();
+    if (params.NumCompare(SendRecvNames[e_Recv], SendRecvNames[e_Recv].GetLength(), pos) == EqualTo) {
+      pos += SendRecvNames[e_Recv].GetLength();
       sendAttr = false;
       continue;
     }

@@ -827,6 +827,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
                                                                             const PTime & now)
 {
   frame.SetLipSyncId(m_mediaStreamId);
+  frame.SetSimulcastId(m_rtpStreamId);
 
   RTP_SequenceNumber sequenceNumber = frame.GetSequenceNumber();
   RTP_SequenceNumber expectedSequenceNumber = m_lastSequenceNumber + 1;
@@ -1074,7 +1075,8 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
   }
 
   Data data(frame);
-  for (NotifierMap::iterator it = m_notifiers.begin(); it != m_notifiers.end(); ++it) {
+  NotifierMap notifiers = m_notifiers; // Make a copy in case the notifier changes the list
+  for (NotifierMap::iterator it = notifiers.begin(); it != notifiers.end(); ++it) {
     it->second(m_session, data);
     if (data.m_status != e_ProcessPacket) {
       PTRACE(5, &m_session, "Data processing ended, notifier returned " << data.m_status);
@@ -1487,6 +1489,8 @@ void OpalRTPSession::SetRtpStreamId(const PString & id, RTP_SyncSourceId ssrc, D
   SyncSource * info;
   if (GetSyncSource(ssrc, dir, info)) {
     info->m_rtpStreamId = id.c_str();
+    if (dir == e_Sender)
+      m_rtpStreamIdToSendSSRC[info->m_rtpStreamId] = info->m_sourceIdentifier;
     PTRACE(4, *this << "set RtpStreamId for " << dir <<
            " SSRC=" << RTP_TRACE_SRC(info->m_sourceIdentifier) << " to \"" << id << '"');
   }
@@ -1824,6 +1828,15 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnSendData(RewriteMode & rewri
                                                              const PTime & now)
 {
   RTP_SyncSourceId ssrc = frame.GetSyncSource();
+  if (ssrc == 0) {
+    PString rtpStreamId = frame.GetSimulcastId();
+    if (!rtpStreamId.empty()) {
+      std::map<PString, RTP_SyncSourceId>::const_iterator it = m_rtpStreamIdToSendSSRC.find(rtpStreamId);
+      if (it != m_rtpStreamIdToSendSSRC.end())
+        ssrc = it->second;
+    }
+  }
+
   SyncSource * syncSource;
   if (GetSyncSource(ssrc, e_Sender, syncSource)) {
     if (syncSource->m_direction == e_Receiver) {
