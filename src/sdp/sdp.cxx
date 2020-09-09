@@ -1660,7 +1660,7 @@ void SDPMediaDescription::Restriction::Output(ostream & strm) const
   // The "pt" always goes first, when present
   PString ptList = m_options.Get(RestrictionPayloadTypeKey());
   if (!ptList.empty()) {
-    strm << RestrictionPayloadTypeKey << '=' << ptList;
+    strm << RestrictionPayloadTypeKey() << '=' << ptList;
     outputSemicolon = true;
   }
 
