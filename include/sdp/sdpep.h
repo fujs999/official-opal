@@ -58,17 +58,6 @@ class OpalSDPHTTPConnection;
 */
 #define OPAL_OPT_USE_MEDIA_STREAMS "Use-Media-Stream"
 
-/**Enable multiple sync sources in single session.
-   This allows multiple SSRC values to be attached to a single SDP media
-   descriptor, m= line. Each SSRC must use the same media format selected for
-   the session. If false, and multiple SSRC's are attached to the session,
-   then each SSRC will create a separate SDP media descriptor section. Note
-   in this latter case, OPAL_OPT_AV_BUNDLE must also be used.
-
-   Defaults to false.
-*/
-#define OPAL_OPT_MULTI_SSRC "Multi-SSRC"
-
 /**Indicate audio will continue to flow when audio is inactive.
    Usually, the media patch thread for received audio is halted completely
    when the remote indicates no media will flow, via the SDP "recvonly" or
@@ -78,6 +67,18 @@ class OpalSDPHTTPConnection;
    Defaults to false.
   */
 #define OPAL_OPT_INACTIVE_AUDIO_FLOW "Inactive-Audio-Flow"
+
+/**Indicate media format restrictions are supported.
+   See draft-ietf-mmusic-rid.
+   Defaults to false.
+  */
+#define OPAL_OPT_ENABLE_RID "Enable-rid"
+
+/**Indicate media simulcast is supported.
+   See draft-ietf-mmusic-sdp-simulcast.
+   Defaults to false.
+  */
+#define OPAL_OPT_SIMULCAST "Simulcast"
 
 
 /**Base class for endpoint types that use SDP for media transport.
@@ -248,6 +249,21 @@ class OpalSDPConnection : public OpalRTPConnection
 
     /// Get the remote media address to initialise the RTP session on making offer.
     virtual OpalTransportAddress GetRemoteMediaAddress() = 0;
+
+    /** Simulcast options.
+        The map index is the simulcast stream to offer, the data part is the restriction
+        options that apply.
+        There are some predefined option values that will be stripped before
+        sending in the SDP. These have alternate
+        */
+    typedef std::map<PString, PStringOptions> SimulcastOffer;
+
+    /** Set the simulcast options to offer in a call.
+      */
+    virtual void SetSimulcastOffers(
+      const SimulcastOffer & sendOffer,
+      const SimulcastOffer & recvOffer
+    );
   //@}
 
   protected:
@@ -282,6 +298,17 @@ class OpalSDPConnection : public OpalRTPConnection
       BundleMergeInfo & bundleMergeInfo
     );
 
+    virtual bool OnReceivedOfferRestriction(
+      const SDPMediaDescription & offer,
+      SDPMediaDescription & answer,
+      SDPMediaDescription::Restriction & restriction
+    );
+
+    virtual void OnReceivedOfferSimulcast(
+      const SDPMediaDescription & offer,
+      SDPMediaDescription & answer
+    );
+
     virtual bool OnReceivedAnswerSDP(
       const SDPSessionDescription & sdp,
       bool & multipleFormats
@@ -293,6 +320,11 @@ class OpalSDPConnection : public OpalRTPConnection
       SDPMediaDescription::Direction otherSidesDir,
       bool & multipleFormats,
       BundleMergeInfo & bundleMergeInfo
+    );
+
+    virtual void OnReceivedAnswerSimulcast(
+      const SDPMediaDescription & answer,
+      OpalRTPSession & session
     );
 
     virtual bool OnReceivedSDP(
@@ -346,6 +378,8 @@ class OpalSDPConnection : public OpalRTPConnection
     };
     HoldState m_holdToRemote;
     bool      m_holdFromRemote;
+
+    SimulcastOffer m_simulcastOffers[SDPMediaDescription::NumDirections];
 };
 
 #endif // OPAL_SDP

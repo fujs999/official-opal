@@ -467,9 +467,27 @@ void OpalRTPConnection::ReleaseMediaSession(unsigned sessionID)
 #if OPAL_VIDEO
 void OpalRTPConnection::AddAudioVideoGroup(const PString & id)
 {
+  // Make the BUNDLE mid short, as it is in every RTP packet as a header extension.
+  std::deque<OpalMediaSession*> audio, video;
   for (SessionMap::iterator it = m_sessions.begin(); it != m_sessions.end(); ++it) {
-    if (it->second->GetMediaType() == OpalMediaType::Audio() || it->second->GetMediaType() == OpalMediaType::Video())
-      it->second->AddGroup(id, it->second->GetMediaType(), false);
+    if (it->second->GetMediaType() == OpalMediaType::Audio())
+      audio.push_back(it->second);
+    else if (it->second->GetMediaType() == OpalMediaType::Video())
+      video.push_back(it->second);
+  }
+
+  if (audio.size() == 1)
+    audio.front()->AddGroup(id, "aud", false);
+  else {
+    for (size_t i = 0; i < audio.size(); ++i)
+      audio[i]->AddGroup(id, PSTRSTRM('a' << (i+1)), false);
+  }
+
+  if (video.size() == 1)
+    video.front()->AddGroup(id, "vid", false);
+  else {
+    for (size_t i = 0; i < video.size(); ++i)
+      video[i]->AddGroup(id, PSTRSTRM('v' << (i+1)), false);
   }
 }
 

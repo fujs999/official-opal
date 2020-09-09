@@ -176,6 +176,9 @@ class SIPURL : public PURL
       PINDEX dnsEntry = P_MAX_INDEX
     ) const;
 
+    ///  Indicate we can do an SRV lookup for host names
+    bool CanLookupSRV() const;
+
     /**Set the host and port as a transport address.
       */
     void SetHostAddress(const OpalTransportAddress & addr);

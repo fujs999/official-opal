@@ -106,6 +106,9 @@ OpalRTPSession::OpalRTPSession(const Init & init)
   , m_audioLevelHdrExtId(UINT_MAX)
   , m_vadHdrExtEnabled(true)
   , m_transportWideSeqNumHdrExtId(UINT_MAX)
+  , m_rtpStreamIdHdrExtId(UINT_MAX)
+  , m_repairedRtpStreamIdHdrExtId(UINT_MAX)
+  , m_groupMediaIdHdrExtId(UINT_MAX)
   , m_allowAnySyncSource(true)
   , m_staleReceiverTimeout(m_manager.GetStaleReceiverTimeout())
   , m_maxOutOfOrderPackets(20)
@@ -348,6 +351,54 @@ bool OpalRTPSession::GetSyncSource(RTP_SyncSourceId ssrc, Direction dir, SyncSou
 }
 
 
+void OpalRTPSession::OnRxRtpStreamId(SyncSource & receiver, const PString & id, bool repair)
+{
+  #if PTRACING
+    const char * idName = repair ? "repairedRtpStreamId" : "rtpStreamId";
+  #endif
+
+  if (id.empty()) {
+    PTRACE(2, receiver << "received empty " << idName);
+    return;
+  }
+
+  if (receiver.m_rtpStreamId.empty()) {
+    PTRACE(3, receiver << "set " << idName << " to \"" << id << '"');
+    receiver.m_rtpStreamId = id;
+  }
+  else {
+    PTRACE_IF(2, receiver.m_rtpStreamId != id, receiver << "received " << idName << " \"" << id << "\" when expecting \"" << receiver.m_rtpStreamId << '"');
+  }
+
+  // Already linked
+  if (receiver.m_rtxSSRC != 0)
+    return;
+
+  if (repair) {
+    std::map<PString, RTP_SyncSourceId>::iterator it = m_rtxPrimaryByRtpStreamId.find(id);
+    if (it != m_rtxPrimaryByRtpStreamId.end())
+      EnableSyncSourceRtx(it->second, m_rtxPayloadTypeForRtpStreamId, receiver.m_sourceIdentifier);
+    else {
+      PTRACE(4, receiver << "not yet got primary SSRC for retransmit via " << idName);
+      m_rtxByRepairRtpStreamId[id] = receiver.m_sourceIdentifier;
+    }
+  }
+  else {
+    std::map<PString, RTP_SyncSourceId>::iterator it = m_rtxByRepairRtpStreamId.find(id);
+    if (it != m_rtxByRepairRtpStreamId.end())
+      EnableSyncSourceRtx(receiver.m_sourceIdentifier, m_rtxPayloadTypeForRtpStreamId, it->second);
+    else {
+      #if PTRACING
+        bool logIt = m_rtxPrimaryByRtpStreamId.insert(std::make_pair(id, receiver.m_sourceIdentifier)).second;
+        PTRACE_IF(4, logIt, receiver << "not yet got rtx SSRC for retransmit via " << idName);
+      #else
+        m_rtxPrimaryByRtpStreamId[id] = receiver.m_sourceIdentifier;
+      #endif
+    }
+  }
+}
+
+
 RTP_SyncSourceId OpalRTPSession::EnableSyncSourceRtx(RTP_SyncSourceId primarySSRC,
                                                      RTP_DataFrame::PayloadTypes rtxPT,
                                                      RTP_SyncSourceId rtxSSRC)
@@ -411,6 +462,9 @@ void OpalRTPSession::FinaliseSyncSourceRtx(RTP_DataFrame::PayloadTypes primaryPT
                                            RTP_DataFrame::PayloadTypes rtxPT,
                                            OpalRTPSession::Direction dir)
 {
+  if (dir == e_Receiver)
+    m_rtxPayloadTypeForRtpStreamId = primaryPT; // For linking up via rtpStreamId
+
   RTP_SyncSourceArray ssrcs = GetSyncSources(dir);
   for (RTP_SyncSourceArray::iterator it = ssrcs.begin(); it != ssrcs.end(); ++it) {
     SyncSource * primary;
@@ -745,6 +799,22 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnSendData(RTP_Dat
     frame.SetHeaderExtension(m_session.m_transportWideSeqNumHdrExtId, 2, (const BYTE *)&sn, RTP_DataFrame::RFC5285_OneByte);
   }
 
+  // Only need to send for the first few seconds
+  static const PTimeInterval IdHdrExtTime(0, 4);
+  if ((now - m_firstPacketTime) < IdHdrExtTime) {
+    if (m_session.m_groupMediaIdHdrExtId <= RTP_DataFrame::MaxHeaderExtensionIdTwoByte) {
+      PString mid = m_session.GetGroupMediaId(GetBundleGroupId());
+      if (!mid.empty())
+        frame.SetHeaderExtension(m_session.m_groupMediaIdHdrExtId, mid.length(), (const BYTE *)mid.c_str(), RTP_DataFrame::RFC5285_Auto);
+    }
+
+    if (!m_rtpStreamId.empty()) {
+      unsigned extId = IsRtx() ? m_session.m_repairedRtpStreamIdHdrExtId : m_session.m_rtpStreamIdHdrExtId;
+      if (extId <= RTP_DataFrame::MaxHeaderExtensionIdTwoByte)
+        frame.SetHeaderExtension(extId, m_rtpStreamId.length(), (const BYTE *)m_rtpStreamId.c_str(), RTP_DataFrame::RFC5285_Auto);
+    }
+  }
+
   CalculateStatistics(frame, now);
 
   PTRACE(m_throttleSendData, &m_session, m_session << "sending packet " << setw(1) << frame << m_throttleSendData);
@@ -757,6 +827,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
                                                                             const PTime & now)
 {
   frame.SetLipSyncId(m_mediaStreamId);
+  frame.SetSimulcastId(m_rtpStreamId);
 
   RTP_SequenceNumber sequenceNumber = frame.GetSequenceNumber();
   RTP_SequenceNumber expectedSequenceNumber = m_lastSequenceNumber + 1;
@@ -1004,7 +1075,8 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
   }
 
   Data data(frame);
-  for (NotifierMap::iterator it = m_notifiers.begin(); it != m_notifiers.end(); ++it) {
+  NotifierMap notifiers = m_notifiers; // Make a copy in case the notifier changes the list
+  for (NotifierMap::iterator it = notifiers.begin(); it != notifiers.end(); ++it) {
     it->second(m_session, data);
     if (data.m_status != e_ProcessPacket) {
       PTRACE(5, &m_session, "Data processing ended, notifier returned " << data.m_status);
@@ -1404,6 +1476,27 @@ void OpalRTPSession::SetCanonicalName(const PString & name, RTP_SyncSourceId ssr
 }
 
 
+PString OpalRTPSession::GetRtpStreamId(RTP_SyncSourceId ssrc, Direction dir) const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
+  return GetSyncSource(ssrc, dir).m_rtpStreamId.GetPointer();
+}
+
+
+void OpalRTPSession::SetRtpStreamId(const PString & id, RTP_SyncSourceId ssrc, Direction dir)
+{
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+  SyncSource * info;
+  if (GetSyncSource(ssrc, dir, info)) {
+    info->m_rtpStreamId = id.c_str();
+    if (dir == e_Sender)
+      m_rtpStreamIdToSendSSRC[info->m_rtpStreamId] = info->m_sourceIdentifier;
+    PTRACE(4, *this << "set RtpStreamId for " << dir <<
+           " SSRC=" << RTP_TRACE_SRC(info->m_sourceIdentifier) << " to \"" << id << '"');
+  }
+}
+
+
 PString OpalRTPSession::GetMediaStreamId(RTP_SyncSourceId ssrc, Direction dir) const
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
@@ -1494,9 +1587,12 @@ RTPHeaderExtensions OpalRTPSession::GetHeaderExtensions() const
 }
 
 
-const PString & OpalRTPSession::GetAbsSendTimeHdrExtURI() { static const PConstString s("http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time"); return s; }
-const PString & OpalRTPSession::GetAudioLevelHdrExtURI() { static const PConstString s("urn:ietf:params:rtp-hdrext:ssrc-audio-level"); return s; }
+const PString & OpalRTPSession::GetAbsSendTimeHdrExtURI()         { static const PConstString s("http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time"               ); return s; }
+const PString & OpalRTPSession::GetAudioLevelHdrExtURI()          { static const PConstString s("urn:ietf:params:rtp-hdrext:ssrc-audio-level"                              ); return s; }
 const PString & OpalRTPSession::GetTransportWideSeqNumHdrExtURI() { static const PConstString s("http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01"); return s; }
+const PString & OpalRTPSession::GetBundleMediaIdExtURI()          { static const PConstString s("urn:ietf:params:rtp-hdrext:sdes:mid"                                      ); return s; }
+const PString & OpalRTPSession::GetRtpStreamIdExtURI()            { static const PConstString s("urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id"                            ); return s; }
+const PString & OpalRTPSession::GetRepairedRtpStreamIdExtURI()    { static const PConstString s("urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id"                   ); return s; }
 
 void OpalRTPSession::SetHeaderExtensions(const RTPHeaderExtensions & ext)
 {
@@ -1539,6 +1635,24 @@ bool OpalRTPSession::AddHeaderExtension(const RTPHeaderExtensionInfo & ext)
   if (uri == GetTransportWideSeqNumHdrExtURI() && m_stringOptions.GetBoolean(OPAL_OPT_TRANSPORT_WIDE_CONGESTION_CONTROL)) {
     if (m_headerExtensions.AddUniqueID(adjustedExt))
       m_transportWideSeqNumHdrExtId = adjustedExt.m_id;
+    return true;
+  }
+
+  if (uri == GetBundleMediaIdExtURI()) {
+    if (!GetGroupMediaId(GetBundleGroupId()).empty() && m_headerExtensions.AddUniqueID(adjustedExt))
+      m_groupMediaIdHdrExtId = adjustedExt.m_id;
+    return true;
+  }
+
+  if (uri == GetRtpStreamIdExtURI()) {
+    if (m_headerExtensions.AddUniqueID(adjustedExt))
+      m_rtpStreamIdHdrExtId = adjustedExt.m_id;
+    return true;
+  }
+
+  if (uri == GetRepairedRtpStreamIdExtURI()) {
+    if (m_headerExtensions.AddUniqueID(adjustedExt))
+      m_repairedRtpStreamIdHdrExtId = adjustedExt.m_id;
     return true;
   }
 
@@ -1714,6 +1828,15 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnSendData(RewriteMode & rewri
                                                              const PTime & now)
 {
   RTP_SyncSourceId ssrc = frame.GetSyncSource();
+  if (ssrc == 0) {
+    PString rtpStreamId = frame.GetSimulcastId();
+    if (!rtpStreamId.empty()) {
+      std::map<PString, RTP_SyncSourceId>::const_iterator it = m_rtpStreamIdToSendSSRC.find(rtpStreamId);
+      if (it != m_rtpStreamIdToSendSSRC.end())
+        ssrc = it->second;
+    }
+  }
+
   SyncSource * syncSource;
   if (GetSyncSource(ssrc, e_Sender, syncSource)) {
     if (syncSource->m_direction == e_Receiver) {
@@ -1825,10 +1948,31 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnPreReceiveData(RTP_DataFrame
 
   RTP_SyncSourceId ssrc = frame.GetSyncSource();
   SyncSource * receiver = UseSyncSource(ssrc, e_Receiver, false);
+
+  BYTE * exthdr;
+  PINDEX hdrlen;
   if (receiver == NULL) {
-      PTRACE_IF(2, m_loggedBadSSRC.insert(ssrc).second, *this << "ignoring unknown SSRC: " << setw(1) << frame);
-      return e_IgnorePacket;
+    if ((exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_Auto, m_groupMediaIdHdrExtId, hdrlen)) != NULL) {
+      PString mid((const char *)exthdr, hdrlen);
+      if (mid != GetGroupMediaId(GetBundleGroupId()))
+        PTRACE(m_throttleRxBundleId, *this << "Received header extension for unknown BUNDLE mid: \"" << mid << '"' << m_throttleRxBundleId);
+      else {
+        receiver = UseSyncSource(ssrc, e_Receiver, true);
+        PTRACE(3, *receiver << "Received header extension for BUNDLE mid: \"" << mid << '"');
+      }
+    }
   }
+
+  if (receiver == NULL) {
+    PTRACE_IF(2, m_loggedBadSSRC.insert(ssrc).second, *this << "ignoring unknown SSRC: " << setw(1) << frame);
+    return e_IgnorePacket;
+  }
+
+  if ((exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_Auto, m_rtpStreamIdHdrExtId, hdrlen)) != NULL)
+    OnRxRtpStreamId(*receiver, PString((const char *)exthdr, hdrlen), false);
+
+  if ((exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_Auto, m_repairedRtpStreamIdHdrExtId, hdrlen)) != NULL)
+    OnRxRtpStreamId(*receiver, PString((const char *)exthdr, hdrlen), true);
 
   return receiver->OnReceiveData(frame, e_RxFromNetwork, now);
 }
@@ -2061,7 +2205,13 @@ bool OpalRTPSession::InternalSendReport(RTP_ControlFrame & report,
 
   // Add the SDES part to compound RTCP packet
   PTRACE(logLevel, sender << "sending SDES cname=\"" << sender.m_canonicalName << '"');
-  report.AddSourceDescription(sender.m_sourceIdentifier, sender.m_canonicalName, m_toolName);
+  report.AddSourceDescription(sender.m_sourceIdentifier,
+                              sender.m_canonicalName,
+                              m_toolName,
+                              GetGroupMediaId(GetBundleGroupId()),
+                              sender.m_rtpStreamId,
+                              sender.IsRtx(),
+                              true);
 
   // Count receivers that have had a RRTR
   receivers = 0;
@@ -2741,9 +2891,35 @@ void OpalRTPSession::OnRxReceiverReport(RTP_SyncSourceId, const RTP_ReceiverRepo
 }
 
 
-void OpalRTPSession::OnRxSourceDescription(const RTP_SourceDescriptionArray & PTRACE_PARAM(description))
+void OpalRTPSession::OnRxSourceDescription(const RTP_SourceDescriptionArray & descriptions)
 {
-  PTRACE(m_throttleRxSDES, *this << "OnSourceDescription: " << description.GetSize() << " entries" << description);
+  PTRACE(m_throttleRxSDES, *this << "OnSourceDescription: " << descriptions.GetSize() << " entries" << descriptions);
+
+  for (PINDEX i = 0; i < descriptions.GetSize(); ++i) {
+    const RTP_SourceDescription & description = descriptions[i];
+    RTP_SyncSourceId ssrc = description.sourceIdentifier;
+    SyncSource * receiver = UseSyncSource(ssrc, e_Receiver, false);
+    if (receiver == NULL) {
+      PString * mid = description.items.GetAt(RTP_ControlFrame::e_MID);
+      if (mid) {
+        if (*mid != GetGroupMediaId(GetBundleGroupId()))
+          PTRACE(2, *this << "Received SDES for unknown BUNDLE mid: \"" << *mid << '"' << m_throttleRxBundleId);
+        else {
+          receiver = UseSyncSource(ssrc, e_Receiver, true);
+          PTRACE(3, *receiver << "Received SDES for BUNDLE mid: \"" << *mid << '"');
+        }
+      }
+    }
+
+    if (receiver != NULL) {
+      PString * id = description.items.GetAt(RTP_ControlFrame::e_RtpStreamId);
+      if (id != NULL)
+        OnRxRtpStreamId(*receiver, *id, false);
+      id = description.items.GetAt(RTP_ControlFrame::e_RepairedRtpStreamId);
+      if (id != NULL)
+        OnRxRtpStreamId(*receiver, *id, true);
+    }
+  }
 }
 
 

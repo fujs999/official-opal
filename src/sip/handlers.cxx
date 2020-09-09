@@ -909,6 +909,10 @@ void SIPRegisterHandler::OnReceivedOK(SIPTransaction & transaction, SIP_PDU & re
 
 PBoolean SIPRegisterHandler::SendRequest(SIPHandler::State s)
 {
+  if (s == Refreshing) {
+    PTRACE(5, "Refreshing Registration, resetting SRV index");
+    GetEndPoint().ResetSRVIndex(m_addressOfRecord);
+  }
   m_sequenceNumber = GetEndPoint().GetNextCSeq();
   return SIPHandler::SendRequest(s);
 }
@@ -2675,10 +2679,13 @@ PSafePtr<SIPHandler> SIPHandlers::FindSIPHandlerByDomain(const PString & name, S
 {
   for (iterator it = begin(); it != end(); ++it) {
     PSafePtr<SIPHandler> handler = it->second;
+    SIPEndPoint & ep(handler->GetEndPoint());
+    const SIPURL & aor(handler->GetAddressOfRecord());
+
     if ( handler->GetMethod() == meth &&
          handler->GetState() != SIPHandler::Unsubscribed &&
-        (handler->GetAddressOfRecord().GetHostName() == name ||
-         handler->GetAddressOfRecord().GetTransportAddress().IsEquivalent(name)) &&
+        (aor.GetHostName() == name ||
+         aor.GetTransportAddress(ep.GetSRVIndex(aor)).IsEquivalent(name)) &&
          handler.SetSafetyMode(mode))
       return handler;
   }

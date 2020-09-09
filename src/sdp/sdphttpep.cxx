@@ -316,6 +316,11 @@ bool OpalSDPHTTPConnection::OnReceivedHTTP(PHTTPRequest & request)
     return request.OnError(PHTTP::NoneAcceptable, "Must be " + OpalSDPEndPoint::ContentType());
   }
 
+  if (parameters(OPAL_SDP_HTTP_SIMULCAST_QUERY_PARAM) *= "true") {
+    m_stringOptions.SetBoolean(OPAL_OPT_ENABLE_RID, true);
+    m_stringOptions.SetBoolean(OPAL_OPT_SIMULCAST, true);
+  }
+
   SetPhase(SetUpPhase);
   OnApplyStringOptions();
   if (!OnIncomingConnection(0, NULL))
