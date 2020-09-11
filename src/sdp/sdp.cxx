@@ -1508,9 +1508,11 @@ bool SDPMediaDescription::Restriction::PostDecode(const SDPMediaDescription & md
     PStringArray pt = m_options.Get(RestrictionPayloadTypeKey()).Tokenise(",");
     for (PINDEX i = 0; i < pt.GetSize(); ++i) {
       OpalMediaFormatList::const_iterator foundMediaFormat = selectedFormats.FindFormat((RTP_DataFrame::PayloadTypes)pt[i].AsUnsigned());
-      if (foundMediaFormat == selectedFormats.end())
+      if (foundMediaFormat != selectedFormats.end())
+        m_mediaFormats += *foundMediaFormat;
+      else {
         PTRACE(3, "Payload type " << pt[i] << " does not exist in rid \"" << m_id << '"');
-      m_mediaFormats += *foundMediaFormat;
+      }
     }
     if (m_mediaFormats.empty()) {
       PTRACE(3, "No payload types exist in rid \"" << m_id << '"');
