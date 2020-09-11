@@ -789,6 +789,13 @@ bool OpalSDPConnection::OnSendOfferSDPSession(OpalMediaSession * mediaSession,
         restriction.m_id = it->first;
         restriction.m_direction = dir;
         restriction.m_options = it->second;
+        restriction.m_options.MakeUnique();
+        PStringArray formats = restriction.m_options.GetString(OPAL_OPT_SIMULCAST_FORMATS).Tokenise(",");
+        for (PINDEX i = 0; i < formats.GetSize(); ++i)
+          restriction.m_mediaFormats += formats[i];
+        SDPMediaDescription::SimulcastStream stream(restriction.m_id, restriction.m_options.GetBoolean(OPAL_OPT_SIMULCAST_PAUSED));
+        restriction.m_options.Remove(OPAL_OPT_SIMULCAST_PAUSED);
+        restriction.m_options.Remove(OPAL_OPT_SIMULCAST_FORMATS);
         simulcast[dir].push_back(SDPMediaDescription::SimulcastAlternative(1, restriction.m_id));
       }
     }
