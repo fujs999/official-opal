@@ -80,6 +80,18 @@ class OpalSDPHTTPConnection;
   */
 #define OPAL_OPT_SIMULCAST "Simulcast"
 
+/**Indicate in SetSimulcastOffers() simulcast stream is to be started paused.
+   Defaults to false.
+  */
+#define OPAL_OPT_SIMULCAST_PAUSED "OPAL-paused"
+
+/**Indicate in SetSimulcastOffers() the media formats to use in simulcast stream.
+   This is a comma separated list of media format names to be included via the
+   "pt" restriction in SDP.
+   Defaults to empty string.
+  */
+#define OPAL_OPT_SIMULCAST_FORMATS "OPAL-formats"
+
 
 /**Base class for endpoint types that use SDP for media transport.
    Protocols such as SIP, RTSP or WebRTC.
@@ -253,8 +265,11 @@ class OpalSDPConnection : public OpalRTPConnection
     /** Simulcast options.
         The map index is the simulcast stream to offer, the data part is the restriction
         options that apply.
+
         There are some predefined option values that will be stripped before
-        sending in the SDP. These have alternate
+        sending in the SDP. These are:
+          OPAL_OPT_SIMULCAST_PAUSED
+          OPAL_OPT_SIMULCAST_FORMATS
         */
     typedef std::map<PString, PStringOptions> SimulcastOffer;
 
