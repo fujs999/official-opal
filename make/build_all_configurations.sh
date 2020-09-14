@@ -1,8 +1,8 @@
-#~/bin/sh
+#!/bin/bash
 
 outfile="$1"
 if [ -z "$outfile" ]; then
-   echo usage: $0 outfile
+   echo usage: "`basename $0` outfile [ <start> ]"
    exit 1
 fi
 
@@ -32,9 +32,19 @@ OPAL_OPTS=`$OPALDIR/configure --help | \
               --expression=s/--disable-FEATURE// \
               --expression="s/^  (--disable-[^ ]+).*$/\\1/p"`
 
+if [ -n "$2" ]; then
+    skipping="--disable-$2"
+    echo "Skipping builds until $skipping"
+fi
+
 echo $0                                                               > $outfile
 for opt in $PTLIB_OPTS ; do
    echo =========================================================    >> $outfile
+   if [ -n "$skipping" -a "$skipping" != "$opt" ]; then
+      echo Skipping $opt                                       | tee -a $outfile
+      continue
+   fi
+   skipping=""
    echo Trying $opt                                            | tee -a $outfile
    echo ---------------------------------------------------------    >> $outfile
    rm -rf $PTLIBDIR/lib_* $PTLIBDIR/samples/*/obj_* $OPALDIR/lib_* $OPALDIR/samples/*/obj_*
@@ -77,6 +87,11 @@ make -C $PTLIBDIR all                                                >> $outfile
 
 for opt in $OPAL_OPTS ; do
    echo =========================================================    >> $outfile
+   if [ -n "$skipping" -a "$skipping" != "$opt" ]; then
+      echo Skipping $opt                                       | tee -a $outfile
+      continue
+   fi
+   skipping=""
    echo Trying $opt                                            | tee -a $outfile
    echo ---------------------------------------------------------    >> $outfile
    rm -rf $OPALDIR/lib_* $OPALDIR/samples/*/obj_*
