@@ -1049,11 +1049,18 @@ class SIPEndPoint : public OpalSDPEndPoint
 
     SIPThreadPool & GetThreadPool() { return m_threadPool; }
 
+    PINDEX GetSRVIndex(const SIPURL & url);
+    void ResetSRVIndex(const SIPURL & url);
+    OpalTransportAddress NextSRVAddress(const SIPURL & url);
 
   protected:
     void AddTransport(const OpalTransportPtr & transport, KeepAliveType keepAliveType);
     void TransportThreadMain(OpalTransportPtr transport);
     SIP_PDU::StatusCodes InternalHandleREGISTER(SIP_PDU & request, SIP_PDU * response);
+
+    typedef std::map<PCaselessString, PINDEX> SRVIndexMap;
+    SRVIndexMap    m_SRVIndex;
+    PDECLARE_MUTEX(m_SRVIndexMutex);
 
     SIPURL        m_proxy;
     PString       m_userAgentString;

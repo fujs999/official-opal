@@ -234,6 +234,13 @@ bool OpalSockConnection::OnReadMediaData(OpalMediaStream & mediaStream,
     return false;
   }
   length = hdr.m_length;
+
+  if (hdr.m_flags & MediaHeader::Update) {
+    ExecuteMediaCommand(OpalVideoUpdatePicture());
+    if (length == 0)
+      return true;
+  }
+
   mediaStream.SetMarker((hdr.m_flags & MediaHeader::Marker) != 0);
 
   if (length > size) {
