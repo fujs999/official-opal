@@ -758,6 +758,7 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
       const OpalMediaFormat & mediaFormat
     );
 
+    // https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation
     static const PString & GetBundleGroupId();
 
     /**Set the "group" id for the RTP session.
