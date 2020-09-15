@@ -1,7 +1,7 @@
 %global version_major  3
 %global version_minor  19
 %global version_patch  5
-%global version_oem    10
+%global version_oem    11
 
 %global ffmpeg_ver_el7 2.6.3-10.4.el7
 %global ptlib_ver_el7 2.19.4.10
@@ -108,7 +108,9 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 rm -rf $RPM_BUILD_ROOT
 
 
-%post -p /sbin/ldconfig
+%post
+%{_datadir}/opal/install_openh264.sh %{_libdir}
+/sbin/ldconfig
 
 %postun -p /sbin/ldconfig
 
@@ -117,6 +119,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(-,root,root,-)
 %{_libdir}/*.so.*
 %{_libdir}/opal-%{version_major}.%{version_minor}.%{version_patch}-%{version_oem}
+%{_datadir}/opal
 %{_bindir}/conopal
 
 %files devel
