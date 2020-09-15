@@ -3,14 +3,17 @@
 set -e
 
 if [ `whoami` != root ]; then
-   echo "$0 must be run as root!"
+   echo "`basename $0` must be run as root!"
    exit 1
 fi
+
+LIBDIR=/usr/local/lib
 
 case `uname -sm` in
    Linux*x86_64 )
      PLATFORM=linux64
      EXT=so
+     LIBDIR=/usr/local/lib64
    ;;
    Linux*x86 )
      PLATFORM=linux32
@@ -32,7 +35,10 @@ esac
 
 LIBBASE=libopenh264
 LIBFILE=${LIBBASE}-2.1.0-${PLATFORM}.5.$EXT
-LIBDIR=${1-/usr/local/lib}
+
+if [ -n "$1" ]; then
+    LIBDIR="$1"
+fi
 
 if [ \! -d $LIBDIR ]; then
    mkdir -p $LIBDIR
@@ -42,7 +48,7 @@ cd $LIBDIR
 if [ -e "$LIBFILE" ]; then
     echo Already installed.
 else
-    echo Installing $LIBBASE.
+    echo Installing $LIBBASE to $LIBDIR.
     rm -f ${LIBBASE}*
     curl --silent http://ciscobinary.openh264.org/$LIBFILE.bz2 | bunzip2 > $LIBFILE
     ln -s $LIBFILE ${LIBBASE}.$EXT
