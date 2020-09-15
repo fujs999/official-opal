@@ -236,7 +236,9 @@ bool OpalSockConnection::OnReadMediaData(OpalMediaStream & mediaStream,
   length = hdr.m_length;
 
   if (hdr.m_flags & MediaHeader::Update) {
+#if OPAL_VIDEO
     ExecuteMediaCommand(OpalVideoUpdatePicture());
+#endif
     if (length == 0)
       return true;
   }
