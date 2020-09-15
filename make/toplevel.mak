@@ -552,6 +552,7 @@ install:
 	   cd $(DESTDIR)$(libdir) ; \
 	   $(LN_S) -f $(notdir $(OPAL_DEBUG_SHARED_FILE)) $(notdir $(OPAL_DEBUG_SHARED_LINK)) ; \
 	fi
+	$(INSTALL) -m 755 plugins/install_openh264.sh $(DESTDIR)$(datarootdir)/opal
 	$(INSTALL) -m 644 make/*.mak $(DESTDIR)$(datarootdir)/opal/make
 	$(INSTALL) -m 644 include/*.h $(DESTDIR)$(includedir)/opal
 	for dir in $(INCSUBDIRS); \
