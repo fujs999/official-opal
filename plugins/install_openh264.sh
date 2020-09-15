@@ -39,8 +39,12 @@ if [ \! -d $LIBDIR ]; then
 fi
 
 cd $LIBDIR
-rm -f ${LIBBASE}*
-curl http://ciscobinary.openh264.org/$LIBFILE.bz2 | bunzip2 > $LIBFILE
-ln -s $LIBFILE ${LIBBASE}.$EXT
+if [ -e "$LIBFILE" ]; then
+    echo Already installed.
+else
+    echo Installing $LIBBASE.
+    rm -f ${LIBBASE}*
+    curl --silent http://ciscobinary.openh264.org/$LIBFILE.bz2 | bunzip2 > $LIBFILE
+    ln -s $LIBFILE ${LIBBASE}.$EXT
+fi
 ls -l $LIBDIR/${LIBBASE}*
-
