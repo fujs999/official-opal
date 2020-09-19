@@ -1371,6 +1371,8 @@ void OpalRTPSession::SetMediaStreamId(const PString & id, RTP_SyncSourceId ssrc,
     info->m_mediaStreamId.MakeUnique();
     PTRACE(4, *this << "set MediaStream id for " << dir <<
            " SSRC=" << RTP_TRACE_SRC(info->m_sourceIdentifier) << " to \"" << id << '"');
+    if (dir == e_Sender && info->m_rtxSSRC != 0 && !info->IsRtx())
+      SetMediaStreamId(id, info->m_rtxSSRC, dir);
   }
 }
 
@@ -1392,6 +1394,8 @@ void OpalRTPSession::SetMediaTrackId(const PString & id, RTP_SyncSourceId ssrc, 
     info->m_mediaTrackId.MakeUnique();
     PTRACE(4, *this << "set MediaStreamTrack id for " << dir <<
            " SSRC=" << RTP_TRACE_SRC(info->m_sourceIdentifier) << " to \"" << id << '"');
+    if (dir == e_Sender && info->m_rtxSSRC != 0 && !info->IsRtx())
+      SetMediaTrackId(id, info->m_rtxSSRC, dir);
   }
 }
 
