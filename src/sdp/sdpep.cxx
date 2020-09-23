@@ -82,6 +82,7 @@ PStringList OpalSDPEndPoint::GetAvailableStringOptions() const
     OPAL_OPT_BUNDLE_ONLY,
     OPAL_OPT_USE_MEDIA_STREAMS,
     OPAL_OPT_ENABLE_RID,
+    OPAL_OPT_SIMULCAST,
     OPAL_OPT_INACTIVE_AUDIO_FLOW,
     OPAL_OPT_MULTI_SSRC
   };
@@ -1250,7 +1251,7 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPSession(SDPMediaDescript
   }
 
   // Handle restrictions draft-ietf-mmusic-rid
-  if (m_stringOptions.GetBoolean(OPAL_OPT_ENABLE_RID)) {
+  if (m_stringOptions.GetBoolean(OPAL_OPT_ENABLE_RID) || m_stringOptions.GetBoolean(OPAL_OPT_SIMULCAST)) {
     SDPMediaDescription::Restrictions restrictions = incomingMedia->GetRestrictions();
     if (!restrictions.empty()) {
       for (SDPMediaDescription::Restrictions::iterator it = restrictions.begin(); it != restrictions.end(); ) {
