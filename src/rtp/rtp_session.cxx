@@ -1516,13 +1516,8 @@ void OpalRTPSession::SetMediaStreamId(const PString & id, RTP_SyncSourceId ssrc,
     info->m_mediaStreamId.MakeUnique();
     PTRACE(4, *this << "set MediaStream id for " << dir <<
            " SSRC=" << RTP_TRACE_SRC(info->m_sourceIdentifier) << " to \"" << id << '"');
-
-    // If have an RTX, set it as well
-    SyncSource * rtx;
-    if (dir == e_Sender && info->m_rtxSSRC != 0 && !info->IsRtx() && GetSyncSource(info->m_rtxSSRC, dir, rtx)) {
-      rtx->m_mediaStreamId = info->m_mediaStreamId;
-      rtx->m_mediaTrackId = info->m_mediaTrackId;
-    }
+    if (dir == e_Sender && info->m_rtxSSRC != 0 && !info->IsRtx())
+      SetMediaStreamId(id, info->m_rtxSSRC, dir);
   }
 }
 
@@ -1544,11 +1539,8 @@ void OpalRTPSession::SetMediaTrackId(const PString & id, RTP_SyncSourceId ssrc, 
     info->m_mediaTrackId.MakeUnique();
     PTRACE(4, *this << "set MediaStreamTrack id for " << dir <<
            " SSRC=" << RTP_TRACE_SRC(info->m_sourceIdentifier) << " to \"" << id << '"');
-
-    // If have an RTX, set it as well
-    SyncSource * rtx;
-    if (dir == e_Sender && info->m_rtxSSRC != 0 && !info->IsRtx() && GetSyncSource(info->m_rtxSSRC, dir, rtx))
-      rtx->m_mediaTrackId = info->m_mediaTrackId;
+    if (dir == e_Sender && info->m_rtxSSRC != 0 && !info->IsRtx())
+      SetMediaTrackId(id, info->m_rtxSSRC, dir);
   }
 }
 
