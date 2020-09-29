@@ -172,6 +172,7 @@ PStringList OpalRTPEndPoint::GetAvailableStringOptions() const
     #ifdef OPAL_OPT_DTLS_TIMEOUT
       OPAL_OPT_DTLS_TIMEOUT,
     #endif
+    OPAL_OPT_RTP_ALLOW_SSRC,
     OPAL_OPT_RTP_ABS_SEND_TIME,
     OPAL_OPT_TRANSPORT_WIDE_CONGESTION_CONTROL
   };

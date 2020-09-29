@@ -57,6 +57,18 @@ class RTCP_XR_Metrics;
 class RTP_MetricsReport;
 
 
+/**OpalConnection::StringOption key to a string indicating how incoming SSRC
+   values are handled.
+      "any" = Allow any SSRC to be received,
+      "first" = Accept first incoming SSRC, and ignore all others,
+      "preset" = Accept only those values explcitly preset by AddSyncSource()
+   Default "any".
+  */
+#define OPAL_OPT_RTP_ALLOW_SSRC "RTP-Allow-SSRC"
+#define OPAL_OPT_RTP_ALLOW_SSRC_ANY    "any"
+#define OPAL_OPT_RTP_ALLOW_SSRC_FIRST  "first"
+#define OPAL_OPT_RTP_ALLOW_SSRC_PRESET "preset"
+
 /**OpalConnection::StringOption key to a boolean indicating the AbsSendTime
    header extension (http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time)
    can be used. Default false.
@@ -686,7 +698,6 @@ class OpalRTPSession : public OpalMediaSession
     RTPHeaderExtensions m_headerExtensions;
     unsigned            m_absSendTimeHdrExtId;
     unsigned            m_transportWideSeqNumHdrExtId;
-    bool                m_allowAnySyncSource;
     PTimeInterval       m_staleReceiverTimeout;
     PINDEX              m_maxOutOfOrderPackets; // Number of packets before we give up waiting for an out of order packet
     PTimeInterval       m_waitOutOfOrderTime;   // Milliseconds before we give up on an out of order packet
