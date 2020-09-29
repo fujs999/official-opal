@@ -109,7 +109,6 @@ OpalRTPSession::OpalRTPSession(const Init & init)
   , m_rtpStreamIdHdrExtId(UINT_MAX)
   , m_repairedRtpStreamIdHdrExtId(UINT_MAX)
   , m_groupMediaIdHdrExtId(UINT_MAX)
-  , m_allowAnySyncSource(true)
   , m_staleReceiverTimeout(m_manager.GetStaleReceiverTimeout())
   , m_maxOutOfOrderPackets(20)
   , m_waitOutOfOrderTime(GetDefaultOutOfOrderWaitTime(m_isAudio))
@@ -227,7 +226,16 @@ OpalRTPSession::SyncSource * OpalRTPSession::UseSyncSource(RTP_SyncSourceId ssrc
   if (it != m_SSRC.end())
     return it->second;
 
-  if ((force || m_allowAnySyncSource) && AddSyncSource(ssrc, dir) == ssrc) {
+  if (!force) {
+    PCaselessString mode = m_stringOptions.Get(OPAL_OPT_RTP_ALLOW_SSRC, OPAL_OPT_RTP_ALLOW_SSRC_ANY);
+    if (mode == OPAL_OPT_RTP_ALLOW_SSRC_ANY)
+      force = true;
+    else if (mode == OPAL_OPT_RTP_ALLOW_SSRC_FIRST && m_defaultSSRC[dir] == 0) {
+      force = true;
+    }
+  }
+
+  if (force && AddSyncSource(ssrc, dir) == ssrc) {
     PTRACE(4, *this << "automatically added " << GetMediaType() << ' ' << dir << " SSRC=" << RTP_TRACE_SRC(ssrc));
     return m_SSRC.find(ssrc)->second;
   }
@@ -1392,7 +1400,7 @@ bool OpalRTPSession::AddGroup(const PString & groupId, const PString & mediaId, 
   if (IsGroupMember(GetBundleGroupId())) {
     // When bundling we force rtcp-mux and only allow announced SSRC values
     m_singlePortRx = true;
-    m_allowAnySyncSource = false;
+    m_stringOptions.Set(OPAL_OPT_RTP_ALLOW_SSRC, OPAL_OPT_RTP_ALLOW_SSRC_PRESET);
   }
 
   return true;
@@ -1656,7 +1664,7 @@ bool OpalRTPSession::AddHeaderExtension(const RTPHeaderExtensionInfo & ext)
 void OpalRTPSession::SetAnySyncSource(bool allow)
 {
   P_INSTRUMENTED_LOCK_READ_WRITE(return);
-  m_allowAnySyncSource = allow;
+  m_stringOptions.Set(OPAL_OPT_RTP_ALLOW_SSRC, allow ? OPAL_OPT_RTP_ALLOW_SSRC_ANY : OPAL_OPT_RTP_ALLOW_SSRC_PRESET);
 }
 
 
