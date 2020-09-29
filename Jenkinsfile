@@ -74,6 +74,7 @@ pipeline {
             if (env.BRANCH_NAME == 'develop') {
               build job: "/mcu/develop", quietPeriod: 60, wait: false
             }
+          }
         }
       }
     }
