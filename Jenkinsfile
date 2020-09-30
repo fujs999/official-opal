@@ -1,5 +1,10 @@
 pipeline {
-  agent none
+  agent {
+    node {
+      label "master"
+      customWorkspace "${JOB_NAME.replaceAll('%2F', '_')}"
+    }
+  }
 
   options {
     buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '200', numToKeepStr: '200')
@@ -70,6 +75,26 @@ pipeline {
               build job: "/mcu/develop", quietPeriod: 60, wait: false
             }
           }
+        }
+      }
+    }
+
+    stage('tag-release') {
+      when {
+        branch 'release/*'
+      }
+      steps {
+        // Set the key to do the git push to "THis is probably Geo's key!"
+        sshagent(['9a03ea9a-2af6-4f40-a178-6231e71d8dab']) {
+          sh """
+            major=`sed -n 's/%global *version_major *//p' bbcollab-libopal.spec`
+            minor=`sed -n 's/%global *version_minor *//p' bbcollab-libopal.spec`
+            patch=`sed -n 's/%global *version_patch *//p' bbcollab-libopal.spec`
+            oem=`  sed -n 's/%global *version_oem *//p'   bbcollab-libopal.spec`
+            git tag \$major.\$minor.\$patch.\$oem-2.${BUILD_NUMBER}
+            git tag ${env.BRANCH_NAME.replaceAll("release/", "")}-2.${BUILD_NUMBER}
+            git push --tags
+          """
         }
       }
     }
