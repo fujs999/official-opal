@@ -1940,6 +1940,11 @@ bool OpalRTPSession::InternalSendReport(RTP_ControlFrame & report,
   unsigned receivers = 0;
   if (includeReceivers) {
     for (SyncSourceMap::iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
+      if (receivers >= 31) {
+        PTRACE(logLevel, "Too many receivers to add to ReceiverReport" << m_throttleTxReport);
+        break;
+      }
+
       if (it->second->OnSendReceiverReport(NULL, now PTRACE_PARAM(, logLevel)))
         ++receivers;
     }
@@ -1976,9 +1981,11 @@ bool OpalRTPSession::InternalSendReport(RTP_ControlFrame & report,
   }
 
   if (rr != NULL) {
-    for (SyncSourceMap::iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
-      if (it->second->OnSendReceiverReport(rr, now PTRACE_PARAM(, logLevel)))
+    for (SyncSourceMap::iterator it = m_SSRC.begin(); receivers > 0 && it != m_SSRC.end(); ++it) {
+      if (it->second->OnSendReceiverReport(rr, now PTRACE_PARAM(, logLevel))) {
+        --receivers;
         ++rr;
+      }
     }
   }
 
