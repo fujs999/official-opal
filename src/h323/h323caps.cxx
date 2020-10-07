@@ -883,7 +883,7 @@ static void H323GenericCapabilityInfo_OnReceivedGenericPDU(OpalMediaFormat & med
     }
 
     PTRACE(2, "H323\tInvalid generic parameter type (" << param->GetTagName()
-           << ") for option \"" << option.GetName() << "\" (" << option.GetClass() << ')');
+           << ") for option \"" << option.GetName() << "\" (" << option.GetClassName() << ')');
   }
 }
 

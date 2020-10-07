@@ -1958,7 +1958,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnPreReceiveData(RTP_DataFrame
         PTRACE(m_throttleRxBundleId, *this << "Received header extension for unknown BUNDLE mid: \"" << mid << '"' << m_throttleRxBundleId);
       else {
         receiver = UseSyncSource(ssrc, e_Receiver, true);
-        PTRACE(3, *receiver << "Received header extension for BUNDLE mid: \"" << mid << '"');
+        PTRACE(3, *receiver << "added via header extension for BUNDLE mid: \"" << mid << '"');
       }
     }
   }

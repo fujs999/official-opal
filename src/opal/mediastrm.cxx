@@ -92,7 +92,7 @@ OpalMediaStream::~OpalMediaStream()
 
 void OpalMediaStream::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << '[' << this << "],"
+  strm << GetClassName() << '[' << this << "],"
        << (IsSource() ? "Source" : "Sink")
        << ',' << m_mediaFormat << ',' << m_sessionID;
 }
