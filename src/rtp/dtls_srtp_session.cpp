@@ -130,6 +130,9 @@ bool OpalDTLSMediaTransport::DTLSChannel::Read(void * buf, PINDEX size)
     // In here, DTLSChannel::BioRead is called instead of DTLSChannel::Read
     if (!m_transport.InternalPerformHandshake(this))
       return false;
+
+    // Send dummy packet to trigger OnEstablished(), in case we don't get any real data
+    m_transport.OpalMediaTransport::InternalRxData(e_Media, PBYTEArray(1));
   }
 
   while (PSSLChannelDTLS::Read(buf, size)) {

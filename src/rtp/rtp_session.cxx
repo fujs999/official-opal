@@ -1958,7 +1958,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnPreReceiveData(RTP_DataFrame
         PTRACE(m_throttleRxBundleId, *this << "Received header extension for unknown BUNDLE mid: \"" << mid << '"' << m_throttleRxBundleId);
       else {
         receiver = UseSyncSource(ssrc, e_Receiver, true);
-        PTRACE(3, *receiver << "Received header extension for BUNDLE mid: \"" << mid << '"');
+        PTRACE(3, *receiver << "added via header extension for BUNDLE mid: \"" << mid << '"');
       }
     }
   }
@@ -2149,6 +2149,11 @@ bool OpalRTPSession::InternalSendReport(RTP_ControlFrame & report,
   unsigned receivers = 0;
   if (includeReceivers) {
     for (SyncSourceMap::iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
+      if (receivers >= 31) {
+        PTRACE(logLevel, "Too many receivers to add to ReceiverReport" << m_throttleTxReport);
+        break;
+      }
+
       if (it->second->OnSendReceiverReport(NULL, now PTRACE_PARAM(, logLevel)))
         ++receivers;
     }
@@ -2185,9 +2190,11 @@ bool OpalRTPSession::InternalSendReport(RTP_ControlFrame & report,
   }
 
   if (rr != NULL) {
-    for (SyncSourceMap::iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
-      if (it->second->OnSendReceiverReport(rr, now PTRACE_PARAM(, logLevel)))
+    for (SyncSourceMap::iterator it = m_SSRC.begin(); receivers > 0 && it != m_SSRC.end(); ++it) {
+      if (it->second->OnSendReceiverReport(rr, now PTRACE_PARAM(, logLevel))) {
+        --receivers;
         ++rr;
+      }
     }
   }
 
@@ -3560,6 +3567,10 @@ void OpalRTPSession::OnRxDataPacket(OpalMediaTransport &, PBYTEArray data)
     m_manager.QueueDecoupledEvent(new PSafeWorkNoArg<OpalConnection, bool>(&m_connection, &OpalConnection::InternalOnEstablished));
   }
 
+  // Ignore one byte packet, as possibly there to open pinhole
+  if (data.GetSize() == 1)
+    return;
+
   // Check for single port operation, incoming RTCP on RTP
   RTP_ControlFrame control(data, data.GetSize(), false);
   unsigned type = control.GetPayloadType();
@@ -3585,6 +3596,15 @@ void OpalRTPSession::OnRxControlPacket(OpalMediaTransport &, PBYTEArray data)
     SessionFailed(e_Control PTRACE_PARAM(, "with no data"));
     return;
   }
+
+  if (m_sendEstablished && IsEstablished()) {
+    m_sendEstablished = false;
+    m_manager.QueueDecoupledEvent(new PSafeWorkNoArg<OpalConnection, bool>(&m_connection, &OpalConnection::InternalOnEstablished));
+  }
+
+  // Ignore one byte packet, as possibly there to open pinhole
+  if (data.GetSize() == 1)
+    return;
 
   RTP_ControlFrame control(data, data.GetSize(), false);
   if (control.IsValid()) {
