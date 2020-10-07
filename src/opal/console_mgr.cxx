@@ -3263,7 +3263,7 @@ void OpalManagerCLI::CmdIpRtpSize(PCLI::Arguments & args, P_INT_PTR)
 {
   if (args.GetCount() > 0) {
     unsigned sz = args[0].AsUnsigned();
-    if (sz < 100 && sz > 65535)       {
+    if (sz < 100 || sz > 65535) {
       args.Usage();
       return;
     }
