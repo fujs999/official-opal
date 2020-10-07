@@ -3560,6 +3560,10 @@ void OpalRTPSession::OnRxDataPacket(OpalMediaTransport &, PBYTEArray data)
     m_manager.QueueDecoupledEvent(new PSafeWorkNoArg<OpalConnection, bool>(&m_connection, &OpalConnection::InternalOnEstablished));
   }
 
+  // Ignore one byte packet, as possibly there to open pinhole
+  if (data.GetSize() == 1)
+    return;
+
   // Check for single port operation, incoming RTCP on RTP
   RTP_ControlFrame control(data, data.GetSize(), false);
   unsigned type = control.GetPayloadType();
@@ -3585,6 +3589,15 @@ void OpalRTPSession::OnRxControlPacket(OpalMediaTransport &, PBYTEArray data)
     SessionFailed(e_Control PTRACE_PARAM(, "with no data"));
     return;
   }
+
+  if (m_sendEstablished && IsEstablished()) {
+    m_sendEstablished = false;
+    m_manager.QueueDecoupledEvent(new PSafeWorkNoArg<OpalConnection, bool>(&m_connection, &OpalConnection::InternalOnEstablished));
+  }
+
+  // Ignore one byte packet, as possibly there to open pinhole
+  if (data.GetSize() == 1)
+    return;
 
   RTP_ControlFrame control(data, data.GetSize(), false);
   if (control.IsValid()) {
