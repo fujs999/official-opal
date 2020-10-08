@@ -443,16 +443,21 @@ RTP_SyncSourceId OpalRTPSession::EnableSyncSourceRtx(RTP_SyncSourceId primarySSR
     RemoveSyncSource(primary.m_rtxSSRC PTRACE_PARAM(, "overwriting RTX"));
   }
 
-  rtxSSRC = AddSyncSource(rtxSSRC, primary.m_direction, primary.m_canonicalName);
-  if (rtxSSRC == 0) {
-    PTRACE(2, *this << "could not enable RTX on SSRC=" << RTP_TRACE_SRC(primarySSRC));
-    return 0;
+  // See if already added via https://tools.ietf.org/html/draft-ietf-avtext-rid
+  it = m_SSRC.find(rtxSSRC);
+  if (it == m_SSRC.end() || it->second->m_rtpStreamId != primary.m_rtpStreamId) {
+    // Nope, try and add it
+    rtxSSRC = AddSyncSource(rtxSSRC, primary.m_direction, primary.m_canonicalName);
+    if (rtxSSRC == 0) {
+      PTRACE(2, *this << "could not enable RTX on SSRC=" << RTP_TRACE_SRC(primarySSRC));
+      return 0;
+    }
+
+    it = m_SSRC.find(rtxSSRC);
+    PAssert(it != m_SSRC.end(), PLogicError);
   }
 
   primary.m_rtxSSRC = rtxSSRC;
-
-  it = m_SSRC.find(rtxSSRC);
-  PAssert(it != m_SSRC.end(), PLogicError);
   it->second->m_mediaStreamId = primary.m_mediaStreamId;
   it->second->m_mediaTrackId = primary.m_mediaTrackId;
   it->second->m_rtxSSRC = primarySSRC;
