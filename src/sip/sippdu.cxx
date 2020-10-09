@@ -154,7 +154,13 @@ PString SIP_PDU::GetStatusCodeDescription(int code)
     { SIP_PDU::GlobalFailure_NotAcceptable,         "Not Acceptable" },
 
     { SIP_PDU::Local_TransportError,                "Transport Error" },
+    { SIP_PDU::Local_BadTransportAddress,           "Invalid Address/Hostname" },
     { SIP_PDU::Local_Timeout,                       "Timeout or retries exceeded" },
+    { SIP_PDU::Local_NoCompatibleListener,          "No compatible listener" },
+    { SIP_PDU::Local_CannotMapScheme,               "Cannot map URI scheme to registration" },
+    { SIP_PDU::Local_TransportLost,                 "Transport lost" },
+    { SIP_PDU::Local_KeepAlive,                     "Keep Alive received" },
+    { SIP_PDU::Local_NotAuthenticated,              "Not authenticated (certificate)" },
 
     { 0 }
   };
