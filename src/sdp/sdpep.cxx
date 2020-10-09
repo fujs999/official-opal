@@ -786,18 +786,22 @@ bool OpalSDPConnection::OnSendOfferSDPSession(OpalMediaSession * mediaSession,
     SDPMediaDescription::Simulcast simulcast;
     for (SDPMediaDescription::Directions dir = SDPMediaDescription::BeginDirections; dir < SDPMediaDescription::EndDirections; ++dir) {
       for (SimulcastOffer::iterator it = m_simulcastOffers[dir].begin(); it != m_simulcastOffers[dir].end(); ++it) {
-        SDPMediaDescription::Restriction & restriction = restrictions[it->first];
-        restriction.m_id = it->first;
+        PString rid = it->GetString(OPAL_OPT_SIMULCAST_RID);
+        if (rid.empty())
+          continue;
+        SDPMediaDescription::Restriction & restriction = restrictions[rid];
+        restriction.m_id = rid;
         restriction.m_direction = dir;
-        restriction.m_options = it->second;
+        restriction.m_options = *it;
         restriction.m_options.MakeUnique();
         PStringArray formats = restriction.m_options.GetString(OPAL_OPT_SIMULCAST_FORMATS).Tokenise(",");
         for (PINDEX i = 0; i < formats.GetSize(); ++i)
           restriction.m_mediaFormats += formats[i];
         SDPMediaDescription::SimulcastStream stream(restriction.m_id, restriction.m_options.GetBoolean(OPAL_OPT_SIMULCAST_PAUSED));
+        restriction.m_options.Remove(OPAL_OPT_SIMULCAST_RID);
         restriction.m_options.Remove(OPAL_OPT_SIMULCAST_PAUSED);
         restriction.m_options.Remove(OPAL_OPT_SIMULCAST_FORMATS);
-        simulcast[dir].push_back(SDPMediaDescription::SimulcastAlternative(1, restriction.m_id));
+        simulcast[dir].push_back(SDPMediaDescription::SimulcastAlternative(1, rid));
       }
     }
     localMedia->SetRestrictions(restrictions);

@@ -80,6 +80,11 @@ class OpalSDPHTTPConnection;
   */
 #define OPAL_OPT_SIMULCAST "Simulcast"
 
+/**Indicate in SetSimulcastOffers() simulcast stream rid name.
+   Must be present, or offer is ignored.
+  */
+#define OPAL_OPT_SIMULCAST_RID "OPAL-rid"
+
 /**Indicate in SetSimulcastOffers() simulcast stream is to be started paused.
    Defaults to false.
   */
@@ -268,10 +273,11 @@ class OpalSDPConnection : public OpalRTPConnection
 
         There are some predefined option values that will be stripped before
         sending in the SDP. These are:
+          OPAL_OPT_SIMULCAST_RID
           OPAL_OPT_SIMULCAST_PAUSED
           OPAL_OPT_SIMULCAST_FORMATS
         */
-    typedef std::map<PString, PStringOptions> SimulcastOffer;
+    typedef std::vector<PStringOptions> SimulcastOffer;
 
     /** Set the simulcast options to offer in a call.
       */
