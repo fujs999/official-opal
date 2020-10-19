@@ -165,11 +165,25 @@ static struct PluginCodec_Option const MaxAverageBitRate =
 {
   PluginCodec_IntegerOption,
   PLUGINCODEC_OPTION_MAX_BIT_RATE,
-  true,
+  false,
   PluginCodec_MinMerge,
   STRINGIZE(DEFAULT_BIT_RATE),
   MaxAverageBitRate_FMTPName,
   "",
+  0,
+  STRINGIZE(MIN_BIT_RATE),
+  STRINGIZE(MAX_BIT_RATE)
+};
+
+static struct PluginCodec_Option const TargetBitRate =
+{
+  PluginCodec_IntegerOption,
+  PLUGINCODEC_OPTION_TARGET_BIT_RATE,
+  false,
+  PluginCodec_MinMerge,
+  STRINGIZE(DEFAULT_BIT_RATE),
+  NULL,
+  NULL,
   0,
   STRINGIZE(MIN_BIT_RATE),
   STRINGIZE(MAX_BIT_RATE)
@@ -210,6 +224,7 @@ static struct PluginCodec_Option const * const MyOptions[] = {
   &PlaybackStereo,
   &CaptureStereo,
   &MaxAverageBitRate,
+  &TargetBitRate,
   &DynamicPacketLoss,
   &Complexity,
   NULL
@@ -412,8 +427,8 @@ class OpusPluginEncoder : public OpusPluginCodec
       if (strcasecmp(optionName, UseDTX.m_name) == 0)
         return SetOptionBoolean(m_useDTX, optionValue);
 
-      if (strcasecmp(optionName, PLUGINCODEC_OPTION_TARGET_BIT_RATE) == 0)
-        return SetOptionUnsigned(m_bitRate, optionValue, 6000, 510000);
+      if (strcasecmp(optionName, TargetBitRate.m_name) == 0)
+        return SetOptionUnsigned(m_bitRate, optionValue, MIN_BIT_RATE, MAX_BIT_RATE);
 
       if (strcasecmp(optionName, Complexity.m_name) == 0)
           return SetOptionUnsigned(m_complexity, optionValue, 0, 10);
