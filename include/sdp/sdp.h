@@ -404,7 +404,7 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
       bool AnswerOffer(const OpalMediaFormatList & selectedFormats);
       bool Parse(const PString & params);
       bool PostDecode(const SDPMediaDescription & md, const OpalMediaFormatList & selectedFormats);
-      bool PreEncode(const PString & id, const OpalMediaFormatList & selectedFormats);
+      bool PreEncode(const PString & id, Direction dir, const OpalMediaFormatList & selectedFormats);
       void Output(ostream & strm) const;
       friend ostream & operator<<(ostream & strm, const Restriction & restriction) { restriction.Output(strm); return strm; }
     };
