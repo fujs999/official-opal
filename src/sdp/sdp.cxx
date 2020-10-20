@@ -1655,14 +1655,14 @@ bool SDPMediaDescription::Restriction::PreEncode(const PString & id, const OpalM
 
 void SDPMediaDescription::Restriction::Output(ostream & strm) const
 {
-  strm << SendRecvNames[m_direction] << ' ';
+  strm << SendRecvNames[m_direction];
 
   bool outputSemicolon = false;
 
   // The "pt" always goes first, when present
   PString ptList = m_options.Get(RestrictionPayloadTypeKey());
   if (!ptList.empty()) {
-    strm << RestrictionPayloadTypeKey() << '=' << ptList;
+    strm << ' ' << RestrictionPayloadTypeKey() << '=' << ptList;
     outputSemicolon = true;
   }
 
@@ -1673,8 +1673,10 @@ void SDPMediaDescription::Restriction::Output(ostream & strm) const
 
     if (outputSemicolon)
       strm << ';';
-    else
+    else {
+      strm << ' ';
       outputSemicolon = true;
+    }
 
     strm << opt->first << '=' << opt->second;
   }
