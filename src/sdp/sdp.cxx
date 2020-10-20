@@ -1160,7 +1160,7 @@ bool SDPMediaDescription::PreEncode()
     OpalMediaFormatList selectedFormats = GetMediaFormats();
     for (Restrictions::iterator it = m_restrictions.begin(); it != m_restrictions.end(); ) {
       PTRACE_CONTEXT_ID_TO(it->second);
-      if (it->second.PreEncode(it->first, selectedFormats))
+      if (it->second.PreEncode(it->first, m_direction, selectedFormats))
         ++it;
       else
         it = m_restrictions.erase(it);
@@ -1581,10 +1581,23 @@ bool SDPMediaDescription::Restriction::PostDecode(const SDPMediaDescription & md
 }
 
 
-bool SDPMediaDescription::Restriction::PreEncode(const PString & id, const OpalMediaFormatList & selectedFormats)
+bool SDPMediaDescription::Restriction::PreEncode(const PString & id, Direction dir, const OpalMediaFormatList & selectedFormats)
 {
-  if (!PAssert(m_direction == e_Send || m_direction == e_Recv, PInvalidParameter))
-    return false;
+  switch (m_direction) {
+    case e_Send :
+      if ((dir&SendOnly) == 0)
+        return false;
+      break;
+
+    case e_Recv :
+      if ((dir&RecvOnly) == 0)
+        return false;
+      break;
+
+    default:
+      PAssertAlways(PInvalidParameter);
+      return false;
+  }
 
   if (m_id.empty())
     m_id = id;
