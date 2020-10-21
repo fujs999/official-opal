@@ -109,15 +109,15 @@ class OpalMediaType : public std::string     // do not make this PCaselessString
 
     AutoStartMode GetAutoStart() const;
 
-    class AutoStartMap : public std::map<OpalMediaType, OpalMediaType::AutoStartMode>
+    class AutoStartMap : public std::map<std::string, OpalMediaType::AutoStartMode>
     {
       public:
         AutoStartMap();
 
         bool Add(const PString & stringOption);
-        bool Add(const PCaselessString & mediaTypeName, const PCaselessString & modeName);
+        bool Add(const PCaselessString & key, const PCaselessString & modeName);
 
-        OpalMediaType::AutoStartMode GetAutoStart(const OpalMediaType & mediaType) const;
+        OpalMediaType::AutoStartMode GetAutoStart(const OpalMediaType & mediaType, const char * key = NULL) const;
 
         void SetGlobalAutoStart();
 

@@ -67,8 +67,9 @@ class PURL;
 #define OPAL_MAKE_URL_PARAM2(opt, val)  OPAL_MAKE_URL_PARAM(opt) "=" val
 
 #define OPAL_OPT_AUTO_START           "AutoStart"             /**< String option for auto-started media types. This is a '\n' separated list
-                                                                   of entries of the form type:mode, type is "audio", "video", "fax" etc. The
-                                                                   mode is "inactive", "sendonly", "recvonly", "sendrecv" or "no". "yes" is a
+                                                                   of entries of the form type:mode or ssrc:mode, type is "audio", "video",
+                                                                   "fax" etc. An ssrc is a numeric RTP SyncSourceId. The mode is "inactive",
+                                                                   "sendonly", "recvonly", "sendrecv" or "no" for no offer. A "yes" is a
                                                                    synonym for "sendrecv".
                                                                 */
 #define OPAL_OPT_CALL_IDENTIFIER      "Call-Identifier"       ///< String option to override generated call identifier
@@ -1113,6 +1114,10 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
       */
     virtual OpalMediaType::AutoStartMode GetAutoStart(
       const OpalMediaType & mediaType  ///< media type to check
+    ) const;
+    virtual OpalMediaType::AutoStartMode GetAutoStart(
+      const OpalMediaType & mediaType,  ///< media type to check
+      RTP_SyncSourceId ssrc             ///< RTP SyncSourceId to check
     ) const;
 
     /**Open source media streams, if needed.
