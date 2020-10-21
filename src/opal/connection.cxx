@@ -1986,7 +1986,8 @@ OpalMediaType::AutoStartMode OpalConnection::GetAutoStart(const OpalMediaType & 
 OpalMediaType::AutoStartMode OpalConnection::GetAutoStart(const OpalMediaType & mediaType, RTP_SyncSourceId ssrc) const
 {
   char buf[100];
-  return m_autoStartInfo.GetAutoStart(mediaType, itoa(ssrc, buf, 10));
+  snprintf(buf, sizeof(buf), "%u", ssrc);
+  return m_autoStartInfo.GetAutoStart(mediaType, buf);
 }
 
 
