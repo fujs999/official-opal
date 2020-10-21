@@ -1168,6 +1168,17 @@ bool SDPMediaDescription::PreEncode()
     PTRACE(4, "Encoding " << m_restrictions.size() << " rid restrictions");
   }
 
+  switch (m_direction) {
+    case SendOnly :
+      m_simulcast[e_Recv].clear();
+      break;
+    case RecvOnly :
+      m_simulcast[e_Send].clear();
+      break;
+    default :
+      break;
+  }
+
   return true;
 }
 
