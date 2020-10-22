@@ -1979,7 +1979,15 @@ bool OpalConnection::RequireSymmetricMediaStreams() const
 
 OpalMediaType::AutoStartMode OpalConnection::GetAutoStart(const OpalMediaType & mediaType) const
 {
-  return m_autoStartInfo.GetAutoStart(mediaType);
+    return m_autoStartInfo.GetAutoStart(mediaType);
+}
+
+
+OpalMediaType::AutoStartMode OpalConnection::GetAutoStart(const OpalMediaType & mediaType, RTP_SyncSourceId ssrc) const
+{
+  char buf[100];
+  snprintf(buf, sizeof(buf), "%u", ssrc);
+  return m_autoStartInfo.GetAutoStart(mediaType, buf);
 }
 
 

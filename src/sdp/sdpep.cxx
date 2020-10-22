@@ -681,18 +681,21 @@ bool OpalSDPConnection::OnSendOfferSDPSession(unsigned   sessionId,
       }
       PTRACE(4, "Bundled session has msid for " << count << " of " << ssrcs.size() << " SSRCs");
       if (count > 0) {
+        bool gotOne = false;
         for (RTP_SyncSourceArray::iterator ssrc = ssrcs.begin(); ssrc != ssrcs.end(); ++ssrc) {
           if (!rtpSession->GetMediaStreamId(*ssrc, OpalRTPSession::e_Sender).IsEmpty() &&
                rtpSession->GetRtxSyncSource(*ssrc, OpalRTPSession::e_Sender, false) == 0) {
             SDPMediaDescription * localMedia = mediaSession->CreateSDPMediaDescription();
             PTRACE_CONTEXT_ID_TO(localMedia);
             if (!OnSendOfferSDPSession(mediaSession, localMedia, offerOpenMediaStreamOnly, *ssrc))
-              return false;
-
-            sdp.AddMediaDescription(localMedia);
+              delete localMedia;
+            else {
+              sdp.AddMediaDescription(localMedia);
+              gotOne = true;
+            }
           }
         }
-        return true;
+        return gotOne;
       }
     }
   }
@@ -777,8 +780,23 @@ bool OpalSDPConnection::OnSendOfferSDPSession(OpalMediaSession * mediaSession,
 #endif
   }
   else {
+    switch (GetAutoStart(mediaType, ssrc)) {
+      case OpalMediaType::Transmit :
+        localMedia->SetDirection(SDPCommonAttributes::SendOnly);
+        break;
+      case OpalMediaType::Receive :
+        localMedia->SetDirection(SDPCommonAttributes::RecvOnly);
+        break;
+      case OpalMediaType::TransmitReceive :
+        localMedia->SetDirection(SDPCommonAttributes::SendRecv);
+        break;
+      case OpalMediaType::OfferInactive :
+        localMedia->SetDirection(SDPCommonAttributes::Inactive);
+        break;
+      default : // Don't offer
+        return false;
+    }
     localMedia->AddMediaFormats(m_localMediaFormats, mediaType);
-    localMedia->SetDirection((SDPMediaDescription::Direction)(3&(unsigned)GetAutoStart(mediaType)));
   }
 
   if (!m_simulcastOffers[SDPMediaDescription::e_Send].empty() || !m_simulcastOffers[SDPMediaDescription::e_Recv].empty()) {
