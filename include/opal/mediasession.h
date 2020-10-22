@@ -496,7 +496,7 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
        If PBYEArray is empty, then the transport has had an error and has been closed.
       */
     typedef PNotifierTemplate<PBYTEArray> ReadNotifier;
-    #define PDECLARE_MediaReadNotifier(cls, fn) PDECLARE_NOTIFIER2(OpalMediaTransport, cls, fn, PBYTEArray)
+    #define PDECLARE_MediaReadNotifier(cls, fn) PDECLARE_SAFE_NOTIFIER2(OpalMediaTransport, cls, fn, PBYTEArray)
 
     /** Set the notifier for read data.
       */

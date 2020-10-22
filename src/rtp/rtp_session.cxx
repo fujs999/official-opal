@@ -128,8 +128,6 @@ OpalRTPSession::OpalRTPSession(const Init & init)
   , m_packetOverhead(0)
   , m_remoteControlPort(0)
   , m_sendEstablished(true)
-  , m_dataNotifier(PCREATE_NOTIFIER(OnRxDataPacket))
-  , m_controlNotifier(PCREATE_NOTIFIER(OnRxControlPacket))
 {
   m_defaultSSRC[e_Receiver] = m_defaultSSRC[e_Sender] = 0;
 
@@ -1274,9 +1272,9 @@ void OpalRTPSession::InternalAttachTransport(const OpalMediaTransportPtr & newTr
   if (!IsOpen())
     return;
 
-  newTransport->AddReadNotifier(m_dataNotifier, e_Data);
+  newTransport->AddReadNotifier(PCREATE_NOTIFIER(OnRxDataPacket), e_Data);
   if (!m_singlePortRx)
-    newTransport->AddReadNotifier(m_controlNotifier, e_Control);
+    newTransport->AddReadNotifier(PCREATE_NOTIFIER(OnRxControlPacket), e_Control);
 
   m_rtcpPacketsReceived = 0;
 
