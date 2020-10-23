@@ -297,9 +297,8 @@ class OpalSDPConnection : public OpalRTPConnection
       SDPSessionDescription & sdpOut,
       bool offerOpenMediaStreamOnly
     );
-    virtual bool OnSendOfferSDPSession(
+    virtual SDPMediaDescription * OnSendOfferSDPStream(
       OpalMediaSession * mediaSession,
-      SDPMediaDescription * localMedia,
       bool offerOpenMediaStreamOnly,
       RTP_SyncSourceId ssrc
     );
@@ -311,11 +310,10 @@ class OpalSDPConnection : public OpalRTPConnection
     );
 
     struct BundleMergeInfo;
-    virtual SDPMediaDescription * OnSendAnswerSDPSession(
+    virtual SDPMediaDescription * OnSendAnswerSDPStream(
       SDPMediaDescription * incomingMedia,
-      unsigned sessionId,
+      unsigned rtpStreamIndex,
       bool transfer,
-      SDPMediaDescription::Direction otherSidesDir,
       BundleMergeInfo & bundleMergeInfo
     );
 
@@ -335,10 +333,9 @@ class OpalSDPConnection : public OpalRTPConnection
       bool & multipleFormats
     );
 
-    virtual bool OnReceivedAnswerSDPSession(
+    virtual bool OnReceivedAnswerSDPStream(
       const SDPMediaDescription * mediaDescription,
       unsigned sessionId,
-      SDPMediaDescription::Direction otherSidesDir,
       bool & multipleFormats,
       BundleMergeInfo & bundleMergeInfo
     );
@@ -399,6 +396,8 @@ class OpalSDPConnection : public OpalRTPConnection
     };
     HoldState m_holdToRemote;
     bool      m_holdFromRemote;
+
+    std::vector<SDPMediaDescription::Direction> m_bundledDirections;
 
     SimulcastOffer m_simulcastOffers[SDPMediaDescription::NumDirections];
 };
