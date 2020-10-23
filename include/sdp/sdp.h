@@ -322,7 +322,7 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
 
     virtual bool Decode(const PStringArray & tokens);
     virtual bool Decode(char key, const PString & value);
-    virtual bool PostDecode(const OpalMediaFormatList & mediaFormats);
+    virtual bool PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats);
 
     // return the string used within SDP to identify this media type
     virtual PString GetSDPMediaType() const;
@@ -549,7 +549,7 @@ class SDPRTPAVPMediaDescription : public SDPMediaDescription
     virtual bool IsSecure() const;
 #endif
     virtual void SetAttribute(const PString & attr, const PString & value);
-    virtual bool PostDecode(const OpalMediaFormatList & mediaFormats);
+    virtual bool PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats);
     virtual bool FromSession(OpalMediaSession * session, const SDPMediaDescription * offer, RTP_SyncSourceId ssrc);
     virtual bool ToSession(OpalMediaSession * session, RTP_SyncSourceArray & ssrcs) const;
 
@@ -601,7 +601,7 @@ class SDPAudioMediaDescription : public SDPRTPAVPMediaDescription
     SDPAudioMediaDescription(const OpalTransportAddress & address);
     virtual void OutputAttributes(ostream & str) const;
     virtual void SetAttribute(const PString & attr, const PString & value);
-    virtual bool PostDecode(const OpalMediaFormatList & mediaFormats);
+    virtual bool PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats);
 
   protected:
     unsigned m_PTime;
@@ -625,7 +625,7 @@ class SDPVideoMediaDescription : public SDPRTPAVPMediaDescription
     virtual bool PreEncode();
     virtual void OutputAttributes(ostream & str) const;
     virtual void SetAttribute(const PString & attr, const PString & value);
-    virtual bool PostDecode(const OpalMediaFormatList & mediaFormats);
+    virtual bool PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats);
     virtual OpalVideoFormat::ContentRole GetContentRole() const { return m_contentRole; }
 
   protected:
@@ -716,8 +716,7 @@ class SDPSessionDescription : public PObject, public SDPCommonAttributes
     SDPMediaDescription * GetMediaDescriptionByType(const OpalMediaType & rtpMediaType) const;
     SDPMediaDescription * GetMediaDescriptionByIndex(PINDEX i) const;
     void AddMediaDescription(SDPMediaDescription * md);
-    
-    virtual SDPMediaDescription::Direction GetDirection(unsigned) const;
+
     bool IsHold(bool allowMusicOnHold) const;
     bool HasActiveSend() const;
 

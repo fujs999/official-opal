@@ -168,9 +168,9 @@ void SDPFaxMediaDescription::ProcessMediaOptions(SDPMediaFormat & /*sdpFormat*/,
 }
 
 
-bool SDPFaxMediaDescription::PostDecode(const OpalMediaFormatList & mediaFormats)
+bool SDPFaxMediaDescription::PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats)
 {
-  if (!SDPMediaDescription::PostDecode(mediaFormats))
+  if (!SDPMediaDescription::PostDecode(defaultDirection, mediaFormats))
     return false;
 
   for (SDPMediaFormatList::iterator format = m_formats.begin(); format != m_formats.end(); ++format) {

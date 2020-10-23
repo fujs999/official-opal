@@ -947,8 +947,11 @@ bool SDPMediaDescription::Decode(char key, const PString & value)
 }
 
 
-bool SDPMediaDescription::PostDecode(const OpalMediaFormatList & mediaFormats)
+bool SDPMediaDescription::PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats)
 {
+  if (m_direction == Undefined)
+    m_direction = defaultDirection;
+
   unsigned bw = GetBandwidth(SDPSessionDescription::TransportIndependentBandwidthType());
   if (bw == UINT_MAX) {
     bw = GetBandwidth(SDPSessionDescription::ApplicationSpecificBandwidthType());
@@ -2456,7 +2459,7 @@ void SDPRTPAVPMediaDescription::SetAttribute(const PString & attr, const PString
 }
 
 
-bool SDPRTPAVPMediaDescription::PostDecode(const OpalMediaFormatList & mediaFormats)
+bool SDPRTPAVPMediaDescription::PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats)
 {
   if (m_msid.IsEmpty()) {
     // Check for backward compatibility mode, no longer per specification
@@ -2476,7 +2479,7 @@ bool SDPRTPAVPMediaDescription::PostDecode(const OpalMediaFormatList & mediaForm
     }
   }
 
-  return SDPMediaDescription::PostDecode(mediaFormats);
+  return SDPMediaDescription::PostDecode(defaultDirection, mediaFormats);
 }
 
 
@@ -2815,9 +2818,9 @@ void SDPAudioMediaDescription::SetAttribute(const PString & attr, const PString 
 }
 
 
-bool SDPAudioMediaDescription::PostDecode(const OpalMediaFormatList & mediaFormats)
+bool SDPAudioMediaDescription::PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats)
 {
-  if (!SDPRTPAVPMediaDescription::PostDecode(mediaFormats))
+  if (!SDPRTPAVPMediaDescription::PostDecode(defaultDirection, mediaFormats))
     return false;
 
   for (SDPMediaFormatList::iterator format = m_formats.begin(); format != m_formats.end(); ++format) {
@@ -2911,9 +2914,9 @@ void SDPVideoMediaDescription::SetAttribute(const PString & attr, const PString 
 }
 
 
-bool SDPVideoMediaDescription::PostDecode(const OpalMediaFormatList & mediaFormats)
+bool SDPVideoMediaDescription::PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats)
 {
-  if (!SDPRTPAVPMediaDescription::PostDecode(mediaFormats))
+  if (!SDPRTPAVPMediaDescription::PostDecode(defaultDirection, mediaFormats))
     return false;
 
   for (SDPMediaFormatList::iterator format = m_formats.begin(); format != m_formats.end(); ++format) {
@@ -3412,7 +3415,7 @@ bool SDPSessionDescription::Decode(const PStringArray & lines, const OpalMediaFo
             if (currentMedia != NULL) {
               PTRACE(3, "Parsed media session with " << currentMedia->GetSDPMediaFormats().GetSize()
                                                           << " '" << currentMedia->GetSDPMediaType() << "' formats");
-              if (!currentMedia->PostDecode(mediaFormats))
+              if (!currentMedia->PostDecode(m_direction, mediaFormats))
                 ok = false;
             }
 
@@ -3463,7 +3466,7 @@ bool SDPSessionDescription::Decode(const PStringArray & lines, const OpalMediaFo
   }
 
   if (currentMedia != NULL) {
-    if (!currentMedia->PostDecode(mediaFormats))
+    if (!currentMedia->PostDecode(m_direction, mediaFormats))
       ok = false;
 
     if (!defaultConnectAddressPresent && defaultConnectAddress.IsEmpty())
@@ -3626,15 +3629,6 @@ void SDPSessionDescription::AddMediaDescription(SDPMediaDescription * md)
 {
   PTRACE_CONTEXT_ID_TO(md);
   mediaDescriptions.Append(PAssertNULL(md));
-}
-
-
-SDPMediaDescription::Direction SDPSessionDescription::GetDirection(unsigned sessionID) const
-{
-  if (sessionID > 0 && sessionID <= (unsigned)mediaDescriptions.GetSize())
-    return mediaDescriptions[sessionID-1].GetDirection();
-
-  return defaultConnectAddress.IsEmpty() ? SDPMediaDescription::Inactive : m_direction;
 }
 
 

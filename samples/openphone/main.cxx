@@ -3789,7 +3789,7 @@ bool MyManager::MonitorPresence(const PString & aor, const PString & uri, bool s
 }
 
 
-void MyManager::OnPresenceChange(OpalPresentity &, std::auto_ptr<OpalPresenceInfo> info)
+void MyManager::OnPresenceChange(OpalPresentity &, PAutoPtr<OpalPresenceInfo> info)
 {
   int count = m_speedDials->GetItemCount();
   for (int index = 0; index < count; index++) {

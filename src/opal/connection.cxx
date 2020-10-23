@@ -1211,13 +1211,13 @@ void OpalConnection::OnRecordAudio(RTP_DataFrame & frame, P_INT_PTR param)
     return;
 
   const OpalMediaPatch * patch = (const OpalMediaPatch *)param;
-  std::auto_ptr<RTP_DataFrame> copyFrame(new RTP_DataFrame(frame.GetPointer(), frame.GetPacketSize()));
-  GetEndPoint().GetManager().QueueDecoupledEvent(new PSafeWorkArg2<OpalConnection, PString, std::auto_ptr<RTP_DataFrame> >(
+  PAutoPtr<RTP_DataFrame> copyFrame(new RTP_DataFrame(frame.GetPointer(), frame.GetPacketSize()));
+  GetEndPoint().GetManager().QueueDecoupledEvent(new PSafeWorkArg2<OpalConnection, PString, PAutoPtr<RTP_DataFrame> >(
                    this, MakeRecordingKey(*patch), copyFrame, &OpalConnection::InternalOnRecordAudio), psprintf("%p", this));
 }
 
 
-void OpalConnection::InternalOnRecordAudio(PString key, std::auto_ptr<RTP_DataFrame> frame)
+void OpalConnection::InternalOnRecordAudio(PString key, PAutoPtr<RTP_DataFrame> frame)
 {
   m_ownerCall.OnRecordAudio(key, *frame);
 }
@@ -1228,13 +1228,13 @@ void OpalConnection::InternalOnRecordAudio(PString key, std::auto_ptr<RTP_DataFr
 void OpalConnection::OnRecordVideo(RTP_DataFrame & frame, P_INT_PTR param)
 {
   const OpalMediaPatch * patch = (const OpalMediaPatch *)param;
-  std::auto_ptr<RTP_DataFrame> copyFrame(new RTP_DataFrame(frame.GetPointer(), frame.GetPacketSize()));
-  GetEndPoint().GetManager().QueueDecoupledEvent(new PSafeWorkArg2<OpalConnection, PString, std::auto_ptr<RTP_DataFrame> >(
+  PAutoPtr<RTP_DataFrame> copyFrame(new RTP_DataFrame(frame.GetPointer(), frame.GetPacketSize()));
+  GetEndPoint().GetManager().QueueDecoupledEvent(new PSafeWorkArg2<OpalConnection, PString, PAutoPtr<RTP_DataFrame> >(
                    this, MakeRecordingKey(*patch), copyFrame, &OpalConnection::InternalOnRecordVideo), psprintf("%p", this));
 }
 
 
-void OpalConnection::InternalOnRecordVideo(PString key, std::auto_ptr<RTP_DataFrame> frame)
+void OpalConnection::InternalOnRecordVideo(PString key, PAutoPtr<RTP_DataFrame> frame)
 {
   m_ownerCall.OnRecordVideo(key, *frame);
 }
