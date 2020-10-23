@@ -698,7 +698,7 @@ bool OpalSDPConnection::OnSendOfferSDPSession(unsigned sessionId, SDPSessionDesc
             if (localMedia != NULL) {
               /* Remember the offered direction for each RTP stream, as the test in OnSendOfferSDPStream
                  woud apply to all streams in the session, which is not accurate. */
-              size_t index = sdp.GetMediaDescriptions().size();
+              size_t index = sdp.GetMediaDescriptions().size()+1;
               if (offerOpenMediaStreamOnly && index < m_bundledDirections.size())
                 localMedia->SetDirection((SDPMediaDescription::Direction)(localMedia->GetDirection() & m_bundledDirections[index]));
               else {
@@ -899,6 +899,7 @@ bool OpalSDPConnection::OnSendAnswerSDP(const SDPSessionDescription & sdpOffer, 
   size_t rtpStreamIndex;
 
   BundleMergeInfo bundleMergeInfo(rtpStreamCount);
+  m_bundledDirections.resize(rtpStreamCount+1);
 
   /* When using BUNDLE, sessionId is not 1 to 1 with media description (RTP stream)
       any more, so need to try and match it up by media type. Anything not
