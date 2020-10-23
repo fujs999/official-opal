@@ -1444,7 +1444,7 @@ class OpalAudioFormat : public OpalMediaFormat
       virtual ~FrameDetector() { }
       virtual FrameType GetFrameType(const BYTE * rtp, PINDEX size, unsigned sampleRate) = 0;
     };
-    typedef std::auto_ptr<FrameDetector> FrameDetectorPtr;
+    typedef PAutoPtr<FrameDetector> FrameDetectorPtr;
     typedef PFactory<FrameDetector, PCaselessString> FrameDetectFactory;
 
     FrameType GetFrameType(const BYTE * payloadPtr, PINDEX payloadSize, FrameDetectorPtr & detector) const;
@@ -1563,7 +1563,7 @@ class OpalVideoFormat : public OpalMediaFormat
       virtual ~FrameDetector() { }
       virtual FrameType GetFrameType(const BYTE * rtp, PINDEX size) = 0;
     };
-    typedef std::auto_ptr<FrameDetector> FrameDetectorPtr;
+    typedef PAutoPtr<FrameDetector> FrameDetectorPtr;
     typedef PFactory<FrameDetector, PCaselessString> FrameDetectFactory;
 
     FrameType GetFrameType(const BYTE * payloadPtr, PINDEX payloadSize, FrameDetectorPtr & detector) const;

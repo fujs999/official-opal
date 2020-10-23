@@ -106,7 +106,7 @@ class OpalDTLSMediaTransport : public OpalDTLSMediaTransportParent
     PSSLCertificate     m_certificate;
     PSSLPrivateKey      m_privateKey;
     PSSLCertificateFingerprint m_remoteFingerprint;
-    std::auto_ptr<OpalMediaCryptoKeyInfo> m_keyInfo[2];
+    PAutoPtr<OpalMediaCryptoKeyInfo> m_keyInfo[2];
 
   friend class OpalDTLSContext;
 

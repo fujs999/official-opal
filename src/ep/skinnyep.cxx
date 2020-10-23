@@ -1324,13 +1324,9 @@ void OpalSkinnyConnection::OpenSimulatedMediaChannel(const MediaInfo & info, con
 #if OPAL_PTLIB_WAVFILE
   PFilePath simulatedAudioFile = m_endpoint.GetEndpointSimulatedAudioFile(m_phoneDevice.GetName(), info.m_sessionId);
 
-  std::auto_ptr<OpalMediaStream> sourceStream;
+  PAutoPtr<OpalMediaStream> sourceStream;
   {
-    std::auto_ptr<OpalWAVFile> wavFile(new OpalWAVFile(simulatedAudioFile,
-                                                       PFile::ReadOnly,
-                                                       PFile::ModeDefault,
-                                                       PWAVFile::fmt_PCM,
-                                                       false));
+    PAutoPtr<OpalWAVFile> wavFile(new OpalWAVFile(simulatedAudioFile, PFile::ReadOnly, PFile::ModeDefault, PWAVFile::fmt_PCM, false));
     if (!wavFile->IsOpen()) {
       PTRACE(3, "Could not simulate transmit " << mediaFormat << " stream, session=" << info.m_sessionId
              << ", file=" << simulatedAudioFile << ": " << wavFile->GetErrorText());

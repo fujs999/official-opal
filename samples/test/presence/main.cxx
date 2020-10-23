@@ -393,7 +393,7 @@ void MyManager::AuthorisationRequest(OpalPresentity & presentity, OpalPresentity
 }
 
 
-void MyManager::PresenceChange(OpalPresentity & presentity, std::auto_ptr<OpalPresenceInfo> info)
+void MyManager::PresenceChange(OpalPresentity & presentity, PAutoPtr<OpalPresenceInfo> info)
 {
   LockedStream lockedOutput(*this);
   ostream & output = lockedOutput;

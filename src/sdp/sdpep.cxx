@@ -243,7 +243,7 @@ bool OpalSDPConnection::GetOfferSDP(SDPSessionDescription & offer, bool offerOpe
 
 PString OpalSDPConnection::GetOfferSDP(bool offerOpenMediaStreamsOnly)
 {
-  std::auto_ptr<SDPSessionDescription> sdp(CreateSDP(PString::Empty()));
+  PAutoPtr<SDPSessionDescription> sdp(CreateSDP(PString::Empty()));
   if (sdp.get() == NULL) {
     PTRACE(2, "Could not create SDP");
     return false;
@@ -281,8 +281,8 @@ PString OpalSDPConnection::AnswerOfferSDP(const PString & offer)
       return PString::Empty();
   }
 
-  std::auto_ptr<SDPSessionDescription> sdpIn(CreateSDP(offer));
-  std::auto_ptr<SDPSessionDescription> sdpOut(CreateSDP(PString::Empty()));
+  PAutoPtr<SDPSessionDescription> sdpIn(CreateSDP(offer));
+  PAutoPtr<SDPSessionDescription> sdpOut(CreateSDP(PString::Empty()));
   if (sdpIn.get() == NULL || sdpOut.get() == NULL)
     return PString::Empty();
 
@@ -315,7 +315,7 @@ bool OpalSDPConnection::HandleAnswerSDP(const SDPSessionDescription & answer)
 
 bool OpalSDPConnection::HandleAnswerSDP(const PString & answer)
 {
-  std::auto_ptr<SDPSessionDescription> sdp(CreateSDP(answer));
+  PAutoPtr<SDPSessionDescription> sdp(CreateSDP(answer));
   PTRACE_CONTEXT_ID_TO(sdp.get());
   return sdp.get() != NULL && HandleAnswerSDP(*sdp);
 }
@@ -722,7 +722,7 @@ SDPMediaDescription * OpalSDPConnection::OnSendOfferSDPStream(OpalMediaSession *
 {
   OpalMediaType mediaType = mediaSession->GetMediaType();
 
-  std::auto_ptr<SDPMediaDescription> localMedia(mediaSession->CreateSDPMediaDescription());
+  PAutoPtr<SDPMediaDescription> localMedia(mediaSession->CreateSDPMediaDescription());
   if (localMedia.get() == NULL) {
     PTRACE(2, "Can't create SDP media description for media type " << mediaType);
     return NULL;
@@ -1095,7 +1095,7 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPStream(SDPMediaDescripti
   }
 
   // construct a new media session list 
-  std::auto_ptr<SDPMediaDescription> localMedia(mediaSession->CreateSDPMediaDescription());
+  PAutoPtr<SDPMediaDescription> localMedia(mediaSession->CreateSDPMediaDescription());
   if (localMedia.get() == NULL) {
     if (replaceSession)
       delete mediaSession; // Still born so can delete, not used anywhere
