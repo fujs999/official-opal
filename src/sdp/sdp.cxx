@@ -2514,6 +2514,13 @@ bool SDPRTPAVPMediaDescription::FromSession(OpalMediaSession * session,
 
       if (m_stringOptions.GetBoolean(OPAL_OPT_OFFER_REDUCED_SIZE_RTCP, true))
         m_reducedSizeRTCP = true;
+
+      if (m_stringOptions.GetBoolean(OPAL_OPT_ENABLE_RID)) {
+        RTPHeaderExtensionInfo ext1(OpalRTPSession::GetRtpStreamIdExtURI());
+        SetHeaderExtension(ext1);
+        RTPHeaderExtensionInfo ext2(OpalRTPSession::GetRepairedRtpStreamIdExtURI());
+        SetHeaderExtension(ext2);
+      }
     }
 
     RTP_SyncSourceArray ssrcs;

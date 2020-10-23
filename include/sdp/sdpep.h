@@ -68,12 +68,6 @@ class OpalSDPHTTPConnection;
   */
 #define OPAL_OPT_INACTIVE_AUDIO_FLOW "Inactive-Audio-Flow"
 
-/**Indicate media format restrictions are supported.
-   See draft-ietf-mmusic-rid.
-   Defaults to false.
-  */
-#define OPAL_OPT_ENABLE_RID "Enable-rid"
-
 /**Indicate media simulcast is supported.
    See draft-ietf-mmusic-sdp-simulcast.
    Defaults to false.
@@ -194,6 +188,9 @@ class OpalSDPConnection : public OpalRTPConnection
     /**Get the data formats this endpoint is capable of operating in.
       */
     virtual OpalMediaFormatList GetMediaFormats() const;
+
+    /// Call back for connection to act on changed string options
+    virtual void OnApplyStringOptions();
 
     /**Put the current connection on hold, suspending media streams.
        The streams from the remote are always paused. The streams from the
