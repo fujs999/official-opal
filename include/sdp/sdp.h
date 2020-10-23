@@ -120,6 +120,12 @@ Defaults to false.
 */
 #define OPAL_OPT_MULTI_SSRC "Multi-SSRC"
 
+/**Indicate media format restrictions are supported.
+   See draft-ietf-mmusic-rid.
+   Defaults to false.
+  */
+#define OPAL_OPT_ENABLE_RID "Enable-rid"
+
 
 /////////////////////////////////////////////////////////
 

@@ -128,6 +128,7 @@ void OpalSDPConnection::SetSimulcastOffers(const SimulcastOffer & sendOffer, con
   m_simulcastOffers[SDPMediaDescription::e_Send] = sendOffer;
   m_simulcastOffers[SDPMediaDescription::e_Recv] = recvOffer;
   m_stringOptions.SetBoolean(OPAL_OPT_SIMULCAST, true);
+  m_stringOptions.SetBoolean(OPAL_OPT_ENABLE_RID, true);
 }
 
 
@@ -145,6 +146,14 @@ OpalMediaFormatList OpalSDPConnection::GetMediaFormats() const
   }
 
   return OpalMediaFormatList();
+}
+
+
+void OpalSDPConnection::OnApplyStringOptions()
+{
+  if (m_stringOptions.GetBoolean(OPAL_OPT_SIMULCAST))
+    m_stringOptions.SetBoolean(OPAL_OPT_ENABLE_RID, true);
+  OpalRTPConnection::OnApplyStringOptions();
 }
 
 
@@ -1285,7 +1294,7 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPStream(SDPMediaDescripti
   }
 
   // Handle restrictions draft-ietf-mmusic-rid
-  if (m_stringOptions.GetBoolean(OPAL_OPT_ENABLE_RID) || m_stringOptions.GetBoolean(OPAL_OPT_SIMULCAST)) {
+  if (m_stringOptions.GetBoolean(OPAL_OPT_ENABLE_RID)) {
     SDPMediaDescription::Restrictions restrictions = incomingMedia->GetRestrictions();
     if (!restrictions.empty()) {
       for (SDPMediaDescription::Restrictions::iterator it = restrictions.begin(); it != restrictions.end(); ) {
