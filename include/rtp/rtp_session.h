@@ -936,6 +936,10 @@ class OpalRTPSession : public OpalMediaSession
     WORD           m_remoteControlPort;
     bool           m_sendEstablished;
 
+    // Call backs for transport data
+    OpalMediaTransport::ReadNotifier m_dataNotifier;
+    OpalMediaTransport::ReadNotifier m_controlNotifier;
+
     ApplDefinedNotifierList m_applDefinedNotifiers;
 
     PTRACE_THROTTLE(m_throttleTxReport,3,60000,5);
