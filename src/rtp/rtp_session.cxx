@@ -1357,10 +1357,14 @@ void OpalRTPSession::InternalAttachTransport(const OpalMediaTransportPtr & newTr
   if (!IsOpen())
     return;
 
-  newTransport->AddReadNotifier(PCREATE_NOTIFIER(OnRxDataPacket), e_Data);
-  if (!m_singlePortRx)
-    newTransport->AddReadNotifier(PCREATE_NOTIFIER(OnRxControlPacket), e_Control);
-
+  if (m_dataNotifier.IsNULL())
+    m_dataNotifier = PCREATE_NOTIFIER(OnRxDataPacket);
+  newTransport->AddReadNotifier(m_dataNotifier, e_Data);
+  if (!m_singlePortRx) {
+    if (m_controlNotifier.IsNULL())
+      m_controlNotifier = PCREATE_NOTIFIER(OnRxDataPacket);
+    newTransport->AddReadNotifier(m_controlNotifier, e_Control);
+  }
   m_rtcpPacketsReceived = 0;
 
   PIPAddress localAddress(0);
@@ -1388,6 +1392,8 @@ void OpalRTPSession::InternalAttachTransport(const OpalMediaTransportPtr & newTr
 OpalMediaTransportPtr OpalRTPSession::DetachTransport()
 {
   PTRACE(4, *this << "detaching transport " << m_transport);
+  m_dataNotifier = NULL;
+  m_controlNotifier = NULL;
   m_endpoint.RegisterLocalRTP(this, true);
   return OpalMediaSession::DetachTransport();
 }
@@ -3425,6 +3431,8 @@ bool OpalRTPSession::Close()
 {
   PTRACE(3, *this << "closing RTP.");
 
+  m_dataNotifier = NULL;
+  m_controlNotifier = NULL;
   m_endpoint.RegisterLocalRTP(this, true);
   m_reportTimer.Stop(true);
 
