@@ -1379,8 +1379,6 @@ void OpalRTPSession::InternalAttachTransport(const OpalMediaTransportPtr & newTr
 OpalMediaTransportPtr OpalRTPSession::DetachTransport()
 {
   PTRACE(4, *this << "detaching transport " << m_transport);
-  m_dataNotifier = NULL;
-  m_controlNotifier = NULL;
   m_endpoint.RegisterLocalRTP(this, true);
   return OpalMediaSession::DetachTransport();
 }
@@ -3411,8 +3409,12 @@ bool OpalRTPSession::Close()
 {
   PTRACE(3, *this << "closing RTP.");
 
-  m_dataNotifier = NULL;
-  m_controlNotifier = NULL;
+  if (LockReadWrite()) {
+    m_dataNotifier = NULL;
+    m_controlNotifier = NULL;
+    UnlockReadWrite();
+  }
+
   m_endpoint.RegisterLocalRTP(this, true);
   m_reportTimer.Stop(true);
 
