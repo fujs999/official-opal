@@ -524,7 +524,7 @@ bool MyLocalEndPoint::Initialise(PArgList & args)
     cout << "Not using outgoing audio file." << endl;
   else {
     m_audioFilePath = args.GetOptionString('A');
-    std::auto_ptr<PFile> file(OpenAudioFile());
+    PAutoPtr<PFile> file(OpenAudioFile());
     if (file.get() == NULL) {
       cout << "Outgoing audio file  \"" << m_audioFilePath << "\" does not exist!" << endl;
       return false;
@@ -551,7 +551,7 @@ bool MyLocalEndPoint::Initialise(PArgList & args)
     cout << "Not using outgoing video file." << endl;
   else {
     m_videoFilePath = args.GetOptionString('Y');
-    std::auto_ptr<PFile> file(OpenVideoFile());
+    PAutoPtr<PFile> file(OpenVideoFile());
     if (file.get() == NULL) {
       cout << "Outgoing video file  \"" << m_audioFilePath << "\" does not exist!" << endl;
       return false;

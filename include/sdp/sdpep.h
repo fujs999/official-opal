@@ -68,12 +68,6 @@ class OpalSDPHTTPConnection;
   */
 #define OPAL_OPT_INACTIVE_AUDIO_FLOW "Inactive-Audio-Flow"
 
-/**Indicate media format restrictions are supported.
-   See draft-ietf-mmusic-rid.
-   Defaults to false.
-  */
-#define OPAL_OPT_ENABLE_RID "Enable-rid"
-
 /**Indicate media simulcast is supported.
    See draft-ietf-mmusic-sdp-simulcast.
    Defaults to false.
@@ -195,6 +189,9 @@ class OpalSDPConnection : public OpalRTPConnection
       */
     virtual OpalMediaFormatList GetMediaFormats() const;
 
+    /// Call back for connection to act on changed string options
+    virtual void OnApplyStringOptions();
+
     /**Put the current connection on hold, suspending media streams.
        The streams from the remote are always paused. The streams from the
        local to the remote are conditionally paused depending on underlying
@@ -297,9 +294,8 @@ class OpalSDPConnection : public OpalRTPConnection
       SDPSessionDescription & sdpOut,
       bool offerOpenMediaStreamOnly
     );
-    virtual bool OnSendOfferSDPSession(
+    virtual SDPMediaDescription * OnSendOfferSDPStream(
       OpalMediaSession * mediaSession,
-      SDPMediaDescription * localMedia,
       bool offerOpenMediaStreamOnly,
       RTP_SyncSourceId ssrc
     );
@@ -311,11 +307,10 @@ class OpalSDPConnection : public OpalRTPConnection
     );
 
     struct BundleMergeInfo;
-    virtual SDPMediaDescription * OnSendAnswerSDPSession(
+    virtual SDPMediaDescription * OnSendAnswerSDPStream(
       SDPMediaDescription * incomingMedia,
-      unsigned sessionId,
+      unsigned rtpStreamIndex,
       bool transfer,
-      SDPMediaDescription::Direction otherSidesDir,
       BundleMergeInfo & bundleMergeInfo
     );
 
@@ -335,10 +330,9 @@ class OpalSDPConnection : public OpalRTPConnection
       bool & multipleFormats
     );
 
-    virtual bool OnReceivedAnswerSDPSession(
+    virtual bool OnReceivedAnswerSDPStream(
       const SDPMediaDescription * mediaDescription,
       unsigned sessionId,
-      SDPMediaDescription::Direction otherSidesDir,
       bool & multipleFormats,
       BundleMergeInfo & bundleMergeInfo
     );
@@ -399,6 +393,8 @@ class OpalSDPConnection : public OpalRTPConnection
     };
     HoldState m_holdToRemote;
     bool      m_holdFromRemote;
+
+    std::vector<SDPMediaDescription::Direction> m_bundledDirections;
 
     SimulcastOffer m_simulcastOffers[SDPMediaDescription::NumDirections];
 };
