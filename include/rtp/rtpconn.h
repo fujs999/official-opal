@@ -291,7 +291,9 @@ class OpalRTPConnection : public OpalConnection
       const PString & id = OpalMediaSession::GetBundleGroupId()
     );
 
-    /**Set the media stream identifiers for the audio/video sessions
+    /**Set the media stream identifiers for the audio/video sessions.
+       These identifiers are used to match pairs of audio and video streams
+       for the purposes of lip-sync.
       */
     virtual void SetAudioVideoMediaStreamIDs(OpalRTPSession::Direction direction);
 #endif
