@@ -495,17 +495,44 @@ void OpalRTPConnection::AddAudioVideoGroup(const PString & id)
 void OpalRTPConnection::SetAudioVideoMediaStreamIDs(OpalRTPSession::Direction direction)
 {
   OpalRTPSession * audioSession = dynamic_cast<OpalRTPSession *>(FindSessionByMediaType(OpalMediaType::Audio()));
-  if (audioSession == NULL || !audioSession->GetMediaStreamId(0, direction).IsEmpty())
+  if (audioSession == NULL)
     return;
 
   OpalRTPSession * videoSession = dynamic_cast<OpalRTPSession *>(FindSessionByMediaType(OpalMediaType::Video()));
-  if (videoSession == NULL || !videoSession->GetMediaStreamId(0, direction).IsEmpty())
+  if (videoSession == NULL)
     return;
 
-  PString id = PGloballyUniqueID().AsString();
-  PTRACE(3, "Setting " << direction << " A/V media stream ID to \"" << id << "\" on " << *this);
-  audioSession->SetMediaStreamId(id, 0, direction);
-  videoSession->SetMediaStreamId(id, 0, direction);
+  RTP_SyncSourceArray audioSSRCs = audioSession->GetSyncSources(direction);
+  RTP_SyncSourceArray videoSSRCs = videoSession->GetSyncSources(direction);
+  size_t audioIndex = 0;
+  size_t videoIndex = 0;
+  while (audioIndex < audioSSRCs.size() && videoIndex < videoSSRCs.size()) {
+    RTP_SyncSourceId audioSSRC = audioSSRCs[audioIndex];
+    
+    if (!audioSession->GetMediaStreamId(audioSSRC, direction).empty() ||
+         audioSession->GetRtxSyncSource(audioSSRC, direction, false) != 0) {
+      ++audioIndex;
+      continue;
+    }
+
+    RTP_SyncSourceId videoSSRC = videoSSRCs[videoIndex];
+    if (!videoSession->GetMediaStreamId(videoSSRC, direction).empty() ||
+         videoSession->GetRtxSyncSource(videoSSRC, direction, false) != 0) {
+      ++videoIndex;
+      continue;
+    }
+
+    ++audioIndex;
+    ++videoIndex;
+
+    PString id = PGloballyUniqueID().AsString();
+    PTRACE(3, "Setting " << direction << " A/V media stream ID to \"" << id << "\""
+              " for audio SSRC " << RTP_TRACE_SRC(audioSSRC) <<
+              " and video SSRC " << RTP_TRACE_SRC(videoSSRC) <<
+              " on " << *this);
+    audioSession->SetMediaStreamId(id, audioSSRC, direction);
+    videoSession->SetMediaStreamId(id, videoSSRC, direction);
+  }
 }
 
 #endif // OPAL_VIDEO
