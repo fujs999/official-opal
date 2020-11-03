@@ -73,7 +73,7 @@ void H235Authenticator::PrintOn(ostream & strm) const
 }
 
 
-PBoolean H235Authenticator::PrepareTokens(PASN_Array & clearTokens, PASN_Array & cryptoTokens, unsigned rasPDU)
+bool H235Authenticator::PrepareTokens(PASN_Array & clearTokens, PASN_Array & cryptoTokens, unsigned rasPDU)
 {
   PWaitAndSignal m(mutex);
 
@@ -132,7 +132,7 @@ H225_CryptoH323Token * H235Authenticator::CreateCryptoToken(bool)
 }
 
 
-PBoolean H235Authenticator::Finalise(PBYTEArray & /*rawPDU*/)
+bool H235Authenticator::Finalise(PBYTEArray & /*rawPDU*/)
 {
   return true;
 }
@@ -180,13 +180,13 @@ H235Authenticator::ValidationResult H235Authenticator::ValidateCryptoToken(
 }
 
 
-PBoolean H235Authenticator::UseGkAndEpIdentifiers() const
+bool H235Authenticator::UseGkAndEpIdentifiers() const
 {
   return false;
 }
 
 
-PBoolean H235Authenticator::IsSecuredPDU(unsigned, PBoolean) const
+bool H235Authenticator::IsSecuredPDU(unsigned, bool) const
 {
   return true;
 }
@@ -267,7 +267,7 @@ H235Authenticator::ValidationResult
 {
   unsigned pduTag = pdu.GetChoice().GetTag();
 
-  PBoolean noneActive = true;
+  bool noneActive = true;
   for (iterator iterAuth = begin(); iterAuth != end(); ++iterAuth) {
     if (iterAuth->IsEnabled() && iterAuth->IsSecuredPDU(pduTag, true)) {
       noneActive = false;
@@ -458,7 +458,7 @@ H235Authenticator::ValidationResult H235AuthSimpleMD5::ValidateCryptoToken(
 }
 
 
-PBoolean H235AuthSimpleMD5::IsCapability(const H235_AuthenticationMechanism & mechanism,
+bool H235AuthSimpleMD5::IsCapability(const H235_AuthenticationMechanism & mechanism,
                                      const PASN_ObjectId & algorithmOID)
 {
   return mechanism.GetTag() == H235_AuthenticationMechanism::e_pwdHash &&
@@ -466,14 +466,14 @@ PBoolean H235AuthSimpleMD5::IsCapability(const H235_AuthenticationMechanism & me
 }
 
 
-PBoolean H235AuthSimpleMD5::SetCapability(H225_ArrayOf_AuthenticationMechanism & mechanisms,
+bool H235AuthSimpleMD5::SetCapability(H225_ArrayOf_AuthenticationMechanism & mechanisms,
                                       H225_ArrayOf_PASN_ObjectId & algorithmOIDs)
 {
   return AddCapabilityIfNeeded(H235_AuthenticationMechanism::e_pwdHash, OID_MD5, mechanisms, algorithmOIDs) != P_MAX_INDEX;
 }
 
 
-PBoolean H235AuthSimpleMD5::IsSecuredPDU(unsigned rasPDU, PBoolean received) const
+bool H235AuthSimpleMD5::IsSecuredPDU(unsigned rasPDU, bool received) const
 {
   if (password.IsEmpty())
     return false;
@@ -639,7 +639,7 @@ H235Authenticator::ValidationResult H235AuthCAT::ValidateClearToken(const H235_C
 }
 
 
-PBoolean H235AuthCAT::IsCapability(const H235_AuthenticationMechanism & mechanism,
+bool H235AuthCAT::IsCapability(const H235_AuthenticationMechanism & mechanism,
                                      const PASN_ObjectId & algorithmOID)
 {
   if (mechanism.GetTag() != H235_AuthenticationMechanism::e_authenticationBES ||
@@ -651,7 +651,7 @@ PBoolean H235AuthCAT::IsCapability(const H235_AuthenticationMechanism & mechanis
 }
 
 
-PBoolean H235AuthCAT::SetCapability(H225_ArrayOf_AuthenticationMechanism & mechanisms,
+bool H235AuthCAT::SetCapability(H225_ArrayOf_AuthenticationMechanism & mechanisms,
                                 H225_ArrayOf_PASN_ObjectId & algorithmOIDs)
 {
   PINDEX idx = AddCapabilityIfNeeded(H235_AuthenticationMechanism::e_authenticationBES, OID_CAT, mechanisms, algorithmOIDs);
@@ -664,7 +664,7 @@ PBoolean H235AuthCAT::SetCapability(H225_ArrayOf_AuthenticationMechanism & mecha
 }
 
 
-PBoolean H235AuthCAT::IsSecuredPDU(unsigned rasPDU, PBoolean received) const
+bool H235AuthCAT::IsSecuredPDU(unsigned rasPDU, bool received) const
 {
   if (password.IsEmpty())
     return false;

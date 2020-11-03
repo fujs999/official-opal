@@ -59,7 +59,7 @@ void IAX2Remote::Assign(IAX2Remote & source)
   remotePort       = source.RemotePort();
 }
 
-PBoolean IAX2Remote::operator==(IAX2Remote & other)
+bool IAX2Remote::operator==(IAX2Remote & other)
 {
   if (remoteAddress != other.RemoteAddress()) {
     PTRACE(5, "Comparison of two remotes " << endl << other << endl << (*this) );
@@ -89,7 +89,7 @@ PBoolean IAX2Remote::operator==(IAX2Remote & other)
 }
 
 
-PBoolean IAX2Remote::operator*=(IAX2Remote & other)
+bool IAX2Remote::operator*=(IAX2Remote & other)
 {
   PTRACE(6, "Incoming ethernet frame. Compare" << endl << other << endl << (*this) );
   
@@ -115,7 +115,7 @@ PBoolean IAX2Remote::operator*=(IAX2Remote & other)
 }
 
 
-PBoolean IAX2Remote::operator!=(IAX2Remote & other)
+bool IAX2Remote::operator!=(IAX2Remote & other)
 {
   return !(*this == other);
 }
@@ -204,7 +204,7 @@ PObject::Comparison IAX2FrameIdValue::Compare(const PObject & obj) const
 } 
 
 ////////////////////////////////////////////////////////////////////////////////
-PBoolean IAX2PacketIdList::Contains(IAX2FrameIdValue &src)
+bool IAX2PacketIdList::Contains(IAX2FrameIdValue &src)
 {
 	PINDEX idex = GetValuesIndex(src);
 	return idex != P_MAX_INDEX;
@@ -220,7 +220,7 @@ PINDEX IAX2PacketIdList::GetFirstValue()
 
 void IAX2PacketIdList::RemoveOldContiguousValues()
 {
-  PBoolean contiguous = true;
+  bool contiguous = true;
   while((GetSize() > 1) && contiguous)  {
     PINDEX first = ((IAX2FrameIdValue *)GetAt(0))->GetPlainSequence();
     PINDEX second = ((IAX2FrameIdValue *)GetAt(1))->GetPlainSequence();
@@ -283,7 +283,7 @@ void IAX2SequenceNumbers::ZeroAllValues()
 
 
 
-PBoolean  IAX2SequenceNumbers::operator != (IAX2SequenceNumbers &other)
+bool  IAX2SequenceNumbers::operator != (IAX2SequenceNumbers &other)
 {
   PWaitAndSignal m(mutex);
   if (inSeqNo == other.InSeqNo())
@@ -307,7 +307,7 @@ void IAX2SequenceNumbers::SetAckSequenceInfo(IAX2SequenceNumbers & other)
   outSeqNo = other.InSeqNo();
 }
 
-PBoolean IAX2SequenceNumbers::operator == (IAX2SequenceNumbers &other)
+bool IAX2SequenceNumbers::operator == (IAX2SequenceNumbers &other)
 {
   PWaitAndSignal m(mutex);
   if ((inSeqNo == other.InSeqNo()) && (outSeqNo == other.OutSeqNo()))
@@ -413,13 +413,13 @@ PINDEX IAX2SequenceNumbers::OutSeqNo()
   return outSeqNo; 
 }
   
-PBoolean IAX2SequenceNumbers::IsFirstReplyFrame() 
+bool IAX2SequenceNumbers::IsFirstReplyFrame() 
 { 
   PWaitAndSignal m(mutex);
   return (inSeqNo == 1) && (outSeqNo == 0); 
 }
 
-PBoolean IAX2SequenceNumbers::IsSequenceNosZero()
+bool IAX2SequenceNumbers::IsSequenceNosZero()
 {
   PWaitAndSignal m(mutex);
   return ((inSeqNo & 0xff) == 0) && ((outSeqNo & 0xff) == 0); 
@@ -452,7 +452,7 @@ IAX2Encryption::IAX2Encryption()
 }
 
 
-void IAX2Encryption::SetEncryptionOn (PBoolean newState) 
+void IAX2Encryption::SetEncryptionOn (bool newState) 
 { 
   encryptionEnabled = newState; 
   PTRACE(3, "Set encryption to " << PString(encryptionEnabled ? "On" : "Off"));
@@ -480,7 +480,7 @@ const PString & IAX2Encryption::ChallengeKey() const
   return challengeKey; 
 }
 
-PBoolean IAX2Encryption::IsEncrypted() const
+bool IAX2Encryption::IsEncrypted() const
 {
   return encryptionEnabled;
 }

@@ -130,7 +130,7 @@ H323TransportAddress::H323TransportAddress(const H245_TransportAddress & transpo
 }
 
 
-PBoolean H323TransportAddress::SetPDU(H225_TransportAddress & pdu, WORD defPort) const
+bool H323TransportAddress::SetPDU(H225_TransportAddress & pdu, WORD defPort) const
 {
   PIPSocket::Address ip;
   WORD port = defPort;
@@ -160,7 +160,7 @@ PBoolean H323TransportAddress::SetPDU(H225_TransportAddress & pdu, WORD defPort)
 }
 
 
-PBoolean H323TransportAddress::SetPDU(H245_TransportAddress & pdu, WORD defPort) const
+bool H323TransportAddress::SetPDU(H245_TransportAddress & pdu, WORD defPort) const
 {
   WORD port = defPort;
   if (defPort == 0)

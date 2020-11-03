@@ -762,7 +762,7 @@ SDPMediaDescription::SDPMediaDescription(const OpalTransportAddress & address, c
 }
 
 
-PBoolean SDPMediaDescription::SetAddresses(const OpalTransportAddress & media,
+bool SDPMediaDescription::SetAddresses(const OpalTransportAddress & media,
                                            const OpalTransportAddress & control)
 {
   PIPSocket::Address dummy;

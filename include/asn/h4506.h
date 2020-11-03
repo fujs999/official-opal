@@ -83,7 +83,7 @@ class H4506_CallWaitingArg : public PASN_Sequence
     H4506_ArrayOf_MixedExtension m_extensionArg;
 
     PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
+    bool Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;

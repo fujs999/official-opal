@@ -586,7 +586,7 @@ bool SIPConnection::ConsultationTransfer(SIPConnection & referee, SIPRefer::Refe
 }
 
 
-PBoolean SIPConnection::SetAlerting(const PString & /*calleeName*/, PBoolean withMedia)
+bool SIPConnection::SetAlerting(const PString & /*calleeName*/, bool withMedia)
 {
   PSafeLockReadWrite safeLock(*this);
   if (!safeLock.IsLocked())
@@ -627,7 +627,7 @@ PBoolean SIPConnection::SetAlerting(const PString & /*calleeName*/, PBoolean wit
 }
 
 
-PBoolean SIPConnection::SetConnected()
+bool SIPConnection::SetConnected()
 {
   return InternalSetConnected(false);
 }
@@ -826,7 +826,7 @@ bool SIPConnection::SwitchFaxMediaStreams(bool toT38)
 
 OpalMediaStream * SIPConnection::CreateMediaStream(const OpalMediaFormat & mediaFormat,
                                                    unsigned sessionID,
-                                                   PBoolean isSource)
+                                                   bool isSource)
 {
   OpalMediaType mediaType = mediaFormat.GetMediaType();
 
@@ -935,7 +935,7 @@ OpalMediaStreamPtr SIPConnection::OpenMediaStream(const OpalMediaFormat & mediaF
 }
 
 
-void SIPConnection::OnPatchMediaStream(PBoolean isSource, OpalMediaPatch & patch)
+void SIPConnection::OnPatchMediaStream(bool isSource, OpalMediaPatch & patch)
 {
   if (!SendDelayedACK(false))
     m_delayedAckTimer = m_delayedAckTimeout2;
@@ -1260,7 +1260,7 @@ void SIPConnection::OnCreatingINVITE(SIPInvite & request)
 }
 
 
-PBoolean SIPConnection::SetUpConnection()
+bool SIPConnection::SetUpConnection()
 {
   PTRACE(3, "SetUpConnection: " << m_dialog.GetRequestURI());
 
@@ -2968,7 +2968,7 @@ void SIPConnection::OnReceivedRedirection(SIP_PDU & response)
 }
 
 
-PBoolean SIPConnection::OnReceivedAuthenticationRequired(SIPTransaction & transaction, SIP_PDU & response)
+bool SIPConnection::OnReceivedAuthenticationRequired(SIPTransaction & transaction, SIP_PDU & response)
 {
   // No IsReleased() to allow for BYE authentication
   if (GetPhase() == ReleasedPhase) {
@@ -3184,7 +3184,7 @@ OpalTransportAddress SIPConnection::GetRemoteMediaAddress()
 }
 
 
-PBoolean SIPConnection::ForwardCall (const PString & fwdParty)
+bool SIPConnection::ForwardCall (const PString & fwdParty)
 {
   if (fwdParty.IsEmpty ())
     return false;
@@ -3198,7 +3198,7 @@ PBoolean SIPConnection::ForwardCall (const PString & fwdParty)
 }
 
 
-PBoolean SIPConnection::SendInviteResponse(SIP_PDU::StatusCodes code,
+bool SIPConnection::SendInviteResponse(SIP_PDU::StatusCodes code,
                                            const SDPSessionDescription * sdp)
 {
   if (m_lastReceivedINVITE == NULL)
@@ -3549,7 +3549,7 @@ OpalConnection::SendUserInputModes SIPConnection::GetRealSendUserInputMode() con
 }
 
 
-PBoolean SIPConnection::SendUserInputString(const PString & value)
+bool SIPConnection::SendUserInputString(const PString & value)
 {
   if (GetRealSendUserInputMode() == SendUserInputAsString) {
     SIPInfo::Params params;
@@ -3562,7 +3562,7 @@ PBoolean SIPConnection::SendUserInputString(const PString & value)
 }
 
 
-PBoolean SIPConnection::SendUserInputTone(char tone, unsigned duration)
+bool SIPConnection::SendUserInputTone(char tone, unsigned duration)
 {
   if (m_holdFromRemote || m_holdToRemote >= eHoldOn)
     return false;
@@ -3688,7 +3688,7 @@ bool SIPConnection::OnMediaCommand(OpalMediaStream & stream, const OpalMediaComm
 
 #if OPAL_VIDEO
 
-PBoolean SIPConnection::OnMediaControlXML(SIP_PDU & request)
+bool SIPConnection::OnMediaControlXML(SIP_PDU & request)
 {
   // Must always send OK, even if not OK
   request.SendResponse(SIP_PDU::Successful_OK);

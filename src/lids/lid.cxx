@@ -79,13 +79,13 @@ OpalLineInterfaceDevice::OpalLineInterfaceDevice()
 }
 
 
-PBoolean OpalLineInterfaceDevice::IsOpen() const
+bool OpalLineInterfaceDevice::IsOpen() const
 {
   return m_osHandle >= 0;
 }
 
 
-PBoolean OpalLineInterfaceDevice::Close()
+bool OpalLineInterfaceDevice::Close()
 {
   if (m_osHandle < 0)
     return false;
@@ -95,13 +95,13 @@ PBoolean OpalLineInterfaceDevice::Close()
 }
 
 
-PBoolean OpalLineInterfaceDevice::IsLinePresent(unsigned, PBoolean)
+bool OpalLineInterfaceDevice::IsLinePresent(unsigned, bool)
 {
   return true;
 }
 
 
-PBoolean OpalLineInterfaceDevice::HookFlash(unsigned line, unsigned flashTime)
+bool OpalLineInterfaceDevice::HookFlash(unsigned line, unsigned flashTime)
 {
   if (!IsLineOffHook(line))
     return false;
@@ -115,37 +115,37 @@ PBoolean OpalLineInterfaceDevice::HookFlash(unsigned line, unsigned flashTime)
 }
 
 
-PBoolean OpalLineInterfaceDevice::HasHookFlash(unsigned)
+bool OpalLineInterfaceDevice::HasHookFlash(unsigned)
 {
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::IsLineRinging(unsigned, DWORD *)
+bool OpalLineInterfaceDevice::IsLineRinging(unsigned, DWORD *)
 {
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::RingLine(unsigned, PINDEX, const unsigned *, unsigned)
+bool OpalLineInterfaceDevice::RingLine(unsigned, PINDEX, const unsigned *, unsigned)
 {
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::SetLineConnected(unsigned line)
+bool OpalLineInterfaceDevice::SetLineConnected(unsigned line)
 {
   return IsLineTerminal(line);
 }
 
 
-PBoolean OpalLineInterfaceDevice::IsLineConnected(unsigned line)
+bool OpalLineInterfaceDevice::IsLineConnected(unsigned line)
 {
   return !IsLineTerminal(line) || IsLineOffHook(line);
 }
 
 
-PBoolean OpalLineInterfaceDevice::IsLineDisconnected(unsigned line, PBoolean)
+bool OpalLineInterfaceDevice::IsLineDisconnected(unsigned line, bool)
 {
   if (IsLineTerminal(line))
     return !IsLineOffHook(line);
@@ -154,26 +154,26 @@ PBoolean OpalLineInterfaceDevice::IsLineDisconnected(unsigned line, PBoolean)
 }
 
 
-PBoolean OpalLineInterfaceDevice::SetLineToLineDirect(unsigned, unsigned, PBoolean)
+bool OpalLineInterfaceDevice::SetLineToLineDirect(unsigned, unsigned, bool)
 {
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::IsLineToLineDirect(unsigned, unsigned)
+bool OpalLineInterfaceDevice::IsLineToLineDirect(unsigned, unsigned)
 {
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::StopReading(unsigned)
+bool OpalLineInterfaceDevice::StopReading(unsigned)
 {
   m_readDeblockingOffset = P_MAX_INDEX;
   return true;
 }
 
 
-PBoolean OpalLineInterfaceDevice::StopWriting(unsigned)
+bool OpalLineInterfaceDevice::StopWriting(unsigned)
 {
   m_writeDeblockingOffset = 0;
   return true;
@@ -186,13 +186,13 @@ bool OpalLineInterfaceDevice::UsesRTP() const
 }
 
 
-PBoolean OpalLineInterfaceDevice::SetReadFrameSize(unsigned /*line*/, PINDEX /*frameSize*/)
+bool OpalLineInterfaceDevice::SetReadFrameSize(unsigned /*line*/, PINDEX /*frameSize*/)
 {
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::SetWriteFrameSize(unsigned /*line*/, PINDEX /*frameSize*/)
+bool OpalLineInterfaceDevice::SetWriteFrameSize(unsigned /*line*/, PINDEX /*frameSize*/)
 {
   return false;
 }
@@ -210,7 +210,7 @@ PINDEX OpalLineInterfaceDevice::GetWriteFrameSize(unsigned /*line*/)
 }
 
 
-PBoolean OpalLineInterfaceDevice::ReadBlock(unsigned line, void * buffer, PINDEX length)
+bool OpalLineInterfaceDevice::ReadBlock(unsigned line, void * buffer, PINDEX length)
 {
   if (UsesRTP())
     return ReadFrame(line, buffer, length);
@@ -250,7 +250,7 @@ PBoolean OpalLineInterfaceDevice::ReadBlock(unsigned line, void * buffer, PINDEX
 }
 
 
-PBoolean OpalLineInterfaceDevice::WriteBlock(unsigned line, const void * buffer, PINDEX length)
+bool OpalLineInterfaceDevice::WriteBlock(unsigned line, const void * buffer, PINDEX length)
 {
   PINDEX written;
   if (UsesRTP())
@@ -261,7 +261,7 @@ PBoolean OpalLineInterfaceDevice::WriteBlock(unsigned line, const void * buffer,
   // If zero length then flush any remaining data
   if (length == 0 && m_writeDeblockingOffset != 0) {
     SetWriteFrameSize(line, m_writeDeblockingOffset);
-    PBoolean ok = WriteFrame(line,
+    bool ok = WriteFrame(line,
                          m_writeDeblockingBuffer.GetPointer(),
                          GetWriteFrameSize(line),
                          written);
@@ -320,7 +320,7 @@ int OpalLineInterfaceDevice::GetAudioLevelDB(unsigned, bool)
 }
 
 
-PBoolean OpalLineInterfaceDevice::EnableAudio(unsigned line, PBoolean enabled)
+bool OpalLineInterfaceDevice::EnableAudio(unsigned line, bool enabled)
 {
   m_LineAudioEnabled.resize(GetLineCount());
   if (line >= m_LineAudioEnabled.size())
@@ -331,29 +331,29 @@ PBoolean OpalLineInterfaceDevice::EnableAudio(unsigned line, PBoolean enabled)
 }
 
 
-PBoolean OpalLineInterfaceDevice::IsAudioEnabled(unsigned line) const
+bool OpalLineInterfaceDevice::IsAudioEnabled(unsigned line) const
 {
   return line < GetLineCount() && m_LineAudioEnabled[line];
 }
 
 
-PBoolean OpalLineInterfaceDevice::SetRecordVolume(unsigned, unsigned)
+bool OpalLineInterfaceDevice::SetRecordVolume(unsigned, unsigned)
 {
   return false;
 }
 
-PBoolean OpalLineInterfaceDevice::GetRecordVolume(unsigned, unsigned &)
+bool OpalLineInterfaceDevice::GetRecordVolume(unsigned, unsigned &)
 {
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::SetPlayVolume(unsigned, unsigned)
+bool OpalLineInterfaceDevice::SetPlayVolume(unsigned, unsigned)
 {
   return false;
 }
 
-PBoolean OpalLineInterfaceDevice::GetPlayVolume(unsigned, unsigned &)
+bool OpalLineInterfaceDevice::GetPlayVolume(unsigned, unsigned &)
 {
   return false;
 }
@@ -365,7 +365,7 @@ OpalLineInterfaceDevice::AECLevels OpalLineInterfaceDevice::GetAEC(unsigned) con
 }
 
 
-PBoolean OpalLineInterfaceDevice::SetAEC(unsigned, AECLevels)
+bool OpalLineInterfaceDevice::SetAEC(unsigned, AECLevels)
 {
   return false;
 }
@@ -376,43 +376,43 @@ unsigned OpalLineInterfaceDevice::GetWinkDuration(unsigned)
 }
 
 
-PBoolean OpalLineInterfaceDevice::SetWinkDuration(unsigned, unsigned)
+bool OpalLineInterfaceDevice::SetWinkDuration(unsigned, unsigned)
 {
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::GetVAD(unsigned) const
+bool OpalLineInterfaceDevice::GetVAD(unsigned) const
 {
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::SetVAD(unsigned, PBoolean)
+bool OpalLineInterfaceDevice::SetVAD(unsigned, bool)
 {
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::GetCallerID(unsigned, PString & id, PBoolean)
+bool OpalLineInterfaceDevice::GetCallerID(unsigned, PString & id, bool)
 {
   id = PString();
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::SetCallerID(unsigned, const PString &)
+bool OpalLineInterfaceDevice::SetCallerID(unsigned, const PString &)
 {
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::SendVisualMessageWaitingIndicator(unsigned, PBoolean)
+bool OpalLineInterfaceDevice::SendVisualMessageWaitingIndicator(unsigned, bool)
 {
   return false;
 }
 
-PBoolean OpalLineInterfaceDevice::PlayDTMF(unsigned, const char *, DWORD, DWORD)
+bool OpalLineInterfaceDevice::PlayDTMF(unsigned, const char *, DWORD, DWORD)
 {
   return false;
 }
@@ -424,13 +424,13 @@ char OpalLineInterfaceDevice::ReadDTMF(unsigned)
 }
 
 
-PBoolean OpalLineInterfaceDevice::GetRemoveDTMF(unsigned)
+bool OpalLineInterfaceDevice::GetRemoveDTMF(unsigned)
 {
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::SetRemoveDTMF(unsigned, PBoolean)
+bool OpalLineInterfaceDevice::SetRemoveDTMF(unsigned, bool)
 {
   return false;
 }
@@ -467,12 +467,12 @@ OpalLineInterfaceDevice::CallProgressTones OpalLineInterfaceDevice::WaitForToneD
 }
 
 
-PBoolean OpalLineInterfaceDevice::WaitForTone(unsigned line,
+bool OpalLineInterfaceDevice::WaitForTone(unsigned line,
                                           CallProgressTones tone,
                                           unsigned timeout)
 {
   PTRACE(3, "LID\tWaitFor the tone " << tone );
-  PBoolean res = WaitForToneDetect(line, timeout) & tone;
+  bool res = WaitForToneDetect(line, timeout) & tone;
   PTRACE(3, "LID\tWaitFor the tone " << tone << 
 	 " is successfull-" << (res ? "YES" : "No"));
   return res;
@@ -547,44 +547,44 @@ bool OpalLineInterfaceDevice::SetToneParameters(unsigned /*line*/,
 }
 
 
-PBoolean OpalLineInterfaceDevice::PlayTone(unsigned, CallProgressTones)
+bool OpalLineInterfaceDevice::PlayTone(unsigned, CallProgressTones)
 {
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::IsTonePlaying(unsigned)
+bool OpalLineInterfaceDevice::IsTonePlaying(unsigned)
 {
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::StopTone(unsigned)
+bool OpalLineInterfaceDevice::StopTone(unsigned)
 {
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::PlayAudio(unsigned /*line*/, const PString & /*filename*/)
+bool OpalLineInterfaceDevice::PlayAudio(unsigned /*line*/, const PString & /*filename*/)
 {
   PTRACE(2, "LID\tBase Class PlayAudio method called, exiting with false");
   return false;
 }
 
 
-PBoolean OpalLineInterfaceDevice::StopAudio(unsigned /*line*/)
+bool OpalLineInterfaceDevice::StopAudio(unsigned /*line*/)
 {
   PTRACE(2, "LID\tBase Class StopAudio method called, exiting with false");
   return false;
 }
 	
-PBoolean OpalLineInterfaceDevice::RecordAudioStart(unsigned /*line*/, const PString & /*fn*/)
+bool OpalLineInterfaceDevice::RecordAudioStart(unsigned /*line*/, const PString & /*fn*/)
 {
   PTRACE(2, "LID\tRecordAudioStart must be implemented in concrete class");
   return false;
 }
 
-PBoolean OpalLineInterfaceDevice::RecordAudioStop(unsigned /*line*/)
+bool OpalLineInterfaceDevice::RecordAudioStop(unsigned /*line*/)
 {
   PTRACE(2, "LID\tRecordAudioStop must be implemented in concrete class");
   return false;
@@ -927,7 +927,7 @@ PString OpalLineInterfaceDevice::GetCountryCodeName() const
 }
 
 
-PBoolean OpalLineInterfaceDevice::SetCountryCode(T35CountryCodes code)
+bool OpalLineInterfaceDevice::SetCountryCode(T35CountryCodes code)
 {
   const T35CountryInfo & info = GetCountryInfo(code);
   if (info.m_t35Code != code) {
@@ -962,7 +962,7 @@ PStringList OpalLineInterfaceDevice::GetCountryCodeNameList() const
 }
 
 
-PBoolean OpalLineInterfaceDevice::SetCountryCodeName(const PString & countryName)
+bool OpalLineInterfaceDevice::SetCountryCodeName(const PString & countryName)
 {
   PTRACE(4, "LID\tSetting country code name to \"" << countryName << '"');
   SetCountryCode(GetCountryCode(countryName));
@@ -1075,7 +1075,7 @@ void OpalLine::PrintOn(ostream & strm) const
 }
 
 
-PBoolean OpalLine::IsRinging(DWORD * cadence)
+bool OpalLine::IsRinging(DWORD * cadence)
 {
   PTimeInterval tick = PTimer::Tick();
   PTimeInterval delta = tick - m_ringTick;

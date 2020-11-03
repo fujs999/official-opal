@@ -304,31 +304,31 @@ bool OpalPCSSEndPoint::OnUserInput(const OpalLocalConnection & connection, const
 }
 
 
-PBoolean OpalPCSSEndPoint::OnShowOutgoing(const OpalPCSSConnection & connection)
+bool OpalPCSSEndPoint::OnShowOutgoing(const OpalPCSSConnection & connection)
 {
   return OpalLocalEndPoint::OnOutgoingCall(connection);
 }
 
 
-PBoolean OpalPCSSEndPoint::OnShowIncoming(const OpalPCSSConnection & connection)
+bool OpalPCSSEndPoint::OnShowIncoming(const OpalPCSSConnection & connection)
 {
   return OpalLocalEndPoint::OnIncomingCall(const_cast<OpalPCSSConnection &>(connection));
 }
 
 
-PBoolean OpalPCSSEndPoint::AcceptIncomingConnection(const PString & token)
+bool OpalPCSSEndPoint::AcceptIncomingConnection(const PString & token)
 {
   return AcceptIncomingCall(token);
 }
 
 
-PBoolean OpalPCSSEndPoint::RejectIncomingConnection(const PString & token, const OpalConnection::CallEndReason & reason)
+bool OpalPCSSEndPoint::RejectIncomingConnection(const PString & token, const OpalConnection::CallEndReason & reason)
 {
   return RejectIncomingCall(token, reason);
 }
 
 
-PBoolean OpalPCSSEndPoint::OnShowUserInput(const OpalPCSSConnection &, const PString &)
+bool OpalPCSSEndPoint::OnShowUserInput(const OpalPCSSConnection &, const PString &)
 {
   return true;
 }
@@ -376,13 +376,13 @@ bool OpalPCSSEndPoint::SetLocalRingbackTone(const PString & tone)
 }
 
 
-PBoolean OpalPCSSEndPoint::SetSoundChannelPlayDevice(const PString & name)
+bool OpalPCSSEndPoint::SetSoundChannelPlayDevice(const PString & name)
 {
   return SetDeviceName(name, PSoundChannel::Player, m_soundChannelPlayDevice);
 }
 
 
-PBoolean OpalPCSSEndPoint::SetSoundChannelRecordDevice(const PString & name)
+bool OpalPCSSEndPoint::SetSoundChannelRecordDevice(const PString & name)
 {
   return SetDeviceName(name, PSoundChannel::Recorder, m_soundChannelRecordDevice);
 }
@@ -553,7 +553,7 @@ void OpalPCSSConnection::OnApplyStringOptions()
 }
 
 
-PBoolean OpalPCSSConnection::SetAlerting(const PString & calleeName, PBoolean withMedia)
+bool OpalPCSSConnection::SetAlerting(const PString & calleeName, bool withMedia)
 {
   if (!OpalLocalConnection::SetAlerting(calleeName, withMedia))
     return false;
@@ -654,7 +654,7 @@ void OpalPCSSConnection::OnHold(bool fromRemote, bool onHold)
 
 OpalMediaStream * OpalPCSSConnection::CreateMediaStream(const OpalMediaFormat & mediaFormat,
                                                         unsigned sessionID,
-                                                        PBoolean isSource)
+                                                        bool isSource)
 {
   if (mediaFormat.GetMediaType() != OpalMediaType::Audio() || m_endpoint.UseCallback(mediaFormat, isSource))
     return OpalLocalConnection::CreateMediaStream(mediaFormat, sessionID, isSource);
@@ -668,7 +668,7 @@ OpalMediaStream * OpalPCSSConnection::CreateMediaStream(const OpalMediaFormat & 
 }
 
 
-PBoolean OpalPCSSConnection::SetAudioVolume(PBoolean source, unsigned percentage)
+bool OpalPCSSConnection::SetAudioVolume(bool source, unsigned percentage)
 {
   bool oneOK = false;
   for (StreamDict::iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
@@ -682,7 +682,7 @@ PBoolean OpalPCSSConnection::SetAudioVolume(PBoolean source, unsigned percentage
   return oneOK;
 }
 
-PBoolean OpalPCSSConnection::GetAudioVolume(PBoolean source, unsigned & percentage)
+bool OpalPCSSConnection::GetAudioVolume(bool source, unsigned & percentage)
 {
   PSafePtr<OpalAudioMediaStream> stream = PSafePtrCast<OpalMediaStream, OpalAudioMediaStream>(GetMediaStream(OpalMediaType::Audio(), source));
   if (stream == NULL)

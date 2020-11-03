@@ -127,7 +127,7 @@ H4503_RESULT_activateDiversionQ::operator const H225_NonStandardParameter &() co
 }
 
 
-PBoolean H4503_RESULT_activateDiversionQ::CreateObject()
+bool H4503_RESULT_activateDiversionQ::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -217,7 +217,7 @@ H4503_RESULT_deactivateDiversionQ::operator const H225_NonStandardParameter &() 
 }
 
 
-PBoolean H4503_RESULT_deactivateDiversionQ::CreateObject()
+bool H4503_RESULT_deactivateDiversionQ::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -307,7 +307,7 @@ H4503_RESULT_checkRestriction::operator const H225_NonStandardParameter &() cons
 }
 
 
-PBoolean H4503_RESULT_checkRestriction::CreateObject()
+bool H4503_RESULT_checkRestriction::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -397,7 +397,7 @@ H4503_RESULT_callRerouting::operator const H225_NonStandardParameter &() const
 }
 
 
-PBoolean H4503_RESULT_callRerouting::CreateObject()
+bool H4503_RESULT_callRerouting::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -487,7 +487,7 @@ H4503_ARGUMENT_cfnrDivertedLegFailed::operator const H225_NonStandardParameter &
 }
 
 
-PBoolean H4503_ARGUMENT_cfnrDivertedLegFailed::CreateObject()
+bool H4503_ARGUMENT_cfnrDivertedLegFailed::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -828,7 +828,7 @@ H4503_ARGUMENT_activateDiversionQ_extension::operator const H225_NonStandardPara
 }
 
 
-PBoolean H4503_ARGUMENT_activateDiversionQ_extension::CreateObject()
+bool H4503_ARGUMENT_activateDiversionQ_extension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -918,7 +918,7 @@ H4503_ARGUMENT_deactivateDiversionQ_extension::operator const H225_NonStandardPa
 }
 
 
-PBoolean H4503_ARGUMENT_deactivateDiversionQ_extension::CreateObject()
+bool H4503_ARGUMENT_deactivateDiversionQ_extension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -1008,7 +1008,7 @@ H4503_ARGUMENT_interrogateDiversionQ_extension::operator const H225_NonStandardP
 }
 
 
-PBoolean H4503_ARGUMENT_interrogateDiversionQ_extension::CreateObject()
+bool H4503_ARGUMENT_interrogateDiversionQ_extension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -1098,7 +1098,7 @@ H4503_ARGUMENT_checkRestriction_extension::operator const H225_NonStandardParame
 }
 
 
-PBoolean H4503_ARGUMENT_checkRestriction_extension::CreateObject()
+bool H4503_ARGUMENT_checkRestriction_extension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -1188,7 +1188,7 @@ H4503_ARGUMENT_callRerouting_extension::operator const H225_NonStandardParameter
 }
 
 
-PBoolean H4503_ARGUMENT_callRerouting_extension::CreateObject()
+bool H4503_ARGUMENT_callRerouting_extension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -1278,7 +1278,7 @@ H4503_ARGUMENT_divertingLegInformation1_extension::operator const H225_NonStanda
 }
 
 
-PBoolean H4503_ARGUMENT_divertingLegInformation1_extension::CreateObject()
+bool H4503_ARGUMENT_divertingLegInformation1_extension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -1368,7 +1368,7 @@ H4503_ARGUMENT_divertingLegInformation2_extension::operator const H225_NonStanda
 }
 
 
-PBoolean H4503_ARGUMENT_divertingLegInformation2_extension::CreateObject()
+bool H4503_ARGUMENT_divertingLegInformation2_extension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -1458,7 +1458,7 @@ H4503_ARGUMENT_divertingLegInformation3_extension::operator const H225_NonStanda
 }
 
 
-PBoolean H4503_ARGUMENT_divertingLegInformation3_extension::CreateObject()
+bool H4503_ARGUMENT_divertingLegInformation3_extension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -1548,7 +1548,7 @@ H4503_ARGUMENT_divertingLegInformation4_extension::operator const H225_NonStanda
 }
 
 
-PBoolean H4503_ARGUMENT_divertingLegInformation4_extension::CreateObject()
+bool H4503_ARGUMENT_divertingLegInformation4_extension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -1638,7 +1638,7 @@ H4503_IntResult_extension::operator const H225_NonStandardParameter &() const
 }
 
 
-PBoolean H4503_IntResult_extension::CreateObject()
+bool H4503_IntResult_extension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -1730,7 +1730,7 @@ PINDEX H4503_ARGUMENT_activateDiversionQ::GetDataLength() const
 }
 
 
-PBoolean H4503_ARGUMENT_activateDiversionQ::Decode(PASN_Stream & strm)
+bool H4503_ARGUMENT_activateDiversionQ::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1840,7 +1840,7 @@ PINDEX H4503_ARGUMENT_deactivateDiversionQ::GetDataLength() const
 }
 
 
-PBoolean H4503_ARGUMENT_deactivateDiversionQ::Decode(PASN_Stream & strm)
+bool H4503_ARGUMENT_deactivateDiversionQ::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1947,7 +1947,7 @@ PINDEX H4503_ARGUMENT_interrogateDiversionQ::GetDataLength() const
 }
 
 
-PBoolean H4503_ARGUMENT_interrogateDiversionQ::Decode(PASN_Stream & strm)
+bool H4503_ARGUMENT_interrogateDiversionQ::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2050,7 +2050,7 @@ PINDEX H4503_ARGUMENT_checkRestriction::GetDataLength() const
 }
 
 
-PBoolean H4503_ARGUMENT_checkRestriction::Decode(PASN_Stream & strm)
+bool H4503_ARGUMENT_checkRestriction::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2206,7 +2206,7 @@ PINDEX H4503_ARGUMENT_callRerouting::GetDataLength() const
 }
 
 
-PBoolean H4503_ARGUMENT_callRerouting::Decode(PASN_Stream & strm)
+bool H4503_ARGUMENT_callRerouting::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2362,7 +2362,7 @@ PINDEX H4503_ARGUMENT_divertingLegInformation1::GetDataLength() const
 }
 
 
-PBoolean H4503_ARGUMENT_divertingLegInformation1::Decode(PASN_Stream & strm)
+bool H4503_ARGUMENT_divertingLegInformation1::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2503,7 +2503,7 @@ PINDEX H4503_ARGUMENT_divertingLegInformation2::GetDataLength() const
 }
 
 
-PBoolean H4503_ARGUMENT_divertingLegInformation2::Decode(PASN_Stream & strm)
+bool H4503_ARGUMENT_divertingLegInformation2::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2625,7 +2625,7 @@ PINDEX H4503_ARGUMENT_divertingLegInformation3::GetDataLength() const
 }
 
 
-PBoolean H4503_ARGUMENT_divertingLegInformation3::Decode(PASN_Stream & strm)
+bool H4503_ARGUMENT_divertingLegInformation3::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2745,7 +2745,7 @@ PINDEX H4503_ARGUMENT_divertingLegInformation4::GetDataLength() const
 }
 
 
-PBoolean H4503_ARGUMENT_divertingLegInformation4::Decode(PASN_Stream & strm)
+bool H4503_ARGUMENT_divertingLegInformation4::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2864,7 +2864,7 @@ PINDEX H4503_IntResult::GetDataLength() const
 }
 
 
-PBoolean H4503_IntResult::Decode(PASN_Stream & strm)
+bool H4503_IntResult::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;

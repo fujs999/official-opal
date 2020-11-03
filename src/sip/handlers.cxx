@@ -264,7 +264,7 @@ bool SIPHandler::ActivateState(SIPHandler::State newState, bool resetInterface)
 }
 
 
-PBoolean SIPHandler::SendRequest(SIPHandler::State newState)
+bool SIPHandler::SendRequest(SIPHandler::State newState)
 {
   SendStatus(SIP_PDU::Information_Trying, newState);
 
@@ -343,7 +343,7 @@ void SIPHandler::WriteTransaction(OpalTransport & transport, bool & succeeded)
 }
 
 
-PBoolean SIPHandler::OnReceivedNOTIFY(SIP_PDU & /*response*/)
+bool SIPHandler::OnReceivedNOTIFY(SIP_PDU & /*response*/)
 {
   return false;
 }
@@ -907,7 +907,7 @@ void SIPRegisterHandler::OnReceivedOK(SIPTransaction & transaction, SIP_PDU & re
 }
 
 
-PBoolean SIPRegisterHandler::SendRequest(SIPHandler::State s)
+bool SIPRegisterHandler::SendRequest(SIPHandler::State s)
 {
   if (s == Refreshing) {
     PTRACE(5, "Refreshing Registration, resetting SRV index");
@@ -1125,7 +1125,7 @@ void SIPSubscribeHandler::OnReceivedOK(SIPTransaction & transaction, SIP_PDU & r
 }
 
 
-PBoolean SIPSubscribeHandler::OnReceivedNOTIFY(SIP_PDU & request)
+bool SIPSubscribeHandler::OnReceivedNOTIFY(SIP_PDU & request)
 {
   if (m_unconfirmed) {
     SendStatus(SIP_PDU::Successful_OK, GetState());
@@ -1923,7 +1923,7 @@ SIPTransaction * SIPNotifyHandler::CreateTransaction(OpalTransport & transport)
 }
 
 
-PBoolean SIPNotifyHandler::SendRequest(SIPHandler::State state)
+bool SIPNotifyHandler::SendRequest(SIPHandler::State state)
 {
   // If times out, i.e. Refreshing, then this is actually a time out unsubscribe.
   if (state == Refreshing)

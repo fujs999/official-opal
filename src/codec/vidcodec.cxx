@@ -163,7 +163,7 @@ bool OpalVideoTranscoder::UpdateMediaFormats(const OpalMediaFormat & input, cons
 }
 
 
-PINDEX OpalVideoTranscoder::GetOptimalDataFrameSize(PBoolean input) const
+PINDEX OpalVideoTranscoder::GetOptimalDataFrameSize(bool input) const
 {
   if (input)
     return m_inDataSize;
@@ -175,7 +175,7 @@ PINDEX OpalVideoTranscoder::GetOptimalDataFrameSize(PBoolean input) const
 }
 
 
-PBoolean OpalVideoTranscoder::ExecuteCommand(const OpalMediaCommand & command)
+bool OpalVideoTranscoder::ExecuteCommand(const OpalMediaCommand & command)
 {
   if (PIsDescendant(&command, OpalVideoUpdatePicture))
     return HandleIFrameRequest();
@@ -195,7 +195,7 @@ bool OpalVideoTranscoder::HandleIFrameRequest()
 }
 
 
-PBoolean OpalVideoTranscoder::Convert(const RTP_DataFrame & /*input*/,
+bool OpalVideoTranscoder::Convert(const RTP_DataFrame & /*input*/,
                                   RTP_DataFrame & /*output*/)
 {
   return false;

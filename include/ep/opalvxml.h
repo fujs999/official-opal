@@ -55,7 +55,7 @@ class OpalVXMLSession : public PVXMLSession
     OpalVXMLSession(
       OpalIVRConnection & conn,
       PTextToSpeech * tts = NULL,
-      PBoolean autoDelete = false
+      bool autoDelete = false
     );
 
     virtual void OnEndDialog();

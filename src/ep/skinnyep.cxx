@@ -252,7 +252,7 @@ PSafePtr<OpalConnection> OpalSkinnyEndPoint::MakeConnection(OpalCall & call,
 }
 
 
-PBoolean OpalSkinnyEndPoint::GarbageCollection()
+bool OpalSkinnyEndPoint::GarbageCollection()
 {
   m_phoneDevicesMutex.Wait();
   for (PhoneDeviceDict::iterator it = m_phoneDevices.begin(); it != m_phoneDevices.end(); ) {
@@ -954,7 +954,7 @@ OpalSkinnyConnection::OpalSkinnyConnection(OpalCall & call,
 }
 
 
-PBoolean OpalSkinnyConnection::SetUpConnection()
+bool OpalSkinnyConnection::SetUpConnection()
 {
   InternalSetAsOriginating();
   SetPhase(SetUpPhase);
@@ -988,7 +988,7 @@ OpalMediaFormatList OpalSkinnyConnection::GetMediaFormats() const
 }
 
 
-PBoolean OpalSkinnyConnection::SetAlerting(const PString & calleeName, PBoolean withMedia)
+bool OpalSkinnyConnection::SetAlerting(const PString & calleeName, bool withMedia)
 {
   if (withMedia) {
     // In case we have already received them, try starting them now
@@ -1000,7 +1000,7 @@ PBoolean OpalSkinnyConnection::SetAlerting(const PString & calleeName, PBoolean 
 }
 
 
-PBoolean OpalSkinnyConnection::SetConnected()
+bool OpalSkinnyConnection::SetConnected()
 {
   if (GetPhase() >= ConnectedPhase)
     return true;

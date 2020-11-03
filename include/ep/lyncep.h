@@ -256,7 +256,7 @@ class OpalLyncEndPoint : public OpalEndPoint, public OpalLyncShimBase
     /** Execute garbage collection for endpoint.
         Returns true if all garbage has been collected.
         */
-    virtual PBoolean GarbageCollection();
+    virtual bool GarbageCollection();
   //@}
 
   /**@name User registrations */
@@ -371,7 +371,7 @@ class OpalLyncConnection : public OpalConnection, public OpalLyncShimBase
         This function will initiate the connection to the remote entity, for
         example in H.323 it sends a SETUP, in SIP it sends an INVITE etc.
     */
-    virtual PBoolean SetUpConnection();
+    virtual bool SetUpConnection();
 
     /** Clean up the termination of the connection.
         This function can do any internal cleaning up and waiting on background
@@ -404,14 +404,14 @@ class OpalLyncConnection : public OpalConnection, public OpalLyncShimBase
        has received an OnAlerting() indicating that its remoteendpoint is
        "ringing".
       */
-    virtual PBoolean SetAlerting(
+    virtual bool SetAlerting(
       const PString & calleeName,   ///<  Name of endpoint being alerted.
-      PBoolean withMedia                ///<  Open media with alerting
+      bool withMedia                ///<  Open media with alerting
     );
 
     /**Indicate to remote endpoint we are connected.
       */
-    virtual PBoolean SetConnected();
+    virtual bool SetConnected();
 
     /**Forward incoming call to specified address.
        This would typically be called from within the OnIncomingCall()
@@ -422,7 +422,7 @@ class OpalLyncConnection : public OpalConnection, public OpalLyncShimBase
        otherwise. Note that if the call is forwarded the current connection is
        cleared with teh ended call code of EndedByCallForwarded.
       */
-    virtual PBoolean ForwardCall(
+    virtual bool ForwardCall(
       const PString & forwardParty   ///<  Party to forward call to.
     );
 
@@ -447,7 +447,7 @@ class OpalLyncConnection : public OpalConnection, public OpalLyncShimBase
        A \p duration of zero indicates that a default duration (90ms) is to be
        used.
       */
-    virtual PBoolean SendUserInputTone(
+    virtual bool SendUserInputTone(
       char tone,              ///<  DTMF tone code
       unsigned duration = 0   ///<  Duration of tone in milliseconds
     );
@@ -467,7 +467,7 @@ class OpalLyncConnection : public OpalConnection, public OpalLyncShimBase
     virtual OpalMediaStream * CreateMediaStream(
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
-      PBoolean isSource                        ///<  Is a source stream
+      bool isSource                        ///<  Is a source stream
     );
   //@}
 
@@ -525,7 +525,7 @@ class OpalLyncMediaStream : public OpalMediaStream, public OpalLyncShimBase
        The default behaviour sets the OpalLineInterfaceDevice format and
        calls Resume() on the associated OpalMediaPatch thread.
       */
-    virtual PBoolean Open();
+    virtual bool Open();
 
     /**Returns true if the media stream is established.
     */
@@ -534,7 +534,7 @@ class OpalLyncMediaStream : public OpalMediaStream, public OpalLyncShimBase
     /**Read raw media data from the source media stream.
        The default behaviour reads from the OpalLine object.
       */
-    virtual PBoolean ReadData(
+    virtual bool ReadData(
       BYTE * data,      ///<  Data buffer to read to
       PINDEX size,      ///<  Size of buffer
       PINDEX & length   ///<  Length of data actually read
@@ -543,7 +543,7 @@ class OpalLyncMediaStream : public OpalMediaStream, public OpalLyncShimBase
     /**Write raw media data to the sink media stream.
        The default behaviour writes to the OpalLine object.
       */
-    virtual PBoolean WriteData(
+    virtual bool WriteData(
       const BYTE * data,   ///<  Data to write
       PINDEX length,       ///<  Length of data to read.
       PINDEX & written     ///<  Length of data actually written
@@ -552,7 +552,7 @@ class OpalLyncMediaStream : public OpalMediaStream, public OpalLyncShimBase
     /**Indicate if the media stream is synchronous.
        Returns true for LID streams.
       */
-    virtual PBoolean IsSynchronous() const;
+    virtual bool IsSynchronous() const;
   //@}
 
   protected:

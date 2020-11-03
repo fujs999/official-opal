@@ -336,7 +336,7 @@ bool OpalMSRPMediaSession::SetRemoteAddress(const OpalTransportAddress & transpo
 
 OpalMediaStream * OpalMSRPMediaSession::CreateMediaStream(const OpalMediaFormat & mediaFormat, 
                                                                          unsigned sessionID, 
-                                                                         PBoolean isSource)
+                                                                         bool isSource)
 {
   PTRACE(2, "MSRP\tCreated " << (isSource ? "source" : "sink") << " media stream in "
          << (m_connection.IsOriginating() ? "originator" : "receiver") << " with " << m_localUrl);
@@ -440,14 +440,14 @@ bool OpalMSRPMediaStream::Open()
 }
 
 
-PBoolean OpalMSRPMediaStream::ReadPacket(RTP_DataFrame &)
+bool OpalMSRPMediaStream::ReadPacket(RTP_DataFrame &)
 {
   PAssertAlways("Cannot ReadData from OpalMSRPMediaStream");
   return false;
 }
 
 
-PBoolean OpalMSRPMediaStream::WritePacket(RTP_DataFrame & frame)
+bool OpalMSRPMediaStream::WritePacket(RTP_DataFrame & frame)
 {
   if (!IsOpen())
     return false;

@@ -83,7 +83,7 @@ H4502_DummyArg::operator const H225_NonStandardParameter &() const
 }
 
 
-PBoolean H4502_DummyArg::CreateObject()
+bool H4502_DummyArg::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -173,7 +173,7 @@ H4502_DummyRes::operator const H225_NonStandardParameter &() const
 }
 
 
-PBoolean H4502_DummyRes::CreateObject()
+bool H4502_DummyRes::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -480,7 +480,7 @@ H4502_CTInitiateArg_argumentExtension::operator const H225_NonStandardParameter 
 }
 
 
-PBoolean H4502_CTInitiateArg_argumentExtension::CreateObject()
+bool H4502_CTInitiateArg_argumentExtension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -570,7 +570,7 @@ H4502_CTSetupArg_argumentExtension::operator const H225_NonStandardParameter &()
 }
 
 
-PBoolean H4502_CTSetupArg_argumentExtension::CreateObject()
+bool H4502_CTSetupArg_argumentExtension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -660,7 +660,7 @@ H4502_CTIdentifyRes_resultExtension::operator const H225_NonStandardParameter &(
 }
 
 
-PBoolean H4502_CTIdentifyRes_resultExtension::CreateObject()
+bool H4502_CTIdentifyRes_resultExtension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -750,7 +750,7 @@ H4502_CTUpdateArg_argumentExtension::operator const H225_NonStandardParameter &(
 }
 
 
-PBoolean H4502_CTUpdateArg_argumentExtension::CreateObject()
+bool H4502_CTUpdateArg_argumentExtension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -840,7 +840,7 @@ H4502_SubaddressTransferArg_argumentExtension::operator const H225_NonStandardPa
 }
 
 
-PBoolean H4502_SubaddressTransferArg_argumentExtension::CreateObject()
+bool H4502_SubaddressTransferArg_argumentExtension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -930,7 +930,7 @@ H4502_CTCompleteArg_argumentExtension::operator const H225_NonStandardParameter 
 }
 
 
-PBoolean H4502_CTCompleteArg_argumentExtension::CreateObject()
+bool H4502_CTCompleteArg_argumentExtension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -1020,7 +1020,7 @@ H4502_CTActiveArg_argumentExtension::operator const H225_NonStandardParameter &(
 }
 
 
-PBoolean H4502_CTActiveArg_argumentExtension::CreateObject()
+bool H4502_CTActiveArg_argumentExtension::CreateObject()
 {
   switch (m_tag) {
     case e_extensionSeq :
@@ -1100,7 +1100,7 @@ PINDEX H4502_CTInitiateArg::GetDataLength() const
 }
 
 
-PBoolean H4502_CTInitiateArg::Decode(PASN_Stream & strm)
+bool H4502_CTInitiateArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1195,7 +1195,7 @@ PINDEX H4502_CTSetupArg::GetDataLength() const
 }
 
 
-PBoolean H4502_CTSetupArg::Decode(PASN_Stream & strm)
+bool H4502_CTSetupArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1289,7 +1289,7 @@ PINDEX H4502_CTIdentifyRes::GetDataLength() const
 }
 
 
-PBoolean H4502_CTIdentifyRes::Decode(PASN_Stream & strm)
+bool H4502_CTIdentifyRes::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1391,7 +1391,7 @@ PINDEX H4502_CTUpdateArg::GetDataLength() const
 }
 
 
-PBoolean H4502_CTUpdateArg::Decode(PASN_Stream & strm)
+bool H4502_CTUpdateArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1485,7 +1485,7 @@ PINDEX H4502_SubaddressTransferArg::GetDataLength() const
 }
 
 
-PBoolean H4502_SubaddressTransferArg::Decode(PASN_Stream & strm)
+bool H4502_SubaddressTransferArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1592,7 +1592,7 @@ PINDEX H4502_CTCompleteArg::GetDataLength() const
 }
 
 
-PBoolean H4502_CTCompleteArg::Decode(PASN_Stream & strm)
+bool H4502_CTCompleteArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1705,7 +1705,7 @@ PINDEX H4502_CTActiveArg::GetDataLength() const
 }
 
 
-PBoolean H4502_CTActiveArg::Decode(PASN_Stream & strm)
+bool H4502_CTActiveArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;

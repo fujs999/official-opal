@@ -130,7 +130,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
     /** Execute garbage collection for endpoint.
         Returns true if all garbage has been collected.
         */
-    virtual PBoolean GarbageCollection();
+    virtual bool GarbageCollection();
     //@}
 
 
@@ -681,7 +681,7 @@ class OpalSkinnyConnection : public OpalRTPConnection
         This function will initiate the connection to the remote entity, for
         example in H.323 it sends a SETUP, in SIP it sends an INVITE etc.
     */
-    virtual PBoolean SetUpConnection();
+    virtual bool SetUpConnection();
 
     /** Clean up the termination of the connection.
         This function can do any internal cleaning up and waiting on background
@@ -714,14 +714,14 @@ class OpalSkinnyConnection : public OpalRTPConnection
        has received an OnAlerting() indicating that its remoteendpoint is
        "ringing".
       */
-    virtual PBoolean SetAlerting(
+    virtual bool SetAlerting(
       const PString & calleeName,   ///<  Name of endpoint being alerted.
-      PBoolean withMedia                ///<  Open media with alerting
+      bool withMedia                ///<  Open media with alerting
     );
 
     /**Indicate to remote endpoint we are connected.
       */
-    virtual PBoolean SetConnected();
+    virtual bool SetConnected();
 
     /** Indicate whether a particular media type can auto-start.
         This is typically used for things like video or fax to contol if on

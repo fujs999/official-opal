@@ -66,7 +66,7 @@ PINDEX H235_SIGNED<ToBeSigned>::GetDataLength() const
 
 
 template <class ToBeSigned>
-PBoolean H235_SIGNED<ToBeSigned>::Decode(PASN_Stream & strm)
+bool H235_SIGNED<ToBeSigned>::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -166,7 +166,7 @@ PINDEX H235_ENCRYPTED<ToBeEncrypted>::GetDataLength() const
 
 
 template <class ToBeEncrypted>
-PBoolean H235_ENCRYPTED<ToBeEncrypted>::Decode(PASN_Stream & strm)
+bool H235_ENCRYPTED<ToBeEncrypted>::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -263,7 +263,7 @@ PINDEX H235_HASHED<ToBeHashed>::GetDataLength() const
 
 
 template <class ToBeHashed>
-PBoolean H235_HASHED<ToBeHashed>::Decode(PASN_Stream & strm)
+bool H235_HASHED<ToBeHashed>::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;

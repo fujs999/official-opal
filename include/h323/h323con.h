@@ -183,7 +183,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour is to send SETUP packet.
       */
-    virtual PBoolean SetUpConnection();
+    virtual bool SetUpConnection();
 
     /**Indicate to remote endpoint an alert is in progress.
        If this is an incoming connection and it is in the Alerting phase, then
@@ -194,22 +194,22 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour sends an ALERTING pdu.
       */
-    virtual PBoolean SetAlerting(
+    virtual bool SetAlerting(
       const PString & calleeName,   ///<  Name of endpoint being alerted.
-      PBoolean withMedia                ///<  Open media with alerting
+      bool withMedia                ///<  Open media with alerting
     );
 
     /**Indicate to remote endpoint we are connected.
 
        The default behaviour sends a CONNECT pdu.
       */
-    virtual PBoolean SetConnected();
+    virtual bool SetConnected();
 
     /**Indicate to remote endpoint we are sending a progress.
 
       The default behaviour sends a PROGRESS pdu.
      */
-    virtual PBoolean SetProgressed();
+    virtual bool SetProgressed();
     
     /** Called when a connection is established.
         This indicates that a connection to an endpoint was established. This
@@ -390,12 +390,12 @@ class H323Connection : public OpalRTPConnection
     void AttachSignalChannel(
       const PString & token,    ///<  New token to use to identify connection
       H323Transport * channel,  ///<  Transport for the PDU's
-      PBoolean answeringCall        ///<  Flag for if incoming/outgoing call.
+      bool answeringCall        ///<  Flag for if incoming/outgoing call.
     );
 
     /**Write a PDU to the signalling channel.
       */
-    PBoolean WriteSignalPDU(
+    bool WriteSignalPDU(
       H323SignalPDU & pdu       ///<  PDU to write.
     );
 
@@ -407,7 +407,7 @@ class H323Connection : public OpalRTPConnection
     /**Handle PDU from the signalling channel.
        This is an internal function and is unlikely to be used by applications.
      */
-    virtual PBoolean HandleSignalPDU(
+    virtual bool HandleSignalPDU(
       H323SignalPDU & pdu       ///<  PDU to handle.
     );
 
@@ -425,7 +425,7 @@ class H323Connection : public OpalRTPConnection
        If false is returned the connection is aborted and a Release Complete
        PDU is sent.
      */
-    virtual PBoolean OnReceivedSignalSetup(
+    virtual bool OnReceivedSignalSetup(
       const H323SignalPDU & pdu   ///<  Received setup PDU
     );
 
@@ -435,7 +435,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour does nothing.
      */
-    virtual PBoolean OnReceivedSignalSetupAck(
+    virtual bool OnReceivedSignalSetupAck(
       const H323SignalPDU & pdu   ///<  Received setup PDU
     );
 
@@ -445,7 +445,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour does nothing.
      */
-    virtual PBoolean OnReceivedSignalInformation(
+    virtual bool OnReceivedSignalInformation(
       const H323SignalPDU & pdu   ///<  Received setup PDU
     );
 
@@ -457,7 +457,7 @@ class H323Connection : public OpalRTPConnection
        starts the separate H245 channel, if successful or not present it
        returns true.
      */
-    virtual PBoolean OnReceivedCallProceeding(
+    virtual bool OnReceivedCallProceeding(
       const H323SignalPDU & pdu   ///<  Received call proceeding PDU
     );
 
@@ -469,7 +469,7 @@ class H323Connection : public OpalRTPConnection
        starts the separate H245 channel, if successful or not present it
        returns true.
      */
-    virtual PBoolean OnReceivedProgress(
+    virtual bool OnReceivedProgress(
       const H323SignalPDU & pdu   ///<  Received call proceeding PDU
     );
 
@@ -479,7 +479,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour obtains the display name and calls OnAlerting().
      */
-    virtual PBoolean OnReceivedAlerting(
+    virtual bool OnReceivedAlerting(
       const H323SignalPDU & pdu   ///<  Received connect PDU
     );
 
@@ -491,7 +491,7 @@ class H323Connection : public OpalRTPConnection
        starts the separate H245 channel, if successful it returns true.
        If not present and there is no H245Tunneling then it returns false.
      */
-    virtual PBoolean OnReceivedSignalConnect(
+    virtual bool OnReceivedSignalConnect(
       const H323SignalPDU & pdu   ///<  Received connect PDU
     );
 
@@ -503,7 +503,7 @@ class H323Connection : public OpalRTPConnection
        starts the separate H245 channel, if successful or not present it
        returns true.
      */
-    virtual PBoolean OnReceivedFacility(
+    virtual bool OnReceivedFacility(
       const H323SignalPDU & pdu   ///<  Received connect PDU
     );
 
@@ -513,7 +513,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour simply returns true.
      */
-    virtual PBoolean OnReceivedSignalNotify(
+    virtual bool OnReceivedSignalNotify(
       const H323SignalPDU & pdu   ///<  Received connect PDU
     );
 
@@ -523,7 +523,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour simply returns true.
      */
-    virtual PBoolean OnReceivedSignalStatus(
+    virtual bool OnReceivedSignalStatus(
       const H323SignalPDU & pdu   ///<  Received connect PDU
     );
 
@@ -533,7 +533,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour sends a Q931 Status PDU back.
      */
-    virtual PBoolean OnReceivedStatusEnquiry(
+    virtual bool OnReceivedStatusEnquiry(
       const H323SignalPDU & pdu   ///<  Received connect PDU
     );
 
@@ -551,7 +551,7 @@ class H323Connection : public OpalRTPConnection
        If false is returned the connection is aborted and a Release Complete
        PDU is sent. The default behaviour returns true.
      */
-    virtual PBoolean OnUnknownSignalPDU(
+    virtual bool OnUnknownSignalPDU(
       const H323SignalPDU & pdu  ///<  Received PDU
     );
 
@@ -614,7 +614,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour calls the endpoint function of the same name.
      */
-    virtual PBoolean OnIncomingCall(
+    virtual bool OnIncomingCall(
       const H323SignalPDU & setupPDU,   ///<  Received setup PDU
       H323SignalPDU & alertingPDU       ///<  Alerting PDU to send
     );
@@ -628,7 +628,7 @@ class H323Connection : public OpalRTPConnection
        otherwise. Note that if the call is forwarded the current connection is
        cleared with the ended call code of EndedByCallForwarded.
       */
-    virtual PBoolean ForwardCall(
+    virtual bool ForwardCall(
       const PString & forwardParty   ///<  Party to forward call to.
     );
 
@@ -702,11 +702,11 @@ class H323Connection : public OpalRTPConnection
 
     /**Determine whether this connection is being transferred.
      */
-    PBoolean IsTransferringCall() const;
+    bool IsTransferringCall() const;
 
     /**Determine whether this connection is the result of a transferred call.
      */
-    PBoolean IsTransferredCall() const;
+    bool IsTransferredCall() const;
 
     /**Handle the transfer of an existing connection to a new remote.
        This is an internal function and it is not expected the user will call
@@ -774,7 +774,7 @@ class H323Connection : public OpalRTPConnection
       */
     void SetCallIntrusion() { m_isCallIntrusion = true; }
 
-    PBoolean IsCallIntrusion() { return m_isCallIntrusion; }
+    bool IsCallIntrusion() { return m_isCallIntrusion; }
 
     /**Get Call Intrusion Protection Level of the local endpoint.
       */
@@ -783,7 +783,7 @@ class H323Connection : public OpalRTPConnection
     /**Get Call Intrusion Protection Level of other endpoints that we are in
        connection with.
       */
-    virtual PBoolean GetRemoteCallIntrusionProtectionLevel(
+    virtual bool GetRemoteCallIntrusionProtectionLevel(
       const PString & callToken,
       unsigned callIntrusionProtectionLevel
     );
@@ -883,7 +883,7 @@ class H323Connection : public OpalRTPConnection
        with the TCP/IP data. Therefore if you override this in your
        application make sure you call the ancestor function.
      */
-    virtual PBoolean OnSendSignalSetup(
+    virtual bool OnSendSignalSetup(
       H323SignalPDU & setupPDU   ///<  Setup PDU to send
     );
 
@@ -895,7 +895,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour simply returns true.
      */
-    virtual PBoolean OnSendCallProceeding(
+    virtual bool OnSendCallProceeding(
       H323SignalPDU & callProceedingPDU   ///<  Call Proceeding PDU to send
     );
 
@@ -910,7 +910,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour simply returns true.
       */
-    virtual PBoolean OnSendReleaseComplete(
+    virtual bool OnSendReleaseComplete(
       H323SignalPDU & releaseCompletePDU ///<  Release Complete PDU to send
     );
 
@@ -924,7 +924,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour calls the endpoint function of the same name.
      */
-    virtual PBoolean OnAlerting(
+    virtual bool OnAlerting(
       const H323SignalPDU & alertingPDU,  ///<  Received Alerting PDU
       const PString & user                ///<  Username of remote endpoint
     );
@@ -943,7 +943,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour simply returns false.
      */
-    virtual PBoolean OnInsufficientDigits();
+    virtual bool OnInsufficientDigits();
 
     /**This function is called when sufficient digits have been entered.
        This supports overlapped dialling so that a call can begin when it is
@@ -970,7 +970,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour calls H323EndPoint::OnOutgoingCall
      */
-    virtual PBoolean OnOutgoingCall(
+    virtual bool OnOutgoingCall(
       const H323SignalPDU & connectPDU   ///<  Received Connect PDU
     );
 
@@ -985,7 +985,7 @@ class H323Connection : public OpalRTPConnection
        The default behaviour uses OnSelectLogicalChannels() to find a pair of
        channels and adds then to the provided PDU.
      */
-    virtual PBoolean SendFastStartAcknowledge(
+    virtual bool SendFastStartAcknowledge(
       H225_ArrayOf_PASN_OctetString & array   ///<  Array of H245_OpenLogicalChannel
     );
 
@@ -1000,7 +1000,7 @@ class H323Connection : public OpalRTPConnection
        The default behaviour parses the provided array and starts the channels
        acknowledged in it.
      */
-    virtual PBoolean HandleFastStartAcknowledge(
+    virtual bool HandleFastStartAcknowledge(
       const H225_ArrayOf_PASN_OctetString & array   ///<  Array of H245_OpenLogicalChannel
     );
   //@}
@@ -1018,7 +1018,7 @@ class H323Connection : public OpalRTPConnection
        creates a corresponding H323Transport decendent for the control
        channel.
      */
-    virtual PBoolean CreateOutgoingControlChannel(
+    virtual bool CreateOutgoingControlChannel(
       const PASN_Sequence & enclosingPDU,         ///< Enclosing PDU, e.g. H225_Connect_UUIE
       const H225_TransportAddress & h245Address,  ///< H245 address
       unsigned h245AddressField,                  ///< Optional field code for address
@@ -1038,7 +1038,7 @@ class H323Connection : public OpalRTPConnection
        creates a corresponding OpalTransport decendent for the control
        channel.
       */
-    virtual PBoolean CreateIncomingControlChannel(
+    virtual bool CreateIncomingControlChannel(
       PASN_Sequence & enclosingPDU,         ///< Enclosing PDU, e.g. H225_Connect_UUIE
       H225_TransportAddress & h245Address,  ///< PDU transport address to set
       unsigned h245AddressField,            ///< Optional field code for address
@@ -1050,13 +1050,13 @@ class H323Connection : public OpalRTPConnection
        If there is no control channel open then this will tunnel the PDU
        into the signalling channel.
       */
-    virtual PBoolean WriteControlPDU(
+    virtual bool WriteControlPDU(
       const H323ControlPDU & pdu
     );
 
     /**Start control channel negotiations.
       */
-    virtual PBoolean StartControlNegotiations();
+    virtual bool StartControlNegotiations();
 
     /**Handle reading data on the control channel.
      */
@@ -1068,7 +1068,7 @@ class H323Connection : public OpalRTPConnection
        If false is returned the connection is aborted. The default behaviour
        returns true.
      */
-    virtual PBoolean HandleControlData(
+    virtual bool HandleControlData(
       PPER_Stream & strm
     );
 
@@ -1078,15 +1078,15 @@ class H323Connection : public OpalRTPConnection
        If false is returned the connection is aborted. The default behaviour
        returns true.
      */
-    virtual PBoolean HandleControlPDU(
+    virtual bool HandleControlPDU(
       const H323ControlPDU & pdu
     );
 
     /**Handle a single received PDU from the control channel.
        This is an internal function and is unlikely to be used by applications.
     */
-    virtual PBoolean HandleReceivedControlPDU(
-      PBoolean readStatus,
+    virtual bool HandleReceivedControlPDU(
+      bool readStatus,
       PPER_Stream & strm
     );
 
@@ -1099,41 +1099,41 @@ class H323Connection : public OpalRTPConnection
        The default behaviour send a FunctioNotUnderstood indication back to
        the sender, and returns true to continue operation.
      */
-    virtual PBoolean OnUnknownControlPDU(
+    virtual bool OnUnknownControlPDU(
       const H323ControlPDU & pdu  ///<  Received PDU
     );
 
     /**Handle incoming request PDU's on the control channel.
        Dispatches them to the various virtuals off this class.
      */
-    virtual PBoolean OnH245Request(
+    virtual bool OnH245Request(
       const H323ControlPDU & pdu  ///<  Received PDU
     );
 
     /**Handle incoming response PDU's on the control channel.
        Dispatches them to the various virtuals off this class.
      */
-    virtual PBoolean OnH245Response(
+    virtual bool OnH245Response(
       const H323ControlPDU & pdu  ///<  Received PDU
     );
 
     /**Handle incoming command PDU's on the control channel.
        Dispatches them to the various virtuals off this class.
      */
-    virtual PBoolean OnH245Command(
+    virtual bool OnH245Command(
       const H323ControlPDU & pdu  ///<  Received PDU
     );
 
     /**Handle incoming indication PDU's on the control channel.
        Dispatches them to the various virtuals off this class.
      */
-    virtual PBoolean OnH245Indication(
+    virtual bool OnH245Indication(
       const H323ControlPDU & pdu  ///<  Received PDU
     );
 
     /**Handle H245 command to send terminal capability set.
      */
-    virtual PBoolean OnH245_SendTerminalCapabilitySet(
+    virtual bool OnH245_SendTerminalCapabilitySet(
       const H245_SendTerminalCapabilitySet & pdu  ///<  Received PDU
     );
 
@@ -1141,7 +1141,7 @@ class H323Connection : public OpalRTPConnection
        This function calls OnLogicalChannelFlowControl() with the channel and
        bit rate restriction.
      */
-    virtual PBoolean OnH245_FlowControlCommand(
+    virtual bool OnH245_FlowControlCommand(
       const H245_FlowControlCommand & pdu  ///<  Received PDU
     );
 
@@ -1149,7 +1149,7 @@ class H323Connection : public OpalRTPConnection
        This function passes the miscellaneous command on to the channel
        defined by the pdu.
      */
-    virtual PBoolean OnH245_MiscellaneousCommand(
+    virtual bool OnH245_MiscellaneousCommand(
       const H245_MiscellaneousCommand & pdu  ///<  Received PDU
     );
 
@@ -1157,7 +1157,7 @@ class H323Connection : public OpalRTPConnection
        This function passes the miscellaneous indication on to the channel
        defined by the pdu.
      */
-    virtual PBoolean OnH245_MiscellaneousIndication(
+    virtual bool OnH245_MiscellaneousIndication(
       const H245_MiscellaneousIndication & pdu  ///<  Received PDU
     );
 
@@ -1165,7 +1165,7 @@ class H323Connection : public OpalRTPConnection
        This function calls OnLogicalChannelJitter() with the channel and
        estimated jitter.
      */
-    virtual PBoolean OnH245_JitterIndication(
+    virtual bool OnH245_JitterIndication(
       const H245_JitterIndication & pdu  ///<  Received PDU
     );
 
@@ -1269,7 +1269,7 @@ class H323Connection : public OpalRTPConnection
        If false is returned the connection is aborted. The default behaviour
        returns true.
      */
-    virtual PBoolean OnControlProtocolError(
+    virtual bool OnControlProtocolError(
       ControlProtocolErrors errorSource,  ///<  Source of the proptoerror
       const void * errorData = NULL       ///<  Data associated with error
     );
@@ -1296,7 +1296,7 @@ class H323Connection : public OpalRTPConnection
        The default behaviour assigns the table and set to member variables and
        returns true if the remoteCodecs list is not empty.
      */
-    virtual PBoolean OnReceivedCapabilitySet(
+    virtual bool OnReceivedCapabilitySet(
       const H323Capabilities & remoteCaps,      ///<  Capability combinations remote supports
       const H245_MultiplexCapability * muxCap,  ///<  Transport capability, if present
       H245_TerminalCapabilitySetReject & reject ///<  Rejection PDU (if return false)
@@ -1305,7 +1305,7 @@ class H323Connection : public OpalRTPConnection
     /**Send a new capability set.
       */
     virtual bool SendCapabilitySet(
-      PBoolean empty  ///<  Send an empty set.
+      bool empty  ///<  Send an empty set.
     );
 
     /**check if TCS procedure in progress states.
@@ -1327,12 +1327,12 @@ class H323Connection : public OpalRTPConnection
       */
     virtual void OnSendH245_OpenLogicalChannel(
       H245_OpenLogicalChannel & /*open*/, 
-      PBoolean /*forward*/
+      bool /*forward*/
     ) { }
 
     /**Return if this H245 connection is a master or slave
      */
-    PBoolean IsH245Master() const;
+    bool IsH245Master() const;
 
     /**Start the round trip delay calculation over the control channel.
      */
@@ -1396,8 +1396,8 @@ class H323Connection : public OpalRTPConnection
       */
     virtual void SelectFastStartChannels(
       unsigned sessionID,   ///<  Session ID to find default logical channel.
-      PBoolean transmitter,     ///<  Whether to open transmitters
-      PBoolean receiver         ///<  Whether to open receivers
+      bool transmitter,     ///<  Whether to open transmitters
+      bool receiver         ///<  Whether to open receivers
     );
 
     /**Start a logical channel for fast start.
@@ -1422,7 +1422,7 @@ class H323Connection : public OpalRTPConnection
        OnSelectLogicalChannels(), then it may only establish a transmit
        channel, ie fromRemote must be false.
       */
-    virtual PBoolean OpenLogicalChannel(
+    virtual bool OpenLogicalChannel(
       const H323Capability & capability,  ///<  Capability to open channel with
       unsigned sessionID,                 ///<  Session for the channel
       H323Channel::Directions dir         ///<  Direction of channel
@@ -1442,7 +1442,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour simply returns true.
      */
-    virtual PBoolean OnOpenLogicalChannel(
+    virtual bool OnOpenLogicalChannel(
       const H245_OpenLogicalChannel & openPDU,  ///<  Received PDU for the channel open
       H245_OpenLogicalChannelAck & ackPDU,      ///<  PDU to send for acknowledgement
       unsigned & errorCode,                     ///<  Error to return if refused
@@ -1456,7 +1456,7 @@ class H323Connection : public OpalRTPConnection
        try and open a new transmitter channel using the same codec as the
        receiver that is being opened.
       */
-    virtual PBoolean OnConflictingLogicalChannel(
+    virtual bool OnConflictingLogicalChannel(
       H323Channel & channel    ///<  Channel that conflicted
     );
 
@@ -1466,7 +1466,7 @@ class H323Connection : public OpalRTPConnection
       */
     virtual H323Channel * CreateLogicalChannel(
       const H245_OpenLogicalChannel & open, ///<  Parameters for opening channel
-      PBoolean startingFast,                    ///<  Flag for fast/slow starting.
+      bool startingFast,                    ///<  Flag for fast/slow starting.
       unsigned & errorCode                  ///<  Reason for create failure
     );
 
@@ -1491,7 +1491,7 @@ class H323Connection : public OpalRTPConnection
        of the remote endpoints media server RTP addresses to complete the
        setting up of the external RTP stack. eg:
 
-         PBoolean OnStartLogicalChannel(H323Channel & channel)
+         bool OnStartLogicalChannel(H323Channel & channel)
          {
            H323_ExternalRTPChannel & external = (H323_ExternalRTPChannel &)channel;
            external.GetRemoteAddress(remoteIpAddress, remotePort);
@@ -1531,7 +1531,7 @@ class H323Connection : public OpalRTPConnection
        The default behaviour checks the capability set for if this capability
        is allowed to be opened with other channels that may already be open.
      */
-    virtual PBoolean OnCreateLogicalChannel(
+    virtual bool OnCreateLogicalChannel(
       const H323Capability & capability,  ///<  Capability for the channel open
       H323Channel::Directions dir,        ///<  Direction of channel
       unsigned & errorCode                ///<  Error to return if refused
@@ -1541,7 +1541,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour does nothing and returns true.
       */
-    virtual PBoolean OnStartLogicalChannel(
+    virtual bool OnStartLogicalChannel(
       H323Channel & channel    ///<  Channel that has been started.
     );
 
@@ -1549,7 +1549,7 @@ class H323Connection : public OpalRTPConnection
       */
     virtual void CloseLogicalChannel(
       unsigned number,    ///<  Channel number to close.
-      PBoolean fromRemote     ///<  Indicates close request of remote channel
+      bool fromRemote     ///<  Indicates close request of remote channel
     );
 
     /**Close a logical channel by number.
@@ -1561,7 +1561,7 @@ class H323Connection : public OpalRTPConnection
     /**Close a logical channel.
       */
     virtual void CloseAllLogicalChannels(
-      PBoolean fromRemote     ///<  Indicates close request of remote channel
+      bool fromRemote     ///<  Indicates close request of remote channel
     );
 
     /**This function is called when the remote endpoint has closed down
@@ -1581,7 +1581,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behaviour returns true.
      */
-    virtual PBoolean OnClosingLogicalChannel(
+    virtual bool OnClosingLogicalChannel(
       H323Channel & channel   ///<  Channel that is to be closed
     );
 
@@ -1618,7 +1618,7 @@ class H323Connection : public OpalRTPConnection
       */
     H323Channel * GetLogicalChannel(
       unsigned number,    ///<  Channel number to get.
-      PBoolean fromRemote     ///<  Indicates get a remote channel
+      bool fromRemote     ///<  Indicates get a remote channel
     ) const;
 
     /**Find a logical channel.
@@ -1666,7 +1666,7 @@ class H323Connection : public OpalRTPConnection
 
        SendUserInputAsSeparateRFC2833 is not yet supported.
       */
-    virtual PBoolean SendUserInputString(
+    virtual bool SendUserInputString(
       const PString & value                   ///<  String value of indication
     );
 
@@ -1694,7 +1694,7 @@ class H323Connection : public OpalRTPConnection
 
        SendUserInputAsSeparateRFC2833 is not yet supported.
       */
-    virtual PBoolean SendUserInputTone(
+    virtual bool SendUserInputTone(
       char tone,             ///<  DTMF tone code
       unsigned duration = 0  ///<  Duration of tone in milliseconds
     );
@@ -1705,7 +1705,7 @@ class H323Connection : public OpalRTPConnection
        This always uses a Q.931 Keypad Information Element in a Information
        pdu sending the entire string in one go.
       */
-    virtual PBoolean SendUserInputIndicationQ931(
+    virtual bool SendUserInputIndicationQ931(
       const PString & value                   ///<  String value of indication
     );
 
@@ -1715,7 +1715,7 @@ class H323Connection : public OpalRTPConnection
        This always uses an H.245 "string" UserInputIndication pdu sending the
        entire string in one go.
       */
-    virtual PBoolean SendUserInputIndicationString(
+    virtual bool SendUserInputIndicationString(
       const PString & value                   ///<  String value of indication
     );
 
@@ -1723,7 +1723,7 @@ class H323Connection : public OpalRTPConnection
        This sends DTMF emulation user input.This uses an H.245 "signal"
        UserInputIndication pdu.
       */
-    virtual PBoolean SendUserInputIndicationTone(
+    virtual bool SendUserInputIndicationTone(
       char tone,                   ///<  DTMF tone code
       unsigned duration = 0,       ///<  Duration of tone in milliseconds
       unsigned logicalChannel = 0, ///<  Logical channel number for RTP sync.
@@ -1738,7 +1738,7 @@ class H323Connection : public OpalRTPConnection
        An application could do more sophisticated usage by filling in the 
        H245_UserInputIndication structure directly ans using this function.
       */
-    virtual PBoolean SendUserInputIndication(
+    virtual bool SendUserInputIndication(
       const H245_UserInputIndication & pdu    ///<  Full user indication PDU
     );
 
@@ -1786,7 +1786,7 @@ class H323Connection : public OpalRTPConnection
        Returns false if a mode change is currently in progress, only one mode
        change may be done at a time.
       */
-    virtual PBoolean RequestModeChange(
+    virtual bool RequestModeChange(
       const PString & newModes  ///<  New modes to select
     );
 
@@ -1797,13 +1797,13 @@ class H323Connection : public OpalRTPConnection
        Returns false if a mode change is currently in progress, only one mode
        change may be done at a time.
       */
-    virtual PBoolean RequestModeChange(
+    virtual bool RequestModeChange(
       const H245_ArrayOf_ModeDescription & newModes  ///<  New modes to select
     );
 
     /**Received request for mode change from remote.
       */
-    virtual PBoolean OnRequestModeChange(
+    virtual bool OnRequestModeChange(
       const H245_RequestMode & pdu,     ///<  Received PDU
       H245_RequestModeAck & ack,        ///<  Ack PDU to send
       H245_RequestModeReject & reject,  ///<  Reject PDU to send
@@ -1844,7 +1844,7 @@ class H323Connection : public OpalRTPConnection
        OPAL media stream model. It is maintained for backward compatibility
        with older applications only.
       */
-    virtual PBoolean RequestModeChangeT38(
+    virtual bool RequestModeChangeT38(
       const char * capabilityNames = "T.38\nT38FaxUDP"
     );
 
@@ -1857,7 +1857,7 @@ class H323Connection : public OpalRTPConnection
 
        The default behavour does nothing and returns false.
       */
-    virtual PBoolean GetAdmissionRequestAuthentication(
+    virtual bool GetAdmissionRequestAuthentication(
       const H225_AdmissionRequest & arq,  ///<  ARQ being constructed
       H235Authenticators & authenticators ///<  New authenticators for ARQ
     );
@@ -1878,11 +1878,11 @@ class H323Connection : public OpalRTPConnection
 
     /**Get the call direction for this connection.
      */
-    PBoolean HadAnsweredCall() const { return !IsOriginating(); }
+    bool HadAnsweredCall() const { return !IsOriginating(); }
 
     /**Determined if connection is gatekeeper routed.
      */
-    PBoolean IsGatekeeperRouted() const { return m_gatekeeperRouted; }
+    bool IsGatekeeperRouted() const { return m_gatekeeperRouted; }
 
     /**Get the distinctive ring code for incoming call.
        This returns an integer from 0 to 7 that may indicate to an application
@@ -2129,8 +2129,8 @@ class H323Connection : public OpalRTPConnection
       CompatibilityIssues issue
     ) const;
 
-    PBoolean StartHandleControlChannel();
-    virtual PBoolean OnStartHandleControlChannel();
+    bool StartHandleControlChannel();
+    virtual bool OnStartHandleControlChannel();
     void EndHandleControlChannel();
  
   protected:
@@ -2300,10 +2300,10 @@ class H323Connection : public OpalRTPConnection
     P_REMOVE_VIRTUAL_VOID(CleanUpOnCallEnd());
     P_REMOVE_VIRTUAL_VOID(OnCleared());
     P_REMOVE_VIRTUAL_VOID(OnRTPStatistics(const OpalRTPSession &) const);
-    P_REMOVE_VIRTUAL(PBoolean, OnOpenLogicalChannel(const H245_OpenLogicalChannel&,H245_OpenLogicalChannelAck&,unsigned&), false);
-    P_REMOVE_VIRTUAL(PBoolean, OnOpenLogicalChannel(const H245_OpenLogicalChannel &, H245_OpenLogicalChannelAck &, unsigned &, const unsigned &), false);
+    P_REMOVE_VIRTUAL(bool, OnOpenLogicalChannel(const H245_OpenLogicalChannel&,H245_OpenLogicalChannelAck&,unsigned&), false);
+    P_REMOVE_VIRTUAL(bool, OnOpenLogicalChannel(const H245_OpenLogicalChannel &, H245_OpenLogicalChannelAck &, unsigned &, const unsigned &), false);
     P_REMOVE_VIRTUAL_VOID(NatDetection(const PIPSocket::Address &, const PIPSocket::Address &));
-    P_REMOVE_VIRTUAL(PBoolean, OnNatDetected(), false);
+    P_REMOVE_VIRTUAL(bool, OnNatDetected(), false);
 };
 
 

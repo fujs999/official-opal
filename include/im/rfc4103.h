@@ -52,8 +52,8 @@ class OpalT140MediaStream : public OpalMediaStream
       bool isSource                        ///<  Is a source stream
     );
 
-    virtual PBoolean IsSynchronous() const         { return false; }
-    virtual PBoolean RequiresPatchThread() const   { return false; }
+    virtual bool IsSynchronous() const         { return false; }
+    virtual bool RequiresPatchThread() const   { return false; }
 
     bool ReadPacket(RTP_DataFrame & packet);
     bool WritePacket(RTP_DataFrame & packet);

@@ -78,7 +78,7 @@ class IAX2SpecialProcessor : public IAX2Processor
   
   /**Process an IAX2FullFrameProtocol. This special processor handles
    things relative to special needs of full frame protocols.*/
-  virtual PBoolean ProcessNetworkFrame(IAX2FullFrameProtocol * src);
+  virtual bool ProcessNetworkFrame(IAX2FullFrameProtocol * src);
   
   /**Process a poke command*/
   void ProcessIaxCmdPoke(IAX2FullFrameProtocol * src);
@@ -89,7 +89,7 @@ class IAX2SpecialProcessor : public IAX2Processor
 
      @return false always, as the special packet handler never gets
      frame ordered correctly - there will always be skipped frames. */
-  virtual PBoolean IncomingMessageOutOfOrder(IAX2FullFrame *) 
+  virtual bool IncomingMessageOutOfOrder(IAX2FullFrame *) 
   { return false; }
 
 

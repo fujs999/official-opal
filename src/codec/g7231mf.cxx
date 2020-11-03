@@ -60,7 +60,7 @@ class H323_G7231Capability : public H323AudioCapability
       return OpalG7231_6k3;
     }
 
-    virtual PBoolean OnSendingPDU(H245_AudioCapability & pdu, unsigned packetSize) const
+    virtual bool OnSendingPDU(H245_AudioCapability & pdu, unsigned packetSize) const
     {
       pdu.SetTag(H245_AudioCapability::e_g7231);
       H245_AudioCapability_g7231 & g7231 = pdu;
@@ -69,7 +69,7 @@ class H323_G7231Capability : public H323AudioCapability
       return true;
     }
 
-    virtual PBoolean OnReceivedPDU(const H245_AudioCapability & pdu, unsigned & packetSize)
+    virtual bool OnReceivedPDU(const H245_AudioCapability & pdu, unsigned & packetSize)
     {
       if (pdu.GetTag() != H245_AudioCapability::e_g7231)
         return false;

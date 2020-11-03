@@ -218,7 +218,7 @@ MyProcess::~MyProcess()
 }
 
 
-PBoolean MyProcess::OnStart()
+bool MyProcess::OnStart()
 {
   // Set log level as early as possible
   Params params(NULL);
@@ -272,7 +272,7 @@ void MyProcess::OnConfigChanged()
 }
 
 
-PBoolean MyProcess::Initialise(const char * initMsg)
+bool MyProcess::Initialise(const char * initMsg)
 {
   PSYSTEMLOG(Warning, "Service " << GetName() << ' ' << initMsg);
 
@@ -525,7 +525,7 @@ SIPConsoleEndPoint * MyManager::CreateSIPEndPoint()
 #endif
 
 
-PBoolean MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
+bool MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
 {
   // Make sure all endpoints created
   for (PINDEX i = 0; i < m_endpointPrefixes.GetSize(); ++i)

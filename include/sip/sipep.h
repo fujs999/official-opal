@@ -175,7 +175,7 @@ class SIPEndPoint : public OpalSDPEndPoint
         Returns true if all garbage has been collected.
         Default behaviour deletes the objects in the connectionsActive list.
       */
-    virtual PBoolean GarbageCollection();
+    virtual bool GarbageCollection();
 
     /** Get available string option names.
       */
@@ -194,7 +194,7 @@ class SIPEndPoint : public OpalSDPEndPoint
 
     /**Setup a connection transfer a connection for the SIP endpoint.
       */
-    virtual PBoolean SetupTransfer(
+    virtual bool SetupTransfer(
       SIPConnection & connection,   ///<  Existing connection to be transferred
       const PString & remoteParty,  ///<  Remote party to transfer the existing call to
       const PString & replaces      ///<  Information for completing consultation transfer
@@ -203,7 +203,7 @@ class SIPEndPoint : public OpalSDPEndPoint
     /**Forward the connection using the same token as the specified connection.
        Return true if the connection is being redirected.
       */
-    virtual PBoolean ForwardConnection(
+    virtual bool ForwardConnection(
       SIPConnection & connection,     ///<  Connection to be forwarded
       const PString & forwardParty    ///<  Remote party to forward to
     );
@@ -327,7 +327,7 @@ class SIPEndPoint : public OpalSDPEndPoint
       SIP_PDU::StatusCodes * errorCode = NULL ///< Error code if lock fails
     );
 
-    virtual PBoolean IsAcceptedAddress(const SIPURL & toAddr);
+    virtual bool IsAcceptedAddress(const SIPURL & toAddr);
 
 
     /**Register an entity to a registrar.
@@ -403,7 +403,7 @@ class SIPEndPoint : public OpalSDPEndPoint
        had recent confirmation) or we are not sure if we are registered or
        not, but are continually re-trying.
      */
-    PBoolean IsRegistered(
+    bool IsRegistered(
       const PString & aor,          ///< AOR returned by Register()
       bool includeOffline = false   ///< Include offline registrations
     );
@@ -465,8 +465,8 @@ class SIPEndPoint : public OpalSDPEndPoint
     // For backward compatibility
     virtual void OnRegistrationStatus(
       const PString & aor,
-      PBoolean wasRegistering,
-      PBoolean reRegistering,
+      bool wasRegistering,
+      bool reRegistering,
       SIP_PDU::StatusCodes reason
     );
 
@@ -476,7 +476,7 @@ class SIPEndPoint : public OpalSDPEndPoint
     virtual void OnRegistrationFailed(
       const PString & aor,
       SIP_PDU::StatusCodes reason,
-      PBoolean wasRegistering
+      bool wasRegistering
     );
 
     /**Callback called when a registration or an unregistration is successful.
@@ -484,7 +484,7 @@ class SIPEndPoint : public OpalSDPEndPoint
      */
     virtual void OnRegistered(
       const PString & aor,
-      PBoolean wasRegistering
+      bool wasRegistering
     );
 
 
@@ -811,7 +811,7 @@ class SIPEndPoint : public OpalSDPEndPoint
 
     /**Send a SIP PING to the remote host
       */
-    PBoolean Ping(
+    bool Ping(
       const PURL & to
     );
 
@@ -1132,13 +1132,13 @@ class SIPEndPoint : public OpalSDPEndPoint
     P_REMOVE_VIRTUAL_VOID(OnReceivedOK(SIPTransaction &, SIP_PDU &));
     P_REMOVE_VIRTUAL_VOID(OnMessageFailed(const SIPURL &, SIP_PDU::StatusCodes));
     P_REMOVE_VIRTUAL(SIPConnection *,CreateConnection(OpalCall &, const PString &, void *, const SIPURL &, OpalTransport *, SIP_PDU *, unsigned, OpalConnection::StringOptions *), NULL);
-    P_REMOVE_VIRTUAL(PBoolean, OnReceivedPDU(OpalTransport &, SIP_PDU *), false);
+    P_REMOVE_VIRTUAL(bool, OnReceivedPDU(OpalTransport &, SIP_PDU *), false);
     P_REMOVE_VIRTUAL(bool, OnReceivedConnectionlessPDU(OpalTransport &,  SIP_PDU *), false);
     P_REMOVE_VIRTUAL(bool, OnReceivedConnectionlessPDU(SIP_PDU *), false);
-    P_REMOVE_VIRTUAL(PBoolean, OnReceivedINVITE(OpalTransport &, SIP_PDU *), false);
-    P_REMOVE_VIRTUAL(PBoolean, OnReceivedNOTIFY(OpalTransport &, SIP_PDU &), false);
-    P_REMOVE_VIRTUAL(PBoolean, OnReceivedREGISTER(OpalTransport &, SIP_PDU &), false);
-    P_REMOVE_VIRTUAL(PBoolean, OnReceivedSUBSCRIBE(OpalTransport &, SIP_PDU &, SIPDialogContext *), false);
+    P_REMOVE_VIRTUAL(bool, OnReceivedINVITE(OpalTransport &, SIP_PDU *), false);
+    P_REMOVE_VIRTUAL(bool, OnReceivedNOTIFY(OpalTransport &, SIP_PDU &), false);
+    P_REMOVE_VIRTUAL(bool, OnReceivedREGISTER(OpalTransport &, SIP_PDU &), false);
+    P_REMOVE_VIRTUAL(bool, OnReceivedSUBSCRIBE(OpalTransport &, SIP_PDU &, SIPDialogContext *), false);
     P_REMOVE_VIRTUAL(bool, OnReceivedMESSAGE(OpalTransport &, SIP_PDU &), false);
     P_REMOVE_VIRTUAL(bool, OnReceivedOPTIONS(OpalTransport &, SIP_PDU &), false);
     P_REMOVE_VIRTUAL(bool, OnReceivedInfoPackage(SIPConnection &, const PString &, const PString &), false);

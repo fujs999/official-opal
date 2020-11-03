@@ -95,8 +95,8 @@ class MyPCSSEndPoint : public OpalPCSSEndPoint
     virtual PSoundChannel * CreateSoundChannel(const OpalPCSSConnection & connection, const OpalMediaFormat & mediaFormat, unsigned sessionID, bool isSource);
 
   private:
-    virtual PBoolean OnShowIncoming(const OpalPCSSConnection & connection);
-    virtual PBoolean OnShowOutgoing(const OpalPCSSConnection & connection);
+    virtual bool OnShowIncoming(const OpalPCSSConnection & connection);
+    virtual bool OnShowOutgoing(const OpalPCSSConnection & connection);
 
     MyManager & m_manager;
 };
@@ -1049,7 +1049,7 @@ class MyManager : public wxFrame, public OpalManager, public PAsyncNotifierTarge
     void OnEvtAsyncNotification(wxCommandEvent & /*event*/);
 
     // OpalManager overrides
-    virtual PBoolean OnIncomingConnection(
+    virtual bool OnIncomingConnection(
       OpalConnection & connection,   ///<  Connection that is calling
       unsigned options,              ///<  options for new connection (can't use default as overrides will fail)
       OpalConnection::StringOptions * stringOptions
@@ -1103,24 +1103,24 @@ class MyManager : public wxFrame, public OpalManager, public PAsyncNotifierTarge
       unsigned lastDigitTimeout = 4,      ///<  Timeout on last digit in string
       unsigned firstDigitTimeout = 30     ///<  Timeout on receiving any digits
     );
-    virtual PBoolean CreateVideoInputDevice(
+    virtual bool CreateVideoInputDevice(
       const OpalConnection & connection,    ///<  Connection needing created video device
       const OpalMediaFormat & mediaFormat,  ///<  Media format for stream
       PVideoInputDevice * & device,         ///<  Created device
-      PBoolean & autoDelete                     ///<  Flag for auto delete device
+      bool & autoDelete                     ///<  Flag for auto delete device
     );
     virtual bool CreateVideoInputDevice(
       const OpalConnection & connection,    ///<  Connection needing created video device
       const PVideoDevice::OpenArgs & args,  ///< Device to change to
       PVideoInputDevice * & device,         ///<  Created device
-      PBoolean & autoDelete                     ///<  Flag for auto delete device
+      bool & autoDelete                     ///<  Flag for auto delete device
     );
-    virtual PBoolean CreateVideoOutputDevice(
+    virtual bool CreateVideoOutputDevice(
       const OpalConnection & connection,    ///<  Connection needing created video device
       const OpalMediaFormat & mediaFormat,  ///<  Media format for stream
-      PBoolean preview,                         ///<  Flag indicating is a preview output
+      bool preview,                         ///<  Flag indicating is a preview output
       PVideoOutputDevice * & device,        ///<  Created device
-      PBoolean & autoDelete                     ///<  Flag for auto delete device
+      bool & autoDelete                     ///<  Flag for auto delete device
     );
 
     void OnClose(wxCloseEvent & /*event*/);

@@ -106,12 +106,12 @@ class MyPCSSEndPoint : public OpalPCSSEndPoint
     {
     }
 
-    virtual PBoolean OnShowIncoming(const OpalPCSSConnection & connection)
+    virtual bool OnShowIncoming(const OpalPCSSConnection & connection)
     {
       return AcceptIncomingCall(connection.GetToken());
     }
 
-    virtual PBoolean OnShowOutgoing(const OpalPCSSConnection &)
+    virtual bool OnShowOutgoing(const OpalPCSSConnection &)
     {
       return true;
     }

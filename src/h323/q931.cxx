@@ -156,7 +156,7 @@ Q931 & Q931::operator=(const Q931 & other)
 }
 
 
-void Q931::BuildFacility(int callRef, PBoolean fromDest)
+void Q931::BuildFacility(int callRef, bool fromDest)
 {
   messageType = FacilityMsg;
   callReference = callRef;
@@ -167,7 +167,7 @@ void Q931::BuildFacility(int callRef, PBoolean fromDest)
 }
 
 
-void Q931::BuildInformation(int callRef, PBoolean fromDest)
+void Q931::BuildInformation(int callRef, bool fromDest)
 {
   messageType = InformationMsg;
   callReference = callRef;
@@ -177,7 +177,7 @@ void Q931::BuildInformation(int callRef, PBoolean fromDest)
 
 
 void Q931::BuildProgress(int callRef,
-                         PBoolean fromDest,
+                         bool fromDest,
                          unsigned description,
                          unsigned codingStandard,
                          unsigned location)
@@ -190,7 +190,7 @@ void Q931::BuildProgress(int callRef,
 }
 
 
-void Q931::BuildNotify(int callRef, PBoolean fromDest)
+void Q931::BuildNotify(int callRef, bool fromDest)
 {
   messageType = NotifyMsg;
   callReference = callRef;
@@ -249,7 +249,7 @@ void Q931::BuildConnect(int callRef)
 }
 
 
-void Q931::BuildStatus(int callRef, PBoolean fromDest)
+void Q931::BuildStatus(int callRef, bool fromDest)
 {
   messageType = StatusMsg;
   callReference = callRef;
@@ -261,7 +261,7 @@ void Q931::BuildStatus(int callRef, PBoolean fromDest)
 }
 
 
-void Q931::BuildStatusEnquiry(int callRef, PBoolean fromDest)
+void Q931::BuildStatusEnquiry(int callRef, bool fromDest)
 {
   messageType = StatusEnquiryMsg;
   callReference = callRef;
@@ -270,7 +270,7 @@ void Q931::BuildStatusEnquiry(int callRef, PBoolean fromDest)
 }
 
 
-void Q931::BuildReleaseComplete(int callRef, PBoolean fromDest)
+void Q931::BuildReleaseComplete(int callRef, bool fromDest)
 {
   messageType = ReleaseCompleteMsg;
   callReference = callRef;
@@ -279,7 +279,7 @@ void Q931::BuildReleaseComplete(int callRef, PBoolean fromDest)
 }
 
 
-PBoolean Q931::Decode(const PBYTEArray & data)
+bool Q931::Decode(const PBYTEArray & data)
 {
   // Clear all existing data before reading new
   informationElements.RemoveAll();
@@ -338,7 +338,7 @@ PBoolean Q931::Decode(const PBYTEArray & data)
 }
 
 
-PBoolean Q931::Encode(PBYTEArray & data) const
+bool Q931::Encode(PBYTEArray & data) const
 {
   PINDEX totalBytes = 5;
   unsigned discriminator;
@@ -529,7 +529,7 @@ unsigned Q931::GenerateCallReference()
 }
 
 
-PBoolean Q931::HasIE(InformationElementCodes ie) const
+bool Q931::HasIE(InformationElementCodes ie) const
 {
   return informationElements.Contains(POrdinalKey(ie));
 }
@@ -663,7 +663,7 @@ void Q931::SetBearerCapabilities(InformationTransferCapability capability,
 }
 
 
-PBoolean Q931::GetBearerCapabilities(InformationTransferCapability & capability,
+bool Q931::GetBearerCapabilities(InformationTransferCapability & capability,
                                  unsigned & transferRate,
                                  unsigned * codingStandard,
                                  unsigned * userInfoLayer1) const
@@ -827,7 +827,7 @@ void Q931::SetProgressIndicator(unsigned description,
 }
 
 
-PBoolean Q931::GetProgressIndicator(unsigned & description,
+bool Q931::GetProgressIndicator(unsigned & description,
                                 unsigned * codingStandard,
                                 unsigned * location) const
 {
@@ -916,7 +916,7 @@ static PBYTEArray SetNumberIE(const PString & number,
 }
 
 
-static PBoolean GetNumberIE(const PBYTEArray & bytes,
+static bool GetNumberIE(const PBYTEArray & bytes,
                         PString  & number,
                         unsigned * plan,
                         unsigned * type,
@@ -998,7 +998,7 @@ void Q931::SetCallingPartyNumber(const PString & number,
 }
 
 
-PBoolean Q931::GetCallingPartyNumber(PString  & number,
+bool Q931::GetCallingPartyNumber(PString  & number,
                                  unsigned * plan,
                                  unsigned * type,
                                  unsigned * presentation,
@@ -1028,7 +1028,7 @@ void Q931::SetCalledPartyNumber(const PString & number, unsigned plan, unsigned 
 }
 
 
-PBoolean Q931::GetCalledPartyNumber(PString & number, unsigned * plan, unsigned * type) const
+bool Q931::GetCalledPartyNumber(PString & number, unsigned * plan, unsigned * type) const
 {
   return GetNumberIE(GetIE(CalledPartyNumberIE),
                      number, plan, type, NULL, NULL, NULL, 0, 0, 0);
@@ -1056,7 +1056,7 @@ void Q931::SetRedirectingNumber(const PString & number,
 }
 
 
-PBoolean Q931::GetRedirectingNumber(PString  & number,
+bool Q931::GetRedirectingNumber(PString  & number,
                                 unsigned * plan,
                                 unsigned * type,
                                 unsigned * presentation,
@@ -1072,7 +1072,7 @@ PBoolean Q931::GetRedirectingNumber(PString  & number,
 }
 
 
-PBoolean Q931::GetConnectedNumber(PString  & number,
+bool Q931::GetConnectedNumber(PString  & number,
                               unsigned * plan,
                               unsigned * type,
                               unsigned * presentation,
@@ -1147,7 +1147,7 @@ void Q931::SetChannelIdentification(unsigned interfaceType,
 }
 
 
-PBoolean Q931::GetChannelIdentification(unsigned * interfaceType,
+bool Q931::GetChannelIdentification(unsigned * interfaceType,
                                     unsigned * preferredOrExclusive,
                                     int      * channelNumber) const
 {

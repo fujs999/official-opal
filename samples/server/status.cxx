@@ -81,7 +81,7 @@ void BaseStatusPage::CreateHTML(PHTML & html, const PStringToString & query)
 }
 
 
-PBoolean BaseStatusPage::Post(PHTTPRequest & request,
+bool BaseStatusPage::Post(PHTTPRequest & request,
                               const PStringToString & data,
                               PHTML & msg)
 {
@@ -803,7 +803,7 @@ void GkStatusPage::CreateContent(PHTML & html, const PStringToString &) const
 }
 
 
-PBoolean GkStatusPage::OnPostControl(const PStringToString & data, PHTML & msg)
+bool GkStatusPage::OnPostControl(const PStringToString & data, PHTML & msg)
 {
   bool gotOne = false;
 
@@ -868,7 +868,7 @@ void RegistrarStatusPage::CreateContent(PHTML & html, const PStringToString &) c
 }
 
 
-PBoolean RegistrarStatusPage::OnPostControl(const PStringToString & data, PHTML & msg)
+bool RegistrarStatusPage::OnPostControl(const PStringToString & data, PHTML & msg)
 {
   bool gotOne = false;
 

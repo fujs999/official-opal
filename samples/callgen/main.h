@@ -163,7 +163,7 @@ class MyManager : public OpalManagerConsole
 
     virtual OpalCall * CreateCall(void * userData);
 
-    virtual PBoolean OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream);
+    virtual bool OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream);
 
     PINDEX GetActiveCalls() const { return m_activeCalls.GetSize(); }
 

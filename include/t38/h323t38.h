@@ -115,7 +115,7 @@ class H323_T38Capability : public H323DataCapability
        The default behaviour sets the pdu and calls OnSendingPDU with a
        H245_DataProtocolCapability parameter.
      */
-    virtual PBoolean OnSendingPDU(
+    virtual bool OnSendingPDU(
       H245_DataApplicationCapability & pdu
     ) const;
 
@@ -127,7 +127,7 @@ class H323_T38Capability : public H323DataCapability
        The default behaviour sets the pdu and calls OnSendingPDU with a
        H245_DataProtocolCapability parameter.
      */
-    virtual PBoolean OnSendingPDU(
+    virtual bool OnSendingPDU(
       H245_DataMode & pdu  ///<  PDU to set information on
     ) const;
 
@@ -137,7 +137,7 @@ class H323_T38Capability : public H323DataCapability
 
        The default behaviour sets tcp or udp as required.
      */
-    virtual PBoolean OnSendingPDU(
+    virtual bool OnSendingPDU(
       H245_DataProtocolCapability & proto,  ///<  PDU to set information on
       H245_T38FaxProfile & profile          ///<  PDU to set information on
     ) const;
@@ -149,7 +149,7 @@ class H323_T38Capability : public H323DataCapability
 
        The default behaviour gets the data rate field from the PDU.
      */
-    virtual PBoolean OnReceivedPDU(
+    virtual bool OnReceivedPDU(
       const H245_DataApplicationCapability & pdu  ///<  PDU to set information on
     );
   //@}

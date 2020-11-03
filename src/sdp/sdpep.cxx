@@ -226,7 +226,7 @@ void OpalSDPConnection::RetryHoldRemote(bool placeOnHold)
 }
 
 
-PBoolean OpalSDPConnection::IsOnHold(bool fromRemote) const
+bool OpalSDPConnection::IsOnHold(bool fromRemote) const
 {
   return fromRemote ? m_holdFromRemote : (m_holdToRemote >= eHoldOn);
 }

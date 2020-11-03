@@ -76,8 +76,8 @@ public:
   H224_Frame(const OpalH224Client & h224Client, PINDEX clientDataSize = 254);
   ~H224_Frame();
 
-  PBoolean IsHighPriority() const { return (GetLowOrderAddressOctet() == 0x71); }
-  void SetHighPriority(PBoolean flag);
+  bool IsHighPriority() const { return (GetLowOrderAddressOctet() == 0x71); }
+  void SetHighPriority(bool flag);
 
   WORD GetDestinationTerminalAddress() const;
   void SetDestinationTerminalAddress(WORD destination);
@@ -110,17 +110,17 @@ public:
 
   /**Note: The following methods depend on the value of clientID as to where put the value.
     Always set clientID first before altering these values */
-  PBoolean GetBS() const;
-  void SetBS(PBoolean bs);
+  bool GetBS() const;
+  void SetBS(bool bs);
 
-  PBoolean GetES() const;
-  void SetES(PBoolean es);
+  bool GetES() const;
+  void SetES(bool es);
 
-  PBoolean GetC1() const;
-  void SetC1(PBoolean c1);
+  bool GetC1() const;
+  void SetC1(bool c1);
 
-  PBoolean GetC0() const;
-  void SetC0(PBoolean c0);
+  bool GetC0() const;
+  void SetC0(bool c0);
 
   BYTE GetSegmentNumber() const;
   void SetSegmentNumber(BYTE segmentNumber);
@@ -130,8 +130,8 @@ public:
   PINDEX GetClientDataSize() const;
   void SetClientDataSize(PINDEX size);
 
-  PBoolean DecodeAnnexQ(const BYTE *data, PINDEX size);
-  PBoolean DecodeHDLC(const BYTE *data, PINDEX size);
+  bool DecodeAnnexQ(const BYTE *data, PINDEX size);
+  bool DecodeHDLC(const BYTE *data, PINDEX size);
 
 private:
   PINDEX GetHeaderSize() const;

@@ -546,7 +546,7 @@ void IAX2IeCallToken::WriteKeySequence(PIPSocket::Address & remote)
   SetData(data);
 }
 
-PBoolean IAX2IeCallToken::ValidKeySequence (IAX2IeCallToken & cf, 
+bool IAX2IeCallToken::ValidKeySequence (IAX2IeCallToken & cf, 
 					    PIPSocket::Address & remote)
 {
   time_t startTime = PTime().GetTimeInSeconds();

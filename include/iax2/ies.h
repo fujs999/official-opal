@@ -129,7 +129,7 @@ class IAX2Ie : public PObject
   static IAX2Ie *BuildInformationElement(BYTE _typeCode, BYTE length, BYTE *srcData);     
   
   /** returns true if contains an initialised    information element */
-  virtual PBoolean IsValid() { return validData; }
+  virtual bool IsValid() { return validData; }
   
   /**return the number of bytes to hold this data element */
   virtual BYTE GetLengthOfData() const { return 0; }
@@ -164,7 +164,7 @@ class IAX2Ie : public PObject
   
   /**A flag indicating if the data was read from the supplied bytes
      correctly, or if this structure is yet to be initialised */
-  PBoolean   validData;
+  bool   validData;
 };
 
 /////////////////////////////////////////////////////////////////////////////    
@@ -1116,33 +1116,33 @@ class IAX2IeAuthMethods : public IAX2IeShort
   virtual void StoreDataIn(IAX2IeData &res) { res.authMethods = dataValue; }     
   
   /**Return true if the supplied value has the RSA key on*/
-  static PBoolean IsRsaAuthentication(short testValue) { return InternalIsRsa(testValue); }
+  static bool IsRsaAuthentication(short testValue) { return InternalIsRsa(testValue); }
   
   /**Return true if the supplied value has the MD5 key on*/
-  static PBoolean IsMd5Authentication(short testValue) { return InternalIsMd5(testValue); }
+  static bool IsMd5Authentication(short testValue) { return InternalIsMd5(testValue); }
   
   /**Return true if the supplied value has the plain text  key on*/
-  static PBoolean IsPlainTextAuthentication(short testValue) { return InternalIsPlainText(testValue); }     
+  static bool IsPlainTextAuthentication(short testValue) { return InternalIsPlainText(testValue); }     
   
   /**Return true if the internal value has the RSA key on*/
-  PBoolean IsRsaAuthentication() { if (IsValid()) return InternalIsRsa(dataValue); else return false; }
+  bool IsRsaAuthentication() { if (IsValid()) return InternalIsRsa(dataValue); else return false; }
   
   /**Return true if the internal value has the MD5 key on*/
-  PBoolean IsMd5Authentication() { if (IsValid()) return InternalIsMd5(dataValue); else return false; }
+  bool IsMd5Authentication() { if (IsValid()) return InternalIsMd5(dataValue); else return false; }
   
   /**Return true if the internal value has the plain text  key on*/
-  PBoolean IsPlainTextAuthentication() { if (IsValid()) return InternalIsPlainText(dataValue); else return false; }
+  bool IsPlainTextAuthentication() { if (IsValid()) return InternalIsPlainText(dataValue); else return false; }
   
  protected:
   
   /**Return true if the supplied value has the RSA key on*/
-  static PBoolean InternalIsRsa(short testValue) { return testValue  & 0x04; }
+  static bool InternalIsRsa(short testValue) { return testValue  & 0x04; }
   
   /**Return true if the supplied value has the MD5 key on*/
-  static PBoolean InternalIsMd5(short testValue) { return testValue  & 0x02; }
+  static bool InternalIsMd5(short testValue) { return testValue  & 0x02; }
   
   /**Return true if the supplied value has the plain text  key on*/
-  static PBoolean InternalIsPlainText(short testValue) { return testValue  & 0x01; }
+  static bool InternalIsPlainText(short testValue) { return testValue  & 0x01; }
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -2109,7 +2109,7 @@ class IAX2IeCallToken : public IAX2IeBinary
 
   /**Examine the hash key sequence in the supplied IE, and see if it
      is valid. */
-  static PBoolean ValidKeySequence (IAX2IeCallToken & cf, 
+  static bool ValidKeySequence (IAX2IeCallToken & cf, 
 				    PIPSocket::Address & remote);
 
  protected:

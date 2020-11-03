@@ -200,11 +200,11 @@ void OpalRTPEndPoint::OnReleased(OpalConnection & connection)
 }
 
 
-PBoolean OpalRTPEndPoint::IsRTPNATEnabled(OpalConnection & conn, 
+bool OpalRTPEndPoint::IsRTPNATEnabled(OpalConnection & conn, 
                                 const PIPSocket::Address & localAddr, 
                                 const PIPSocket::Address & peerAddr,
                                 const PIPSocket::Address & sigAddr,
-                                                PBoolean   incoming)
+                                                bool   incoming)
 {
   return GetManager().IsRTPNATEnabled(conn, localAddr, peerAddr, sigAddr, incoming);
 }

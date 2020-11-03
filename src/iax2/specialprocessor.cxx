@@ -95,7 +95,7 @@ void IAX2SpecialProcessor::ProcessNetworkFrame(IAX2MiniFrame * src)
   delete src;
 }
 
-PBoolean IAX2SpecialProcessor::ProcessNetworkFrame(IAX2FullFrameProtocol * src)
+bool IAX2SpecialProcessor::ProcessNetworkFrame(IAX2FullFrameProtocol * src)
 {
   PTRACE(3, "ProcessNetworkFrame(IAX2FullFrameProtocol * src)");
   src->CopyDataFromIeListTo(ieData);
