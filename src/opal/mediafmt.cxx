@@ -845,7 +845,7 @@ OpalMediaFormat::OpalMediaFormat(const char * fullName,
                                  const OpalMediaType & mediaType,
                                  RTP_DataFrame::PayloadTypes pt,
                                  const char * en,
-                                 PBoolean     nj,
+                                 bool     nj,
                                  OpalBandwidth bw,
                                  PINDEX   fs,
                                  unsigned ft,
@@ -946,7 +946,7 @@ OpalMediaFormat & OpalMediaFormat::operator=(const PString & wildcard)
 }
 
 
-PBoolean OpalMediaFormat::MakeUnique()
+bool OpalMediaFormat::MakeUnique()
 {
   PWaitAndSignal m1(m_mutex);
   if (m_info == NULL)
@@ -1672,7 +1672,7 @@ bool OpalMediaFormatInternal::SetOptionOctets(const PString & name, const BYTE *
 }
 
 
-bool OpalMediaFormatInternal::AddOption(OpalMediaOption * option, PBoolean overwrite)
+bool OpalMediaFormatInternal::AddOption(OpalMediaOption * option, bool overwrite)
 {
   PWaitAndSignal m(m_mutex);
   if (PAssertNULL(option) == NULL)

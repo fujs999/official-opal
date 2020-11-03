@@ -66,7 +66,7 @@ class X880_ROS : public PASN_Choice
     operator const X880_Reject &() const;
 #endif
 
-    PBoolean CreateObject();
+    bool CreateObject();
     PObject * Clone() const;
 };
 
@@ -196,7 +196,7 @@ class X880_Code : public PASN_Choice
       e_global
     };
 
-    PBoolean CreateObject();
+    bool CreateObject();
     PObject * Clone() const;
 };
 
@@ -217,7 +217,7 @@ class X880_ReturnResult_result : public PASN_Sequence
     PASN_OctetString m_result;
 
     PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
+    bool Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -276,7 +276,7 @@ class X880_Reject_problem : public PASN_Choice
     operator const X880_ReturnErrorProblem &() const;
 #endif
 
-    PBoolean CreateObject();
+    bool CreateObject();
     PObject * Clone() const;
 };
 
@@ -304,7 +304,7 @@ class X880_Invoke : public PASN_Sequence
     PASN_OctetString m_argument;
 
     PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
+    bool Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -334,7 +334,7 @@ class X880_ReturnResult : public PASN_Sequence
     X880_ReturnResult_result m_result;
 
     PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
+    bool Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -365,7 +365,7 @@ class X880_ReturnError : public PASN_Sequence
     PASN_OctetString m_parameter;
 
     PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
+    bool Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -391,7 +391,7 @@ class X880_Reject : public PASN_Sequence
     X880_Reject_problem m_problem;
 
     PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
+    bool Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;

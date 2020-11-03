@@ -206,7 +206,7 @@ OpalSDPHTTPConnection::~OpalSDPHTTPConnection()
 }
 
 
-PBoolean OpalSDPHTTPConnection::SetUpConnection()
+bool OpalSDPHTTPConnection::SetUpConnection()
 {
   PURL url = m_calledPartyName;
   url.SetQueryVar(OPAL_SDP_HTTP_OP_QUERY_PARAM, OPAL_SDP_HTTP_OP_CONNECT);
@@ -363,7 +363,7 @@ bool OpalSDPHTTPConnection::OnReceivedHTTP(PHTTPRequest & request)
 }
 
 
-PBoolean OpalSDPHTTPConnection::SetConnected()
+bool OpalSDPHTTPConnection::SetConnected()
 {
   SDPSessionDescription * answerSDP = m_endpoint.CreateSDP(0, 0, OpalTransportAddress());
 

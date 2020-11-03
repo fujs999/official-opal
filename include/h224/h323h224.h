@@ -81,9 +81,9 @@ public:
                                       unsigned int sessionID,
                                       const H245_H2250LogicalChannelParameters * params) const;
 
-  virtual PBoolean OnSendingPDU(H245_DataApplicationCapability & pdu) const;
-  virtual PBoolean OnSendingPDU(H245_DataMode & pdu) const;
-  virtual PBoolean OnReceivedPDU(const H245_DataApplicationCapability & pdu);
+  virtual bool OnSendingPDU(H245_DataApplicationCapability & pdu) const;
+  virtual bool OnSendingPDU(H245_DataMode & pdu) const;
+  virtual bool OnReceivedPDU(const H245_DataApplicationCapability & pdu);
 
 };
 

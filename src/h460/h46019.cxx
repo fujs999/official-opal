@@ -97,7 +97,7 @@ PINDEX H46019_TraversalParameters::GetDataLength() const
 }
 
 
-PBoolean H46019_TraversalParameters::Decode(PASN_Stream & strm)
+bool H46019_TraversalParameters::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return FALSE;

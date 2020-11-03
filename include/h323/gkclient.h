@@ -82,36 +82,36 @@ class H323Gatekeeper : public H225_RAS
       */
     virtual void StopChannel();
 
-    virtual PBoolean WriteTo(
+    virtual bool WriteTo(
       H323TransactionPDU & pdu,
       const H323TransportAddressArray & addresses,
-      PBoolean callback = true
+      bool callback = true
     );
   //@}
 
   /**@name Overrides from H225_RAS */
   //@{
-    PBoolean OnReceiveGatekeeperConfirm(const H225_GatekeeperConfirm & gcf);
-    PBoolean OnReceiveGatekeeperReject(const H225_GatekeeperReject & grj);
-    PBoolean OnReceiveRegistrationConfirm(const H225_RegistrationConfirm & rcf);
-    PBoolean OnReceiveRegistrationReject(const H225_RegistrationReject & rrj);
-    PBoolean OnReceiveUnregistrationRequest(const H225_UnregistrationRequest & urq);
-    PBoolean OnReceiveUnregistrationConfirm(const H225_UnregistrationConfirm & ucf);
-    PBoolean OnReceiveUnregistrationReject(const H225_UnregistrationReject & urj);
-    PBoolean OnReceiveAdmissionConfirm(const H225_AdmissionConfirm & acf);
-    PBoolean OnReceiveAdmissionReject(const H225_AdmissionReject & arj);
-    PBoolean OnReceiveDisengageRequest(const H225_DisengageRequest & drq);
-    PBoolean OnReceiveDisengageReject(const H323RasPDU &, const H225_DisengageReject &);
-    PBoolean OnReceiveBandwidthConfirm(const H225_BandwidthConfirm & bcf);
-    PBoolean OnReceiveBandwidthRequest(const H225_BandwidthRequest & brq);
-    PBoolean OnReceiveInfoRequest(const H225_InfoRequest & irq);
-    PBoolean OnReceiveInfoRequestResponse(const H225_InfoRequestResponse & irr);
-    PBoolean OnReceiveServiceControlIndication(const H225_ServiceControlIndication &);
-    PBoolean OnReceiveNonStandardMessage(const H225_NonStandardMessage &);
+    bool OnReceiveGatekeeperConfirm(const H225_GatekeeperConfirm & gcf);
+    bool OnReceiveGatekeeperReject(const H225_GatekeeperReject & grj);
+    bool OnReceiveRegistrationConfirm(const H225_RegistrationConfirm & rcf);
+    bool OnReceiveRegistrationReject(const H225_RegistrationReject & rrj);
+    bool OnReceiveUnregistrationRequest(const H225_UnregistrationRequest & urq);
+    bool OnReceiveUnregistrationConfirm(const H225_UnregistrationConfirm & ucf);
+    bool OnReceiveUnregistrationReject(const H225_UnregistrationReject & urj);
+    bool OnReceiveAdmissionConfirm(const H225_AdmissionConfirm & acf);
+    bool OnReceiveAdmissionReject(const H225_AdmissionReject & arj);
+    bool OnReceiveDisengageRequest(const H225_DisengageRequest & drq);
+    bool OnReceiveDisengageReject(const H323RasPDU &, const H225_DisengageReject &);
+    bool OnReceiveBandwidthConfirm(const H225_BandwidthConfirm & bcf);
+    bool OnReceiveBandwidthRequest(const H225_BandwidthRequest & brq);
+    bool OnReceiveInfoRequest(const H225_InfoRequest & irq);
+    bool OnReceiveInfoRequestResponse(const H225_InfoRequestResponse & irr);
+    bool OnReceiveServiceControlIndication(const H225_ServiceControlIndication &);
+    bool OnReceiveNonStandardMessage(const H225_NonStandardMessage &);
     void OnSendGatekeeperRequest(H225_GatekeeperRequest & grq);
     void OnSendAdmissionRequest(H225_AdmissionRequest & arq);
 #if OPAL_H460
-    PBoolean OnSendFeatureSet(H460_MessageType pduType, H225_FeatureSet & features) const;
+    bool OnSendFeatureSet(H460_MessageType pduType, H225_FeatureSet & features) const;
     void OnReceiveFeatureSet(H460_MessageType pduType, const H225_FeatureSet & features) const;
 #endif
   //@}
@@ -120,13 +120,13 @@ class H323Gatekeeper : public H225_RAS
   //@{
     /**Discover a gatekeeper on the local network.
      */
-    PBoolean DiscoverAny();
+    bool DiscoverAny();
 
     /**Discover a gatekeeper on the local network.
        If the identifier string is empty then the first gatekeeper to respond
        to a broadcast is used.
      */
-    PBoolean DiscoverByName(
+    bool DiscoverByName(
       const PString & identifier  ///<  Gatekeeper identifier to find
     );
 
@@ -134,14 +134,14 @@ class H323Gatekeeper : public H225_RAS
        If the address string is empty then the first gatekeeper to respond
        to a broadcast is used.
      */
-    PBoolean DiscoverByAddress(
+    bool DiscoverByAddress(
       const H323TransportAddress & address ///<  Address of gatekeeper.
     );
 
     /**Discover a gatekeeper on the local network.
        Combination of DiscoverByName() and DiscoverByAddress().
      */
-    PBoolean DiscoverByNameAndAddress(
+    bool DiscoverByNameAndAddress(
       const PString & identifier,
       const H323TransportAddress & address
     );
@@ -156,20 +156,20 @@ class H323Gatekeeper : public H225_RAS
 
     /**Unregister with gatekeeper.
      */
-    PBoolean UnregistrationRequest(
+    bool UnregistrationRequest(
       int reason      ///<  Reason for unregistration
     );
 
     /**Location request to gatekeeper.
      */
-    PBoolean LocationRequest(
+    bool LocationRequest(
       const PString & alias,          ///<  Alias name we wish to find.
       H323TransportAddress & address  ///<  Resultant transport address.
     );
 
     /**Location request to gatekeeper.
      */
-    PBoolean LocationRequest(
+    bool LocationRequest(
       const PStringList & aliases,    ///<  Alias names we wish to find.
       H323TransportAddress & address  ///<  Resultant transport address.
     );
@@ -179,7 +179,7 @@ class H323Gatekeeper : public H225_RAS
 
       unsigned rejectReason;                      /// Reject reason if returns false
 
-      PBoolean gatekeeperRouted;                      /// Flag for call is through gk
+      bool gatekeeperRouted;                      /// Flag for call is through gk
       PINDEX endpointCount;                       /// Number of endpoints that can be returned
       H323TransportAddress * transportAddress;    /// Transport address or remote endpoint.
       PBYTEArray * accessTokenData;               /// iNow Gatekeeper Access Token data
@@ -190,22 +190,22 @@ class H323Gatekeeper : public H225_RAS
 
     /**Admission request to gatekeeper.
      */
-    PBoolean AdmissionRequest(
+    bool AdmissionRequest(
       H323Connection & connection,      ///<  Connection we wish to change.
       AdmissionResponse & response,     ///<  Response parameters to ARQ
-      PBoolean ignorePreGrantedARQ = false  ///<  Flag to force ARQ to be sent
+      bool ignorePreGrantedARQ = false  ///<  Flag to force ARQ to be sent
     );
 
     /**Disengage request to gatekeeper.
      */
-    PBoolean DisengageRequest(
+    bool DisengageRequest(
       H323Connection & connection,  ///<  Connection we wish admitted.
       unsigned reason               ///<  Reason code for disengage
     );
 
     /**Bandwidth request to gatekeeper.
      */
-    PBoolean BandwidthRequest(
+    bool BandwidthRequest(
       H323Connection & connection,    ///<  Connection we wish to change.
       OpalBandwidth requestedBandwidth     ///<  New bandwidth wanted in bps
     );
@@ -225,7 +225,7 @@ class H323Gatekeeper : public H225_RAS
     void InfoRequestResponse(
       const H323Connection & connection,  ///<  Connection to send info about
       const H225_H323_UU_PDU & pdu,       ///<  PDU that was sent or received
-      PBoolean sent                           ///<  Flag for PDU was sent or received
+      bool sent                           ///<  Flag for PDU was sent or received
     );
 
     /**Send a non-standard message and wait for non-standard reply.
@@ -265,11 +265,11 @@ class H323Gatekeeper : public H225_RAS
   //@{
     /**Determine if the endpoint has discovered the gatekeeper.
       */
-    PBoolean IsDiscoveryComplete() const { return discoveryComplete; }
+    bool IsDiscoveryComplete() const { return discoveryComplete; }
 
     /**Determine if the endpoint is registered with the gatekeeper.
       */
-    PBoolean IsRegistered() const { return m_registrationFailReason == RegistrationSuccessful; }
+    bool IsRegistered() const { return m_registrationFailReason == RegistrationSuccessful; }
 
     enum RegistrationFailReasons {
       RegistrationSuccessful,
@@ -350,7 +350,7 @@ class H323Gatekeeper : public H225_RAS
       H323RasPDU & response,
       unsigned seqNum
     );
-    PBoolean SendUnsolicitedIRR(
+    bool SendUnsolicitedIRR(
       H225_InfoRequestResponse & irr,
       H323RasPDU & response
     );
@@ -360,15 +360,15 @@ class H323Gatekeeper : public H225_RAS
       bool permanent
     );
 
-    virtual PBoolean MakeRequest(
+    virtual bool MakeRequest(
       Request & request
     );
-    PBoolean MakeRequestWithReregister(
+    bool MakeRequestWithReregister(
       Request & request,
       unsigned unregisteredTag
     );
     
-    virtual H323Transport * CreateTransport(PIPSocket::Address bindng = PIPSocket::GetDefaultIpAny(), WORD port = 0, PBoolean reuseAddr = false);
+    virtual H323Transport * CreateTransport(PIPSocket::Address bindng = PIPSocket::GetDefaultIpAny(), WORD port = 0, bool reuseAddr = false);
 
     // Handling interface changes
     void OnAddInterface(const PIPSocket::InterfaceEntry & entry, PINDEX priority);

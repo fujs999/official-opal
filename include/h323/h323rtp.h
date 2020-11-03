@@ -102,7 +102,7 @@ class H323_RTPChannel : public H323_RealTimeChannel
 
        The default behaviour returns false.
      */
-    virtual PBoolean GetMediaTransportAddress(
+    virtual bool GetMediaTransportAddress(
       OpalTransportAddress & data,        ///<  Data channel address
       OpalTransportAddress & control      ///<  Control channel address
     ) const;
@@ -112,13 +112,13 @@ class H323_RTPChannel : public H323_RealTimeChannel
   //@{
     /**Fill out the OpenLogicalChannel PDU for the particular channel type.
      */
-    virtual PBoolean OnSendingPDU(
+    virtual bool OnSendingPDU(
       H245_H2250LogicalChannelParameters & param  ///<  Open PDU to send.
     ) const;
 
     /**Alternate RTP port information for Same NAT
       */
-    virtual PBoolean OnSendingAltPDU(
+    virtual bool OnSendingAltPDU(
       H245_ArrayOf_GenericInformation & alternate  ///< Alternate RTP ports
     ) const;
 
@@ -135,7 +135,7 @@ class H323_RTPChannel : public H323_RealTimeChannel
 
        The default behaviour sets the remote ports to send UDP packets to.
      */
-    virtual PBoolean OnReceivedPDU(
+    virtual bool OnReceivedPDU(
       const H245_H2250LogicalChannelParameters & param, ///<  Acknowledgement PDU
       unsigned & errorCode                              ///<  Error on failure
     );
@@ -146,7 +146,7 @@ class H323_RTPChannel : public H323_RealTimeChannel
 
        The default behaviour sets the remote ports to send UDP packets to.
      */
-    virtual PBoolean OnReceivedAckPDU(
+    virtual bool OnReceivedAckPDU(
       const H245_H2250LogicalChannelAckParameters & param ///<  Acknowledgement PDU
     );
   //@}
@@ -169,7 +169,7 @@ class H323_RTPChannel : public H323_RealTimeChannel
   //@{
     /**Write the Transport Capability PDU to Include GQoS Support.
      */
-    virtual PBoolean WriteTransportCapPDU(
+    virtual bool WriteTransportCapPDU(
        H245_TransportCapability & cap,      ///* Transport Capability PDU
        const H323_RTPChannel & channel    ///* Channel using this session.
        ) const;

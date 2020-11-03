@@ -63,7 +63,7 @@ static const char NSPNumberPrefix[] = "NSP:";
 
 #if PTRACING
 void H323TraceDumpPDU(const char * proto,
-                      PBoolean writing,
+                      bool writing,
                       const PBYTEArray & rawData,
                       const PASN_Object & pdu,
                       const PASN_Choice & tags,
@@ -1128,7 +1128,7 @@ void H323SignalPDU::PrintOn(ostream & strm) const
 }
 
 
-PBoolean H323SignalPDU::Read(H323Transport & transport)
+bool H323SignalPDU::Read(H323Transport & transport)
 {
   PBYTEArray rawData;
   if (!transport.ReadPDU(rawData)) {
@@ -1172,7 +1172,7 @@ PBoolean H323SignalPDU::Read(H323Transport & transport)
 }
 
 
-PBoolean H323SignalPDU::Write(H323Transport & transport)
+bool H323SignalPDU::Write(H323Transport & transport)
 {
   if (!q931pdu.HasIE(Q931::UserUserIE) && m_h323_uu_pdu.m_h323_message_body.IsValid())
     BuildQ931();
@@ -1216,8 +1216,8 @@ PString H323SignalPDU::GetSourceAliases(const H323Transport * transport) const
     }
 
     if (setup.m_sourceAddress.GetSize() > 0) {
-      PBoolean needParen = !aliases.IsEmpty();
-      PBoolean needComma = false;
+      bool needParen = !aliases.IsEmpty();
+      bool needComma = false;
       for (PINDEX i = 0; i < setup.m_sourceAddress.GetSize(); i++) {
         PString alias = H323GetAliasAddressString(setup.m_sourceAddress[i]);
         if (alias != displayName && alias != remoteHostName) {
@@ -1243,7 +1243,7 @@ PString H323SignalPDU::GetSourceAliases(const H323Transport * transport) const
 }
 
 
-PString H323SignalPDU::GetDestinationAlias(PBoolean firstAliasOnly) const
+PString H323SignalPDU::GetDestinationAlias(bool firstAliasOnly) const
 {
   PStringStream aliases;
 
@@ -1279,7 +1279,7 @@ PString H323SignalPDU::GetDestinationAlias(PBoolean firstAliasOnly) const
 }
 
 
-PBoolean H323SignalPDU::GetSourceE164(PString & number) const
+bool H323SignalPDU::GetSourceE164(PString & number) const
 {
   if (GetQ931().GetCallingPartyNumber(number))
     return true;
@@ -1311,7 +1311,7 @@ PBoolean H323SignalPDU::GetSourceE164(PString & number) const
 }
 
 
-PBoolean H323SignalPDU::GetDestinationE164(PString & number) const
+bool H323SignalPDU::GetDestinationE164(PString & number) const
 {
   if (GetQ931().GetCalledPartyNumber(number))
     return true;
@@ -1467,7 +1467,7 @@ H245_MasterSlaveDetermination &
 
 
 H245_MasterSlaveDeterminationAck &
-      H323ControlPDU::BuildMasterSlaveDeterminationAck(PBoolean isMaster)
+      H323ControlPDU::BuildMasterSlaveDeterminationAck(bool isMaster)
 {
   H245_MasterSlaveDeterminationAck & msda = Build(H245_ResponseMessage::e_masterSlaveDeterminationAck);
   msda.m_decision.SetTag(isMaster
@@ -1489,7 +1489,7 @@ H245_MasterSlaveDeterminationReject &
 H245_TerminalCapabilitySet &
       H323ControlPDU::BuildTerminalCapabilitySet(const H323Connection & connection,
                                                  unsigned sequenceNumber,
-                                                 PBoolean empty)
+                                                 bool empty)
 {
   H245_TerminalCapabilitySet & cap = Build(H245_RequestMessage::e_terminalCapabilitySet);
 

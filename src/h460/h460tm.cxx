@@ -118,7 +118,7 @@ PINDEX H460TM_MultipointTM::GetDataLength() const
 }
 
 
-PBoolean H460TM_MultipointTM::Decode(PASN_Stream & strm)
+bool H460TM_MultipointTM::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return FALSE;

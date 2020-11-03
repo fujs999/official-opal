@@ -368,7 +368,7 @@ OpalCall * MyManager:: CreateCall(void * userData)
 }
 
 
-PBoolean MyManager::OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream)
+bool MyManager::OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream)
 {
   dynamic_cast<MyCall &>(connection.GetCall()).OnOpenMediaStream(stream);
   return OpalManager::OnOpenMediaStream(connection, stream);

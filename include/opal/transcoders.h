@@ -173,7 +173,7 @@ class OpalTranscoder : public OpalMediaFormatPair
 
        @returns true if command is handled.
       */
-    virtual PBoolean ExecuteCommand(
+    virtual bool ExecuteCommand(
       const OpalMediaCommand & command    ///<  Command to execute.
     );
 
@@ -184,7 +184,7 @@ class OpalTranscoder : public OpalMediaFormatPair
        must be able to handle any sized packets.
       */
     virtual PINDEX GetOptimalDataFrameSize(
-      PBoolean input      ///<  Flag for input or output data size
+      bool input      ///<  Flag for input or output data size
     ) const = 0;
 
     /**Convert the data from one format to another.
@@ -197,7 +197,7 @@ class OpalTranscoder : public OpalMediaFormatPair
 
        Returns false if the conversion fails.
       */
-    virtual PBoolean ConvertFrames(
+    virtual bool ConvertFrames(
       const RTP_DataFrame & input,  ///<  Input data
       RTP_DataFrameList & output    ///<  Output data
     );
@@ -208,7 +208,7 @@ class OpalTranscoder : public OpalMediaFormatPair
 
        Returns false if the conversion fails.
       */
-    virtual PBoolean Convert(
+    virtual bool Convert(
       const RTP_DataFrame & input,  ///<  Input data
       RTP_DataFrame & output        ///<  Output data
     ) = 0;
@@ -322,7 +322,7 @@ class OpalTranscoder : public OpalMediaFormatPair
     void SetSessionID(unsigned id) { m_sessionID = id; }
 
     RTP_DataFrame::PayloadTypes GetPayloadType(
-      PBoolean input      ///<  Flag for input or output data size
+      bool input      ///<  Flag for input or output data size
     ) const;
 
     virtual bool AcceptComfortNoise() const  { return false; }
@@ -410,7 +410,7 @@ class OpalFramedTranscoder : public OpalTranscoder
        must be able to handle any sized packets.
       */
     virtual PINDEX GetOptimalDataFrameSize(
-      PBoolean input      ///<  Flag for input or output data size
+      bool input      ///<  Flag for input or output data size
     ) const;
 
     /**Convert the data from one format to another.
@@ -419,7 +419,7 @@ class OpalFramedTranscoder : public OpalTranscoder
 
        Returns FALSE if the conversion fails.
       */
-    virtual PBoolean Convert(
+    virtual bool Convert(
       const RTP_DataFrame & input,  ///<  Input data
       RTP_DataFrame & output        ///<  Output data
     );
@@ -427,17 +427,17 @@ class OpalFramedTranscoder : public OpalTranscoder
     /**Convert a frame of data from one format to another.
        This function implicitly knows the input and output frame sizes.
       */
-    virtual PBoolean ConvertFrame(
+    virtual bool ConvertFrame(
       const BYTE * input,   ///<  Input data
       BYTE * output         ///<  Output data
     );
-    virtual PBoolean ConvertFrame(
+    virtual bool ConvertFrame(
       const BYTE * input,   ///<  Input data
       PINDEX & consumed,    ///<  number of input bytes consumed
       BYTE * output,        ///<  Output data
       PINDEX & created      ///<  number of output bytes created
     );
-    virtual PBoolean ConvertSilentFrame(
+    virtual bool ConvertSilentFrame(
       BYTE * output,        ///<  Output data
       PINDEX & created      ///<  number of output bytes created
     );
@@ -491,7 +491,7 @@ class OpalStreamedTranscoder : public OpalTranscoder
        must be able to handle any sized packets.
       */
     virtual PINDEX GetOptimalDataFrameSize(
-      PBoolean input      ///<  Flag for input or output data size
+      bool input      ///<  Flag for input or output data size
     ) const;
 
     /**Convert the data from one format to another.
@@ -500,7 +500,7 @@ class OpalStreamedTranscoder : public OpalTranscoder
 
        Returns false if the conversion fails.
       */
-    virtual PBoolean Convert(
+    virtual bool Convert(
       const RTP_DataFrame & input,  ///<  Input data
       RTP_DataFrame & output        ///<  Output data
     );
@@ -553,7 +553,7 @@ class OpalEmptyFramedAudioTranscoder : public OpalFramedTranscoder
       : OpalFramedTranscoder(inFormat, outFormat)
     {  }
 
-    PBoolean ConvertFrame(const BYTE *, PINDEX &, BYTE *, PINDEX &)
+    bool ConvertFrame(const BYTE *, PINDEX &, BYTE *, PINDEX &)
     { return false; }
 };
 

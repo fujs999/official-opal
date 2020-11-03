@@ -329,7 +329,7 @@ PINDEX H235_NonStandardParameter::GetDataLength() const
 }
 
 
-PBoolean H235_NonStandardParameter::Decode(PASN_Stream & strm)
+bool H235_NonStandardParameter::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -419,7 +419,7 @@ PINDEX H235_DHset::GetDataLength() const
 }
 
 
-PBoolean H235_DHset::Decode(PASN_Stream & strm)
+bool H235_DHset::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -516,7 +516,7 @@ PINDEX H235_DHsetExt::GetDataLength() const
 }
 
 
-PBoolean H235_DHsetExt::Decode(PASN_Stream & strm)
+bool H235_DHsetExt::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -610,7 +610,7 @@ PINDEX H235_ECpoint::GetDataLength() const
 }
 
 
-PBoolean H235_ECpoint::Decode(PASN_Stream & strm)
+bool H235_ECpoint::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -711,7 +711,7 @@ H235_ECKASDH::operator const H235_ECKASDH_eckasdh2 &() const
 }
 
 
-PBoolean H235_ECKASDH::CreateObject()
+bool H235_ECKASDH::CreateObject()
 {
   switch (m_tag) {
     case e_eckasdhp :
@@ -787,7 +787,7 @@ PINDEX H235_ECGDSASignature::GetDataLength() const
 }
 
 
-PBoolean H235_ECGDSASignature::Decode(PASN_Stream & strm)
+bool H235_ECGDSASignature::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -870,7 +870,7 @@ PINDEX H235_TypedCertificate::GetDataLength() const
 }
 
 
-PBoolean H235_TypedCertificate::Decode(PASN_Stream & strm)
+bool H235_TypedCertificate::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -925,7 +925,7 @@ H235_AuthenticationBES::H235_AuthenticationBES(unsigned tag, PASN_Object::TagCla
 }
 
 
-PBoolean H235_AuthenticationBES::CreateObject()
+bool H235_AuthenticationBES::CreateObject()
 {
   choice = (m_tag <= e_radius) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -1013,7 +1013,7 @@ H235_AuthenticationMechanism::operator const H235_AuthenticationBES &() const
 }
 
 
-PBoolean H235_AuthenticationMechanism::CreateObject()
+bool H235_AuthenticationMechanism::CreateObject()
 {
   switch (m_tag) {
     case e_dhExch :
@@ -1073,7 +1073,7 @@ H235_Element::H235_Element(unsigned tag, PASN_Object::TagClass tagClass)
 }
 
 
-PBoolean H235_Element::CreateObject()
+bool H235_Element::CreateObject()
 {
   switch (m_tag) {
     case e_octets :
@@ -1284,7 +1284,7 @@ PINDEX H235_Params::GetDataLength() const
 }
 
 
-PBoolean H235_Params::Decode(PASN_Stream & strm)
+bool H235_Params::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1390,7 +1390,7 @@ PINDEX H235_ReturnSig::GetDataLength() const
 }
 
 
-PBoolean H235_ReturnSig::Decode(PASN_Stream & strm)
+bool H235_ReturnSig::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1500,7 +1500,7 @@ PINDEX H235_KeySyncMaterial::GetDataLength() const
 }
 
 
-PBoolean H235_KeySyncMaterial::Decode(PASN_Stream & strm)
+bool H235_KeySyncMaterial::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1642,7 +1642,7 @@ PINDEX H235_V3KeySyncMaterial::GetDataLength() const
 }
 
 
-PBoolean H235_V3KeySyncMaterial::Decode(PASN_Stream & strm)
+bool H235_V3KeySyncMaterial::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1768,7 +1768,7 @@ PINDEX H235_ECKASDH_eckasdhp::GetDataLength() const
 }
 
 
-PBoolean H235_ECKASDH_eckasdhp::Decode(PASN_Stream & strm)
+bool H235_ECKASDH_eckasdhp::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1875,7 +1875,7 @@ PINDEX H235_ECKASDH_eckasdh2::GetDataLength() const
 }
 
 
-PBoolean H235_ECKASDH_eckasdh2::Decode(PASN_Stream & strm)
+bool H235_ECKASDH_eckasdh2::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2007,7 +2007,7 @@ PINDEX H235_ProfileElement::GetDataLength() const
 }
 
 
-PBoolean H235_ProfileElement::Decode(PASN_Stream & strm)
+bool H235_ProfileElement::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2111,7 +2111,7 @@ PINDEX H235_KeySignedMaterial::GetDataLength() const
 }
 
 
-PBoolean H235_KeySignedMaterial::Decode(PASN_Stream & strm)
+bool H235_KeySignedMaterial::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2234,7 +2234,7 @@ PINDEX H235_H235CertificateSignature::GetDataLength() const
 }
 
 
-PBoolean H235_H235CertificateSignature::Decode(PASN_Stream & strm)
+bool H235_H235CertificateSignature::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2408,7 +2408,7 @@ H235_H235Key::operator const H235_KeyMaterialExt &() const
 }
 
 
-PBoolean H235_H235Key::CreateObject()
+bool H235_H235Key::CreateObject()
 {
   switch (m_tag) {
     case e_secureChannel :
@@ -2542,7 +2542,7 @@ PINDEX H235_ClearToken::GetDataLength() const
 }
 
 
-PBoolean H235_ClearToken::Decode(PASN_Stream & strm)
+bool H235_ClearToken::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2790,7 +2790,7 @@ H235_CryptoToken::operator const H235_ENCRYPTED<H235_EncodedPwdCertToken> &() co
 }
 
 
-PBoolean H235_CryptoToken::CreateObject()
+bool H235_CryptoToken::CreateObject()
 {
   switch (m_tag) {
     case e_cryptoEncryptedToken :
@@ -2870,7 +2870,7 @@ PINDEX H235_CryptoToken_cryptoEncryptedToken::GetDataLength() const
 }
 
 
-PBoolean H235_CryptoToken_cryptoEncryptedToken::Decode(PASN_Stream & strm)
+bool H235_CryptoToken_cryptoEncryptedToken::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2953,7 +2953,7 @@ PINDEX H235_CryptoToken_cryptoSignedToken::GetDataLength() const
 }
 
 
-PBoolean H235_CryptoToken_cryptoSignedToken::Decode(PASN_Stream & strm)
+bool H235_CryptoToken_cryptoSignedToken::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3040,7 +3040,7 @@ PINDEX H235_CryptoToken_cryptoHashedToken::GetDataLength() const
 }
 
 
-PBoolean H235_CryptoToken_cryptoHashedToken::Decode(PASN_Stream & strm)
+bool H235_CryptoToken_cryptoHashedToken::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;

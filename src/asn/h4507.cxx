@@ -163,7 +163,7 @@ H4507_MsgCentreId::operator const H4501_EndpointAddress &() const
 }
 
 
-PBoolean H4507_MsgCentreId::CreateObject()
+bool H4507_MsgCentreId::CreateObject()
 {
   switch (m_tag) {
     case e_integer :
@@ -445,7 +445,7 @@ PINDEX H4507_MWIActivateArg::GetDataLength() const
 }
 
 
-PBoolean H4507_MWIActivateArg::Decode(PASN_Stream & strm)
+bool H4507_MWIActivateArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -571,7 +571,7 @@ PINDEX H4507_MWIDeactivateArg::GetDataLength() const
 }
 
 
-PBoolean H4507_MWIDeactivateArg::Decode(PASN_Stream & strm)
+bool H4507_MWIDeactivateArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -685,7 +685,7 @@ PINDEX H4507_MWIInterrogateArg::GetDataLength() const
 }
 
 
-PBoolean H4507_MWIInterrogateArg::Decode(PASN_Stream & strm)
+bool H4507_MWIInterrogateArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -814,7 +814,7 @@ PINDEX H4507_MWIInterrogateResElt::GetDataLength() const
 }
 
 
-PBoolean H4507_MWIInterrogateResElt::Decode(PASN_Stream & strm)
+bool H4507_MWIInterrogateResElt::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;

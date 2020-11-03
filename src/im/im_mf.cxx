@@ -652,7 +652,7 @@ OpalIMConnection::OpalIMConnection(OpalCall & call,
 }
 
 
-PBoolean OpalIMConnection::OnSetUpConnection()
+bool OpalIMConnection::OnSetUpConnection()
 {
   if (!OpalConnection::OnSetUpConnection())
     return false;

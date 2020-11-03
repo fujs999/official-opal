@@ -450,7 +450,7 @@ RTP_Timestamp OpalAudioJitterBuffer::GetPacketTime() const
 }
 
 
-PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTimeInterval & tick)
+bool OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTimeInterval & tick)
 {
   PWaitAndSignal mutex(m_bufferMutex);
 
@@ -653,7 +653,7 @@ OpalAudioJitterBuffer::AdjustResult OpalAudioJitterBuffer::AdjustCurrentJitterDe
 }
 
 
-PBoolean OpalAudioJitterBuffer::ReadData(RTP_DataFrame & frame, const PTimeInterval & PTRACE_PARAM(, const PTimeInterval & tick))
+bool OpalAudioJitterBuffer::ReadData(RTP_DataFrame & frame, const PTimeInterval & PTRACE_PARAM(, const PTimeInterval & tick))
 {
   // Default response is an empty frame, ie silence with possible comfort noise
   frame.SetPayloadType(RTP_DataFrame::CN);

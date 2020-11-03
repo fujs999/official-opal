@@ -188,8 +188,8 @@ class OpalPCSSEndPoint_C : public OpalPCSSEndPoint, public OpalMediaDataCallback
   public:
     OpalPCSSEndPoint_C(OpalManager_C & manager);
 
-    virtual PBoolean OnShowIncoming(const OpalPCSSConnection &);
-    virtual PBoolean OnShowOutgoing(const OpalPCSSConnection &);
+    virtual bool OnShowIncoming(const OpalPCSSConnection &);
+    virtual bool OnShowOutgoing(const OpalPCSSConnection &);
 
     virtual bool OnReadMediaFrame(const OpalLocalConnection &, const OpalMediaStream & mediaStream, RTP_DataFrame &);
     virtual bool OnWriteMediaFrame(const OpalLocalConnection &, const OpalMediaStream &, RTP_DataFrame & frame);
@@ -322,7 +322,7 @@ class OpalManager_C : public OpalManager
     virtual void OnEstablishedCall(OpalCall & call);
     virtual void OnHold(OpalConnection & connection, bool fromRemote, bool onHold);
     virtual bool OnTransferNotify(OpalConnection &, const PStringToString &);
-    virtual PBoolean OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream);
+    virtual bool OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream);
     virtual void OnClosedMediaStream(const OpalMediaStream & stream);
     virtual void OnUserInputString(OpalConnection & connection, const PString & value);
     virtual void OnUserInputTone(OpalConnection & connection, char tone, int duration);
@@ -763,14 +763,14 @@ OpalPCSSEndPoint_C::OpalPCSSEndPoint_C(OpalManager_C & mgr)
 }
 
 
-PBoolean OpalPCSSEndPoint_C::OnShowIncoming(const OpalPCSSConnection & connection)
+bool OpalPCSSEndPoint_C::OnShowIncoming(const OpalPCSSConnection & connection)
 {
   m_manager.SendIncomingCallInfo(connection);
   return true;
 }
 
 
-PBoolean OpalPCSSEndPoint_C::OnShowOutgoing(const OpalPCSSConnection & connection)
+bool OpalPCSSEndPoint_C::OnShowOutgoing(const OpalPCSSConnection & connection)
 {
   m_manager.SetOutgoingCallInfo(OpalIndAlerting, connection.GetCall());
   return true;
@@ -2843,7 +2843,7 @@ void OpalManager_C::OnIndMediaStream(const OpalMediaStream & stream, OpalMediaSt
 }
 
 
-PBoolean OpalManager_C::OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream)
+bool OpalManager_C::OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream)
 {
   if (!OpalManager::OnOpenMediaStream(connection, stream))
     return false;

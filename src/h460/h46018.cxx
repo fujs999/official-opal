@@ -67,7 +67,7 @@ PINDEX H46018_IncomingCallIndication::GetDataLength() const
 }
 
 
-PBoolean H46018_IncomingCallIndication::Decode(PASN_Stream & strm)
+bool H46018_IncomingCallIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return FALSE;
@@ -146,7 +146,7 @@ PINDEX H46018_LRQKeepAliveData::GetDataLength() const
 }
 
 
-PBoolean H46018_LRQKeepAliveData::Decode(PASN_Stream & strm)
+bool H46018_LRQKeepAliveData::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return FALSE;

@@ -64,7 +64,7 @@ class H460TM_MultipointTM : public PASN_Sequence
     PASN_Integer m_receiver;
 
     PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
+    bool Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;

@@ -70,7 +70,7 @@ H323TransactionPDU * H323GatekeeperRequest::CreateRIP(unsigned sequenceNumber,
 }
 
 
-PBoolean H323GatekeeperRequest::WritePDU(H323TransactionPDU & pdu)
+bool H323GatekeeperRequest::WritePDU(H323TransactionPDU & pdu)
 {
   PTRACE_BLOCK("H323GatekeeperRequest::WritePDU");
 
@@ -1058,7 +1058,7 @@ H323GatekeeperRequest::Response H323GatekeeperCall::OnAdmission(H323GatekeeperAR
 }
 
 
-PBoolean H323GatekeeperCall::Disengage(int reason)
+bool H323GatekeeperCall::Disengage(int reason)
 {
   if (!LockReadWrite()) {
     PTRACE(1, "RAS\tDRQ not sent, lock failed on call " << *this);
@@ -1227,7 +1227,7 @@ static bool CheckTimeSince(PTime & lastTime, unsigned threshold)
 }
 
 
-PBoolean H323GatekeeperCall::OnHeartbeat()
+bool H323GatekeeperCall::OnHeartbeat()
 {
   if (!LockReadOnly()) {
     PTRACE(1, "RAS\tOnHeartbeat lock failed on call " << *this);
@@ -1278,7 +1278,7 @@ PString H323GatekeeperCall::GetCallCreditAmount() const
 }
 
 
-PBoolean H323GatekeeperCall::GetCallCreditMode() const
+bool H323GatekeeperCall::GetCallCreditMode() const
 {
   return m_endpoint != NULL ? m_endpoint->GetCallCreditMode() : false;
 }
@@ -1290,7 +1290,7 @@ unsigned H323GatekeeperCall::GetDurationLimit() const
 }
 
 
-PBoolean H323GatekeeperCall::SendCallCreditServiceControl()
+bool H323GatekeeperCall::SendCallCreditServiceControl()
 {
   PString amount;
   if (m_endpoint->CanDisplayAmountString())
@@ -1326,7 +1326,7 @@ bool H323GatekeeperCall::AddCallCreditServiceControl(H225_ArrayOf_ServiceControl
 }
 
 
-PBoolean H323GatekeeperCall::SendServiceControlSession(const H323ServiceControlSession & session)
+bool H323GatekeeperCall::SendServiceControlSession(const H323ServiceControlSession & session)
 {
   // Send SCI to endpoint(s)
   if (m_rasChannel == NULL || m_endpoint == NULL) {
@@ -1339,7 +1339,7 @@ PBoolean H323GatekeeperCall::SendServiceControlSession(const H323ServiceControlS
 }
 
 
-PBoolean H323GatekeeperCall::SetBandwidthUsed(unsigned newBandwidth)
+bool H323GatekeeperCall::SetBandwidthUsed(unsigned newBandwidth)
 {
   if (newBandwidth == m_bandwidthUsed)
     return true;
@@ -1435,10 +1435,10 @@ void H323GatekeeperCall::SetUsageInfo(const H225_RasUsageInformation & usage)
   }
 }
 
-PBoolean H323GatekeeperCall::TranslateAliasAddress(const H225_AliasAddress & alias,
+bool H323GatekeeperCall::TranslateAliasAddress(const H225_AliasAddress & alias,
                                                    H225_ArrayOf_AliasAddress & aliases,
                                                    H323TransportAddress & address,
-                                                   PBoolean & gkRouted)
+                                                   bool & gkRouted)
 {
   return m_gatekeeper.TranslateAliasAddress(alias, aliases, address, gkRouted, this);
 }
@@ -1500,7 +1500,7 @@ void H323RegisteredEndPoint::AddCall(H323GatekeeperCall * call)
 }
 
 
-PBoolean H323RegisteredEndPoint::RemoveCall(H323GatekeeperCall * call)
+bool H323RegisteredEndPoint::RemoveCall(H323GatekeeperCall * call)
 {
   if (call == NULL) {
     PTRACE(1, "RAS\tCould not remove NULL call to endpoint " << *this);
@@ -1807,7 +1807,7 @@ H323GatekeeperRequest::Response H323RegisteredEndPoint::OnSecureRegistration(H32
 }
 
 
-PBoolean H323RegisteredEndPoint::SetPassword(const PString & password,
+bool H323RegisteredEndPoint::SetPassword(const PString & password,
                                          const PString & username)
 {
   if (m_authenticators.IsEmpty() || password.IsEmpty())
@@ -1837,7 +1837,7 @@ H323GatekeeperRequest::Response H323RegisteredEndPoint::OnUnregistration(H323Gat
 }
 
 
-PBoolean H323RegisteredEndPoint::Unregister(int reason)
+bool H323RegisteredEndPoint::Unregister(int reason)
 {
   if (reason == -1)
     reason = H225_UnregRequestReason::e_maintenance;
@@ -1939,7 +1939,7 @@ H323GatekeeperRequest::Response H323RegisteredEndPoint::OnInfoResponse(H323Gatek
 }
 
 
-PBoolean H323RegisteredEndPoint::OnTimeToLive()
+bool H323RegisteredEndPoint::OnTimeToLive()
 {
   if (!LockReadOnly()) {
     PTRACE(1, "RAS\tOnTimeToLive lock failed on endpoint " << *this);
@@ -1988,13 +1988,13 @@ PString H323RegisteredEndPoint::GetCallCreditAmount() const
 }
 
 
-PBoolean H323RegisteredEndPoint::GetCallCreditMode() const
+bool H323RegisteredEndPoint::GetCallCreditMode() const
 {
   return true;
 }
 
 
-PBoolean H323RegisteredEndPoint::SendServiceControlSession(const H323ServiceControlSession & session)
+bool H323RegisteredEndPoint::SendServiceControlSession(const H323ServiceControlSession & session)
 {
   // Send SCI to endpoint(s)
   if (m_rasChannel == NULL) {
@@ -2007,7 +2007,7 @@ PBoolean H323RegisteredEndPoint::SendServiceControlSession(const H323ServiceCont
 }
 
 
-PBoolean H323RegisteredEndPoint::AddServiceControlSession(const H323ServiceControlSession & session,
+bool H323RegisteredEndPoint::AddServiceControlSession(const H323ServiceControlSession & session,
                                                       H225_ArrayOf_ServiceControlSession & serviceControl)
 {
   if (!session.IsValid())
@@ -2053,7 +2053,7 @@ bool H323RegisteredEndPoint::CanReceiveRIP() const
   return (m_h225Version > 1) && (GetApplicationInfo().Find("netmeeting") == P_MAX_INDEX);
 }
 
-PBoolean H323RegisteredEndPoint::OnSendDescriptorForEndpoint(
+bool H323RegisteredEndPoint::OnSendDescriptorForEndpoint(
         H225_ArrayOf_AliasAddress & aliases,          // aliases for the enndpoint
         H225_EndpointType & terminalType,             // terminal type
         H225_ArrayOf_AliasAddress & transportAddresses  // transport addresses
@@ -2123,7 +2123,7 @@ H323GatekeeperRequest::Response H323GatekeeperListener::OnDiscovery(H323Gatekeep
 }
 
 
-PBoolean H323GatekeeperListener::OnReceiveGatekeeperRequest(const H323RasPDU & pdu,
+bool H323GatekeeperListener::OnReceiveGatekeeperRequest(const H323RasPDU & pdu,
                                                         const H225_GatekeeperRequest & /*grq*/)
 {
   PTRACE_BLOCK("H323GatekeeperListener::OnReceiveGatekeeperRequest");
@@ -2172,7 +2172,7 @@ H323GatekeeperRequest::Response H323GatekeeperListener::OnRegistration(H323Gatek
 }
 
 
-PBoolean H323GatekeeperListener::OnReceiveRegistrationRequest(const H323RasPDU & pdu,
+bool H323GatekeeperListener::OnReceiveRegistrationRequest(const H323RasPDU & pdu,
                                                           const H225_RegistrationRequest & /*rrq*/)
 {
   PTRACE_BLOCK("H323GatekeeperListener::OnReceiveRegistrationRequest");
@@ -2204,7 +2204,7 @@ H323GatekeeperRequest::Response H323GatekeeperListener::OnUnregistration(H323Gat
 }
 
 
-PBoolean H323GatekeeperListener::OnReceiveUnregistrationRequest(const H323RasPDU & pdu,
+bool H323GatekeeperListener::OnReceiveUnregistrationRequest(const H323RasPDU & pdu,
                                                             const H225_UnregistrationRequest & /*urq*/)
 {
   PTRACE_BLOCK("H323GatekeeperListener::OnReceiveUnregistrationRequest");
@@ -2217,7 +2217,7 @@ PBoolean H323GatekeeperListener::OnReceiveUnregistrationRequest(const H323RasPDU
 }
 
 
-PBoolean H323GatekeeperListener::OnReceiveUnregistrationConfirm(const H225_UnregistrationConfirm & pdu)
+bool H323GatekeeperListener::OnReceiveUnregistrationConfirm(const H225_UnregistrationConfirm & pdu)
 {
   PTRACE_BLOCK("H323GatekeeperListener::OnReceiveUnregistrationConfirm");
 
@@ -2228,7 +2228,7 @@ PBoolean H323GatekeeperListener::OnReceiveUnregistrationConfirm(const H225_Unreg
 }
 
 
-PBoolean H323GatekeeperListener::OnReceiveUnregistrationReject(const H225_UnregistrationReject & pdu)
+bool H323GatekeeperListener::OnReceiveUnregistrationReject(const H225_UnregistrationReject & pdu)
 {
   PTRACE_BLOCK("H323GatekeeperListener::OnReceiveUnregistrationReject");
 
@@ -2281,7 +2281,7 @@ H323GatekeeperRequest::Response H323GatekeeperListener::OnAdmission(H323Gatekeep
 }
 
 
-PBoolean H323GatekeeperListener::OnReceiveAdmissionRequest(const H323RasPDU & pdu,
+bool H323GatekeeperListener::OnReceiveAdmissionRequest(const H323RasPDU & pdu,
                                                        const H225_AdmissionRequest & /*arq*/)
 {
   PTRACE_BLOCK("H323GatekeeperListener::OnReceiveAdmissionRequest");
@@ -2294,7 +2294,7 @@ PBoolean H323GatekeeperListener::OnReceiveAdmissionRequest(const H323RasPDU & pd
 }
 
 
-PBoolean H323GatekeeperListener::UnregistrationRequest(const H323RegisteredEndPoint & ep,
+bool H323GatekeeperListener::UnregistrationRequest(const H323RegisteredEndPoint & ep,
                                                    unsigned reason)
 {
   PTRACE(3, "RAS\tUnregistration request to endpoint " << ep);
@@ -2318,7 +2318,7 @@ PBoolean H323GatekeeperListener::UnregistrationRequest(const H323RegisteredEndPo
 }
 
 
-PBoolean H323GatekeeperListener::DisengageRequest(const H323GatekeeperCall & call,
+bool H323GatekeeperListener::DisengageRequest(const H323GatekeeperCall & call,
                                               unsigned reason)
 {
   H323RegisteredEndPoint & ep = call.GetEndPoint();
@@ -2363,7 +2363,7 @@ H323GatekeeperRequest::Response H323GatekeeperListener::OnDisengage(H323Gatekeep
 }
 
 
-PBoolean H323GatekeeperListener::OnReceiveDisengageRequest(const H323RasPDU & pdu,
+bool H323GatekeeperListener::OnReceiveDisengageRequest(const H323RasPDU & pdu,
                                                        const H225_DisengageRequest & /*drq*/)
 {
   PTRACE_BLOCK("H323GatekeeperListener::OnReceiveDisengageRequest");
@@ -2376,7 +2376,7 @@ PBoolean H323GatekeeperListener::OnReceiveDisengageRequest(const H323RasPDU & pd
 }
 
 
-PBoolean H323GatekeeperListener::OnReceiveDisengageConfirm(const H225_DisengageConfirm & pdu)
+bool H323GatekeeperListener::OnReceiveDisengageConfirm(const H225_DisengageConfirm & pdu)
 {
   PTRACE_BLOCK("H323GatekeeperListener::OnReceiveDisengageConfirm");
 
@@ -2387,7 +2387,7 @@ PBoolean H323GatekeeperListener::OnReceiveDisengageConfirm(const H225_DisengageC
 }
 
 
-PBoolean H323GatekeeperListener::OnReceiveDisengageReject(const H225_DisengageReject & drj)
+bool H323GatekeeperListener::OnReceiveDisengageReject(const H225_DisengageReject & drj)
 {
   PTRACE_BLOCK("H323GatekeeperListener::OnReceiveDisengageReject");
 
@@ -2415,7 +2415,7 @@ H323GatekeeperRequest::Response H323GatekeeperListener::OnBandwidth(H323Gatekeep
 }
 
 
-PBoolean H323GatekeeperListener::OnReceiveBandwidthRequest(const H323RasPDU & pdu,
+bool H323GatekeeperListener::OnReceiveBandwidthRequest(const H323RasPDU & pdu,
                                                        const H225_BandwidthRequest & /*brq*/)
 {
   PTRACE_BLOCK("H323GatekeeperListener::OnReceiveBandwidthRequest");
@@ -2428,7 +2428,7 @@ PBoolean H323GatekeeperListener::OnReceiveBandwidthRequest(const H323RasPDU & pd
 }
 
 
-PBoolean H323GatekeeperListener::OnReceiveBandwidthConfirm(const H225_BandwidthConfirm & pdu)
+bool H323GatekeeperListener::OnReceiveBandwidthConfirm(const H225_BandwidthConfirm & pdu)
 {
   PTRACE_BLOCK("H323GatekeeperListener::OnReceiveBandwidthConfirm");
 
@@ -2439,7 +2439,7 @@ PBoolean H323GatekeeperListener::OnReceiveBandwidthConfirm(const H225_BandwidthC
 }
 
 
-PBoolean H323GatekeeperListener::OnReceiveBandwidthReject(const H225_BandwidthReject & pdu)
+bool H323GatekeeperListener::OnReceiveBandwidthReject(const H225_BandwidthReject & pdu)
 {
   PTRACE_BLOCK("H323GatekeeperListener::OnReceiveBandwidthReject");
 
@@ -2471,7 +2471,7 @@ H323GatekeeperRequest::Response H323GatekeeperListener::OnLocation(H323Gatekeepe
 }
 
 
-PBoolean H323GatekeeperListener::OnReceiveLocationRequest(const H323RasPDU & pdu,
+bool H323GatekeeperListener::OnReceiveLocationRequest(const H323RasPDU & pdu,
                                                       const H225_LocationRequest & /*lrq*/)
 {
   PTRACE_BLOCK("H323GatekeeperListener::OnReceiveLocationRequest");
@@ -2484,7 +2484,7 @@ PBoolean H323GatekeeperListener::OnReceiveLocationRequest(const H323RasPDU & pdu
 }
 
 
-PBoolean H323GatekeeperListener::InfoRequest(H323RegisteredEndPoint & ep,
+bool H323GatekeeperListener::InfoRequest(H323RegisteredEndPoint & ep,
                                          H323GatekeeperCall * call)
 {
   PTRACE(3, "RAS\tInfo request to endpoint " << ep);
@@ -2510,7 +2510,7 @@ PBoolean H323GatekeeperListener::InfoRequest(H323RegisteredEndPoint & ep,
 }
 
 
-PBoolean H323GatekeeperListener::ServiceControlIndication(H323RegisteredEndPoint & ep,
+bool H323GatekeeperListener::ServiceControlIndication(H323RegisteredEndPoint & ep,
                                                       const H323ServiceControlSession & session,
                                                       H323GatekeeperCall * call)
 {
@@ -2547,7 +2547,7 @@ H323GatekeeperRequest::Response H323GatekeeperListener::OnInfoResponse(H323Gatek
 }
 
 
-PBoolean H323GatekeeperListener::OnReceiveInfoRequestResponse(const H323RasPDU & pdu,
+bool H323GatekeeperListener::OnReceiveInfoRequestResponse(const H323RasPDU & pdu,
                                                           const H225_InfoRequestResponse & irr)
 {
   PTRACE_BLOCK("H323GatekeeperListener::OnReceiveInfoRequestResponse");
@@ -2580,7 +2580,7 @@ PBoolean H323GatekeeperListener::OnReceiveInfoRequestResponse(const H323RasPDU &
 }
 
 
-PBoolean H323GatekeeperListener::OnReceiveResourcesAvailableConfirm(const H225_ResourcesAvailableConfirm & pdu)
+bool H323GatekeeperListener::OnReceiveResourcesAvailableConfirm(const H225_ResourcesAvailableConfirm & pdu)
 {
   PTRACE_BLOCK("H323GatekeeperListener::OnReceiveResourcesAvailableConfirm");
 
@@ -2592,7 +2592,7 @@ PBoolean H323GatekeeperListener::OnReceiveResourcesAvailableConfirm(const H225_R
 
 
 #if OPAL_H460
-PBoolean H323GatekeeperListener::OnSendFeatureSet(H460_MessageType pduType, H225_FeatureSet & set) const
+bool H323GatekeeperListener::OnSendFeatureSet(H460_MessageType pduType, H225_FeatureSet & set) const
 {
   return m_gatekeeper.OnSendFeatureSet(pduType, set);
 }
@@ -3007,7 +3007,7 @@ void H323GatekeeperServer::AddEndPoint(H323RegisteredEndPoint * ep)
 }
 
 
-PBoolean H323GatekeeperServer::RemoveEndPoint(H323RegisteredEndPoint * ep)
+bool H323GatekeeperServer::RemoveEndPoint(H323RegisteredEndPoint * ep)
 {
   PTRACE(3, "RAS\tRemoving registered endpoint: " << *ep);
 
@@ -3323,21 +3323,21 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnBandwidth(H323Gatekeeper
 }
 
 
-PBoolean H323GatekeeperServer::GetAdmissionRequestAuthentication(H323GatekeeperARQ & /*info*/,
+bool H323GatekeeperServer::GetAdmissionRequestAuthentication(H323GatekeeperARQ & /*info*/,
                                                              H235Authenticators & /*authenticators*/)
 {
   return false;
 }
 
 
-PBoolean H323GatekeeperServer::GetUsersPassword(const PString & alias,
+bool H323GatekeeperServer::GetUsersPassword(const PString & alias,
                                                   PString & password,
                                    H323RegisteredEndPoint & /*registerdEndpoint*/) const
 {
   return GetUsersPassword(alias, password);
 }
 
-PBoolean H323GatekeeperServer::GetUsersPassword(const PString & alias, PString & password) const
+bool H323GatekeeperServer::GetUsersPassword(const PString & alias, PString & password) const
 {
   if (!m_passwords.Contains(alias))
     return false;
@@ -3422,7 +3422,7 @@ PSafePtr<H323GatekeeperCall> H323GatekeeperServer::FindCall(const PString & desc
 
 
 PSafePtr<H323GatekeeperCall> H323GatekeeperServer::FindCall(const OpalGloballyUniqueID & id,
-                                                            PBoolean answer,
+                                                            bool answer,
                                                             PSafetyMode mode)
 {
   return FindCall(id, answer ? H323GatekeeperCall::AnsweringCall
@@ -3478,10 +3478,10 @@ H323GatekeeperRequest::Response H323GatekeeperServer::OnLocation(H323GatekeeperL
 }
 
 
-PBoolean H323GatekeeperServer::TranslateAliasAddress(const H225_AliasAddress & alias,
+bool H323GatekeeperServer::TranslateAliasAddress(const H225_AliasAddress & alias,
                                                  H225_ArrayOf_AliasAddress & aliases,
                                                  H323TransportAddress & address,
-                                                 PBoolean & /*isGKRouted*/,
+                                                 bool & /*isGKRouted*/,
                                                  H323GatekeeperCall * /*call*/)
 {
   if (!TranslateAliasAddressToSignalAddress(alias, address)) {
@@ -3510,7 +3510,7 @@ PBoolean H323GatekeeperServer::TranslateAliasAddress(const H225_AliasAddress & a
 }
 
 
-PBoolean H323GatekeeperServer::TranslateAliasAddressToSignalAddress(const H225_AliasAddress & alias,
+bool H323GatekeeperServer::TranslateAliasAddressToSignalAddress(const H225_AliasAddress & alias,
                                                                 H323TransportAddress & address)
 {
   PWaitAndSignal wait(m_mutex);
@@ -3552,7 +3552,7 @@ PBoolean H323GatekeeperServer::TranslateAliasAddressToSignalAddress(const H225_A
 }
 
 
-PBoolean H323GatekeeperServer::CheckSignalAddressPolicy(const H323RegisteredEndPoint &,
+bool H323GatekeeperServer::CheckSignalAddressPolicy(const H323RegisteredEndPoint &,
                                                     const H225_AdmissionRequest &,
                                                     const H323TransportAddress &)
 {
@@ -3560,7 +3560,7 @@ PBoolean H323GatekeeperServer::CheckSignalAddressPolicy(const H323RegisteredEndP
 }
 
 
-PBoolean H323GatekeeperServer::CheckAliasAddressPolicy(const H323RegisteredEndPoint &,
+bool H323GatekeeperServer::CheckAliasAddressPolicy(const H323RegisteredEndPoint &,
                                                    const H225_AdmissionRequest & arq,
                                                    const H225_AliasAddress & alias)
 {
@@ -3576,7 +3576,7 @@ PBoolean H323GatekeeperServer::CheckAliasAddressPolicy(const H323RegisteredEndPo
 }
 
 
-PBoolean H323GatekeeperServer::CheckAliasStringPolicy(const H323RegisteredEndPoint &,
+bool H323GatekeeperServer::CheckAliasStringPolicy(const H323RegisteredEndPoint &,
                                                   const H225_AdmissionRequest & arq,
                                                   const PString & alias)
 {
@@ -3625,7 +3625,7 @@ void H323GatekeeperServer::CreatePeerElement(const H323TransportAddress & h501In
 
 
 bool H323GatekeeperServer::OpenPeerElement(const H323TransportAddress & remotePeer,
-                                           PBoolean append, PBoolean keepTrying)
+                                           bool append, bool keepTrying)
 {
   if (m_peerElement == NULL)
     m_peerElement = new H323PeerElement(m_ownerEndPoint);
@@ -3680,7 +3680,7 @@ void H323GatekeeperServer::MonitorMain(PThread &, P_INT_PTR)
 
 
 #if OPAL_H460
-PBoolean H323GatekeeperServer::OnSendFeatureSet(H460_MessageType, H225_FeatureSet &) const
+bool H323GatekeeperServer::OnSendFeatureSet(H460_MessageType, H225_FeatureSet &) const
 {
   return false;
 }

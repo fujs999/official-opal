@@ -290,7 +290,7 @@ class OpalMSRPMediaSession : public OpalMediaSession
       RTP_DataFrame & frame
     );
 
-    PBoolean ReadData(
+    bool ReadData(
       BYTE * data,
       PINDEX length,
       PINDEX & read
@@ -299,7 +299,7 @@ class OpalMSRPMediaSession : public OpalMediaSession
     virtual OpalMediaStream * CreateMediaStream(
       const OpalMediaFormat & mediaFormat, 
       unsigned sessionID, 
-      PBoolean isSource
+      bool isSource
     );
 
     OpalMSRPManager & GetManager() { return m_manager; }
@@ -340,20 +340,20 @@ class OpalMSRPMediaStream : public OpalMediaStream
 
     ~OpalMSRPMediaStream();
 
-    virtual PBoolean IsSynchronous() const         { return false; }
-    virtual PBoolean RequiresPatchThread() const   { return IsSink(); }
+    virtual bool IsSynchronous() const         { return false; }
+    virtual bool RequiresPatchThread() const   { return IsSink(); }
 
     /**Read raw media data from the source media stream.
        The default behaviour reads from the PChannel object.
       */
-    virtual PBoolean ReadPacket(
+    virtual bool ReadPacket(
       RTP_DataFrame & frame
     );
 
     /**Write raw media data to the sink media stream.
        The default behaviour writes to the PChannel object.
       */
-    virtual PBoolean WritePacket(
+    virtual bool WritePacket(
       RTP_DataFrame & frame
     );
 

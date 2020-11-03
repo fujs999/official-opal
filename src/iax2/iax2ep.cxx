@@ -223,13 +223,13 @@ PINDEX IAX2EndPoint::NextSrcCallNumber(IAX2Processor * /*processor*/)
 }
 
 
-PBoolean IAX2EndPoint::ConnectionForFrameIsAlive(IAX2Frame *f)
+bool IAX2EndPoint::ConnectionForFrameIsAlive(IAX2Frame *f)
 {
   PString frameToken = f->GetConnectionToken();
 
   // ReportStoredConnections();
 
-  PBoolean res = m_connectionsActive.Contains(frameToken);
+  bool res = m_connectionsActive.Contains(frameToken);
   if (res) {
     return true;
   }
@@ -437,7 +437,7 @@ OpalMediaFormatList IAX2EndPoint::GetMediaFormats() const
   return localMediaFormats;
 }
 
-PBoolean IAX2EndPoint::Initialise()
+bool IAX2EndPoint::Initialise()
 {
   transmitter = NULL;
   receiver    = NULL;
@@ -487,7 +487,7 @@ PINDEX IAX2EndPoint::GetOutSequenceNumberForStatusQuery()
 }
 
 
-PBoolean IAX2EndPoint::ProcessInConnectionTestAll(IAX2Frame *frame)
+bool IAX2EndPoint::ProcessInConnectionTestAll(IAX2Frame *frame)
 {
   if (!frame->IsFullFrame()) {
     // Do Not have a FullFrame, so dont add a translation entry.
@@ -530,7 +530,7 @@ PBoolean IAX2EndPoint::ProcessInConnectionTestAll(IAX2Frame *frame)
 }
 
 
-PBoolean IAX2EndPoint::ProcessInMatchingConnection(IAX2Frame *f)
+bool IAX2EndPoint::ProcessInMatchingConnection(IAX2Frame *f)
 {
   ReportStoredConnections();
 
@@ -551,7 +551,7 @@ PBoolean IAX2EndPoint::ProcessInMatchingConnection(IAX2Frame *f)
   return ProcessFrameInConnection(f, tokenTranslated);
 }
 
-PBoolean IAX2EndPoint::ProcessFrameInConnection(IAX2Frame *f, 
+bool IAX2EndPoint::ProcessFrameInConnection(IAX2Frame *f, 
 						const PString & token)
 {
   IAX2Connection *connection;
@@ -743,7 +743,7 @@ void IAX2EndPoint::Register(
 void IAX2EndPoint::OnRegistered(
       const PString & /*host*/,
       const PString & /*username*/,
-      PBoolean /*isFailure*/,
+      bool /*isFailure*/,
       RegisteredError /*reason*/)
 {
   PTRACE(2, "registration event occured");
@@ -752,7 +752,7 @@ void IAX2EndPoint::OnRegistered(
 void IAX2EndPoint::OnUnregistered(
       const PString & /*host*/,
       const PString & /*username*/,
-      PBoolean /*isFailure*/,
+      bool /*isFailure*/,
       UnregisteredError /*reason*/)
 {
   PTRACE(2, "unregistration event occured");
@@ -788,7 +788,7 @@ void IAX2EndPoint::Unregister(
   }
 }
 
-PBoolean IAX2EndPoint::IsRegistered(const PString & host, const PString & username)
+bool IAX2EndPoint::IsRegistered(const PString & host, const PString & username)
 {
   PWaitAndSignal m(m_regProcessorsMutex);
   

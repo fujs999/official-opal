@@ -568,7 +568,7 @@ class TextCtrlChannel : public PChannel
       sm_frame = frame;
     }
 
-    virtual PBoolean Write(
+    virtual bool Write(
       const void * buf, /// Pointer to a block of memory to write.
       PINDEX len        /// Number of bytes to write.
     ) {
@@ -2675,7 +2675,7 @@ void MyManager::StopRingSound()
 }
 
 
-PBoolean MyManager::OnIncomingConnection(OpalConnection & connection, unsigned options, OpalConnection::StringOptions * stringOptions)
+bool MyManager::OnIncomingConnection(OpalConnection & connection, unsigned options, OpalConnection::StringOptions * stringOptions)
 {
   bool usingHandset = connection.GetEndPoint().GetPrefixName() == "pots";
   if (usingHandset) {
@@ -3575,10 +3575,10 @@ PString MyManager::ReadUserInput(OpalConnection & connection,
 }
 
 
-PBoolean MyManager::CreateVideoInputDevice(const OpalConnection & connection,
+bool MyManager::CreateVideoInputDevice(const OpalConnection & connection,
                                            const OpalMediaFormat & mediaFormat,
                                            PVideoInputDevice * & device,
-                                           PBoolean & autoDelete)
+                                           bool & autoDelete)
 {
   if (!m_SecondaryVideoOpening)
     return OpalManager::CreateVideoInputDevice(connection, mediaFormat, device, autoDelete);
@@ -3598,7 +3598,7 @@ PBoolean MyManager::CreateVideoInputDevice(const OpalConnection & connection,
 bool MyManager::CreateVideoInputDevice(const OpalConnection & connection,
                                        const PVideoDevice::OpenArgs & args,
                                        PVideoInputDevice * & device,
-                                       PBoolean & autoDelete)
+                                       bool & autoDelete)
 {
   if (m_primaryVideoGrabber == NULL || args.deviceName.Find(m_primaryVideoGrabber->GetDeviceName()) == P_MAX_INDEX)
     return OpalManager::CreateVideoInputDevice(connection, args, device, autoDelete);
@@ -3609,11 +3609,11 @@ bool MyManager::CreateVideoInputDevice(const OpalConnection & connection,
 }
 
 
-PBoolean MyManager::CreateVideoOutputDevice(const OpalConnection & connection,
+bool MyManager::CreateVideoOutputDevice(const OpalConnection & connection,
                                             const OpalMediaFormat & mediaFormat,
-                                            PBoolean preview,
+                                            bool preview,
                                             PVideoOutputDevice * & device,
-                                            PBoolean & autoDelete)
+                                            bool & autoDelete)
 {
   unsigned openChannelCount = 0;
   OpalMediaStreamPtr mediaStream;
@@ -8314,14 +8314,14 @@ MyPCSSEndPoint::MyPCSSEndPoint(MyManager & manager)
 }
 
 
-PBoolean MyPCSSEndPoint::OnShowIncoming(const OpalPCSSConnection & connection)
+bool MyPCSSEndPoint::OnShowIncoming(const OpalPCSSConnection & connection)
 {
   m_manager.PostEvent(wxEvtRinging, connection.GetCall().GetToken());
   return true;
 }
 
 
-PBoolean MyPCSSEndPoint::OnShowOutgoing(const OpalPCSSConnection & connection)
+bool MyPCSSEndPoint::OnShowOutgoing(const OpalPCSSConnection & connection)
 {
   PTime now;
   LogWindow << connection.GetRemotePartyName() << " is ringing on "

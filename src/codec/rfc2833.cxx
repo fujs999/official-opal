@@ -267,7 +267,7 @@ void OpalRFC2833Proto::UseRTPSession(bool rx, OpalRTPSession * rtpSession)
 }
 
 
-PBoolean OpalRFC2833Proto::SendToneAsync(char tone, unsigned milliseconds)
+bool OpalRFC2833Proto::SendToneAsync(char tone, unsigned milliseconds)
 {
   PWaitAndSignal mutex(m_transmitMutex);
 

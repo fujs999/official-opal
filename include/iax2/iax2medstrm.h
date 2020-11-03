@@ -59,7 +59,7 @@ class OpalIAX2MediaStream : public OpalMediaStream
 		   IAX2Connection &con,                 /*!< IAX connection to read/send incoming packets */
 		   const OpalMediaFormat & mediaFormat, /*!< Media format for stream */
 		   unsigned sessionID,                  /*!< Session number for stream */
-		   PBoolean isSource                        /*!< Is a source stream */
+		   bool isSource                        /*!< Is a source stream */
 		   );
     /**Destroy a new media stream for connecting to the media.
        This method releases the SafeReference on the connection, so the connection can be destroyed */
@@ -76,14 +76,14 @@ class OpalIAX2MediaStream : public OpalMediaStream
        packet into a RTP_DataFrame class, and jitter buffered it.
 
     @return true on successful read of a packet, false on faulty read.*/
-    virtual PBoolean ReadPacket(
+    virtual bool ReadPacket(
       RTP_DataFrame & packet ///< Data buffer to read to
     );
 
    /**Write raw media data to the sink media stream.
        The default behaviour writes to the OpalLine object.
       */
-    virtual PBoolean WriteData(
+    virtual bool WriteData(
       const BYTE * data,   ///< Data to write
       PINDEX length,       ///< Length of data to write.
       PINDEX & written     ///<Length of data actually written
@@ -93,7 +93,7 @@ class OpalIAX2MediaStream : public OpalMediaStream
        @Return false if this stream is from the network.
        @return true if this stream is from a sound card.
       */
-    virtual PBoolean IsSynchronous() const;
+    virtual bool IsSynchronous() const;
 
   //@}
 

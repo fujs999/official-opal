@@ -272,7 +272,7 @@ MyCall::MyCall(MyManager & manager)
 }
 
 
-PBoolean MyCall::OnSetUp(OpalConnection & connection)
+bool MyCall::OnSetUp(OpalConnection & connection)
 {
   if (!OpalCall::OnSetUp(connection))
     return false;
@@ -310,7 +310,7 @@ void MyCall::OnProceeding(OpalConnection & connection)
 }
 
 
-PBoolean MyCall::OnAlerting(OpalConnection & connection)
+bool MyCall::OnAlerting(OpalConnection & connection)
 {
   m_CallState = MyCall::CallAlerting;
   connection.GetRemoteAddress().GetIpAndPort(m_DestinationSignalAddress);
@@ -321,7 +321,7 @@ PBoolean MyCall::OnAlerting(OpalConnection & connection)
 }
 
 
-PBoolean MyCall::OnConnected(OpalConnection & connection)
+bool MyCall::OnConnected(OpalConnection & connection)
 {
   m_ConnectTime.SetCurrentTime();
   m_CallState = MyCall::CallConnected;

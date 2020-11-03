@@ -1241,7 +1241,7 @@ static struct {
   const char * m_name;
   const char * m_description;
   const PString & (OpalPCSSEndPoint:: *m_get)() const;
-  PBoolean (OpalPCSSEndPoint:: *m_set)(const PString &);
+  bool (OpalPCSSEndPoint:: *m_set)(const PString &);
 
   bool Initialise(OpalPCSSEndPoint & ep, ostream & output, bool verbose, const PArgList & args, bool fromCLI)
   {
@@ -1282,7 +1282,7 @@ static struct {
   const char * m_name;
   const char * m_description;
   const PVideoDevice::OpenArgs & (OpalConsolePCSSEndPoint:: *m_get)() const;
-  PBoolean(OpalConsolePCSSEndPoint:: *m_set)(const PVideoDevice::OpenArgs &);
+  bool(OpalConsolePCSSEndPoint:: *m_set)(const PVideoDevice::OpenArgs &);
   PStringArray (*m_list)(const PString &, PPluginManager *);
 
   bool Initialise(OpalConsolePCSSEndPoint & ep, ostream & output, bool verbose, const PArgList & args, bool fromCLI)

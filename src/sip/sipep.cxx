@@ -553,7 +553,7 @@ void SIPEndPoint::OnConferenceStatusChanged(OpalEndPoint & endpoint, const PStri
 }
 
 
-PBoolean SIPEndPoint::GarbageCollection()
+bool SIPEndPoint::GarbageCollection()
 {
   PTRACE(6, "Garbage collection: transactions=" << m_activeTransactions.GetSize() << ", connections=" << m_connectionsActive.GetSize());
 
@@ -634,7 +634,7 @@ PStringList SIPEndPoint::GetAvailableStringOptions() const
 }
 
 
-PBoolean SIPEndPoint::IsAcceptedAddress(const SIPURL & /*toAddr*/)
+bool SIPEndPoint::IsAcceptedAddress(const SIPURL & /*toAddr*/)
 {
   return true;
 }
@@ -647,7 +647,7 @@ SIPConnection * SIPEndPoint::CreateConnection(const SIPConnection::Init & init)
 }
 
 
-PBoolean SIPEndPoint::SetupTransfer(SIPConnection & transferredConnection,
+bool SIPEndPoint::SetupTransfer(SIPConnection & transferredConnection,
                                     const PString & remoteParty,
                                     const PString & replaces)
 {
@@ -706,7 +706,7 @@ PBoolean SIPEndPoint::SetupTransfer(SIPConnection & transferredConnection,
 }
 
 
-PBoolean SIPEndPoint::ForwardConnection(SIPConnection & connection, const PString & forwardParty)
+bool SIPEndPoint::ForwardConnection(SIPConnection & connection, const PString & forwardParty)
 {
   PSafePtr<OpalConnection> otherConnection = connection.GetOtherPartyConnection();
   if (otherConnection != NULL &&
@@ -1021,7 +1021,7 @@ void SIPEndPoint::RegistrarAoR::PrintOn(ostream & strm) const
 }
 
 
-PBoolean SIPEndPoint::RegistrarAoR::ExpireBindings()
+bool SIPEndPoint::RegistrarAoR::ExpireBindings()
 {
   PTime now;
   bool expiredOne = false;
@@ -1470,7 +1470,7 @@ SIPRegisterHandler * SIPEndPoint::CreateRegisterHandler(const SIPRegister::Param
 }
 
 
-PBoolean SIPEndPoint::IsRegistered(const PString & token, bool includeOffline) 
+bool SIPEndPoint::IsRegistered(const PString & token, bool includeOffline) 
 {
   PSafePtr<SIPHandler> handler = m_activeSIPHandlers.FindSIPHandlerByCallID(token, PSafeReference);
   if (handler == NULL)
@@ -1485,7 +1485,7 @@ PBoolean SIPEndPoint::IsRegistered(const PString & token, bool includeOffline)
 }
 
 
-PBoolean SIPEndPoint::Unregister(const PString & token)
+bool SIPEndPoint::Unregister(const PString & token)
 {
   PSafePtr<SIPHandler> handler = m_activeSIPHandlers.FindSIPHandlerByCallID(token, PSafeReference);
   if (handler == NULL)
@@ -1614,8 +1614,8 @@ void SIPEndPoint::OnRegistrationStatus(const RegistrationStatus & status)
 
 
 void SIPEndPoint::OnRegistrationStatus(const PString & aor,
-                                       PBoolean wasRegistering,
-                                       PBoolean /*reRegistering*/,
+                                       bool wasRegistering,
+                                       bool /*reRegistering*/,
                                        SIP_PDU::StatusCodes reason)
 {
   if (reason == SIP_PDU::Information_Trying)
@@ -1630,13 +1630,13 @@ void SIPEndPoint::OnRegistrationStatus(const PString & aor,
 
 void SIPEndPoint::OnRegistrationFailed(const PString & /*aor*/, 
                SIP_PDU::StatusCodes /*reason*/, 
-               PBoolean /*wasRegistering*/)
+               bool /*wasRegistering*/)
 {
 }
     
 
 void SIPEndPoint::OnRegistered(const PString & /*aor*/, 
-             PBoolean /*wasRegistering*/)
+             bool /*wasRegistering*/)
 {
 }
 
@@ -1971,7 +1971,7 @@ void SIPEndPoint::OnOptionsCompleted(const SIPOptions::Params & PTRACE_PARAM(par
 }
 
 
-PBoolean SIPEndPoint::Ping(const PURL & to)
+bool SIPEndPoint::Ping(const PURL & to)
 {
   PSafePtr<SIPHandler> handler = m_activeSIPHandlers.FindSIPHandlerByUrl(to, SIP_PDU::Method_PING, PSafeReference);
   if (handler == NULL) {

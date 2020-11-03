@@ -74,7 +74,7 @@ class OpalIMEndPoint : public OpalEndPoint
         Generally only used internally.
         This will call notifiers indicating converstaion end.
       */
-    virtual PBoolean GarbageCollection();
+    virtual bool GarbageCollection();
 
     /**Shut down all conversations.
       */
@@ -241,12 +241,12 @@ class OpalIMConnection : public OpalConnection
        "remote". While pc, pots and ivr are not as the entity being connected
        to is intrinsically local.
       */
-    virtual PBoolean IsNetworkConnection() const { return false; }
+    virtual bool IsNetworkConnection() const { return false; }
 
     /**Callback for outgoing connection, it is invoked after SetUpConnection
        This function allows the application to set up some parameters or to log some messages
      */
-    virtual PBoolean OnSetUpConnection();
+    virtual bool OnSetUpConnection();
 
     /**A call back function whenever a connection is established.
        This indicates that a connection to an endpoint was established. This

@@ -186,7 +186,7 @@ class OpalVideoTranscoder : public OpalTranscoder
        must be able to handle any sized packets.
       */
     virtual PINDEX GetOptimalDataFrameSize(
-      PBoolean input      ///<  Flag for input or output data size
+      bool input      ///<  Flag for input or output data size
     ) const;
 
     /**Execute the command specified to the transcoder. The commands are
@@ -198,7 +198,7 @@ class OpalVideoTranscoder : public OpalTranscoder
 
        @returns true if command is handled.
       */
-    virtual PBoolean ExecuteCommand(
+    virtual bool ExecuteCommand(
       const OpalMediaCommand & command    ///<  Command to execute.
     );
 
@@ -212,7 +212,7 @@ class OpalVideoTranscoder : public OpalTranscoder
 
        Returns false if the conversion fails.
       */
-    virtual PBoolean Convert(
+    virtual bool Convert(
       const RTP_DataFrame & input,  ///<  Input data
       RTP_DataFrame & output        ///<  Output data
     );

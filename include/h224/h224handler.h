@@ -218,10 +218,10 @@ class OpalH224MediaStream : public OpalMediaStream
     ~OpalH224MediaStream();
 
     virtual void OnStartMediaPatch();
-    virtual PBoolean ReadPacket(RTP_DataFrame & packet);
-    virtual PBoolean WritePacket(RTP_DataFrame & packet);
-    virtual PBoolean IsSynchronous() const { return false; }
-    virtual PBoolean RequiresPatchThread() const { return IsSink(); }
+    virtual bool ReadPacket(RTP_DataFrame & packet);
+    virtual bool WritePacket(RTP_DataFrame & packet);
+    virtual bool IsSynchronous() const { return false; }
+    virtual bool RequiresPatchThread() const { return IsSink(); }
 
   private:
     virtual void InternalClose();

@@ -465,7 +465,7 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
 
   P_REMOVE_VIRTUAL(SDPMediaFormat *,CreateSDPMediaFormat(const PString &),0);
   P_REMOVE_VIRTUAL(OpalTransportAddress,GetTransportAddress(),OpalTransportAddress());
-  P_REMOVE_VIRTUAL(PBoolean,SetTransportAddress(const OpalTransportAddress &),false);
+  P_REMOVE_VIRTUAL(bool,SetTransportAddress(const OpalTransportAddress &),false);
   P_REMOVE_VIRTUAL_VOID(Copy(SDPMediaDescription &));
 };
 

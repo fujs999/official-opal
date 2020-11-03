@@ -910,7 +910,7 @@ bool OpalMixerEndPoint::GetConferenceStates(OpalConferenceStates & states, const
 }
 
 
-PBoolean OpalMixerEndPoint::GarbageCollection()
+bool OpalMixerEndPoint::GarbageCollection()
 {
   // Use bitwise | not boolean || so both get executed
   return OpalMixerNodeManager::GarbageCollection() | OpalEndPoint::GarbageCollection();
@@ -1048,7 +1048,7 @@ OpalMediaFormatList OpalMixerConnection::GetMediaFormats() const
 
 OpalMediaStream * OpalMixerConnection::CreateMediaStream(const OpalMediaFormat & mediaFormat,
                                                          unsigned sessionID,
-                                                         PBoolean isSource)
+                                                         bool isSource)
 {
   return new OpalMixerMediaStream(*this, mediaFormat, sessionID, isSource, m_node, m_listenOnly);
 }
@@ -1077,7 +1077,7 @@ bool OpalMixerConnection::SendUserInputString(const PString & value)
 }
 
 
-PBoolean OpalMixerConnection::SendUserInputTone(char tone, unsigned /*duration*/)
+bool OpalMixerConnection::SendUserInputTone(char tone, unsigned /*duration*/)
 {
   m_node->BroadcastUserInput(this, tone);
   return true;
@@ -1155,7 +1155,7 @@ OpalMixerMediaStream::~OpalMixerMediaStream()
 }
 
 
-PBoolean OpalMixerMediaStream::Open()
+bool OpalMixerMediaStream::Open()
 {
   if (m_isOpen)
     return true;
@@ -1186,19 +1186,19 @@ void OpalMixerMediaStream::InternalClose()
 }
 
 
-PBoolean OpalMixerMediaStream::WritePacket(RTP_DataFrame & packet)
+bool OpalMixerMediaStream::WritePacket(RTP_DataFrame & packet)
 {
   return IsOpen() && m_node->WritePacket(*this, packet);
 }
 
 
-PBoolean OpalMixerMediaStream::IsSynchronous() const
+bool OpalMixerMediaStream::IsSynchronous() const
 {
   return false;
 }
 
 
-PBoolean OpalMixerMediaStream::RequiresPatchThread() const
+bool OpalMixerMediaStream::RequiresPatchThread() const
 {
   return IsSink();
 }
@@ -2037,7 +2037,7 @@ void OpalMixerNodeManager::ShutDown()
 }
 
 
-PBoolean OpalMixerNodeManager::GarbageCollection()
+bool OpalMixerNodeManager::GarbageCollection()
 {
   return m_nodesByUID.DeleteObjectsToBeRemoved();
 }

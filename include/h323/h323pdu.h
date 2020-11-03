@@ -167,13 +167,13 @@ class H323SignalPDU : public H225_H323_UserInformation
 
     /**Read PDU from the specified transport.
       */
-    PBoolean Read(
+    bool Read(
       H323Transport & transport   ///<  Transport to read from
     );
 
     /**Write the PDU to the transport.
       */
-    PBoolean Write(
+    bool Write(
       H323Transport & transport   ///<  Transport to write to
     );
 
@@ -208,14 +208,14 @@ class H323SignalPDU : public H225_H323_UserInformation
        incoming connection.
       */
     PString GetDestinationAlias(
-      PBoolean firstAliasOnly = false   ///<  Only return the first possible alias
+      bool firstAliasOnly = false   ///<  Only return the first possible alias
     ) const;
 
     /**Get the source endpoints identification as a phone number.
        This returns false if the remote never provided any alias or Q.931
        field that indicated a valid e.164 telephone number.
       */
-    PBoolean GetSourceE164(
+    bool GetSourceE164(
       PString & number    ///<  String to receive number
     ) const;
 
@@ -223,7 +223,7 @@ class H323SignalPDU : public H225_H323_UserInformation
        This returns false if the remote never provided any alias or Q.931
        field that indicated a valid e.164 telephone number.
       */
-    PBoolean GetDestinationE164(
+    bool GetDestinationE164(
       PString & number    ///<  String to receive number
     ) const;
 
@@ -267,7 +267,7 @@ class H323ControlPDU : public H245_MultimediaSystemControlMessage
       unsigned statusDeterminationNumber
     );
     H245_MasterSlaveDeterminationAck & BuildMasterSlaveDeterminationAck(
-      PBoolean isMaster
+      bool isMaster
     );
     H245_MasterSlaveDeterminationReject & BuildMasterSlaveDeterminationReject(
       unsigned cause
@@ -276,7 +276,7 @@ class H323ControlPDU : public H245_MultimediaSystemControlMessage
     H245_TerminalCapabilitySet & BuildTerminalCapabilitySet(
       const H323Connection & connection,
       unsigned sequenceNumber,
-      PBoolean empty
+      bool empty
     );
     H245_TerminalCapabilitySetAck & BuildTerminalCapabilitySetAck(
       unsigned sequenceNumber
@@ -566,7 +566,7 @@ void H323AddGenericParameterObject(
 #if PTRACING
 void H323TraceDumpPDU(
   const char * proto,
-  PBoolean writing,
+  bool writing,
   const PBYTEArray & rawData,
   const PASN_Object & pdu,
   const PASN_Choice & tag1,

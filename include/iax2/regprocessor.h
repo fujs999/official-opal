@@ -149,7 +149,7 @@ class IAX2RegProcessor : public IAX2Processor
   
   /**Processes a protocol full frame, well, those components relating to
    * registration.*/
-  virtual PBoolean ProcessNetworkFrame(IAX2FullFrameProtocol * src);
+  virtual bool ProcessNetworkFrame(IAX2FullFrameProtocol * src);
   
   /**Reset the call, ie: get a new call source number, 
      put the sequence numbers to 0 and reset the timer.
@@ -164,7 +164,7 @@ class IAX2RegProcessor : public IAX2Processor
 
   @return true if the frame is out of order, which deletes the supplied frame
   @return false, and does not destroy the supplied frame*/
-  virtual PBoolean IncomingMessageOutOfOrder(IAX2FullFrame *)
+  virtual bool IncomingMessageOutOfOrder(IAX2FullFrame *)
        { return false; };
 
   

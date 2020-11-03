@@ -150,7 +150,7 @@ void IAX2Transmit::ProcessSendList()
     if (active == NULL) 
       break;
     
-    PBoolean isFullFrame = false;
+    bool isFullFrame = false;
     if (PIsDescendant(active, IAX2FullFrame)) {
       isFullFrame = true;
       IAX2FullFrame *f= (IAX2FullFrame *)active;

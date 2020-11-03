@@ -73,7 +73,7 @@ void IAX2WaitingForAck::ZeroValues()
   //     response = sendNothing;
 }
 
-PBoolean IAX2WaitingForAck::MatchingAckPacket(IAX2FullFrame *f)
+bool IAX2WaitingForAck::MatchingAckPacket(IAX2FullFrame *f)
 {
   PTRACE(4, "MatchingAck\tCompare " << timeStamp << " and " << seqNo);
   if (f->GetTimeStamp() != timeStamp) {
@@ -170,7 +170,7 @@ void IAX2Processor::Main()
   PTRACE(3, "End of iax connection processing");
 }
 
-PBoolean IAX2Processor::IsStatusQueryEthernetFrame(IAX2Frame *frame)
+bool IAX2Processor::IsStatusQueryEthernetFrame(IAX2Frame *frame)
 {
   if (!PIsDescendant(frame, IAX2FullFrame))
     return false;
@@ -241,7 +241,7 @@ void IAX2Processor::Terminate()
   Activate();
 }
 
-PBoolean IAX2Processor::ProcessOneIncomingEthernetFrame()
+bool IAX2Processor::ProcessOneIncomingEthernetFrame()
 {  
   IAX2Frame *frame = frameList.GetLastFrame();
   if (frame == NULL) {
@@ -338,9 +338,9 @@ void IAX2Processor::TransmitFrameToRemoteEndpoint(IAX2FullFrame *src,
   TransmitFrameNow(src);
 }
 
-PBoolean IAX2Processor::Authenticate(IAX2FullFrameProtocol *reply, PString & password)
+bool IAX2Processor::Authenticate(IAX2FullFrameProtocol *reply, PString & password)
 {
-  PBoolean processed = false;
+  bool processed = false;
   IAX2IeAuthMethods ie(ieData.authMethods);
   
   if (ie.IsMd5Authentication()) {
@@ -411,7 +411,7 @@ void IAX2Processor::SendUnsupportedFrame(IAX2FullFrame *inReplyTo)
   delete inReplyTo;
 }
 
-PBoolean IAX2Processor::ProcessNetworkFrame(IAX2FullFrameProtocol * src)
+bool IAX2Processor::ProcessNetworkFrame(IAX2FullFrameProtocol * src)
 {
   switch(src->GetSubClass()) {
   case IAX2FullFrameProtocol::cmdLagRq:

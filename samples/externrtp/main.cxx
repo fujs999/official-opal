@@ -61,7 +61,7 @@ bool MyManager::Initialise(PArgList & args, bool verbose, const PString &)
 }
 
 
-PBoolean MyManager::OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream)
+bool MyManager::OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream)
 {
   stream.PrintDetail(*LockedOutput());
   return OpalManager::OnOpenMediaStream(connection, stream);

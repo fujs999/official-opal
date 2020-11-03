@@ -299,7 +299,7 @@ class OpalIVRConnection : public OpalLocalConnection
     virtual OpalMediaStream * CreateMediaStream(
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
-      PBoolean isSource                        ///<  Is a source stream
+      bool isSource                        ///<  Is a source stream
     );
 
     /**Send a user input indication to the remote endpoint.
@@ -309,7 +309,7 @@ class OpalIVRConnection : public OpalLocalConnection
 
        The default behaviour plays the DTMF tones on the line.
       */
-    virtual PBoolean SendUserInputString(
+    virtual bool SendUserInputString(
       const PString & value                   ///<  String value of indication
     );
   //@}
@@ -326,7 +326,7 @@ class OpalIVRConnection : public OpalLocalConnection
 
     PTextToSpeech * GetTextToSpeech() const { return m_vxmlSession.GetTextToSpeech(); }
     PTextToSpeech * SetTextToSpeech(const PString & ttsName) { return m_vxmlSession.SetTextToSpeech(ttsName); }
-    PTextToSpeech * SetTextToSpeech(PTextToSpeech * tts, PBoolean autoDelete = false) { return m_vxmlSession.SetTextToSpeech(tts, autoDelete); }
+    PTextToSpeech * SetTextToSpeech(PTextToSpeech * tts, bool autoDelete = false) { return m_vxmlSession.SetTextToSpeech(tts, autoDelete); }
 
   protected:
     virtual bool StartVXML();
@@ -354,7 +354,7 @@ class OpalIVRMediaStream : public OpalRawMediaStream
       OpalIVRConnection & conn,
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
-      PBoolean isSource,                       ///<  Is a source stream
+      bool isSource,                       ///<  Is a source stream
       PVXMLSession & vxml                  ///<  vxml session to use
     );
   //@}
@@ -366,12 +366,12 @@ class OpalIVRMediaStream : public OpalRawMediaStream
        The default behaviour simply sets the member variable "mediaFormat"
        and "defaultDataSize".
       */
-    virtual PBoolean Open();
+    virtual bool Open();
 
     /**Indicate if the media stream is synchronous.
        Returns false for IVR streams.
       */
-    virtual PBoolean IsSynchronous() const;
+    virtual bool IsSynchronous() const;
   //@}
 
   protected:

@@ -71,7 +71,7 @@ H323HTTPServiceControl::H323HTTPServiceControl(const H225_ServiceControlDescript
 }
 
 
-PBoolean H323HTTPServiceControl::IsValid() const
+bool H323HTTPServiceControl::IsValid() const
 {
   return !url.IsEmpty();
 }
@@ -83,7 +83,7 @@ PString H323HTTPServiceControl::GetServiceControlType() const
 }
 
 
-PBoolean H323HTTPServiceControl::OnReceivedPDU(const H225_ServiceControlDescriptor & contents)
+bool H323HTTPServiceControl::OnReceivedPDU(const H225_ServiceControlDescriptor & contents)
 {
   if (contents.GetTag() != H225_ServiceControlDescriptor::e_url)
     return false;
@@ -94,7 +94,7 @@ PBoolean H323HTTPServiceControl::OnReceivedPDU(const H225_ServiceControlDescript
 }
 
 
-PBoolean H323HTTPServiceControl::OnSendingPDU(H225_ServiceControlDescriptor & contents) const
+bool H323HTTPServiceControl::OnSendingPDU(H225_ServiceControlDescriptor & contents) const
 {
   contents.SetTag(H225_ServiceControlDescriptor::e_url);
   PASN_IA5String & pdu = contents;
@@ -128,7 +128,7 @@ H323H248ServiceControl::H323H248ServiceControl(const H225_ServiceControlDescript
 }
 
 
-PBoolean H323H248ServiceControl::OnReceivedPDU(const H225_ServiceControlDescriptor & contents)
+bool H323H248ServiceControl::OnReceivedPDU(const H225_ServiceControlDescriptor & contents)
 {
   if (contents.GetTag() != H225_ServiceControlDescriptor::e_signal)
     return false;
@@ -143,7 +143,7 @@ PBoolean H323H248ServiceControl::OnReceivedPDU(const H225_ServiceControlDescript
 }
 
 
-PBoolean H323H248ServiceControl::OnSendingPDU(H225_ServiceControlDescriptor & contents) const
+bool H323H248ServiceControl::OnSendingPDU(H225_ServiceControlDescriptor & contents) const
 {
   contents.SetTag(H225_ServiceControlDescriptor::e_signal);
   H225_H248SignalsDescriptor & pdu = contents;
@@ -156,7 +156,7 @@ PBoolean H323H248ServiceControl::OnSendingPDU(H225_ServiceControlDescriptor & co
 }
 
 
-PBoolean H323H248ServiceControl::OnReceivedPDU(const H248_SignalsDescriptor & descriptor)
+bool H323H248ServiceControl::OnReceivedPDU(const H248_SignalsDescriptor & descriptor)
 {
   for (PINDEX i = 0; i < descriptor.GetSize(); i++) {
     if (!OnReceivedPDU(descriptor[i]))
@@ -167,7 +167,7 @@ PBoolean H323H248ServiceControl::OnReceivedPDU(const H248_SignalsDescriptor & de
 }
 
 
-PBoolean H323H248ServiceControl::OnSendingPDU(H248_SignalsDescriptor & descriptor) const
+bool H323H248ServiceControl::OnSendingPDU(H248_SignalsDescriptor & descriptor) const
 {
   PINDEX last = descriptor.GetSize();
   descriptor.SetSize(last+1);
@@ -178,7 +178,7 @@ PBoolean H323H248ServiceControl::OnSendingPDU(H248_SignalsDescriptor & descripto
 /////////////////////////////////////////////////////////////////////////////
 
 H323CallCreditServiceControl::H323CallCreditServiceControl(const PString & amt,
-                                                           PBoolean m,
+                                                           bool m,
                                                            unsigned dur)
   : amount(amt),
     mode(m),
@@ -193,13 +193,13 @@ H323CallCreditServiceControl::H323CallCreditServiceControl(const H225_ServiceCon
 }
 
 
-PBoolean H323CallCreditServiceControl::IsValid() const
+bool H323CallCreditServiceControl::IsValid() const
 {
   return !amount.IsEmpty() || durationLimit > 0;
 }
 
 
-PBoolean H323CallCreditServiceControl::OnReceivedPDU(const H225_ServiceControlDescriptor & contents)
+bool H323CallCreditServiceControl::OnReceivedPDU(const H225_ServiceControlDescriptor & contents)
 {
   if (contents.GetTag() != H225_ServiceControlDescriptor::e_callCreditServiceControl)
     return false;
@@ -223,7 +223,7 @@ PBoolean H323CallCreditServiceControl::OnReceivedPDU(const H225_ServiceControlDe
 }
 
 
-PBoolean H323CallCreditServiceControl::OnSendingPDU(H225_ServiceControlDescriptor & contents) const
+bool H323CallCreditServiceControl::OnSendingPDU(H225_ServiceControlDescriptor & contents) const
 {
   contents.SetTag(H225_ServiceControlDescriptor::e_callCreditServiceControl);
   H225_CallCreditServiceControl & credit = contents;

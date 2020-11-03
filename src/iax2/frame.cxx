@@ -95,7 +95,7 @@ void IAX2Frame::SetTimeStamp(DWORD newValue)
   PTRACE(5, "Frame\tPreset the timestamp to " << newValue);
 }
 
-PBoolean IAX2Frame::ReadNetworkPacket(PUDPSocket &sock)
+bool IAX2Frame::ReadNetworkPacket(PUDPSocket &sock)
 {
   data.SetSize(4096);  //Surely no packets > 4096 bytes in length
   
@@ -103,7 +103,7 @@ PBoolean IAX2Frame::ReadNetworkPacket(PUDPSocket &sock)
   PIPSocket::Address addr;
   sock.GetLocalAddress(addr);
   
-  PBoolean res = sock.ReadFrom(data.GetPointer(), 4096, addr, portNo);
+  bool res = sock.ReadFrom(data.GetPointer(), 4096, addr, portNo);
   remote.SetRemoteAddress(addr);
   remote.SetRemotePort(portNo);
   
@@ -122,7 +122,7 @@ PBoolean IAX2Frame::ReadNetworkPacket(PUDPSocket &sock)
   return true;
 }
 
-PBoolean IAX2Frame::Read1Byte(BYTE & result)
+bool IAX2Frame::Read1Byte(BYTE & result)
 {
   if (currentReadIndex >= data.GetSize())
     return false;
@@ -132,7 +132,7 @@ PBoolean IAX2Frame::Read1Byte(BYTE & result)
   return true;
 }
 
-PBoolean IAX2Frame::Read2Bytes(PINDEX & res)
+bool IAX2Frame::Read2Bytes(PINDEX & res)
 {
   BYTE a = 0;
   BYTE b = 0;
@@ -144,7 +144,7 @@ PBoolean IAX2Frame::Read2Bytes(PINDEX & res)
   return false;
 }
 
-PBoolean IAX2Frame::Read2Bytes(WORD & res)
+bool IAX2Frame::Read2Bytes(WORD & res)
 {
   BYTE a = 0, b = 0;
   if (Read1Byte(a) && Read1Byte(b)) {
@@ -155,7 +155,7 @@ PBoolean IAX2Frame::Read2Bytes(WORD & res)
   return false;
 }
 
-PBoolean IAX2Frame::Read4Bytes(DWORD & res)
+bool IAX2Frame::Read4Bytes(DWORD & res)
 {
   PINDEX a = 0, b = 0;
   if (Read2Bytes(a) && Read2Bytes(b)) {
@@ -199,7 +199,7 @@ void IAX2Frame::Write4Bytes(unsigned int newVal)
 }
 
 
-PBoolean IAX2Frame::ProcessNetworkPacket()
+bool IAX2Frame::ProcessNetworkPacket()
 {
   /*We are guaranteed to have a packet > 4 bytes in size */
   PINDEX a = 0;
@@ -256,7 +256,7 @@ DWORD IAX2Frame::CalcTimeStamp(const PTimeInterval & callStartTick)
   return tVal;
 }
 
-PBoolean IAX2Frame::TransmitPacket(PUDPSocket &sock)
+bool IAX2Frame::TransmitPacket(PUDPSocket &sock)
 {
   if (CallMustBeActive()) {
     if (!endpoint.ConnectionForFrameIsAlive(this)) {
@@ -271,7 +271,7 @@ PBoolean IAX2Frame::TransmitPacket(PUDPSocket &sock)
   //	    cout << endl;
   
   PTRACE(6, "Frame\tNow transmit " << endl << *this);
-  PBoolean transmitResult = sock.WriteTo(data.GetPointer(), DataSize(), remote.RemoteAddress(), 
+  bool transmitResult = sock.WriteTo(data.GetPointer(), DataSize(), remote.RemoteAddress(), 
 				     (unsigned short)remote.RemotePort());
   PTRACE(6, "Frame\ttransmission of packet gave a " << transmitResult);
   return transmitResult;
@@ -306,7 +306,7 @@ IAX2Frame *IAX2Frame::BuildAppropriateFrameType()
 }
 
 
-PBoolean IAX2Frame::DecryptContents(IAX2Encryption &encryption)
+bool IAX2Frame::DecryptContents(IAX2Encryption &encryption)
 {
   if (!encryption.IsEncrypted())
     return true;
@@ -354,7 +354,7 @@ PBoolean IAX2Frame::DecryptContents(IAX2Encryption &encryption)
 #endif
 }
 
-PBoolean IAX2Frame::EncryptContents(IAX2Encryption &encryption)
+bool IAX2Frame::EncryptContents(IAX2Encryption &encryption)
 {
   if (!encryption.IsEncrypted())
     return true;
@@ -418,7 +418,7 @@ IAX2MiniFrame::IAX2MiniFrame(IAX2EndPoint &_endpoint)
 }
 
 IAX2MiniFrame::IAX2MiniFrame(IAX2Processor * iax2Processor, PBYTEArray &sound, 
-		     PBoolean _isAudio, DWORD usersTimeStamp) 
+		     bool _isAudio, DWORD usersTimeStamp) 
   : IAX2Frame(iax2Processor->GetEndPoint())
 {
   isAudio = _isAudio;
@@ -446,7 +446,7 @@ void IAX2MiniFrame::InitialiseHeader(IAX2Processor *iax2Processor)
   WriteHeader();
 }
 
-PBoolean IAX2MiniFrame::ProcessNetworkPacket() 
+bool IAX2MiniFrame::ProcessNetworkPacket() 
 {
   WORD dataWord;
   Read2Bytes(dataWord);
@@ -466,7 +466,7 @@ void IAX2MiniFrame::AlterTimeStamp(PINDEX newValue)
   timeStamp = (newValue & (0xffff << 16)) | (timeStamp & 0xffff);
 }
 
-PBoolean IAX2MiniFrame::WriteHeader()
+bool IAX2MiniFrame::WriteHeader()
 {
   currentWriteIndex = 0;   //Probably not needed, but this makes everything "obvious"
   
@@ -541,7 +541,7 @@ IAX2FullFrame::~IAX2FullFrame()
   PTRACE(6, "Frame\tDestructor IAX2FullFrame:: " << IdString());
 }
 
-PBoolean IAX2FullFrame::operator*=(IAX2FullFrame & /*other*/)
+bool IAX2FullFrame::operator*=(IAX2FullFrame & /*other*/)
 {
   PAssertAlways("Sorry, IAX2FullFrame comparison operator is Not implemented");
   return true;
@@ -579,7 +579,7 @@ void IAX2FullFrame::ClearListFlags()
   sendFrameNow   = false;
 }
 
-PBoolean IAX2FullFrame::TransmitPacket(PUDPSocket &sock)
+bool IAX2FullFrame::TransmitPacket(PUDPSocket &sock)
 {
   PTRACE(6, "Send network packet on " << IdString() << " " << connectionToken);
   if (packetResent) {
@@ -599,7 +599,7 @@ PBoolean IAX2FullFrame::TransmitPacket(PUDPSocket &sock)
   return IAX2Frame::TransmitPacket(sock);
 }
 
-PBoolean IAX2FullFrame::ProcessNetworkPacket()
+bool IAX2FullFrame::ProcessNetworkPacket()
 {
   PTRACE(5, "ProcessNetworkPacket - read the frame header");
   if (data.GetSize() < 12) {
@@ -637,91 +637,91 @@ PBoolean IAX2FullFrame::ProcessNetworkPacket()
   return true;
 }
 
-PBoolean IAX2FullFrame::IsPingFrame()
+bool IAX2FullFrame::IsPingFrame()
 {
   return (subClass == IAX2FullFrameProtocol::cmdPing) && 
     (frameType == iax2ProtocolType);
 }
 
-PBoolean IAX2FullFrame::IsNewFrame()
+bool IAX2FullFrame::IsNewFrame()
 {
   return (subClass == IAX2FullFrameProtocol::cmdNew) && 
     (frameType == iax2ProtocolType);
 }
 
-PBoolean IAX2FullFrame::IsLagRqFrame()
+bool IAX2FullFrame::IsLagRqFrame()
 {
   return (subClass == IAX2FullFrameProtocol::cmdLagRq) && 
     (frameType == iax2ProtocolType);
 }
 
-PBoolean IAX2FullFrame::IsLagRpFrame()
+bool IAX2FullFrame::IsLagRpFrame()
 {
   return (subClass == IAX2FullFrameProtocol::cmdLagRp) && 
     (frameType == iax2ProtocolType);     
 }
 
-PBoolean IAX2FullFrame::IsPongFrame()
+bool IAX2FullFrame::IsPongFrame()
 {
   return (subClass == IAX2FullFrameProtocol::cmdPong) && 
     (frameType == iax2ProtocolType);
 }
 
-PBoolean IAX2FullFrame::IsAuthReqFrame()
+bool IAX2FullFrame::IsAuthReqFrame()
 {
   return (subClass == IAX2FullFrameProtocol::cmdAuthReq) && 
     (frameType == iax2ProtocolType);
 }
 
-PBoolean IAX2FullFrame::IsVnakFrame()
+bool IAX2FullFrame::IsVnakFrame()
 {
   return (subClass == IAX2FullFrameProtocol::cmdVnak) && 
     (frameType == iax2ProtocolType);
 }
 
-PBoolean IAX2FullFrame::IsRegReqFrame()
+bool IAX2FullFrame::IsRegReqFrame()
 {
   return (subClass == IAX2FullFrameProtocol::cmdRegReq) && 
     (frameType == iax2ProtocolType);
 }
 
-PBoolean IAX2FullFrame::IsRegAuthFrame()
+bool IAX2FullFrame::IsRegAuthFrame()
 {
   return (subClass == IAX2FullFrameProtocol::cmdRegAuth) && 
     (frameType == iax2ProtocolType);
 }
 
-PBoolean IAX2FullFrame::IsRegAckFrame()
+bool IAX2FullFrame::IsRegAckFrame()
 {
   return (subClass == IAX2FullFrameProtocol::cmdRegAck) && 
     (frameType == iax2ProtocolType);
 }
 
-PBoolean IAX2FullFrame::IsRegRelFrame()
+bool IAX2FullFrame::IsRegRelFrame()
 {
   return (subClass == IAX2FullFrameProtocol::cmdRegRel) && 
     (frameType == iax2ProtocolType);
 }
 
-PBoolean IAX2FullFrame::IsRegRejFrame()
+bool IAX2FullFrame::IsRegRejFrame()
 {
   return (subClass == IAX2FullFrameProtocol::cmdRegRej) && 
     (frameType == iax2ProtocolType);
 }
 
-PBoolean IAX2FullFrame::IsHangupFrame()
+bool IAX2FullFrame::IsHangupFrame()
 {
   return (subClass == IAX2FullFrameProtocol::cmdHangup) && 
     (frameType == iax2ProtocolType);
 }
 
-PBoolean IAX2FullFrame::IsCallTokenFrame()
+bool IAX2FullFrame::IsCallTokenFrame()
 {
   return (subClass == IAX2FullFrameProtocol::cmdCallToken) && 
     (frameType == iax2ProtocolType);
 }
 
-PBoolean IAX2FullFrame::FrameIncrementsInSeqNo()
+bool IAX2FullFrame::FrameIncrementsInSeqNo()
 {
   if (frameType != iax2ProtocolType) {
     PTRACE(5, "SeqNos\tFrameType is not iaxProtocol, so we do increment inseqno. FrameType is " << frameType);
@@ -768,7 +768,7 @@ int IAX2FullFrame::CompressSubClass()
   return -1;
 }
 
-PBoolean IAX2FullFrame::WriteHeader()
+bool IAX2FullFrame::WriteHeader()
 {
   data.SetSize(12);
   PTRACE(6, "Write a source call number of " << remote.SourceCallNumber());
@@ -1234,7 +1234,7 @@ void IAX2FullFrameProtocol::WriteIeAsBinaryData()
   }    
 }
 
-PBoolean IAX2FullFrameProtocol::GetCallTokenIe(IAX2IeCallToken & callToken)
+bool IAX2FullFrameProtocol::GetCallTokenIe(IAX2IeCallToken & callToken)
 {
   for (IAX2IeList::iterator it = ieElements.begin(); it != ieElements.end(); ++it) {
     if (it->GetKeyValue() == IAX2Ie::ie_callToken) {
@@ -1246,7 +1246,7 @@ PBoolean IAX2FullFrameProtocol::GetCallTokenIe(IAX2IeCallToken & callToken)
   return false;
 }
 
-PBoolean IAX2FullFrameProtocol::ReadInformationElements()
+bool IAX2FullFrameProtocol::ReadInformationElements()
 {
   IAX2Ie *elem = NULL;
   

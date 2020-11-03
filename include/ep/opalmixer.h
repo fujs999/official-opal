@@ -473,7 +473,7 @@ class OpalMixerNodeManager
         Default behaviour deletes the objects that have been
         removed from the m_nodesByUID list.
       */
-    virtual PBoolean GarbageCollection();
+    virtual bool GarbageCollection();
   //@}
 
   /**@name Operations */
@@ -686,7 +686,7 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
         Returns true if all garbage has been collected.
         Default behaviour deletes the objects in the connectionsActive list.
       */
-    virtual PBoolean GarbageCollection();
+    virtual bool GarbageCollection();
   //@}
 
   /**@name Operations */
@@ -872,7 +872,7 @@ class OpalMixerConnection : public OpalLocalConnection
     virtual OpalMediaStream * CreateMediaStream(
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
-      PBoolean isSource                    ///<  Is a source stream
+      bool isSource                    ///<  Is a source stream
     );
 
     /**Call back when media stream patch thread starts.
@@ -890,7 +890,7 @@ class OpalMixerConnection : public OpalLocalConnection
        The default behaviour is to call SendUserInputTone() for each character
        in the string.
       */
-    virtual PBoolean SendUserInputString(
+    virtual bool SendUserInputString(
       const PString & value                   ///<  String value of indication
     );
 
@@ -910,7 +910,7 @@ class OpalMixerConnection : public OpalLocalConnection
 
        The default behaviour sends the tone using RFC2833.
       */
-    virtual PBoolean SendUserInputTone(
+    virtual bool SendUserInputTone(
       char tone,        ///<  DTMF tone code
       unsigned duration = 0  ///<  Duration of tone in milliseconds
     );
@@ -985,21 +985,21 @@ class OpalMixerMediaStream : public OpalMediaStream
   //@{
     /**Open the media stream using the media format.
       */
-    virtual PBoolean Open();
+    virtual bool Open();
 
     /**Write an RTP frame of data to the sink media stream.
        The default behaviour simply calls WriteData() on the data portion of the
        RTP_DataFrame and and sets the internal timestamp and marker from the
        member variables of the media stream class.
       */
-    virtual PBoolean WritePacket(
+    virtual bool WritePacket(
       RTP_DataFrame & packet
     );
 
     /**Indicate if the media stream is synchronous.
        Returns true for LID streams.
       */
-    virtual PBoolean IsSynchronous() const;
+    virtual bool IsSynchronous() const;
 
     /**Indicate if the media stream requires a OpalMediaPatch thread (active patch).
        This is called on the source/sink stream and is passed the sink/source
@@ -1011,7 +1011,7 @@ class OpalMixerMediaStream : public OpalMediaStream
        The default behaviour returns true if a sink stream. If source stream
        then threading is from the mixer class.
       */
-    virtual PBoolean RequiresPatchThread() const;
+    virtual bool RequiresPatchThread() const;
   //@}
 
   /**@name Member variable access */

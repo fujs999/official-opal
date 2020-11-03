@@ -438,7 +438,7 @@ OpalICEMediaTransport::ICEChannel::ICEChannel(OpalICEMediaTransport & owner, Sub
 }
 
 
-PBoolean OpalICEMediaTransport::ICEChannel::Read(void * data, PINDEX size)
+bool OpalICEMediaTransport::ICEChannel::Read(void * data, PINDEX size)
 {
   for (;;) {
     SetReadTimeout(m_owner.GetICEState() <= e_Completed ? m_owner.m_mediaTimeout : m_owner.m_iceTimeout);

@@ -158,7 +158,7 @@ void IAX2RegProcessor::ProcessFullFrame(IAX2FullFrame & fullFrame)
   
 }
 
-PBoolean IAX2RegProcessor::ProcessNetworkFrame(IAX2FullFrameProtocol * src)
+bool IAX2RegProcessor::ProcessNetworkFrame(IAX2FullFrameProtocol * src)
 {
   PTRACE(3, "ProcessNetworkFrame(IAX2FullFrameProtocol * src)");  
   src->CopyDataFromIeListTo(ieData);

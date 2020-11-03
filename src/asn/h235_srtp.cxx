@@ -132,7 +132,7 @@ PINDEX H235_SRTP_FecOrder::GetDataLength() const
 }
 
 
-PBoolean H235_SRTP_FecOrder::Decode(PASN_Stream & strm)
+bool H235_SRTP_FecOrder::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -189,7 +189,7 @@ H235_SRTP_SrtpKeyParameters_lifetime::H235_SRTP_SrtpKeyParameters_lifetime(unsig
 }
 
 
-PBoolean H235_SRTP_SrtpKeyParameters_lifetime::CreateObject()
+bool H235_SRTP_SrtpKeyParameters_lifetime::CreateObject()
 {
   switch (m_tag) {
     case e_powerOfTwo :
@@ -262,7 +262,7 @@ PINDEX H235_SRTP_SrtpKeyParameters_mki::GetDataLength() const
 }
 
 
-PBoolean H235_SRTP_SrtpKeyParameters_mki::Decode(PASN_Stream & strm)
+bool H235_SRTP_SrtpKeyParameters_mki::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -388,7 +388,7 @@ PINDEX H235_SRTP_SrtpKeyParameters::GetDataLength() const
 }
 
 
-PBoolean H235_SRTP_SrtpKeyParameters::Decode(PASN_Stream & strm)
+bool H235_SRTP_SrtpKeyParameters::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -515,7 +515,7 @@ PINDEX H235_SRTP_SrtpSessionParameters::GetDataLength() const
 }
 
 
-PBoolean H235_SRTP_SrtpSessionParameters::Decode(PASN_Stream & strm)
+bool H235_SRTP_SrtpSessionParameters::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -630,7 +630,7 @@ PINDEX H235_SRTP_SrtpCryptoInfo::GetDataLength() const
 }
 
 
-PBoolean H235_SRTP_SrtpCryptoInfo::Decode(PASN_Stream & strm)
+bool H235_SRTP_SrtpCryptoInfo::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
