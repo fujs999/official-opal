@@ -468,19 +468,25 @@ bool OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTimeIn
 
   // Avoid issues with constant delay offset caused by initial in rush of packets
   if (m_lastSyncSource == 0 && (m_lastInsertTick == 0 || (tick - m_lastInsertTick) < 10)) {
-    PTRACE_J(4, "Flushing initial audio packet:"
-                " SSRC=" << RTP_TRACE_SRC(newSyncSource) <<
-                " sn=" << currentSequenceNum <<
-                " ts=" << timestamp);
+    PTRACE_J(4, "Flushing initial:"
+                " ts=" << timestamp << ","
+                " sn=" << currentSequenceNum << ","
+                " psz=" << frame.GetPayloadSize() << ","
+                " SSRC=" << RTP_TRACE_SRC(newSyncSource));
     m_lastInsertTick = tick;
     return true;
   }
 
   // Check for remote switching media senders, they shouldn't do this but do anyway
   if (newSyncSource != m_lastSyncSource) {
-    PTRACE_IF(m_ssrcChangedThrottle, m_lastSyncSource != 0, "Buffer reset due to SSRC change from "
-              << RTP_TRACE_SRC(m_lastSyncSource) << " to " << RTP_TRACE_SRC(newSyncSource)
-              << " at sn=" << currentSequenceNum << m_ssrcChangedThrottle);
+    PTRACE_IF(m_ssrcChangedThrottle, m_lastSyncSource != 0,
+              "SSRC changed    :"
+              " ts=" << timestamp << ","
+              " sn=" << currentSequenceNum << ","
+              " psz=" << frame.GetPayloadSize() << ","
+              " from " << RTP_TRACE_SRC(m_lastSyncSource) <<
+              " to " << RTP_TRACE_SRC(newSyncSource)
+              << m_ssrcChangedThrottle);
     InternalReset();
     m_packetTime = 0;
     m_packetsTooLate = m_bufferOverruns = 0; // Reset these stats for new SSRC
@@ -525,12 +531,13 @@ bool OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTimeIn
       PTRACE_J(2, "Timestamps abruptly changed from " << m_lastTimestamp << " to " << timestamp << ", resynching");
       InternalReset();
     }
-    else if (m_lastSequenceNum+1 == currentSequenceNum && frame.GetPayloadType() != RTP_DataFrame::CN) {
+    else if (m_lastSequenceNum+1 == currentSequenceNum && frame.GetPayloadType() != RTP_DataFrame::CN && timestamp != m_lastTimestamp) {
       RTP_Timestamp delta = timestamp - m_lastTimestamp;
-      PTRACE_IF(std::min(sm_EveryPacketLogLevel,5U), m_maxJitterDelay > 0 && m_packetTime == 0, "Wait frame time :"
-                     " ts=" << timestamp << ","
-                  " delta=" << delta << " (" << (delta/m_timeUnits) << "ms),"
-                     " sn=" << currentSequenceNum);
+      PTRACE_IF(std::min(sm_EveryPacketLogLevel,5U), m_maxJitterDelay > 0 && m_packetTime == 0,
+                "Wait frame time :"
+                " ts=" << timestamp << ","
+                " delta=" << delta << " (" << (delta/m_timeUnits) << "ms),"
+                " sn=" << currentSequenceNum);
 
       /* Average the deltas. Most systems are "normalised" and the timestamp
           goes up by a constant on consecutive packets. Not not all. */
@@ -553,7 +560,12 @@ bool OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTimeIn
       }
     }
     else {
-      PTRACE_J(4, "Lost packet(s), or CN detected, resetting frame time average, sn=" << currentSequenceNum);
+      PTRACE_J(4, "Frame time reset:"
+                  " ts=" << timestamp << ","
+                  " sn=" << currentSequenceNum << ","
+                  " pt=" << frame.GetPayloadType() << ","
+                  " psz=" << frame.GetPayloadSize() << ","
+                  " SSRC=" << RTP_TRACE_SRC(newSyncSource));
       m_frameTimeSum = 0;
       m_frameTimeCount = 0;
     }
@@ -596,16 +608,21 @@ bool OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTimeIn
   pair<FrameMap::iterator,bool> result = m_frames.insert(FrameMap::value_type(timestamp, frame));
   if (result.second) {
     ANALYSE(In, timestamp, m_synchronisationState != e_SynchronisationDone ? "PreBuf" : "");
-    PTRACE_IF(sm_EveryPacketLogLevel, m_maxJitterDelay > 0, "Inserted packet :"
-           " ts=" << timestamp << ","
-           " dT=" << (tick - m_lastInsertTick) << ","
-           " payload=" << frame.GetPayloadSize() << ","
-           " size=" << m_frames.size());
+    PTRACE_IF(sm_EveryPacketLogLevel, m_maxJitterDelay > 0,
+              "Inserted packet :"
+              " ts=" << timestamp << ","
+              " dT=" << (tick - m_lastInsertTick) << ","
+              " payload=" << frame.GetPayloadSize() << ","
+              " size=" << m_frames.size());
     m_lastInsertTick = tick;
     m_frameCount.Signal();
   }
   else {
-    PTRACE_J(2, "Attempt to insert two RTP packets with same timestamp: " << timestamp);
+    PTRACE_J(2, "Same timestamp  :"
+                " ts=" << timestamp << ","
+                " sn=" << currentSequenceNum << ","
+                " psz=" << frame.GetPayloadSize() << ","
+                " SSRC=" << RTP_TRACE_SRC(newSyncSource));
   }
 
   return true;
