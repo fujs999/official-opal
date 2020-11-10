@@ -565,111 +565,112 @@ bool OpalFramedTranscoder::Convert(const RTP_DataFrame & input, RTP_DataFrame & 
 {
   // Note updateMutex should already be locked at this point.
 
-  if (inputIsRTP || outputIsRTP) {
-
-    const BYTE * inputPtr;
-    PINDEX inLen;
-    if (inputIsRTP) {
-      inputPtr = (const BYTE *)input;
-      inLen = input.GetPacketSize();
-    }
-    else
-    {
-      inputPtr = input.GetPayloadPtr();
-      inLen    = input.GetPayloadSize(); 
-    }
-
-    BYTE * outputPtr;
-    PINDEX outLen;
-    output.SetPayloadSize(outputBytesPerFrame);
-    if (outputIsRTP) {
-      outputPtr = output.GetPointer();
-      outLen    = output.GetSize();
-    }
-    else
-    {
-      outputPtr = output.GetPayloadPtr();
-      outLen    = outputBytesPerFrame;
-    }
-
-    if (!ConvertFrame(inputPtr, inLen, outputPtr, outLen))
-      return false;
-
-    if (!outputIsRTP)
-      output.SetPayloadSize(outLen);
-    else if (outLen <= RTP_DataFrame::MinHeaderSize)
-      output.SetPayloadSize(0);
-    else if (outLen <= output.GetHeaderSize())
-      output.SetPayloadSize(0);
-    else 
-      output.SetPayloadSize(outLen - output.GetHeaderSize());
-
-    return true;
-  }
+  bool ok;
+  PINDEX outputLength = maxOutputDataSize;
 
   // set maximum output payload size
   if (!output.SetPayloadSize(maxOutputDataSize))
     return false;
 
-  BYTE * outputPtr = output.GetPayloadPtr();
-  PINDEX outLen = 0;
-
-  const BYTE * inputPtr = input.GetPayloadPtr();
-  PINDEX inputLength = input.GetPayloadSize();
-
-  if (inputLength == 0) {
-    if (AcceptEmptyPayload()) {
-      outLen = maxOutputDataSize;
-      if (!ConvertFrame(inputPtr, inputLength, outputPtr, outLen))
-        return false;
-
-      /* If the codec is delaying the frame data (e.g. due to FEC of Opus) then
-         remember the timestamp of the reconstructed frame. */
-      if (outLen == 0 && m_emptyPayloadState == AwaitingEmptyPayload) {
-        m_emptyPayloadState = DelayedDecodeEmptyPayload;
-        m_lastEmptyPayloadTimestamp = input.GetTimestamp();
-        PTRACE(4, "Start of delayed frame output on empty payload: ts=" << m_lastEmptyPayloadTimestamp);
-      }
-    }
-    else {
-      if (!ConvertSilentFrame(outputPtr, outLen))
-        return false;
-    }
+  if (inputIsRTP && outputIsRTP) {
+    PINDEX inputLength = input.GetSize();
+    outputLength = output.GetSize();
+    ok = ConvertFrame(input, inputLength, output.GetPointer(), outputLength);
+  }
+  else if (inputIsRTP) {
+    PINDEX inputLength = input.GetSize();
+    outputLength = output.GetPayloadSize();
+    ok = ConvertFrame(input, inputLength, output.GetPayloadPtr(), outputLength);
+  }
+  else if (outputIsRTP) {
+    PINDEX inputLength = input.GetPayloadSize();
+    outputLength = output.GetSize();
+    ok = ConvertFrame(input.GetPayloadPtr(), inputLength, output.GetPointer(), outputLength);
+  }
+  else if (input.GetPayloadSize() == 0) {
+    outputLength = output.GetPayloadSize();
+    if (AcceptEmptyPayload())
+      ok = ConvertEmptyPacket(input, output, outputLength);
+    else
+      ok = ConvertSilentFrame(output.GetPointer(), outputLength);
   }
   else {
-    while (inputLength > 0 && outLen < maxOutputDataSize) {
-
-      PINDEX consumed = inputLength;
-      PINDEX created = maxOutputDataSize - outLen;
-
-      if (!ConvertFrame(inputPtr, consumed, outputPtr, created))
-        return false;
-
-      // If did not consume or produce any data, codec has gone wrong, abort!
-      if (consumed == 0 && created == 0)
-        break;
-
-      outputPtr += created;
-      outLen += created;
-      inputPtr += consumed;
-      inputLength -= consumed;
-    }
+    ok = ConvertFramesInPacket(input, output, outputLength);
   }
 
-  // We have delayed output from codec, so use timestamp from original sample
-  if (outLen > 0) {
-    if (m_emptyPayloadState == DelayedDecodeEmptyPayload) {
-      PTRACE(4, "Using delayed frame output on silence: ts=" << m_lastEmptyPayloadTimestamp);
-      output.SetTimestamp(m_lastEmptyPayloadTimestamp);
-    }
-    m_emptyPayloadState = AwaitingEmptyPayload;
+  if (!ok)
+    return false;
+
+  if (outputIsRTP) {
+    if (outputLength < RTP_DataFrame::MinHeaderSize || outputLength < output.GetHeaderSize())
+      outputLength = 0;
+    else
+      outputLength -= output.GetHeaderSize();
   }
 
-  // set actual output payload size
-  output.SetPayloadSize(outLen);
+  output.SetPayloadSize(outputLength);
+  return true;
+}
+
+
+bool OpalFramedTranscoder::ConvertEmptyPacket(const RTP_DataFrame & input, RTP_DataFrame & output, PINDEX & outputLen)
+{
+  PINDEX dummy = 0;
+  if (!ConvertFrame(NULL, dummy, output.GetPointer(), outputLen))
+    return false;
+
+  /* If the codec is delaying the frame data (e.g. due to FEC of Opus) then
+      remember the timestamp of the reconstructed frame. */
+  if (outputLen == 0 && m_emptyPayloadState == AwaitingEmptyPayload) {
+    m_emptyPayloadState = DelayedDecodeEmptyPayload;
+    m_lastEmptyPayloadTimestamp = input.GetTimestamp();
+    PTRACE(4, "Start of delayed frame output on empty payload: ts=" << m_lastEmptyPayloadTimestamp);
+  }
 
   return true;
 }
+
+
+bool OpalFramedTranscoder::ConvertFramesInPacket(const RTP_DataFrame & input, RTP_DataFrame & output, PINDEX & outputLen)
+{
+  const BYTE * inputPtr = input.GetPayloadPtr();
+  PINDEX inputLen = input.GetPayloadSize();
+  BYTE * outputPtr = output.GetPayloadPtr();
+  outputLen = 0;
+
+  while (inputLen > 0 && outputLen < maxOutputDataSize) {
+
+    PINDEX consumed = inputLen;
+    PINDEX created = maxOutputDataSize - outputLen;
+
+    if (!ConvertFrame(inputPtr, consumed, outputPtr, created))
+      return false;
+
+    // If did not consume or produce any data, codec has gone wrong, abort!
+    if (consumed == 0 && created == 0) {
+      PTRACE(2, "Unexpected response from codec, no data consumed, no data produced");
+      return false;
+    }
+
+    outputPtr += created;
+    outputLen += created;
+    inputPtr += consumed;
+    inputLen -= consumed;
+  }
+
+  if (outputLen == 0)
+    return true;
+
+  // We have delayed output from codec, so use timestamp from original sample
+  if (m_emptyPayloadState == DelayedDecodeEmptyPayload) {
+    PTRACE(4, "Using delayed frame output on silence: ts=" << m_lastEmptyPayloadTimestamp);
+    output.SetTimestamp(m_lastEmptyPayloadTimestamp);
+  }
+  m_emptyPayloadState = AwaitingEmptyPayload;
+
+  return true;
+}
+
 
 bool OpalFramedTranscoder::ConvertFrame(const BYTE * inputPtr, PINDEX & /*consumed*/, BYTE * outputPtr, PINDEX & /*created*/)
 {
