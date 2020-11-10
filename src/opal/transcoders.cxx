@@ -615,18 +615,29 @@ PBoolean OpalFramedTranscoder::Convert(const RTP_DataFrame & input, RTP_DataFram
 
 bool OpalFramedTranscoder::ConvertEmptyPacket(const RTP_DataFrame & input, RTP_DataFrame & output, PINDEX & outputLen)
 {
-  PINDEX dummy = 0;
-  if (!ConvertFrame(NULL, dummy, output.GetPointer(), outputLen))
+  PINDEX inputLen = 0;
+  if (!ConvertFrame(input.GetPayloadPtr(), inputLen, output.GetPointer(), outputLen))
     return false;
 
   /* If the codec is delaying the frame data (e.g. due to FEC of Opus) then
       remember the timestamp of the reconstructed frame. */
-  if (outputLen == 0 && m_emptyPayloadState == AwaitingEmptyPayload) {
-    m_emptyPayloadState = DelayedDecodeEmptyPayload;
-    m_lastEmptyPayloadTimestamp = input.GetTimestamp();
-    PTRACE(4, "Start of delayed frame output on empty payload: ts=" << m_lastEmptyPayloadTimestamp);
+  if (outputLen == 0) {
+    if (m_emptyPayloadState == AwaitingEmptyPayload) {
+      m_emptyPayloadState = DelayedDecodeEmptyPayload;
+      PTRACE(4, "Start of delayed frame output on empty payload: ts=" << m_lastEmptyPayloadTimestamp);
+    }
+  }
+  else {
+    /* If we get consecutive empty frames the codec might switch to interpolation,
+       and eventually just comfort noise, in which case we get output audio but we
+       need to keep the timestamps one packet behind until we get a non-empty packet */
+    if (m_emptyPayloadState == DelayedDecodeEmptyPayload) {
+      PTRACE(4, "Using delayed frame output on empty packet: ts=" << m_lastEmptyPayloadTimestamp);
+      output.SetTimestamp(m_lastEmptyPayloadTimestamp);
+    }
   }
 
+  m_lastEmptyPayloadTimestamp = input.GetTimestamp();
   return true;
 }
 
@@ -663,7 +674,7 @@ bool OpalFramedTranscoder::ConvertFramesInPacket(const RTP_DataFrame & input, RT
 
   // We have delayed output from codec, so use timestamp from original sample
   if (m_emptyPayloadState == DelayedDecodeEmptyPayload) {
-    PTRACE(4, "Using delayed frame output on silence: ts=" << m_lastEmptyPayloadTimestamp);
+    PTRACE(4, "Using delayed frame output on non-empty packet: ts=" << m_lastEmptyPayloadTimestamp);
     output.SetTimestamp(m_lastEmptyPayloadTimestamp);
   }
   m_emptyPayloadState = AwaitingEmptyPayload;
