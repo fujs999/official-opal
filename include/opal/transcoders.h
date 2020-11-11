@@ -444,6 +444,8 @@ class OpalFramedTranscoder : public OpalTranscoder
   //@}
 
   protected:
+    virtual bool ConvertEmptyPacket(const RTP_DataFrame & input, RTP_DataFrame & output, PINDEX & outputLen);
+    virtual bool ConvertFramesInPacket(const RTP_DataFrame & input, RTP_DataFrame & output, PINDEX & outputLen);
     void CalculateSizes();
 
     PINDEX inputBytesPerFrame;
