@@ -224,7 +224,10 @@ class OpalMediaStatistics : public PObject
     PCLASSINFO(OpalMediaStatistics, PObject);
   public:
     OpalMediaStatistics();
-    OpalMediaStatistics(const OpalMediaStatistics & other);
+
+    /* Note operator= does not overwrite the m_updateInfo in the assignee,
+       this allows it to have a different update cycle for bit rates etc
+       to the data being assigned from. */
     OpalMediaStatistics & operator=(const OpalMediaStatistics & other);
 
     virtual void PrintOn(ostream & strm) const;
