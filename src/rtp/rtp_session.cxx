@@ -1406,7 +1406,8 @@ bool OpalRTPSession::AddGroup(const PString & groupId, const PString & mediaId, 
 
   if (IsGroupMember(GetBundleGroupId())) {
     // When bundling we force rtcp-mux and only allow announced SSRC values
-    m_singlePortRx = true;
+    if (!m_singlePortRx)
+      m_singlePortRx = true; // TSan workaround: only set if changed
     m_stringOptions.Set(OPAL_OPT_RTP_ALLOW_SSRC, OPAL_OPT_RTP_ALLOW_SSRC_PRESET);
   }
 
@@ -3461,8 +3462,11 @@ PString OpalRTPSession::GetLocalHostName()
 void OpalRTPSession::SetSinglePortRx(bool singlePortRx)
 {
   P_INSTRUMENTED_LOCK_READ_WRITE(return);
-  PTRACE_IF(3, m_singlePortRx != singlePortRx, *this << (singlePortRx ? "enable" : "disable") << " single port mode for receive");
-  m_singlePortRx = singlePortRx;
+  // TSan workaround: only set if changed
+  if (m_singlePortRx != singlePortRx) {
+    PTRACE(3, *this << (singlePortRx ? "enable" : "disable") << " single port mode for receive");
+    m_singlePortRx = singlePortRx;
+  }
 }
 
 
@@ -3470,8 +3474,11 @@ void OpalRTPSession::SetSinglePortTx(bool singlePortTx)
 {
   {
     P_INSTRUMENTED_LOCK_READ_WRITE(return);
-    PTRACE_IF(3, m_singlePortTx != singlePortTx, *this << (singlePortTx ? "enable" : "disable") << " single port mode for transmit");
-    m_singlePortTx = singlePortTx;
+    // TSan workaround: only set if changed
+    if (m_singlePortTx != singlePortTx) {
+      PTRACE(3, *this << (singlePortTx ? "enable" : "disable") << " single port mode for transmit");
+      m_singlePortTx = singlePortTx;
+    }
   }
 
   OpalMediaTransportPtr transport = m_transport; // This way avoids races
