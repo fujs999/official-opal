@@ -585,6 +585,7 @@ OpalMediaCryptoKeyInfo * OpalSRTPSession::IsCryptoSecured(bool rx) const
 
 bool OpalSRTPSession::Open(const PString & localInterface, const OpalTransportAddress & remoteAddress)
 {
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
   m_anyRTCP_SSRC = GetSyncSourceIn() == 0 && m_stringOptions.GetBoolean(OPAL_OPT_SRTP_RTCP_ANY_SSRC, m_anyRTCP_SSRC);
 
   return OpalRTPSession::Open(localInterface, remoteAddress);
