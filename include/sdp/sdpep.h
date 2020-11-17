@@ -54,7 +54,7 @@ class OpalSDPHTTPConnection;
    This flag places meda stream identifiers into the SDP so that corresponding
    audio and video streams can be linked, e.g. for lip sync.
 
-   Defaults to false.
+   Defaults to true.
 */
 #define OPAL_OPT_USE_MEDIA_STREAMS "Use-Media-Stream"
 
@@ -350,6 +350,10 @@ class OpalSDPConnection : public OpalRTPConnection
       const OpalMediaStreamPtr & stream,
       SDPMediaDescription * sdp
     );
+
+#if OPAL_VIDEO
+    virtual void SetUpLipSync();
+#endif // OPAL_VIDEO
 
     virtual bool SetRemoteMediaFormats(
       const OpalMediaFormatList & formats

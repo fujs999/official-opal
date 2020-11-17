@@ -123,7 +123,7 @@ class OpalRTPSession : public OpalMediaSession
     virtual bool SetRemoteAddress(const OpalTransportAddress & remoteAddress, bool isMediaAddress = true);
     virtual void AttachTransport(const OpalMediaTransportPtr & transport);
     virtual OpalMediaTransportPtr DetachTransport();
-    virtual bool AddGroup(const PString & groupId, const PString & mediaId, bool overwrite = true);
+    virtual bool AddGroup(const PString & groupId, unsigned index, const PString & mediaId);
 
     virtual bool UpdateMediaFormat(const OpalMediaFormat & mediaFormat);
 
@@ -405,6 +405,16 @@ class OpalRTPSession : public OpalMediaSession
     /**Set the canonical name for the RTP session.
       */
     void SetCanonicalName(const PString & name, RTP_SyncSourceId ssrc = 0, Direction dir = e_Sender);
+
+    /**Get the BUNDLE mdia id (mid) for the RTP session SSRC.
+       See https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation
+    */
+    PString GetBundleMediaId(RTP_SyncSourceId ssrc, Direction dir = e_Sender) const;
+
+    /**Set the BUNDLE mdia id (mid) for the RTP session SSRC.
+       See https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation
+    */
+    void SetBundleMediaId(const PString & id, RTP_SyncSourceId ssrc, Direction dir);
 
     /**Get the "RtpStreamId" for the RTP session SSRC.
        See https://tools.ietf.org/html/draft-ietf-avtext-rid
@@ -723,7 +733,7 @@ class OpalRTPSession : public OpalMediaSession
     unsigned            m_transportWideSeqNumHdrExtId;
     unsigned            m_rtpStreamIdHdrExtId;
     unsigned            m_repairedRtpStreamIdHdrExtId;
-    unsigned            m_groupMediaIdHdrExtId;
+    unsigned            m_bundleMediaIdHdrExtId;
     PTimeInterval       m_staleReceiverTimeout;
     PINDEX              m_maxOutOfOrderPackets; // Number of packets before we give up waiting for an out of order packet
     PTimeInterval       m_waitOutOfOrderTime;   // Milliseconds before we give up on an out of order packet
@@ -801,6 +811,7 @@ class OpalRTPSession : public OpalMediaSession
       RTP_SyncSourceId  m_sourceIdentifier;
       RTP_SyncSourceId  m_loopbackIdentifier;
       PString           m_canonicalName;
+      PString           m_bundleMediaId;
       PString           m_rtpStreamId;
       PString           m_mediaStreamId;
       PString           m_mediaTrackId;

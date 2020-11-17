@@ -372,6 +372,8 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
     const OpalTransportAddress & GetControlAddress() const { return m_controlAddress; }
     bool SetAddresses(const OpalTransportAddress & media, const OpalTransportAddress & control);
 
+    unsigned GetIndex() const { return m_index; }
+    void SetIndex(unsigned index) { m_index = index; }
     WORD GetPort() const { return m_port; }
     void SetPort(WORD port) { m_port = port; }
 
@@ -448,6 +450,7 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
   protected:
     virtual SDPMediaFormat * FindFormat(PString & str) const;
 
+    unsigned             m_index; // Essentially position of m= line in whole SDP
     OpalTransportAddress m_mediaAddress;
     OpalTransportAddress m_controlAddress;
     WORD                 m_port;

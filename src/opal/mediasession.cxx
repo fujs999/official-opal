@@ -1629,20 +1629,34 @@ bool OpalMediaSession::UpdateMediaFormat(const OpalMediaFormat &)
 const PString & OpalMediaSession::GetBundleGroupId() { static PConstString const s("BUNDLE"); return s;  }
 
 
-bool OpalMediaSession::AddGroup(const PString & groupId, const PString & mediaId, bool overwrite)
+bool OpalMediaSession::AddGroup(const PString & groupId, unsigned index, const PString & mediaId)
 {
+  if (!PAssert(!groupId.empty() && !mediaId.empty(), PInvalidParameter))
+    return false;
+
   P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
-  if (!overwrite && m_groups.Contains(groupId)) {
-    if (m_groups[groupId] == mediaId)
+  GroupMediaMaps & media = m_groups[groupId];
+
+  GroupMediaByIndex::const_iterator itIndex = media.m_byIndex.find(index);
+  if (itIndex != media.m_byIndex.end()) {
+    if (itIndex->second == mediaId)
       return true;
-    PTRACE(3, *this << "could not set group \"" << groupId << "\" media id to"
-           " \"" << mediaId << "\", already set to \"" << m_groups[groupId] << '"');
+    PTRACE(4, *this << "media id \"" << itIndex->second << "\" already at index " << index << " in group \"" << groupId << '"');
     return false;
   }
 
-  m_groups.SetAt(groupId, mediaId);
-  PTRACE(4, "Set group \"" << groupId << "\" to media id \"" << mediaId << '"');
+  GroupMediaByIdent::const_iterator itIdent = media.m_byIdent.find(mediaId);
+  if (itIdent != media.m_byIdent.end()) {
+    if (itIdent->second == index)
+      return true;
+    PTRACE(4, *this << "media id \"" << mediaId << "\" already at index " << itIdent->second << " in group \"" << groupId << '"');
+    return false;
+  }
+
+  media.m_byIndex[index] = mediaId;
+  media.m_byIdent[mediaId] = index;
+  PTRACE(3, *this << "added media id \"" << mediaId << "\" at index " << index << " to group \"" << groupId << '"');
   return true;
 }
 
@@ -1650,25 +1664,45 @@ bool OpalMediaSession::AddGroup(const PString & groupId, const PString & mediaId
 bool OpalMediaSession::IsGroupMember(const PString & groupId) const
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return false);
-  return m_groups.Contains(groupId);
+  return m_groups.find(groupId) != m_groups.end();
 }
 
 
 PStringArray OpalMediaSession::GetGroups() const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY(return PStringArray());
-  return m_groups.GetKeys();
+  PStringArray groups;
+  P_INSTRUMENTED_LOCK_READ_ONLY(return groups);
+  groups.SetSize(m_groups.size());
+  PINDEX i = 0;
+  for (GroupMap::const_iterator it = m_groups.begin(); it != m_groups.end(); ++it,++i)
+    groups[i] = it->first;
+  return groups;
 }
 
 
-PString OpalMediaSession::GetGroupMediaId(const PString & groupId) const
+PString OpalMediaSession::GetGroupMediaId(const PString & groupId, unsigned index) const
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
-  PString str = m_groups(groupId);
-  str.MakeUnique();
-  return str;
+  GroupMap::const_iterator itGrp = m_groups.find(groupId);
+  if (itGrp != m_groups.end()) {
+    GroupMediaByIndex::const_iterator itMedia = itGrp->second.m_byIndex.find(index);
+    if (itMedia != itGrp->second.m_byIndex.end())
+      return itMedia->second;
+  }
+  return PString::Empty();
 }
 
+unsigned OpalMediaSession::FindGroupMediaId(const PString & groupId, const PString & mediaId) const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return UINT_MAX);
+  GroupMap::const_iterator itGrp = m_groups.find(groupId);
+  if (itGrp != m_groups.end()) {
+    GroupMediaByIdent::const_iterator itMedia = itGrp->second.m_byIdent.find(mediaId);
+    if (itMedia != itGrp->second.m_byIdent.end())
+      return itMedia->second;
+  }
+  return UINT_MAX;
+}
 
 #if OPAL_SDP
 SDPMediaDescription * OpalMediaSession::CreateSDPMediaDescription()
