@@ -159,6 +159,7 @@ OpalRTPEndPoint::~OpalRTPEndPoint()
 PStringList OpalRTPEndPoint::GetAvailableStringOptions() const
 {
   static char const * const StringOpts[] = {
+    OPAL_OPT_USE_MEDIA_STREAMS,
     OPAL_OPT_DISABLE_NAT,
     #ifdef OPAL_ICE
       OPAL_OPT_ICE_LITE,
