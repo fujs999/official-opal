@@ -284,11 +284,14 @@ class OpalSDPConnection : public OpalRTPConnection
     virtual bool OnSendOfferSDPSession(
       unsigned sessionID,
       SDPSessionDescription & sdpOut,
-      bool offerOpenMediaStreamOnly
+      bool offerOpenMediaStreamOnly,
+      bool bundled
     );
     virtual SDPMediaDescription * OnSendOfferSDPStream(
       OpalMediaSession * mediaSession,
       bool offerOpenMediaStreamOnly,
+      bool bundled,
+      unsigned rtpStreamIndex,
       RTP_SyncSourceId ssrc
     );
 
