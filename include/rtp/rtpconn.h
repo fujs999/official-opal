@@ -50,11 +50,19 @@ class OpalRTPEndPoint;
   */
 #define OPAL_OPT_DISABLE_NAT  "Disable-NAT"
 
-  /**OpalConnection::StringOption key to an enum indicating the cryptographic
-     exchange mode to use for the RTP connection. This is a list of strings:
-     "AllowClear", "SecureSignalling" and "InBandKeyEchange".
+/**Enable audio/video media stream identifiers to SDP.
+   This flag places meda stream identifiers into the SDP so that corresponding
+   audio and video streams can be linked, e.g. for lip sync.
 
-     Default "AllowClear".
+   Defaults to true.
+  */
+#define OPAL_OPT_USE_MEDIA_STREAMS "Use-Media-Stream"
+
+/**OpalConnection::StringOption key to an enum indicating the cryptographic
+   exchange mode to use for the RTP connection. This is a list of strings:
+   "AllowClear", "SecureSignalling" and "InBandKeyEchange".
+
+   Default "AllowClear".
   */
 #define OPAL_OPT_CRYPTO_EXCHANGE  "Crypto-Exchange"
 #define OPAL_OPT_CRYPTO_EXCHANGE_ALLOW_CLEAR         "AllowClear"
@@ -289,6 +297,10 @@ class OpalRTPConnection : public OpalConnection
     virtual bool SetSessionQoS(
       OpalRTPSession * session
     );
+
+#if OPAL_VIDEO
+    virtual void SetUpLipSyncMediaStreams();
+#endif // OPAL_VIDEO
   //@}
 
   /**@name NAT Management */

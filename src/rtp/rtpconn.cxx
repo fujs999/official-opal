@@ -470,6 +470,71 @@ bool OpalRTPConnection::SetSessionQoS(OpalRTPSession * /*session*/)
 }
 
 
+#if OPAL_VIDEO
+
+void OpalRTPConnection::SetUpLipSyncMediaStreams()
+{
+  if (!m_stringOptions.GetBoolean(OPAL_OPT_USE_MEDIA_STREAMS, true))
+    return;
+
+  OpalRTPSession * audioSession = dynamic_cast<OpalRTPSession *>(FindSessionByMediaType(OpalMediaType::Audio()));
+  if (audioSession == NULL)
+    return;
+
+  OpalRTPSession * videoSession = dynamic_cast<OpalRTPSession *>(FindSessionByMediaType(OpalMediaType::Video()));
+  if (videoSession == NULL)
+    return;
+
+  RTP_SyncSourceArray audioSSRCs = audioSession->GetSyncSources(OpalRTPSession::e_Sender);
+  RTP_SyncSourceArray videoSSRCs = videoSession->GetSyncSources(OpalRTPSession::e_Sender);
+
+  struct ByStreamIndex {
+    OpalRTPSession & m_session;
+    ByStreamIndex(OpalRTPSession & session) : m_session(session) { }
+    bool operator()(RTP_SyncSourceId ssrcA, RTP_SyncSourceId ssrcB) const
+    {
+      unsigned idxA = m_session.FindGroupMediaId(OpalMediaSession::GetBundleGroupId(), m_session.GetBundleMediaId(ssrcA));
+      unsigned idxB = m_session.FindGroupMediaId(OpalMediaSession::GetBundleGroupId(), m_session.GetBundleMediaId(ssrcB));
+      return (idxA == UINT_MAX && idxB == UINT_MAX) ? (ssrcA < ssrcB) : (idxA < idxB);
+    }
+  };
+  std::sort(audioSSRCs.begin(), audioSSRCs.end(), ByStreamIndex(*audioSession));
+  std::sort(videoSSRCs.begin(), videoSSRCs.end(), ByStreamIndex(*videoSession));
+
+  size_t audioIndex = 0;
+  size_t videoIndex = 0;
+  while (audioIndex < audioSSRCs.size() && videoIndex < videoSSRCs.size()) {
+    RTP_SyncSourceId audioSSRC = audioSSRCs[audioIndex];
+    
+    if (!audioSession->GetMediaStreamId(audioSSRC, OpalRTPSession::e_Sender).empty() ||
+         audioSession->GetRtxSyncSource(audioSSRC, OpalRTPSession::e_Sender, false) != 0) {
+      ++audioIndex;
+      continue;
+    }
+
+    RTP_SyncSourceId videoSSRC = videoSSRCs[videoIndex];
+    if (!videoSession->GetMediaStreamId(videoSSRC, OpalRTPSession::e_Sender).empty() ||
+         videoSession->GetRtxSyncSource(videoSSRC, OpalRTPSession::e_Sender, false) != 0) {
+      ++videoIndex;
+      continue;
+    }
+
+    ++audioIndex;
+    ++videoIndex;
+
+    PString id = PGloballyUniqueID().AsString();
+    PTRACE(3, "Setting lip sync A/V media stream ID to \"" << id << "\""
+              " for audio SSRC " << RTP_TRACE_SRC(audioSSRC) <<
+              " and video SSRC " << RTP_TRACE_SRC(videoSSRC) <<
+              " on " << *this);
+    audioSession->SetMediaStreamId(id, audioSSRC, OpalRTPSession::e_Sender);
+    videoSession->SetMediaStreamId(id, videoSSRC, OpalRTPSession::e_Sender);
+  }
+}
+
+#endif // OPAL_VIDEO
+
+
 void OpalRTPConnection::DetermineRTPNAT(const OpalTransport & transport, const OpalTransportAddress & signalAddr)
 {
   if (m_remoteBehindNAT) {
