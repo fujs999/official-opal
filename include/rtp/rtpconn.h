@@ -50,11 +50,19 @@ class OpalRTPEndPoint;
   */
 #define OPAL_OPT_DISABLE_NAT  "Disable-NAT"
 
-  /**OpalConnection::StringOption key to an enum indicating the cryptographic
-     exchange mode to use for the RTP connection. This is a list of strings:
-     "AllowClear", "SecureSignalling" and "InBandKeyEchange".
+/**Enable audio/video media stream identifiers to SDP.
+   This flag places meda stream identifiers into the SDP so that corresponding
+   audio and video streams can be linked, e.g. for lip sync.
 
-     Default "AllowClear".
+   Defaults to true.
+  */
+#define OPAL_OPT_USE_MEDIA_STREAMS "Use-Media-Stream"
+
+/**OpalConnection::StringOption key to an enum indicating the cryptographic
+   exchange mode to use for the RTP connection. This is a list of strings:
+   "AllowClear", "SecureSignalling" and "InBandKeyEchange".
+
+   Default "AllowClear".
   */
 #define OPAL_OPT_CRYPTO_EXCHANGE  "Crypto-Exchange"
 #define OPAL_OPT_CRYPTO_EXCHANGE_ALLOW_CLEAR         "AllowClear"
@@ -284,25 +292,15 @@ class OpalRTPConnection : public OpalConnection
       OpalMediaSession * mediaSession ///< New session
     );
 
-#if OPAL_VIDEO
-    /**Set group id, typically BUNDLE, for all audio/video sessions.
-      */
-    virtual void AddAudioVideoGroup(
-      const PString & id = OpalMediaSession::GetBundleGroupId()
-    );
-
-    /**Set the media stream identifiers for the audio/video sessions.
-       These identifiers are used to match pairs of audio and video streams
-       for the purposes of lip-sync.
-      */
-    virtual void SetAudioVideoMediaStreamIDs(OpalRTPSession::Direction direction);
-#endif
-
     /**Set QoS on session.
       */
     virtual bool SetSessionQoS(
       OpalRTPSession * session
     );
+
+#if OPAL_VIDEO
+    virtual void SetUpLipSyncMediaStreams();
+#endif // OPAL_VIDEO
   //@}
 
   /**@name NAT Management */
@@ -350,6 +348,8 @@ class OpalRTPConnection : public OpalConnection
 #endif
 
     P_REMOVE_VIRTUAL(PBoolean,IsRTPNATEnabled(const PIPSocket::Address&,const PIPSocket::Address&,const PIPSocket::Address&,PBoolean),false);
+    P_REMOVE_VIRTUAL_VOID(AddAudioVideoGroup(const PString&));
+    P_REMOVE_VIRTUAL_VOID(SetAudioVideoMediaStreamIDs(OpalRTPSession::Direction));
 };
 
 

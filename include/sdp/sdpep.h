@@ -50,14 +50,6 @@ class OpalSDPHTTPConnection;
 */
 #define OPAL_OPT_AV_BUNDLE "AV-Bundle"
 
-/**Enable audio/video media stream identifiers to SDP.
-   This flag places meda stream identifiers into the SDP so that corresponding
-   audio and video streams can be linked, e.g. for lip sync.
-
-   Defaults to false.
-*/
-#define OPAL_OPT_USE_MEDIA_STREAMS "Use-Media-Stream"
-
 /**Indicate audio will continue to flow when audio is inactive.
    Usually, the media patch thread for received audio is halted completely
    when the remote indicates no media will flow, via the SDP "recvonly" or
@@ -292,11 +284,14 @@ class OpalSDPConnection : public OpalRTPConnection
     virtual bool OnSendOfferSDPSession(
       unsigned sessionID,
       SDPSessionDescription & sdpOut,
-      bool offerOpenMediaStreamOnly
+      bool offerOpenMediaStreamOnly,
+      bool bundled
     );
     virtual SDPMediaDescription * OnSendOfferSDPStream(
       OpalMediaSession * mediaSession,
       bool offerOpenMediaStreamOnly,
+      bool bundled,
+      unsigned rtpStreamIndex,
       RTP_SyncSourceId ssrc
     );
 
