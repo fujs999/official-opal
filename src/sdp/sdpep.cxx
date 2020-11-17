@@ -742,6 +742,7 @@ SDPMediaDescription * OpalSDPConnection::OnSendOfferSDPStream(OpalMediaSession *
 
   PTRACE_CONTEXT_ID_TO(*localMedia);
   localMedia->SetStringOptions(m_stringOptions);
+  localMedia->SetIndex(rtpStreamIndex);
 
   if (offerOpenMediaStreamOnly) {
     unsigned sessionId = mediaSession->GetSessionID();
