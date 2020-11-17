@@ -352,6 +352,71 @@ SDPSessionDescription * OpalSDPConnection::CreateSDP(const PString & sdpStr)
 }
 
 
+#if OPAL_VIDEO
+
+void OpalSDPConnection::SetUpLipSync()
+{
+  if (!m_stringOptions.GetBoolean(OPAL_OPT_USE_MEDIA_STREAMS, true))
+    return;
+
+  OpalRTPSession * audioSession = dynamic_cast<OpalRTPSession *>(FindSessionByMediaType(OpalMediaType::Audio()));
+  if (audioSession == NULL)
+    return;
+
+  OpalRTPSession * videoSession = dynamic_cast<OpalRTPSession *>(FindSessionByMediaType(OpalMediaType::Video()));
+  if (videoSession == NULL)
+    return;
+
+  RTP_SyncSourceArray audioSSRCs = audioSession->GetSyncSources(OpalRTPSession::e_Sender);
+  RTP_SyncSourceArray videoSSRCs = videoSession->GetSyncSources(OpalRTPSession::e_Sender);
+
+  struct ByStreamIndex {
+    OpalRTPSession & m_session;
+    ByStreamIndex(OpalRTPSession & session) : m_session(session) { }
+    bool operator()(RTP_SyncSourceId ssrcA, RTP_SyncSourceId ssrcB) const
+    {
+      unsigned idxA = m_session.FindGroupMediaId(OpalMediaSession::GetBundleGroupId(), m_session.GetBundleMediaId(ssrcA));
+      unsigned idxB = m_session.FindGroupMediaId(OpalMediaSession::GetBundleGroupId(), m_session.GetBundleMediaId(ssrcB));
+      return (idxA == UINT_MAX && idxB == UINT_MAX) ? (ssrcA < ssrcB) : (idxA < idxB);
+    }
+  };
+  std::sort(audioSSRCs.begin(), audioSSRCs.end(), ByStreamIndex(*audioSession));
+  std::sort(videoSSRCs.begin(), videoSSRCs.end(), ByStreamIndex(*videoSession));
+
+  size_t audioIndex = 0;
+  size_t videoIndex = 0;
+  while (audioIndex < audioSSRCs.size() && videoIndex < videoSSRCs.size()) {
+    RTP_SyncSourceId audioSSRC = audioSSRCs[audioIndex];
+    
+    if (!audioSession->GetMediaStreamId(audioSSRC, OpalRTPSession::e_Sender).empty() ||
+         audioSession->GetRtxSyncSource(audioSSRC, OpalRTPSession::e_Sender, false) != 0) {
+      ++audioIndex;
+      continue;
+    }
+
+    RTP_SyncSourceId videoSSRC = videoSSRCs[videoIndex];
+    if (!videoSession->GetMediaStreamId(videoSSRC, OpalRTPSession::e_Sender).empty() ||
+         videoSession->GetRtxSyncSource(videoSSRC, OpalRTPSession::e_Sender, false) != 0) {
+      ++videoIndex;
+      continue;
+    }
+
+    ++audioIndex;
+    ++videoIndex;
+
+    PString id = PGloballyUniqueID().AsString();
+    PTRACE(3, "Setting lip sync A/V media stream ID to \"" << id << "\""
+              " for audio SSRC " << RTP_TRACE_SRC(audioSSRC) <<
+              " and video SSRC " << RTP_TRACE_SRC(videoSSRC) <<
+              " on " << *this);
+    audioSession->SetMediaStreamId(id, audioSSRC, OpalRTPSession::e_Sender);
+    videoSession->SetMediaStreamId(id, videoSSRC, OpalRTPSession::e_Sender);
+  }
+}
+
+#endif // OPAL_VIDEO
+
+
 bool OpalSDPConnection::SetRemoteMediaFormats(const OpalMediaFormatList & formats)
 {
   m_remoteFormatList = formats;
@@ -423,18 +488,20 @@ struct OpalSDPConnection::BundleMergeInfo
     vector<bool> m_allowPauseRecvMediaStream;
     vector<bool> m_allowPauseSendMediaStream;
     OpalMediaTransportPtr m_transport;
-    RTP_SyncSourceArray m_ssrcs;
+    RTP_SyncSourceArray m_recvSsrcs;
+    RTP_SyncSourceArray m_sendSsrcs;
     vector<unsigned> m_sessionId;
 
     BundleMergeInfo(size_t mediaDescriptionCount)
       : m_allowPauseRecvMediaStream(mediaDescriptionCount+1, true)
       , m_allowPauseSendMediaStream(mediaDescriptionCount+1, true)
+      , m_sendSsrcs(mediaDescriptionCount+1)
       , m_sessionId(mediaDescriptionCount+1)
     { }
 
     void RemoveSessionSSRCs(SessionMap & sessions)
     {
-      if (m_ssrcs.empty())
+      if (m_recvSsrcs.empty())
         return;
 
       for (SessionMap::iterator session = sessions.begin(); session != sessions.end(); ++session) {
@@ -444,7 +511,7 @@ struct OpalSDPConnection::BundleMergeInfo
 
         RTP_SyncSourceArray ssrcs = rtpSession->GetSyncSources(OpalRTPSession::e_Receiver);
         for (RTP_SyncSourceArray::const_iterator ssrc = ssrcs.begin(); ssrc != ssrcs.end(); ++ssrc) {
-          if (std::find(m_ssrcs.begin(), m_ssrcs.end(), *ssrc) == m_ssrcs.end())
+          if (std::find(m_recvSsrcs.begin(), m_recvSsrcs.end(), *ssrc) == m_recvSsrcs.end())
             rtpSession->RemoveSyncSource(*ssrc PTRACE_PARAM(, "clearing non-confirmed SSRC in bundle"));
         }
       }
@@ -486,7 +553,7 @@ OpalMediaSession * OpalSDPConnection::SetUpMediaSession(const unsigned   session
   }
 
   // Once before opening
-  if (!mediaDescription.ToSession(session, bundleMergeInfo.m_ssrcs))
+  if (!mediaDescription.ToSession(session, bundleMergeInfo.m_recvSsrcs))
     return NULL;
 
   bool bundled = session->IsGroupMember(OpalMediaSession::GetBundleGroupId());
@@ -500,7 +567,7 @@ OpalMediaSession * OpalSDPConnection::SetUpMediaSession(const unsigned   session
     bundleMergeInfo.m_transport = session->GetTransport();
 
   // And again after
-  if (!mediaDescription.ToSession(session, bundleMergeInfo.m_ssrcs))
+  if (!mediaDescription.ToSession(session, bundleMergeInfo.m_recvSsrcs))
     return NULL;
 
   dynamic_cast<OpalRTPEndPoint &>(m_endpoint).CheckEndLocalRTP(*this, dynamic_cast<OpalRTPSession *>(session));
@@ -617,10 +684,7 @@ bool OpalSDPConnection::OnSendOfferSDP(SDPSessionDescription & sdpOut, bool offe
     vector<bool> sessions = CreateAllMediaSessions();
 
 #if OPAL_VIDEO
-    if (m_stringOptions.GetBoolean(OPAL_OPT_AV_BUNDLE))
-      AddAudioVideoGroup();
-    if (m_stringOptions.GetBoolean(OPAL_OPT_USE_MEDIA_STREAMS))
-      SetAudioVideoMediaStreamIDs(OpalRTPSession::e_Sender);
+    SetUpLipSync();
 #endif
 
     OpalMediaTransportPtr bundledTransport;
@@ -664,11 +728,9 @@ bool OpalSDPConnection::OnSendOfferSDPSession(unsigned sessionId, SDPSessionDesc
     return false;
   }
 
-  if (m_stringOptions.GetBoolean(OPAL_OPT_RTCP_MUX)) {
-    OpalRTPSession * rtpSession = dynamic_cast<OpalRTPSession *>(mediaSession);
-    if (rtpSession != NULL)
-      rtpSession->SetSinglePortRx();
-  }
+  OpalRTPSession * rtpSession = dynamic_cast<OpalRTPSession *>(mediaSession);
+  if (rtpSession != NULL && m_stringOptions.GetBoolean(OPAL_OPT_RTCP_MUX))
+    rtpSession->SetSinglePortRx();
 
   if (!mediaSession->Open(GetMediaInterface(), GetRemoteMediaAddress())) {
     PTRACE(1, "Could not open RTP session " << sessionId << " for media type " << mediaType);
@@ -678,43 +740,45 @@ bool OpalSDPConnection::OnSendOfferSDPSession(unsigned sessionId, SDPSessionDesc
   if (sdp.GetDefaultConnectAddress().IsEmpty())
     sdp.SetDefaultConnectAddress(mediaSession->GetLocalAddress());
 
-  if (!m_stringOptions.GetBoolean(OPAL_OPT_MULTI_SSRC) && mediaSession->IsGroupMember(OpalMediaSession::GetBundleGroupId())) {
-    OpalRTPSession * rtpSession = dynamic_cast<OpalRTPSession *>(mediaSession);
-    if (rtpSession != NULL) {
-      RTP_SyncSourceArray ssrcs = rtpSession->GetSyncSources(OpalRTPSession::e_Sender);
-      size_t count = 0;
+  if (rtpSession != NULL && m_stringOptions.GetBoolean(OPAL_OPT_AV_BUNDLE) && !m_stringOptions.GetBoolean(OPAL_OPT_MULTI_SSRC)) {
+    RTP_SyncSourceArray ssrcs = rtpSession->GetSyncSources(OpalRTPSession::e_Sender);
+    size_t count = 0;
+    for (RTP_SyncSourceArray::iterator ssrc = ssrcs.begin(); ssrc != ssrcs.end(); ++ssrc) {
+      if (!rtpSession->GetMediaStreamId(*ssrc, OpalRTPSession::e_Sender).IsEmpty() &&
+          rtpSession->GetRtxSyncSource(*ssrc, OpalRTPSession::e_Sender, false) == 0)
+        ++count;
+    }
+    PTRACE(4, "Bundled session has msid for " << count << " of " << ssrcs.size() << " SSRCs");
+    if (count > 0) {
+      bool gotOne = false;
       for (RTP_SyncSourceArray::iterator ssrc = ssrcs.begin(); ssrc != ssrcs.end(); ++ssrc) {
         if (!rtpSession->GetMediaStreamId(*ssrc, OpalRTPSession::e_Sender).IsEmpty() &&
-             rtpSession->GetRtxSyncSource(*ssrc, OpalRTPSession::e_Sender, false) == 0)
-          ++count;
-      }
-      PTRACE(4, "Bundled session has msid for " << count << " of " << ssrcs.size() << " SSRCs");
-      if (count > 0) {
-        bool gotOne = false;
-        for (RTP_SyncSourceArray::iterator ssrc = ssrcs.begin(); ssrc != ssrcs.end(); ++ssrc) {
-          if (!rtpSession->GetMediaStreamId(*ssrc, OpalRTPSession::e_Sender).IsEmpty() &&
-               rtpSession->GetRtxSyncSource(*ssrc, OpalRTPSession::e_Sender, false) == 0) {
-            SDPMediaDescription * localMedia = OnSendOfferSDPStream(mediaSession, offerOpenMediaStreamOnly, *ssrc);
-            if (localMedia != NULL) {
-              /* Remember the offered direction for each RTP stream, as the test in OnSendOfferSDPStream
-                 woud apply to all streams in the session, which is not accurate. */
-              size_t index = sdp.GetMediaDescriptions().size()+1;
-              if (offerOpenMediaStreamOnly && index < m_bundledDirections.size())
-                localMedia->SetDirection((SDPMediaDescription::Direction)(localMedia->GetDirection() & m_bundledDirections[index]));
-              else {
-                m_bundledDirections.resize(index+1);
-                m_bundledDirections[index] = localMedia->GetDirection();
-              }
-
-              sdp.AddMediaDescription(localMedia);
-              gotOne = true;
+            rtpSession->GetRtxSyncSource(*ssrc, OpalRTPSession::e_Sender, false) == 0) {
+          unsigned mediaIndex = sdp.GetMediaDescriptions().GetSize()+1;
+          mediaSession->AddGroup(OpalMediaSession::GetBundleGroupId(), mediaIndex, PSTRSTRM(mediaIndex));
+          SDPMediaDescription * localMedia = OnSendOfferSDPStream(mediaSession, offerOpenMediaStreamOnly, *ssrc);
+          if (localMedia != NULL) {
+            /* Remember the offered direction for each RTP stream, as the test in OnSendOfferSDPStream
+               woud apply to all streams in the session, which is not accurate. */
+            size_t index = sdp.GetMediaDescriptions().size()+1;
+            if (offerOpenMediaStreamOnly && index < m_bundledDirections.size())
+              localMedia->SetDirection((SDPMediaDescription::Direction)(localMedia->GetDirection() & m_bundledDirections[index]));
+            else {
+              m_bundledDirections.resize(index+1);
+              m_bundledDirections[index] = localMedia->GetDirection();
             }
+
+            sdp.AddMediaDescription(localMedia);
+            gotOne = true;
           }
         }
-        return gotOne;
       }
+      return gotOne;
     }
   }
+
+  if (m_stringOptions.GetBoolean(OPAL_OPT_AV_BUNDLE))
+    mediaSession->AddGroup(OpalMediaSession::GetBundleGroupId(), sdp.GetMediaDescriptions().GetSize()+1, mediaSession->GetMediaType());
 
   SDPMediaDescription * localMedia = OnSendOfferSDPStream(mediaSession, offerOpenMediaStreamOnly, 0);
   if (localMedia == NULL)
@@ -955,8 +1019,7 @@ bool OpalSDPConnection::OnSendAnswerSDP(const SDPSessionDescription & sdpOffer, 
   bundleMergeInfo.RemoveSessionSSRCs(m_sessions);
 
 #if OPAL_VIDEO
-  if (m_stringOptions.GetBoolean(OPAL_OPT_USE_MEDIA_STREAMS))
-    SetAudioVideoMediaStreamIDs(OpalRTPSession::e_Sender);
+  SetUpLipSync();
 #endif // OPAL_VIDEO
 
   // Fill in refusal for media sessions we didn't like
@@ -969,8 +1032,10 @@ bool OpalSDPConnection::OnSendAnswerSDP(const SDPSessionDescription & sdpOffer, 
     SDPMediaDescription * mediaDescription = sdpMediaDescriptions[rtpStreamIndex];
     unsigned sessionId = bundleMergeInfo.m_sessionId[rtpStreamIndex];
     OpalMediaSession * mediaSession = GetMediaSession(sessionId);
-    if (mediaDescription != NULL && mediaSession != NULL)
+    if (mediaDescription != NULL && mediaSession != NULL) {
       openedSessions.insert(sessionId);
+      mediaDescription->FromSession(mediaSession, incomingMedia, bundleMergeInfo.m_sendSsrcs[rtpStreamIndex]);
+    }
     else {
       if (mediaSession == NULL) {
         OpalMediaSession::Init init(*this, sessionId, incomingMedia->GetMediaType(), m_remoteBehindNAT);
@@ -982,11 +1047,12 @@ bool OpalSDPConnection::OnSendAnswerSDP(const SDPSessionDescription & sdpOffer, 
         mediaSession = new OpalDummySession(init, tokens);
         m_sessions.SetAt(sessionId, mediaSession);
       }
+
       if (mediaDescription == NULL)
         mediaDescription = mediaSession->CreateSDPMediaDescription();
+      mediaDescription->FromSession(mediaSession, incomingMedia, 0);
     }
 
-    mediaDescription->FromSession(mediaSession, incomingMedia, 0);
     sdpOut.AddMediaDescription(mediaDescription);
   }
 
@@ -1113,6 +1179,7 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPStream(SDPMediaDescripti
     return NULL;
   }
   PTRACE_CONTEXT_ID_TO(*localMedia);
+  localMedia->SetIndex(rtpStreamIndex);
 
   /* Make sure SDP transport type in preply is same as in offer. This is primarily
      a workaround for broken implementations, esecially with respect to feedback
@@ -1175,12 +1242,15 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPStream(SDPMediaDescripti
   // Check if we had a stream and the remote has either changed the codec or
   // changed the direction of the stream
   OpalMediaStreamPtr sendStream = GetMediaStream(sessionId, false);
-  if (PauseOrCloseMediaStream(sendStream, replaceSession, (otherSidesDir&SDPMediaDescription::RecvOnly) == 0))
+  bool sendDisabled = bundleMergeInfo.m_allowPauseSendMediaStream[sessionId] && (otherSidesDir&SDPMediaDescription::RecvOnly) == 0;
+  bundleMergeInfo.m_allowPauseSendMediaStream[sessionId] = sendDisabled;
+  if (PauseOrCloseMediaStream(sendStream, replaceSession, sendDisabled) && (otherSidesDir&SDPMediaDescription::RecvOnly) != 0)
     newDirection = SDPMediaDescription::SendOnly;
 
   OpalMediaStreamPtr recvStream = GetMediaStream(sessionId, true);
-  if (PauseOrCloseMediaStream(recvStream, replaceSession,
-                              m_holdToRemote >= eHoldOn || (otherSidesDir&SDPMediaDescription::SendOnly) == 0))
+  bool recvDisabled = bundleMergeInfo.m_allowPauseRecvMediaStream[sessionId] && (otherSidesDir&SDPMediaDescription::SendOnly) == 0;
+  bundleMergeInfo.m_allowPauseRecvMediaStream[sessionId] = recvDisabled;
+  if (PauseOrCloseMediaStream(recvStream, replaceSession, m_holdToRemote >= eHoldOn || recvDisabled) && (otherSidesDir&SDPMediaDescription::SendOnly) != 0)
     newDirection = newDirection != SDPMediaDescription::Inactive ? SDPMediaDescription::SendRecv : SDPMediaDescription::RecvOnly;
 
   // See if we need to do a session switcharoo, but must be after stream closing
@@ -1221,6 +1291,19 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPStream(SDPMediaDescripti
     if (sendStream != NULL) {
       // In case is new offer and remote has tweaked the streams paramters, we need to merge them
       sendStream->UpdateMediaFormat(*m_activeFormatList.FindFormat(sendStream->GetMediaFormat()), true);
+
+      // Deal with more than one stream per session
+      if (sessionId != rtpStreamIndex) {
+        OpalRTPSession * rtpSession = dynamic_cast<OpalRTPSession *>(mediaSession);
+        if (rtpSession != NULL) {
+          RTP_SyncSourceId ssrc = rtpSession->AddSyncSource(0, OpalRTPSession::e_Sender);
+          bundleMergeInfo.m_sendSsrcs[rtpStreamIndex] = ssrc;
+
+          PString mid = rtpSession->GetGroupMediaId(OpalMediaSession::GetBundleGroupId(), rtpStreamIndex);
+          if (!mid.empty())
+            rtpSession->SetBundleMediaId(mid, ssrc, OpalRTPSession::e_Sender);
+        }
+      }
     }
 
     if (recvStream == NULL) {
@@ -1394,11 +1477,12 @@ bool OpalSDPConnection::OnReceivedAnswerSDP(const SDPSessionDescription & sdp, b
     if (mediaDescription->IsGroupMember(OpalMediaSession::GetBundleGroupId())) {
       /* When using BUNDLE, sessionId is not 1 to 1 with media description (RTP stream)
          any more, so need to try and match it up by SDP "mid" attribute. */
+      PString mid = mediaDescription->GetGroupMediaId(OpalMediaSession::GetBundleGroupId());
       bool missing = true;
       for (SessionMap::iterator it = m_sessions.begin(); it != m_sessions.end(); ++it) {
-        if (it->second->IsGroupMember(OpalMediaSession::GetBundleGroupId()) &&
-                mediaDescription->GetGroupMediaId(OpalMediaSession::GetBundleGroupId()).NumCompare(
-                      it->second->GetGroupMediaId(OpalMediaSession::GetBundleGroupId())) == EqualTo) {
+        unsigned sessionIndex = it->second->FindGroupMediaId(OpalMediaSession::GetBundleGroupId(), mid);
+        if (sessionIndex != UINT_MAX) {
+          PTRACE_IF(3, sessionIndex != index, "BUNDLE mid \"" << mid << "\" index mismatch: session=" << sessionIndex << ", SDP=" << index);
           if (OnReceivedAnswerSDPStream(mediaDescription, it->first, multipleFormats, bundleMergeInfo))
             openedSessions.insert(it->first);
           missing = false;

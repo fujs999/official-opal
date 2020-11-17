@@ -740,7 +740,8 @@ void SDPCommonAttributes::OutputAttributes(ostream & strm) const
 //////////////////////////////////////////////////////////////////////////////
 
 SDPMediaDescription::SDPMediaDescription()
-  : m_port(0)
+  : m_index(UINT_MAX)
+  , m_port(0)
   , m_portCount(1)
   , m_bundleOnly(false)
 {
@@ -748,7 +749,8 @@ SDPMediaDescription::SDPMediaDescription()
 
 
 SDPMediaDescription::SDPMediaDescription(const OpalTransportAddress & address, const OpalMediaType & type)
-  : m_mediaAddress(address)
+  : m_index(UINT_MAX)
+  , m_mediaAddress(address)
   , m_port(0)
   , m_portCount(1)
   , m_mediaType(type)
@@ -801,6 +803,17 @@ bool SDPMediaDescription::FromSession(OpalMediaSession * session, const SDPMedia
   }
 #endif // OPAL_ICE
 
+  if (PAssert(m_index != UINT_MAX, PLogicError)) {
+    PStringArray groups = session->GetGroups();
+    for (PINDEX i = 0; i < groups.GetSize(); ++i) {
+      PString groupId = groups[i];
+      PString mid = session->GetGroupMediaId(groupId, m_index);
+      PTRACE(4, *session << "adding group: \"" << groupId << "\", index=" << m_index << ", \"" << mid << '"');
+      if (!mid.empty())
+        m_groups.SetAt(groupId, mid);
+    }
+  }
+
   m_bundleOnly = offer == NULL && m_stringOptions.GetBoolean(OPAL_OPT_BUNDLE_ONLY);
   return true;
 }
@@ -818,10 +831,11 @@ bool SDPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSourceAr
   session->SetRemoteAddress(m_mediaAddress, true);
   session->SetRemoteAddress(m_controlAddress, false);
 
-  // Add group yet in session, set to SDP version
-  for (PStringToString::const_iterator it = m_groups.begin(); it != m_groups.end(); ++it)
-    session->AddGroup(it->first, it->second, false);
-
+  if (PAssert(m_index != UINT_MAX, PLogicError)) {
+  // Add groups and media ids to session
+    for (PStringToString::const_iterator it = m_groups.begin(); it != m_groups.end(); ++it)
+      session->AddGroup(it->first, m_index, it->second);
+  }
   return true;
 }
 
@@ -2524,10 +2538,16 @@ bool SDPRTPAVPMediaDescription::FromSession(OpalMediaSession * session,
     }
 
     RTP_SyncSourceArray ssrcs;
-    if (singleSSRC != 0)
-      ssrcs.push_back(singleSSRC);
-    else
+    if (singleSSRC == 0 && m_stringOptions.GetBoolean(OPAL_OPT_MULTI_SSRC))
       ssrcs = rtpSession->GetSyncSources(OpalRTPSession::e_Sender);
+    else {
+      if (singleSSRC == 0)
+        singleSSRC = rtpSession->GetSyncSourceOut();
+      ssrcs.push_back(singleSSRC);
+      RTP_SyncSourceId rtxSSRC = rtpSession->GetRtxSyncSource(singleSSRC, OpalRTPSession::e_Sender, true);
+      if (rtxSSRC != 0)
+        ssrcs.push_back(rtxSSRC);
+    }
 
     if (m_stringOptions.GetBoolean(OPAL_OPT_SDP_SSRC_INFO, true)) {
       if (offer == NULL) {
@@ -2579,15 +2599,6 @@ bool SDPRTPAVPMediaDescription::FromSession(OpalMediaSession * session,
         }
       }
     }
-
-    PStringList groups = rtpSession->GetGroups();
-    PTRACE_IF(4, !groups.empty(), *rtpSession << "adding groups: " << setfill(',') << groups);
-    for (PStringList::iterator it = groups.begin(); it != groups.end(); ++it) {
-      if (singleSSRC != 0)
-        m_groups.SetAt(*it, PSTRSTRM(rtpSession->GetGroupMediaId(*it) << '_' << singleSSRC));
-      else
-        m_groups.SetAt(*it, rtpSession->GetGroupMediaId(*it));
-    }
   }
 
 #if OPAL_SRTP
@@ -2635,6 +2646,11 @@ bool SDPRTPAVPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSo
         if (rtpSession->AddSyncSource(ssrc, OpalRTPSession::e_Receiver, cname) == ssrc) {
           PTRACE(4, *rtpSession << "added receiver SSRC " << RTP_TRACE_SRC(ssrc));
         }
+
+        PString * mid = m_groups.GetAt(OpalMediaSession::GetBundleGroupId());
+        if (mid != NULL && !mid->empty())
+          rtpSession->SetBundleMediaId(*mid, ssrc, OpalRTPSession::e_Receiver);
+
         PString msid, appdata;
         it->second.GetString("msid").Split(' ', msid, appdata);
         rtpSession->SetMediaTrackId(msid, ssrc, OpalRTPSession::e_Receiver);
@@ -3362,6 +3378,7 @@ bool SDPSessionDescription::Decode(const PStringArray & lines, const OpalMediaFo
   bool atLeastOneValidMedia = false;
   bool ok = true;
   bool defaultConnectAddressPresent = false;
+  unsigned mediaIndex = 0;
 
   // parse keyvalue pairs
   SDPMediaDescription * currentMedia = NULL;
@@ -3445,6 +3462,7 @@ bool SDPSessionDescription::Decode(const PStringArray & lines, const OpalMediaFo
             }
             else {
               PTRACE_CONTEXT_ID_TO(currentMedia);
+              currentMedia->SetIndex(++mediaIndex);
               currentMedia->SetStringOptions(GetStringOptions());
               if (currentMedia->Decode(tokens))
                 atLeastOneValidMedia = true;
@@ -3634,8 +3652,12 @@ SDPMediaDescription * SDPSessionDescription::GetMediaDescriptionByIndex(PINDEX i
 
 void SDPSessionDescription::AddMediaDescription(SDPMediaDescription * md)
 {
-  PTRACE_CONTEXT_ID_TO(md);
-  mediaDescriptions.Append(PAssertNULL(md));
+  if (PAssertNULL(md)) {
+    PTRACE_CONTEXT_ID_TO(md);
+    mediaDescriptions.Append(md);
+    if (md->GetIndex() == UINT_MAX)
+      md->SetIndex(mediaDescriptions.size());
+  }
 }
 
 

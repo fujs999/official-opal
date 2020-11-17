@@ -284,20 +284,6 @@ class OpalRTPConnection : public OpalConnection
       OpalMediaSession * mediaSession ///< New session
     );
 
-#if OPAL_VIDEO
-    /**Set group id, typically BUNDLE, for all audio/video sessions.
-      */
-    virtual void AddAudioVideoGroup(
-      const PString & id = OpalMediaSession::GetBundleGroupId()
-    );
-
-    /**Set the media stream identifiers for the audio/video sessions.
-       These identifiers are used to match pairs of audio and video streams
-       for the purposes of lip-sync.
-      */
-    virtual void SetAudioVideoMediaStreamIDs(OpalRTPSession::Direction direction);
-#endif
-
     /**Set QoS on session.
       */
     virtual bool SetSessionQoS(
@@ -349,7 +335,9 @@ class OpalRTPConnection : public OpalConnection
     OpalRFC2833Proto * m_ciscoNSEHandler;
 #endif
 
-    P_REMOVE_VIRTUAL(bool,IsRTPNATEnabled(const PIPSocket::Address&,const PIPSocket::Address&,const PIPSocket::Address&,bool),false);
+    P_REMOVE_VIRTUAL(bool,IsRTPNATEnabled(const PIPSocket::Address&,const PIPSocket::Address&,const PIPSocket::Address&,PBoolean),false);
+    P_REMOVE_VIRTUAL_VOID(AddAudioVideoGroup(const PString&));
+    P_REMOVE_VIRTUAL_VOID(SetAudioVideoMediaStreamIDs(OpalRTPSession::Direction));
 };
 
 

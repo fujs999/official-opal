@@ -764,16 +764,21 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
     // https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation
     static const PString & GetBundleGroupId();
 
-    /**Set the "group" id for the RTP session.
+    /**Add the media id to the "group" for the media session.
        This is typically a mechanism for connecting audio and video together via BUNDLE.
     */
     virtual bool AddGroup(
-        const PString & groupId,  ///< Identifier of the "group"
-        const PString & mediaId,  ///< Identifier of the session within the "group"
-        bool overwrite = true     ///< Allow overwrite of the mediaId
+      const PString & groupId,  ///< Identifier of the "group"
+      unsigned index,           ///< Index for the media description within the "group"
+      const PString & mediaId   ///< Identifier of the media description within the "group"
     );
 
-    /**Indicate if the RTP session is a member of the "group".
+    /// Remove group
+    void RemoveGroup(
+      const PString & groupId   ///< Identifier of the "group"
+    ) { m_groups.erase(groupId); }
+
+    /**Indicate if the session is a member of the "group".
        This is typically a mechanism for connecting audio and video together via BUNDLE.
     */
     bool IsGroupMember(
@@ -784,12 +789,21 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
       */
     PStringArray GetGroups() const;
 
-    /**Get the "group media" id for the group in this RTP session.
+    /**Get the "group media" id for the group in this session.
        This is typically a mechanism for connecting audio and video together via BUNDLE.
        If not set, uses the media type.
     */
     PString GetGroupMediaId(
-      const PString & groupId
+      const PString & groupId,  ///< Identifier of the "group"
+      unsigned index            ///< Index for the media description within the "group"
+    ) const;
+
+    /**Find the "group media" id for the group in this session.
+       Returns UINT_MAX if not found.
+    */
+    unsigned FindGroupMediaId(
+      const PString & groupId,  ///< Identifier of the "group"
+      const PString & mediaId   ///< Identifier of the media description within the "group"
     ) const;
 
 #if OPAL_SDP
@@ -863,7 +877,16 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
     OpalMediaType    m_mediaType;  // media type for session
     bool             m_remoteBehindNAT;
     PStringOptions   m_stringOptions;
-    PStringToString  m_groups;
+
+    typedef std::map<unsigned, PString> GroupMediaByIndex;
+    typedef std::map<PString, unsigned> GroupMediaByIdent;
+    struct GroupMediaMaps
+    {
+      GroupMediaByIndex m_byIndex;
+      GroupMediaByIdent m_byIdent;
+    };
+    typedef std::map<PString, GroupMediaMaps> GroupMap;
+    GroupMap m_groups;
 
     OpalMediaTransportPtr  m_transport;
     OpalMediaCryptoKeyList m_offeredCryptokeys;
@@ -879,6 +902,7 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
     P_REMOVE_VIRTUAL(OpalTransportAddress, GetRemoteControlAddress() const, 0);
     P_REMOVE_VIRTUAL(bool, SetRemoteControlAddress(const OpalTransportAddress &), false);
     P_REMOVE_VIRTUAL_VOID(SetRemoteUserPass(const PString &, const PString &));
+    P_REMOVE_VIRTUAL(bool,AddGroup(const PString&,const PString&,bool),false);
 };
 
 
