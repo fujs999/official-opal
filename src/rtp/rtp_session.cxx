@@ -811,12 +811,12 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnSendData(RTP_Dat
     frame.SetHeaderExtension(m_session.m_transportWideSeqNumHdrExtId, 2, (const BYTE *)&sn, RTP_DataFrame::RFC5285_OneByte);
   }
 
-  if (!m_bundleMediaId.empty() && m_session.m_bundleMediaIdHdrExtId <= RTP_DataFrame::MaxHeaderExtensionIdTwoByte)
-    frame.SetHeaderExtension(m_session.m_bundleMediaIdHdrExtId, m_bundleMediaId.length(), (const BYTE *)m_bundleMediaId.c_str(), RTP_DataFrame::RFC5285_Auto);
-
   // Only need to send for the first few seconds
   static const PTimeInterval IdHdrExtTime(0, 4);
   if ((now - m_firstPacketTime) < IdHdrExtTime) {
+    if (!m_bundleMediaId.empty() && m_session.m_bundleMediaIdHdrExtId <= RTP_DataFrame::MaxHeaderExtensionIdTwoByte)
+      frame.SetHeaderExtension(m_session.m_bundleMediaIdHdrExtId, m_bundleMediaId.length(), (const BYTE *)m_bundleMediaId.c_str(), RTP_DataFrame::RFC5285_Auto);
+
     if (!m_rtpStreamId.empty()) {
       unsigned extId = IsRtx() ? m_session.m_repairedRtpStreamIdHdrExtId : m_session.m_rtpStreamIdHdrExtId;
       if (extId <= RTP_DataFrame::MaxHeaderExtensionIdTwoByte)
