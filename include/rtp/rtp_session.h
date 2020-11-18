@@ -406,12 +406,12 @@ class OpalRTPSession : public OpalMediaSession
       */
     void SetCanonicalName(const PString & name, RTP_SyncSourceId ssrc = 0, Direction dir = e_Sender);
 
-    /**Get the BUNDLE mdia id (mid) for the RTP session SSRC.
+    /**Get the BUNDLE media id (mid) for the RTP session SSRC.
        See https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation
     */
     PString GetBundleMediaId(RTP_SyncSourceId ssrc, Direction dir = e_Sender) const;
 
-    /**Set the BUNDLE mdia id (mid) for the RTP session SSRC.
+    /**Set the BUNDLE media id (mid) for the RTP session SSRC.
        See https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation
     */
     void SetBundleMediaId(const PString & id, RTP_SyncSourceId ssrc, Direction dir);
