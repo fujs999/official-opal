@@ -7,6 +7,7 @@
         function WebRTC() {
             this.dest = "";
             this.simulcast = false;
+            this.multiReceive = false;
             this.remoteVideo = null;
             this.preview = null;
             this.peerConnection = null;
@@ -37,6 +38,7 @@
                     this.peerConnection.close();
                     console.info("WebRTC stopped.");
                     this.peerConnection = null;
+                    this.remoteVideo.srcObject = null;
                 }
             };
 
@@ -51,7 +53,7 @@
 
 
             this.onGotMedia = function (stream) {
-                console.info(`WebRTC onGotMedia: attaching ${stream.id} to ${this.preview.id}, simulcast=${this.simulcast}`);
+                console.info(`WebRTC onGotMedia: attaching ${stream.id} to ${this.preview.id}, simulcast=${this.simulcast}, multi-rx=${this.multiReceive}`);
                 this.preview.srcObject = stream;
                 var tranceiverInit = { streams: [ stream ], sendEncodings: [] };
                 stream.getAudioTracks().forEach(track => this.peerConnection.addTransceiver(track, tranceiverInit));
@@ -63,6 +65,11 @@
                     ];
                 }
                 stream.getVideoTracks().forEach(track => this.peerConnection.addTransceiver(track, tranceiverInit));
+
+                if (this.multiReceive) {
+                    this.peerConnection.addTransceiver('audio', { direction: 'recvonly' });
+                    this.peerConnection.addTransceiver('video', { direction: 'recvonly' });
+                }
 
                 console.debug("WebRTC creating offer:", JSON.stringify(this.offerOptions));
                 this.peerConnection.createOffer(this.offerOptions)
@@ -118,8 +125,10 @@
                 }
 
                 var stream = evt.streams[0];
-                this.remoteVideo.srcObject = stream;
-                console.info("WebRTC attached", stream.id, "to", this.remoteVideo.id);
+                if (!this.remoteVideo.srcObject) {
+                    this.remoteVideo.srcObject = stream;
+                    console.info("WebRTC attached", stream.id, "to", this.remoteVideo.id);
+                }
             };
         }
 
@@ -157,6 +166,7 @@
             webrtc.remoteVideo = document.getElementById("remoteVideo");
             webrtc.dest = destFld.value;
             webrtc.simulcast = document.getElementById("simulcast").checked;
+            webrtc.multiReceive = document.getElementById("multiReceive").checked;
             webrtc.start();
         }
 
@@ -185,6 +195,8 @@
                 </datalist>
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <input type="checkbox" value="Simulcast" id="simulcast" />Simulcast
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <input type="checkbox" value="MultiReceive" id="multiReceive" />Multi&nbsp;Receive
                 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <input type="button" value="Start Call" id="startBtn" onClick="startCall();" disabled />
                 &nbsp;&nbsp;
