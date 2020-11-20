@@ -599,7 +599,7 @@ bool OpalSDPConnection::OnSendOfferSDP(SDPSessionDescription & sdpOut, bool offe
     PTRACE(3, "Offering only current media streams");
     m_activeFormatList = m_remoteFormatList; // Must have this by now
     for (SessionMap::iterator it = m_sessions.begin(); it != m_sessions.end(); ++it) {
-      if (OnSendOfferSDPSession(it->first, sdpOut, true, false))
+      if (OnSendOfferSDPSession(it->first, sdpOut, true, it->second->IsGroupMember(OpalMediaSession::GetBundleGroupId())))
         sdpOK = true;
       else
         sdpOut.AddMediaDescription(it->second->CreateSDPMediaDescription());
