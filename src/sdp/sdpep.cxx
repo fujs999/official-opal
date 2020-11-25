@@ -666,6 +666,10 @@ bool OpalSDPConnection::OnSendOfferSDPSession(unsigned sessionId, SDPSessionDesc
   if (rtpSession != NULL && m_stringOptions.GetBoolean(OPAL_OPT_RTCP_MUX))
     rtpSession->SetSinglePortRx();
 
+  // Set bundle before the mediaSession->Open(), should have at least the first one
+  if (bundled)
+    mediaSession->AddGroup(OpalMediaSession::GetBundleGroupId(), 1, PConstString("1"));
+
   if (!mediaSession->Open(GetMediaInterface(), GetRemoteMediaAddress())) {
     PTRACE(1, "Could not open RTP session " << sessionId << " for media type " << mediaType);
     return false;

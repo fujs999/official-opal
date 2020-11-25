@@ -1273,7 +1273,8 @@ void SDPMediaDescription::OutputAttributes(ostream & strm) const
     strm << CRLF;
   }
 
-  strm << "a=ice-ufrag:" << m_username << CRLF
+  strm << "a=end-of-candidates" << CRLF  // Until we support trickle ICE, we are done here and now.
+       << "a=ice-ufrag:" << m_username << CRLF
        << "a=ice-pwd:" << m_password << CRLF;
 #endif //OPAL_ICE
 }
