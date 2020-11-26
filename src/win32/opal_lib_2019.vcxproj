@@ -428,6 +428,30 @@
       <EnableParallelCodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</EnableParallelCodeGeneration>
     </ClCompile>
     <ClCompile Include="..\ep\sockep.cxx" />
+    <ClCompile Include="..\rtp\libsrtp\crypto\cipher\aes_gcm_ossl.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='No Trace|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='No Trace|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\rtp\libsrtp\crypto\cipher\aes_icm.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='No Trace|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='No Trace|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\rtp\libsrtp\crypto\cipher\aes_icm_ossl.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='No Trace|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='No Trace|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\rtp\libsrtp\crypto\kernel\err.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='No Trace|Win32'">NotUsing</PrecompiledHeader>
@@ -1956,10 +1980,13 @@
     <ClInclude Include="..\lids\capi_win32.h" />
     <ClInclude Include="..\rtp\libsrtp\crypto\include\aes.h" />
     <ClInclude Include="..\rtp\libsrtp\crypto\include\aes_cbc.h" />
+    <ClInclude Include="..\rtp\libsrtp\crypto\include\aes_gcm.h" />
     <ClInclude Include="..\rtp\libsrtp\crypto\include\aes_icm.h" />
+    <ClInclude Include="..\rtp\libsrtp\crypto\include\aes_icm_ext.h" />
     <ClInclude Include="..\rtp\libsrtp\crypto\include\alloc.h" />
     <ClInclude Include="..\rtp\libsrtp\crypto\include\auth.h" />
     <ClInclude Include="..\rtp\libsrtp\crypto\include\cipher.h" />
+    <ClInclude Include="..\rtp\libsrtp\crypto\include\cipher_priv.h" />
     <ClInclude Include="..\rtp\libsrtp\crypto\include\cipher_types.h" />
     <ClInclude Include="..\rtp\libsrtp\crypto\include\crypto.h" />
     <ClInclude Include="..\rtp\libsrtp\crypto\include\cryptoalg.h" />
