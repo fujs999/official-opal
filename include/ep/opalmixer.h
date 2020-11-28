@@ -69,9 +69,9 @@ class OpalMixerConnection;
     Note the timestamps of the input media are extremely important as they are
     used so that breaks or too fast data in the input media is dealt with correctly.
   */
-class OpalBaseMixer : public PSmartObject
+class OpalBaseMixer : public PObject
 {
-    PCLASSINFO(OpalBaseMixer, PSmartObject);
+    PCLASSINFO(OpalBaseMixer, PObject);
   public:
     OpalBaseMixer(
       bool pushThread,    ///< Indicate if the push thread should be started
@@ -1293,20 +1293,20 @@ class OpalMixerNode : public PSafeObject
     OpalMixerNodeManager & m_manager;
     PGloballyUniqueID      m_guid;
     PStringSet             m_names;
-    OpalMixerNodeInfo    * m_info;
+    std::unique_ptr<OpalMixerNodeInfo> m_info;
     PTime                  m_creationTime;
     atomic<bool>           m_shuttingDown;
 
     PSafeArray<OpalConnection> m_connections;
     PString                    m_ownerConnection;
 
-    OpalAudioStreamMixer * m_audioMixer;
+    std::shared_ptr<OpalAudioStreamMixer> m_audioMixer;
 #if OPAL_VIDEO
-    typedef std::map<OpalVideoFormat::ContentRole, OpalVideoStreamMixer *> VideoMixerMap;
+    typedef std::map<OpalVideoFormat::ContentRole, std::shared_ptr<OpalVideoStreamMixer>> VideoMixerMap;
     VideoMixerMap m_videoMixers;
 #endif // OPAL_VIDEO
 
-    typedef std::map<PString, OpalBaseMixer *> MixerByIdMap;
+    typedef std::map<PString, std::shared_ptr<OpalBaseMixer>> MixerByIdMap;
     MixerByIdMap m_mixerById;
 };
 

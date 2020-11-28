@@ -52,8 +52,8 @@ class MyPCSSEndPoint : public OpalPCSSEndPoint
       : OpalPCSSEndPoint(manager)
     { }
 
-    virtual PBoolean OnShowIncoming(const OpalPCSSConnection & connection);
-    virtual PBoolean OnShowOutgoing(const OpalPCSSConnection & connection);
+    virtual bool OnShowIncoming(const OpalPCSSConnection & connection);
+    virtual bool OnShowOutgoing(const OpalPCSSConnection & connection);
 
     PDECLARE_NOTIFIER(OpalConnection::IMInfo, MyPCSSEndPoint, OnReceiveIM);
 };

@@ -41,7 +41,7 @@
 #define new PNEW
 
 IAX2Receiver::IAX2Receiver(IAX2EndPoint & _newEndpoint, PUDPSocket & _newSocket)
-  : PThread(1000, NoAutoDeleteThread, NormalPriority, "IAX2 Receiver"),
+  : PThread(NoAutoDeleteThread, NormalPriority, "IAX2 Receiver"),
      endpoint(_newEndpoint),
      sock(_newSocket)
 {
@@ -50,7 +50,7 @@ IAX2Receiver::IAX2Receiver(IAX2EndPoint & _newEndpoint, PUDPSocket & _newSocket)
   
   PTRACE(6, "IAX2 Rx\tReceiver Constructed just fine");
   PTRACE(6, "IAX2 Rx\tListen on socket " << sock);
-  Resume();
+  Start();
 }
 
 IAX2Receiver::~IAX2Receiver()

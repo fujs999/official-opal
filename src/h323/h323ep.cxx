@@ -166,13 +166,13 @@ H323EndPoint::~H323EndPoint()
 void H323EndPoint::ShutDown()
 {
   m_reusableTransportMutex.Wait();
-  set<OpalTransportPtr> reusedTransports = m_reusableTransports;
+  std::set<OpalTransportPtr> reusedTransports = m_reusableTransports;
   m_reusableTransports.clear();
   m_reusableTransportMutex.Signal();
 
   PTRACE(4, "H323\tShutting down: " << reusedTransports.size() << " maintained transports");
-  for (set<OpalTransportPtr>::iterator it = reusedTransports.begin(); it != reusedTransports.end(); ++it)
-    (*it)->CloseWait();
+  for (const auto & it : reusedTransports)
+    it->CloseWait();
 
   /* Unregister request needs/depends OpalEndpoint listeners object, so shut
      down the gatekeeper (if there was one) before cleaning up the OpalEndpoint
@@ -186,13 +186,13 @@ void H323EndPoint::ShutDown()
 bool H323EndPoint::GarbageCollection()
 {
   m_reusableTransportMutex.Wait();
-  for (set<OpalTransportPtr>::iterator it = m_reusableTransports.begin(); it != m_reusableTransports.end(); ) {
+  for (auto it = m_reusableTransports.begin(); it != m_reusableTransports.end(); ) {
     if ((*it)->IsOpen())
       ++it;
     else {
       PTRACE(4, "H323\tRemoving maintained transport " << **it);
       OpalTransportPtr transport = *it;
-      m_reusableTransports.erase(it++);
+      it = m_reusableTransports.erase(it);
       m_reusableTransportMutex.Signal();
       transport->CloseWait();
       m_reusableTransportMutex.Wait();

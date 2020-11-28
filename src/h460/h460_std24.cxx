@@ -400,7 +400,7 @@ void H460_FeatureStd24AnnexA::SendProbe()
 }
 
 
-void H460_FeatureStd24AnnexA::ProbeTimeout(PTimer &, P_INT_PTR)
+void H460_FeatureStd24AnnexA::ProbeTimeout(PTimer &, intptr_t)
 {
   PWaitAndSignal mutex(m_mutex);
 

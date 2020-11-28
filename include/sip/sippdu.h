@@ -742,9 +742,6 @@ class SIP_PDU : public PSafeObject
 };
 
 
-PQUEUE(SIP_PDU_Queue, SIP_PDU);
-
-
 #if PTRACING
 ostream & operator<<(ostream & strm, SIP_PDU::Methods method);
 #endif

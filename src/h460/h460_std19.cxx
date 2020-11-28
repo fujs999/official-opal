@@ -512,7 +512,7 @@ void H46019UDPSocket::ActivateKeepAliveRTCP(unsigned ttl)
 }
 
 
-void H46019UDPSocket::KeepAliveTimeout(PTimer &, P_INT_PTR)
+void H46019UDPSocket::KeepAliveTimeout(PTimer &, intptr_t)
 {
   PTRACE(4, "Keep Alive timer fired for " << (m_component == PNatMethod::eComponent_RTP ? "RTP" : "RTCP"));
   if (m_component == PNatMethod::eComponent_RTCP)

@@ -3513,7 +3513,7 @@ H323Capability * H323FindMediaCapability(const H323Capabilities & caps,
 H323Capability * H323CheckExactCapability(const H245_DataType & dataType, H323Capability * capability)
 {
   if (capability != NULL) {
-    PAutoPtr<H323Capability> compare(capability->CloneAs<H323Capability>());
+    std::unique_ptr<H323Capability> compare(capability->CloneAs<H323Capability>());
     if (compare->OnReceivedPDU(dataType, false) && *compare == *capability)
       return capability;
   }

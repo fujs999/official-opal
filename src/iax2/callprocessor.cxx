@@ -119,8 +119,8 @@ void IAX2CallProcessor::AssignConnection(IAX2Connection * _con)
   }
 
   remote.SetSourceCallNumber(newCallNumber);
-  
-  Resume();
+
+  Start();
 }
 
 void IAX2CallProcessor::PrintOn(ostream & strm) const
@@ -591,20 +591,14 @@ void IAX2CallProcessor::ProcessNetworkFrame(IAX2MiniFrame * src)
 void IAX2CallProcessor::ProcessNetworkFrame(IAX2FullFrame * src)
 {
   PTRACE(5, "ProcessNetworkFrame(IAX2FullFrame * src)");
-  PStringStream message;
-  message << PString("Do not know how to process networks packets of \"Full Frame\" type ") << *src;
-  PAssertAlways(message);
+  PAssertAlways(PSTRSTRM("Do not know how to process networks packets of \"Full Frame\" type " << *src));
   return;
 }
 
 void IAX2CallProcessor::ProcessNetworkFrame(IAX2Frame * src)
 {
   PTRACE(5, "ProcessNetworkFrame(IAX2Frame * src)");
-  PStringStream message;
-  message << PString("Do not know how to process networks packets of \"Frame\" type ") << *src;
-  PTRACE(3, message);
-  PTRACE(3, message);
-  PAssertAlways(message);
+  PAssertAlways(PSTRSTRM("Do not know how to process networks packets of \"Frame\" type " << *src));
   return;
 }
 
@@ -1316,7 +1310,7 @@ void IAX2CallProcessor::StartStatusCheckTimer(PINDEX msToWait)
   CleanPendingLists();
 }
 
-void IAX2CallProcessor::OnStatusCheck(PTimer &, P_INT_PTR)
+void IAX2CallProcessor::OnStatusCheck(PTimer &, intptr_t)
 {
   StartStatusCheckTimer();
 }

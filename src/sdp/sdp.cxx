@@ -762,8 +762,7 @@ SDPMediaDescription::SDPMediaDescription(const OpalTransportAddress & address, c
 }
 
 
-bool SDPMediaDescription::SetAddresses(const OpalTransportAddress & media,
-                                           const OpalTransportAddress & control)
+bool SDPMediaDescription::SetAddresses(const OpalTransportAddress & media, const OpalTransportAddress & control)
 {
   PIPSocket::Address dummy;
   if (!media.GetIpAndPort(dummy, m_port))

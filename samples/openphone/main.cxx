@@ -584,13 +584,13 @@ class TextCtrlChannel : public PChannel
       return true;
     }
 
-    static PThreadLocalStorage<TextCtrlChannel> sm_instances;
+    static TextCtrlChannel thread_local sm_instances;
 };
 
 wxFrame * TextCtrlChannel::sm_frame;
-PThreadLocalStorage<TextCtrlChannel> TextCtrlChannel::sm_instances;
+TextCtrlChannel thread_local TextCtrlChannel::sm_instances;
 
-#define LogWindow *TextCtrlChannel::sm_instances
+#define LogWindow TextCtrlChannel::sm_instances
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1802,10 +1802,10 @@ void MyManager::RecreateSpeedDials(SpeedDialViews view)
     m_tabs->InsertPage(0, m_speedDials, SpeedDialTabTitle);
   }
 
-  for (set<SpeedDialInfo>::iterator it = m_speedDialInfo.begin(); it != m_speedDialInfo.end(); ++it) {
-    long index = m_speedDials->InsertItem(INT_MAX, it->m_Name);
-    m_speedDials->SetItemData(index, (intptr_t)&*it);
-    UpdateSpeedDial(index, *it, false);
+  for (const auto & it : m_speedDialInfo) {
+    long index = m_speedDials->InsertItem(INT_MAX, it.m_Name);
+    m_speedDials->SetItemPtrData(index, reinterpret_cast<wxUIntPtr>(&it));
+    UpdateSpeedDial(index, it, false);
   }
 
   m_speedDials->Show();
@@ -2449,12 +2449,12 @@ bool MyManager::UpdateSpeedDial(int index, const SpeedDialInfo & newInfo, bool s
   if (index != INT_MAX)
     m_speedDials->SetItem(index, e_NameColumn, newInfo.m_Name);
   else {
-    std::pair<set<SpeedDialInfo>::iterator, bool> result = m_speedDialInfo.insert(newInfo);
+    auto result = m_speedDialInfo.insert(newInfo);
     if (!result.second)
       return false;
 
     index = m_speedDials->InsertItem(INT_MAX, newInfo.m_Name);
-    m_speedDials->SetItemData(index, (intptr_t)&*result.first);
+    m_speedDials->SetItemPtrData(index, reinterpret_cast<wxUIntPtr>(&*result.first));
   }
 
   SpeedDialInfo * oldInfo = (SpeedDialInfo *)m_speedDials->GetItemData(index);
@@ -2660,7 +2660,7 @@ void MyManager::OnEvtRinging(wxCommandEvent & theEvent)
 }
 
 
-void MyManager::OnRingSoundAgain(PTimer &, P_INT_PTR)
+void MyManager::OnRingSoundAgain(PTimer &, intptr_t)
 {
   PTRACE(4, "OpenPhone\tReplaying ring file \"" << m_RingSoundFileName << '"');
   m_RingSoundChannel.PlayFile(m_RingSoundFileName, false);
@@ -3647,7 +3647,7 @@ bool MyManager::CreateVideoOutputDevice(const OpalConnection & connection,
 }
 
 
-void MyManager::OnForwardingTimeout(PTimer &, P_INT_PTR)
+void MyManager::OnForwardingTimeout(PTimer &, intptr_t)
 {
   if (m_incomingToken.IsEmpty())
     return;
@@ -3789,7 +3789,7 @@ bool MyManager::MonitorPresence(const PString & aor, const PString & uri, bool s
 }
 
 
-void MyManager::OnPresenceChange(OpalPresentity &, PAutoPtr<OpalPresenceInfo> info)
+void MyManager::OnPresenceChange(OpalPresentity &, std::shared_ptr<OpalPresenceInfo> info)
 {
   int count = m_speedDials->GetItemCount();
   for (int index = 0; index < count; index++) {
@@ -4063,8 +4063,8 @@ wxMenu * MyManager::CreateTrayMenu()
   item = menu->FindItem(ID_SubMenuSpeedDial);
   wxMenu * speedDialSubmenu = PAssertNULL(item)->GetSubMenu();
   int menuID = ID_SPEEDDIAL_MENU_BASE;
-  for (set<SpeedDialInfo>::iterator it = m_speedDialInfo.begin(); it != m_speedDialInfo.end(); ++it)
-    speedDialSubmenu->Append(menuID++, it->m_Name);
+  for (const auto & it : m_speedDialInfo)
+    speedDialSubmenu->Append(menuID++, it.m_Name);
 
   return menu;
 }
@@ -5809,7 +5809,7 @@ class SoundProgressDialog
     PNotifier GetNotifier() { return PCREATE_NOTIFIER(Progress); }
 };
 
-void SoundProgressDialog::Progress(PSoundChannel & channel, P_INT_PTR count)
+void SoundProgressDialog::Progress(PSoundChannel & channel, intptr_t count)
 {
   if (m_dialog != NULL && channel.IsOpen()) {
     const wxChar * msg;
@@ -7683,7 +7683,7 @@ void InCallPanel::OnMouseFECC(wxMouseEvent & theEvent)
 }
 
 
-void InCallPanel::OnChangedFECC(OpalH281Client &, P_INT_PTR)
+void InCallPanel::OnChangedFECC(OpalH281Client &, OpalH281Client::VideoSourceIds)
 {
   OnStreamsChanged();
 }
@@ -7976,7 +7976,7 @@ void StatisticsField::Clear()
 }
 
 
-double StatisticsField::CalculateBandwidth(PUInt64 bytes)
+double StatisticsField::CalculateBandwidth(uint64_t bytes)
 {
   PTimeInterval tick = PTimer::Tick();
 
@@ -8385,8 +8385,7 @@ void MySIPEndPoint::OnRegistrationStatus(const RegistrationStatus & status)
   if (reasonClass == 1 || (status.m_reRegistering && reasonClass == 2))
     return;
 
-  PStringStream str;
-  str << status << endl;
+  PString str = PSTRSTRM(status);
   LogWindow << str << endl;
   m_manager.SetTrayTipText(str);
 

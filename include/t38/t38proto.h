@@ -349,9 +349,9 @@ class OpalFaxSession : public OpalMediaSession
     PTimer             m_timerWriteDataIdle;
     PDECLARE_NOTIFIER(PTimer,  OpalFaxSession, OnWriteDataIdle);
 
-    PUInt64  m_txBytes;
+    uint64_t  m_txBytes;
     unsigned m_txPackets;
-    PUInt64  m_rxBytes;
+    uint64_t  m_rxBytes;
     unsigned m_rxPackets;
     unsigned m_missingPackets;
 };

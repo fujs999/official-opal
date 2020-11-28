@@ -175,9 +175,9 @@ void OpalTranscoder::CopyTimestamp(RTP_DataFrame & dst, const RTP_DataFrame & sr
   unsigned timestamp = src.GetTimestamp();
   if (m_inClockRate != m_outClockRate) {
     if (inToOut)
-      timestamp = (unsigned)((PUInt64)timestamp*m_outClockRate/m_inClockRate);
+      timestamp = (unsigned)((uint64_t)timestamp*m_outClockRate/m_inClockRate);
     else
-      timestamp = (unsigned)((PUInt64)timestamp*m_inClockRate/m_outClockRate);
+      timestamp = (unsigned)((uint64_t)timestamp*m_inClockRate/m_outClockRate);
   }
   dst.SetTimestamp(timestamp);
 }
@@ -681,7 +681,6 @@ bool OpalFramedTranscoder::ConvertFramesInPacket(const RTP_DataFrame & input, RT
 
   return true;
 }
-
 
 bool OpalFramedTranscoder::ConvertFrame(const BYTE * inputPtr, PINDEX & /*consumed*/, BYTE * outputPtr, PINDEX & /*created*/)
 {

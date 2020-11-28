@@ -121,8 +121,8 @@ bool OpalEndPoint::SetInitialBandwidth(OpalBandwidth::Direction dir, OpalBandwid
       break;
 
     default :
-      OpalBandwidth rx = (PUInt64)(unsigned)bandwidth*m_initialRxBandwidth/(m_initialRxBandwidth+m_initialTxBandwidth);
-      OpalBandwidth tx = (PUInt64)(unsigned)bandwidth*m_initialTxBandwidth/(m_initialRxBandwidth+m_initialTxBandwidth);
+      OpalBandwidth rx = (uint64_t)(unsigned)bandwidth*m_initialRxBandwidth/(m_initialRxBandwidth+m_initialTxBandwidth);
+      OpalBandwidth tx = (uint64_t)(unsigned)bandwidth*m_initialTxBandwidth/(m_initialRxBandwidth+m_initialTxBandwidth);
       if (rx < 64000 || tx < 64000)
         return false;
       m_initialRxBandwidth = rx;
@@ -366,7 +366,7 @@ OpalTransportAddressArray OpalEndPoint::GetInterfaceAddresses(const OpalTranspor
     if (!listenerInterface.GetIpAndPort(listenerIP, listenerPort) || !listenerIP.IsAny())
       AddTransportAddress(interfaceAddresses, listenerInterface);
     else {
-      if (interfaceTable.IsEmpty())
+      if (interfaceTable.empty())
         PIPSocket::GetInterfaceTable(interfaceTable);
       for (PINDEX i = 0; i < interfaceTable.GetSize(); ++i) {
         if (!interfaceTable[i].GetAddress().IsLoopback())

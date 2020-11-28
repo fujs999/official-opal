@@ -376,7 +376,7 @@ struct StatisticsField
   virtual ~StatisticsField() { }
   void Init(wxWindow * panel);
   void Clear();
-  double CalculateBandwidth(PUInt64 bytes);
+  double CalculateBandwidth(uint64_t bytes);
   double CalculateFrameRate(DWORD frames);
   virtual StatisticsField * Clone() const = 0;
   virtual void Update(const OpalConnection & connection, const OpalMediaStream & stream, const OpalMediaStatistics & statistics);
@@ -388,7 +388,7 @@ struct StatisticsField
   wxString        m_printFormat;
 
   PTimeInterval   m_lastBandwidthTick;
-  PUInt64         m_lastBytes;
+  uint64_t         m_lastBytes;
 
   PTimeInterval   m_lastFrameTick;
   DWORD           m_lastFrames;
@@ -459,7 +459,7 @@ class InCallPanel : public CallPanelBase, PAsyncNotifierTarget
 
 #if OPAL_HAS_H281
     void OnMouseFECC(wxMouseEvent & /*event*/);
-    PDECLARE_ASYNC_NOTIFIER(OpalH281Client, InCallPanel, OnChangedFECC);
+    PDECLARE_OpalH281CapabilityChangeNotifier(InCallPanel, OnChangedFECC);
 #endif
 
     void SpeakerVolume(wxScrollEvent & /*event*/);
@@ -1245,7 +1245,7 @@ class MyManager : public wxFrame, public OpalManager, public PAsyncNotifierTarge
     wxImageList      * m_imageListSmall;
     wxDataFormat       m_ClipboardFormat;
 
-    set<SpeedDialInfo> m_speedDialInfo;
+    std::set<SpeedDialInfo> m_speedDialInfo;
     SpeedDialInfo * GetSelectedSpeedDial() const;
 
     MyPCSSEndPoint   * pcssEP;

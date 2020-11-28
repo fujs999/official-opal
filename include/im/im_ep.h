@@ -156,7 +156,7 @@ class OpalIMEndPoint : public OpalEndPoint
     #define PDECLARE_ASYNC_ConversationNotifier(cls, fn) PDECLARE_ASYNC_NOTIFIER2(OpalIMContext, cls, fn, OpalIMContext::ConversationInfo)
 
     /// Macro to create correctly typed converstaion notifier
-    #define PCREATE_ConversationNotifier(fn) PCREATE_NOTIFIER2(fn, OpalIMContext::ConversationInfo)
+    #define PCREATE_ConversationNotifier(fn) PCREATE_NOTIFIER(fn)
 
     /** Set the notifier for the OnConversation() function.
         The notifier can be called only for when a specific scheme is being

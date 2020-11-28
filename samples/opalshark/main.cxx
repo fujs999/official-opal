@@ -1334,7 +1334,7 @@ void MyPlayer::Export(OpalPCAPFile * pcapFile, OpalRecordManager * recorder)
 
     OpalPCAPFile::DiscoveredRTPKey key = selectedInfo;
     if (recorder->OpenStream(PSTRSTRM(key), raw)) {
-      decodeContext.insert(make_pair(selectedInfo, OpalPCAPFile::DecodeContext()));
+      decodeContext.emplace(selectedInfo, OpalPCAPFile::DecodeContext());
       payloadMap[selectedInfo.m_payloadType] = selectedInfo.m_mediaFormat;
       PTRACE(4, "Added stream " << key << " with " << selectedInfo << " to " << pcapFile->GetName());
     }

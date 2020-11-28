@@ -675,13 +675,13 @@ bool OpalLocalConnection::FarEndCameraControl(PVideoControlInfo::Types what, int
 }
 
 
-void OpalLocalConnection::SetFarEndCameraCapabilityChangedNotifier(const PNotifier & notifier)
+void OpalLocalConnection::SetFarEndCameraCapabilityChangedNotifier(const OpalH281Client::CapabilityChangeNotifier & notifier)
 {
   m_farEndCameraControl->SetCapabilityChangedNotifier(notifier);
 }
 
 
-void OpalLocalConnection::SetFarEndCameraActionNotifier(const PNotifier & notifier)
+void OpalLocalConnection::SetFarEndCameraActionNotifier(const OpalH281Client::ActionNotifier & notifier)
 {
   m_farEndCameraControl->SetOnActionNotifier(notifier);
 }

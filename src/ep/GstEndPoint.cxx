@@ -989,7 +989,7 @@ bool GstEndPoint::ConfigurePipeline(PGstPipeline & pipeline, const GstMediaStrea
   if (channel == NULL)
     return false;
 
-  P_INT_PTR rtpHandle = channel->GetHandle();
+  intptr_t rtpHandle = channel->GetHandle();
   PString media(stream.GetMediaFormat().GetMediaType());
   const char *rtp_suffixes[] = { "TxRTP", "RxRTP", };
   for (i = 0; i < PARRAYSIZE(rtp_suffixes); i++) {
@@ -1000,7 +1000,7 @@ bool GstEndPoint::ConfigurePipeline(PGstPipeline & pipeline, const GstMediaStrea
     }
   }
 
-  P_INT_PTR rtcpHandle = rtpHandle;
+  intptr_t rtcpHandle = rtpHandle;
   if (session->GetLocalDataPort() != session->GetLocalControlPort()) {
     channel = transport->GetChannel(OpalMediaTransport::e_Control);
     if (channel != NULL)

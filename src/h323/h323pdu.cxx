@@ -1238,8 +1238,7 @@ PString H323SignalPDU::GetSourceAliases(const H323Transport * transport) const
     return remoteHostName;
 
   aliases << " [" << remoteHostName << ']';
-  aliases.MakeMinimumSize();
-  return aliases;
+  return aliases.str();
 }
 
 
@@ -1274,8 +1273,7 @@ PString H323SignalPDU::GetDestinationAlias(bool firstAliasOnly) const
     }
   }
 
-  aliases.MakeMinimumSize();
-  return aliases;
+  return aliases.str();
 }
 
 

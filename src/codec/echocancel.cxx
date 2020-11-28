@@ -123,7 +123,7 @@ void OpalEchoCanceler::SetClockRate(const int rate)
 }
 
 
-void OpalEchoCanceler::SentPacket(RTP_DataFrame& echo_frame, P_INT_PTR)
+void OpalEchoCanceler::SentPacket(RTP_DataFrame& echo_frame, intptr_t)
 {
   /* Write to the soundcard, and write the frame to the PQueueChannel */
   if (param.m_enabled && echo_frame.GetPayloadSize() > 0)
@@ -131,7 +131,7 @@ void OpalEchoCanceler::SentPacket(RTP_DataFrame& echo_frame, P_INT_PTR)
 }
 
 
-void OpalEchoCanceler::ReceivedPacket(RTP_DataFrame& input_frame, P_INT_PTR)
+void OpalEchoCanceler::ReceivedPacket(RTP_DataFrame& input_frame, intptr_t)
 {
   if (!param.m_enabled || input_frame.GetPayloadSize() == 0)
     return;

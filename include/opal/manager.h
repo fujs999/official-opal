@@ -45,7 +45,7 @@
 #include <ptclib/pstun.h>
 #include <ptclib/url.h>
 #include <ptclib/pxml.h>
-#include <ptclib/threadpool.h>
+#include <ptclib/safethreadpool.h>
 
 #if OPAL_VIDEO
 // Inside #if so does not force loading of factories when statically linked.
@@ -511,7 +511,7 @@ class OpalManager : public PObject
 
         void CompileRegEx();
     };
-    PARRAY(RouteTable, RouteEntry);
+    typedef PArray<RouteEntry> RouteTable;
 
     /**Add a route entry to the route table.
 

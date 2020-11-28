@@ -58,7 +58,7 @@ void SafeStrings::AppendString(const PString & newString, bool splitString)
     return;
   }
   
-  for(PINDEX i = 0; i < newString.GetSize(); i++)
+  for(PINDEX i = 0; i < newString.size(); i++)
     data.AppendString(PString(newString[i]));
   
   return;

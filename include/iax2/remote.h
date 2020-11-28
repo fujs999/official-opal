@@ -180,7 +180,7 @@ class IAX2FrameIdValue : public PObject
 
   /**The combination of time and sequence number is stored in this
      element, which is a pwlib construct of 64 bits */
-  PUInt64 value;
+  uint64_t value;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -189,12 +189,8 @@ class IAX2FrameIdValue : public PObject
 of all frames we have sent and received. This will be sued to keep the
 iseqno correct (for use in sent frames), and to ensure that we never
 send two frames with the same iseqno and timestamp pair.*/
-PDECLARE_SORTED_LIST(IAX2PacketIdList, IAX2FrameIdValue)
-#ifdef DOC_PLUS_PLUS
-class IAX2PacketIdList : public PSortedList
-{
-#endif
-  
+class IAX2PacketIdList : public PSortedList<IAX2FrameIdValue>
+{  
   /**Return true if a FrameIdValue object is found in the list that
    * matches the value in the supplied arguement*/
   bool Contains(IAX2FrameIdValue &src);

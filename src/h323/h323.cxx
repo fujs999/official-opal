@@ -149,7 +149,6 @@ H323Connection::H323Connection(OpalCall & call,
   m_UserInputIndicationTimer.SetNotifier(PCREATE_NOTIFIER(UserInputIndicationTimeout), "UII");
 
   m_localAliasNames.MakeUnique();
-  m_gkAccessTokenOID.MakeUnique();
 
   m_remotePartyURL = GetPrefixName() + ':';
   m_remotePartyName = address.GetHostName(true);
@@ -2847,7 +2846,7 @@ bool H323Connection::CreateOutgoingControlChannel(const PASN_Sequence & enclosin
 }
 
 
-void H323Connection::NewOutgoingControlChannel(PThread &, P_INT_PTR)
+void H323Connection::NewOutgoingControlChannel(PThread &, intptr_t)
 {
   if (PAssertNULL(m_controlChannel) == NULL)
     return;
@@ -5555,7 +5554,7 @@ void H323Connection::OnUserInputIndication(const H245_UserInputIndication & ind)
 }
 
 
-void H323Connection::UserInputIndicationTimeout(PTimer&, P_INT_PTR)
+void H323Connection::UserInputIndicationTimeout(PTimer&, intptr_t)
 {
   GetEndPoint().GetManager().QueueDecoupledEvent(
             new PSafeWorkArg2<OpalConnection, char, unsigned>(this, m_lastUserInputIndication,
@@ -5579,7 +5578,7 @@ static void AddSessionCodecName(PStringStream & name, H323Channel * channel)
 
   if (name.IsEmpty())
     name << mediaFormat;
-  else if (name != mediaFormat)
+  else if (name.str() != mediaFormat)
     name << " / " << mediaFormat;
 }
 

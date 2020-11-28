@@ -53,7 +53,7 @@
 IAX2SpecialProcessor::IAX2SpecialProcessor(IAX2EndPoint & ep)
  : IAX2Processor(ep)
 {
-  Resume();
+  Start();
 }
 
 IAX2SpecialProcessor::~IAX2SpecialProcessor()
