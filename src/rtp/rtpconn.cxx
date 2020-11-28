@@ -267,7 +267,7 @@ OpalMediaSession * OpalRTPConnection::CreateMediaSession(unsigned sessionId,
     PSafePtr<OpalConnection> otherConnection = GetOtherPartyConnection();
     if (otherConnection != NULL && otherConnection->GetMediaTransportAddresses(*this, sessionId, mediaType, transports)) {
       // Make sure we do not include any transcoded format combinations
-      m_localMediaFormats.Remove(PString('@')+mediaType);
+      m_localMediaFormats.Remove(PString('@'+mediaType));
       m_localMediaFormats += otherConnection->GetMediaFormats();
       PTRACE(4, "Created dummy " << mediaType << " session " << sessionId
              << " using formats " << setfill(',') << m_localMediaFormats << " on " << *this);
@@ -604,7 +604,7 @@ bool OpalRTPConnection::OnMediaCommand(OpalMediaStream & stream, const OpalMedia
 }
 
 
-PBoolean OpalRTPConnection::SendUserInputTone(char tone, unsigned duration)
+bool OpalRTPConnection::SendUserInputTone(char tone, unsigned duration)
 {
   if (GetRealSendUserInputMode() == SendUserInputAsRFC2833) {
     if (
@@ -623,7 +623,7 @@ PBoolean OpalRTPConnection::SendUserInputTone(char tone, unsigned duration)
 
 OpalMediaStream * OpalRTPConnection::CreateMediaStream(const OpalMediaFormat & mediaFormat,
                                                        unsigned sessionID,
-                                                       PBoolean isSource)
+                                                       bool isSource)
 {
   OpalMediaSession * mediaSession = UseMediaSession(sessionID, mediaFormat.GetMediaType());
   if (mediaSession != NULL)
@@ -710,7 +710,7 @@ void OpalRTPConnection::AdjustMediaFormats(bool   local,
 }
 
 
-void OpalRTPConnection::OnPatchMediaStream(PBoolean isSource, OpalMediaPatch & patch)
+void OpalRTPConnection::OnPatchMediaStream(bool isSource, OpalMediaPatch & patch)
 {
   OpalConnection::OnPatchMediaStream(isSource, patch);
 

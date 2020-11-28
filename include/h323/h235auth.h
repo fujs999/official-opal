@@ -64,7 +64,7 @@ class H235Authenticator : public PObject
 
     virtual const char * GetName() const = 0;
 
-    virtual PBoolean PrepareTokens(
+    virtual bool PrepareTokens(
       PASN_Array & clearTokens,
       PASN_Array & cryptoTokens,
       unsigned rasPDU
@@ -75,7 +75,7 @@ class H235Authenticator : public PObject
     virtual H225_CryptoH323Token * CreateCryptoToken(bool digits, unsigned rasPDU);
     virtual H225_CryptoH323Token * CreateCryptoToken(bool digits);
 
-    virtual PBoolean Finalise(
+    virtual bool Finalise(
       PBYTEArray & rawPDU
     );
 
@@ -104,25 +104,25 @@ class H235Authenticator : public PObject
       const PBYTEArray & rawPDU
     );
 
-    virtual PBoolean IsCapability(
+    virtual bool IsCapability(
       const H235_AuthenticationMechanism & mechansim,
       const PASN_ObjectId & algorithmOID
     ) = 0;
 
-    virtual PBoolean SetCapability(
+    virtual bool SetCapability(
       H225_ArrayOf_AuthenticationMechanism & mechansims,
       H225_ArrayOf_PASN_ObjectId & algorithmOIDs
     ) = 0;
 
-    virtual PBoolean UseGkAndEpIdentifiers() const;
+    virtual bool UseGkAndEpIdentifiers() const;
 
-    virtual PBoolean IsSecuredPDU(
+    virtual bool IsSecuredPDU(
       unsigned rasPDU,
-      PBoolean received
+      bool received
     ) const;
 
     void Enable(
-      PBoolean enab = true
+      bool enab = true
     ) { m_enabled = enab; }
     void Disable() { m_enabled = false; }
     bool IsEnabled() const { return m_enabled; }
@@ -171,11 +171,12 @@ class H235Authenticator : public PObject
 
   private:
     P_REMOVE_VIRTUAL(H225_CryptoH323Token *,CreateCryptoToken(),NULL);
-    P_REMOVE_VIRTUAL(PBoolean,PrepareTokens(PASN_Array &,PASN_Array &),false);
+    P_REMOVE_VIRTUAL(bool,PrepareTokens(PASN_Array &,PASN_Array &),false);
 };
 
 
-PDECLARE_LIST(H235Authenticators, H235Authenticator)
+class H235Authenticators : public PList<H235Authenticator>
+{
   protected:
     void InternalPreparePDU(
       H323TransactionPDU & pdu,
@@ -227,19 +228,19 @@ class H235AuthSimpleMD5 : public H235Authenticator
       const PBYTEArray & rawPDU
     );
 
-    virtual PBoolean IsCapability(
+    virtual bool IsCapability(
       const H235_AuthenticationMechanism & mechansim,
       const PASN_ObjectId & algorithmOID
     );
 
-    virtual PBoolean SetCapability(
+    virtual bool SetCapability(
       H225_ArrayOf_AuthenticationMechanism & mechansim,
       H225_ArrayOf_PASN_ObjectId & algorithmOIDs
     );
 
-    virtual PBoolean IsSecuredPDU(
+    virtual bool IsSecuredPDU(
       unsigned rasPDU,
-      PBoolean received
+      bool received
     ) const;
 };
 
@@ -268,19 +269,19 @@ class H235AuthCAT : public H235Authenticator
       const H235_ClearToken & clearToken
     );
 
-    virtual PBoolean IsCapability(
+    virtual bool IsCapability(
       const H235_AuthenticationMechanism & mechansim,
       const PASN_ObjectId & algorithmOID
     );
 
-    virtual PBoolean SetCapability(
+    virtual bool SetCapability(
       H225_ArrayOf_AuthenticationMechanism & mechansim,
       H225_ArrayOf_PASN_ObjectId & algorithmOIDs
     );
 
-    virtual PBoolean IsSecuredPDU(
+    virtual bool IsSecuredPDU(
       unsigned rasPDU,
-      PBoolean received
+      bool received
     ) const;
 };
 
@@ -312,19 +313,19 @@ class H235AuthPwd_DES_ECB : public H235Authenticator
       const PBYTEArray & rawPDU
     );
 
-    virtual PBoolean SetCapability(
+    virtual bool SetCapability(
       H225_ArrayOf_AuthenticationMechanism & mechansim,
       H225_ArrayOf_PASN_ObjectId & algorithmOIDs
     );
 
-    virtual PBoolean IsCapability(
+    virtual bool IsCapability(
       const H235_AuthenticationMechanism & mechansim,
       const PASN_ObjectId & algorithmOID
     );
 
-    virtual PBoolean IsSecuredPDU(
+    virtual bool IsSecuredPDU(
       unsigned rasPDU,
-      PBoolean received
+      bool received
     ) const;
 
   protected:
@@ -350,7 +351,7 @@ class H235AuthProcedure1 : public H235Authenticator
 
     virtual H225_CryptoH323Token * CreateCryptoToken(bool digits);
 
-    virtual PBoolean Finalise(
+    virtual bool Finalise(
       PBYTEArray & rawPDU
     );
 
@@ -359,17 +360,17 @@ class H235AuthProcedure1 : public H235Authenticator
       const PBYTEArray & rawPDU
     );
 
-    virtual PBoolean IsCapability(
+    virtual bool IsCapability(
       const H235_AuthenticationMechanism & mechansim,
       const PASN_ObjectId & algorithmOID
     );
 
-    virtual PBoolean SetCapability(
+    virtual bool SetCapability(
       H225_ArrayOf_AuthenticationMechanism & mechansim,
       H225_ArrayOf_PASN_ObjectId & algorithmOIDs
     );
 
-    virtual PBoolean UseGkAndEpIdentifiers() const;
+    virtual bool UseGkAndEpIdentifiers() const;
 };
 
 PFACTORY_LOAD(H235AuthProcedure1);

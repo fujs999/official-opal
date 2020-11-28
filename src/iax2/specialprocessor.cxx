@@ -53,7 +53,7 @@
 IAX2SpecialProcessor::IAX2SpecialProcessor(IAX2EndPoint & ep)
  : IAX2Processor(ep)
 {
-  Resume();
+  Start();
 }
 
 IAX2SpecialProcessor::~IAX2SpecialProcessor()
@@ -95,7 +95,7 @@ void IAX2SpecialProcessor::ProcessNetworkFrame(IAX2MiniFrame * src)
   delete src;
 }
 
-PBoolean IAX2SpecialProcessor::ProcessNetworkFrame(IAX2FullFrameProtocol * src)
+bool IAX2SpecialProcessor::ProcessNetworkFrame(IAX2FullFrameProtocol * src)
 {
   PTRACE(3, "ProcessNetworkFrame(IAX2FullFrameProtocol * src)");
   src->CopyDataFromIeListTo(ieData);

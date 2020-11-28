@@ -75,34 +75,34 @@ class Q931 : public PObject
     Q931(const Q931 & other);
     Q931 & operator=(const Q931 & other);
 
-    void BuildFacility(int callRef, PBoolean fromDest);
-    void BuildInformation(int callRef, PBoolean fromDest);
+    void BuildFacility(int callRef, bool fromDest);
+    void BuildInformation(int callRef, bool fromDest);
     void BuildProgress(
       int callRef,
-      PBoolean fromDest,
+      bool fromDest,
       unsigned description,
       unsigned codingStandard = 0,
       unsigned location = 0
     );
-    void BuildNotify(int callRef, PBoolean fromDest);
+    void BuildNotify(int callRef, bool fromDest);
     void BuildCallProceeding(int callRef);
     void BuildSetupAcknowledge(int callRef);
     void BuildAlerting(int callRef);
     void BuildSetup(int callRef = -1);
     void BuildConnect(int callRef);
-    void BuildStatus(int callRef, PBoolean fromDest);
-    void BuildStatusEnquiry(int callRef, PBoolean fromDest);
-    void BuildReleaseComplete(int callRef, PBoolean fromDest);
+    void BuildStatus(int callRef, bool fromDest);
+    void BuildStatusEnquiry(int callRef, bool fromDest);
+    void BuildReleaseComplete(int callRef, bool fromDest);
 
-    PBoolean Decode(const PBYTEArray & data);
-    PBoolean Encode(PBYTEArray & data) const;
+    bool Decode(const PBYTEArray & data);
+    bool Encode(PBYTEArray & data) const;
 
     void PrintOn(ostream & strm) const;
     PString GetMessageTypeName() const;
 
     static unsigned GenerateCallReference();
     unsigned GetCallReference() const { return callReference; }
-    PBoolean IsFromDestination() const { return fromDestination; }
+    bool IsFromDestination() const { return fromDestination; }
     MsgTypes GetMessageType() const { return messageType; }
 
     enum InformationElementCodes {
@@ -123,7 +123,7 @@ class Q931 : public PObject
     };
     friend ostream & operator<<(ostream & strm, InformationElementCodes ie);
 
-    PBoolean HasIE(InformationElementCodes ie) const;
+    bool HasIE(InformationElementCodes ie) const;
     PBYTEArray GetIE(
       InformationElementCodes ie,
       PINDEX idx = 0 // Index of duplicate IE entry
@@ -154,7 +154,7 @@ class Q931 : public PObject
       const PString & caps  ///< String of comma separated integers or hex for all cap bytes
     );
 
-    PBoolean GetBearerCapabilities(
+    bool GetBearerCapabilities(
       InformationTransferCapability & capability, ///< Bearer cability enum
       unsigned & transferRate,          ///<  Number of 64k B channels
       unsigned * codingStandard = NULL, ///<  0 = ITU-T standardized coding
@@ -284,7 +284,7 @@ class Q931 : public PObject
       unsigned codingStandard = 0,
       unsigned location = 0
     );
-    PBoolean GetProgressIndicator(
+    bool GetProgressIndicator(
       unsigned & description,
       unsigned * codingStandard = NULL,
       unsigned * location = NULL
@@ -320,7 +320,7 @@ class Q931 : public PObject
       int presentation = -1,  ///<  0 = presentation allowed, 1 = presentation restricted, -1 = no octet3a
       int screening = -1      ///<  0 = user provided, not screened, -1 = no octet3a
     );
-    PBoolean GetCallingPartyNumber(
+    bool GetCallingPartyNumber(
       PString & number,               ///<  Number string
       unsigned * plan = NULL,         ///<  ISDN/Telephony numbering system
       unsigned * type = NULL,         ///<  Number type
@@ -336,7 +336,7 @@ class Q931 : public PObject
       unsigned plan = 1,      ///<  1 = ISDN/Telephony numbering system
       unsigned type = 0       ///<  0 = Unknown number type
     );
-    PBoolean GetCalledPartyNumber(
+    bool GetCalledPartyNumber(
       PString & number,       ///<  Number string
       unsigned * plan = NULL, ///<  ISDN/Telephony numbering system
       unsigned * type = NULL  ///<  Number type
@@ -351,7 +351,7 @@ class Q931 : public PObject
       int screening = -1,     ///<  0 = user provided, not screened
       int reason = -1         ///<  0 = Unknown reason , -1 = no octet 3b
     );
-    PBoolean GetRedirectingNumber(
+    bool GetRedirectingNumber(
       PString & number,               ///<  Number string
       unsigned * plan = NULL,         ///<  ISDN/Telephony numbering system
       unsigned * type = NULL,         ///<  Number type
@@ -371,7 +371,7 @@ class Q931 : public PObject
       int screening = -1,     ///<  0 = user provided, not screened
       int reason = -1         ///<  0 = Unknown reason , -1 = no octet 3b
     );
-    PBoolean GetConnectedNumber(
+    bool GetConnectedNumber(
       PString & number,               ///<  Number string
       unsigned * plan = NULL,         ///<  ISDN/Telephony numbering system
       unsigned * type = NULL,         ///<  Number type
@@ -397,7 +397,7 @@ class Q931 : public PObject
 
     /**Get the limitations to ChannelIdentification.
       */
-    PBoolean GetChannelIdentification(
+    bool GetChannelIdentification(
       unsigned * interfaceType = NULL,        ///<  Interface type
       unsigned * preferredOrExclusive = NULL, ///<  Channel negotiation preference
       int      * channelNumber = NULL         ///<  Channel number
@@ -405,12 +405,12 @@ class Q931 : public PObject
 
   protected:
     unsigned callReference;
-    PBoolean fromDestination;
+    bool fromDestination;
     unsigned protocolDiscriminator;
     MsgTypes messageType;
 
-    PARRAY(InternalInformationElement, PBYTEArray);
-    PDICTIONARY(InternalInformationElements, POrdinalKey, InternalInformationElement);
+    typedef PArray<PBYTEArray> InternalInformationElement;
+    typedef PDictionary<POrdinalKey,InternalInformationElement> InternalInformationElements;
     InternalInformationElements informationElements;
 };
 

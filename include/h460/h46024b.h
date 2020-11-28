@@ -42,7 +42,7 @@ class H46024B_AlternateAddress : public PASN_Sequence
     H245_TransportAddress m_rtcpAddress;
 
     PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
+    bool Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -87,7 +87,7 @@ class H46024B_AlternateAddresses : public PASN_Sequence
     H46024B_ArrayOf_AlternateAddress m_addresses;
 
     PINDEX GetDataLength() const;
-    PBoolean Decode(PASN_Stream & strm);
+    bool Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;

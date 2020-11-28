@@ -318,7 +318,7 @@ class OpalPresentity : public PSafeObject
     typedef PNotifierTemplate<AuthorisationRequest> AuthorisationRequestNotifier;
     #define PDECLARE_AuthorisationRequestNotifier(cls, fn) PDECLARE_NOTIFIER2(OpalPresentity, cls, fn, OpalPresentity::AuthorisationRequest)
     #define PDECLARE_ASYNC_AuthorisationRequestNotifier(cls, fn) PDECLARE_ASYNC_NOTIFIER2(OpalPresentity, cls, fn, OpalPresentity::AuthorisationRequest)
-    #define PCREATE_AuthorisationRequestNotifier(fn) PCREATE_NOTIFIER2(fn, OpalPresentity::AuthorisationRequest)
+    #define PCREATE_AuthorisationRequestNotifier(fn) PCREATE_NOTIFIER(fn)
 
     /// Set the notifier for the OnAuthorisationRequest() function.
     void SetAuthorisationRequestNotifier(
@@ -337,10 +337,10 @@ class OpalPresentity : public PSafeObject
       const OpalPresenceInfo & info ///< Info on other presentity that changed state
     );
 
-    typedef PNotifierTemplate< PAutoPtr<OpalPresenceInfo> > PresenceChangeNotifier;
-    #define PDECLARE_PresenceChangeNotifier(cls, fn) PDECLARE_NOTIFIER2(OpalPresentity, cls, fn, PAutoPtr<OpalPresenceInfo>)
-    #define PDECLARE_ASYNC_PresenceChangeNotifier(cls, fn) PDECLARE_ASYNC_NOTIFIER2(OpalPresentity, cls, fn, PAutoPtr<OpalPresenceInfo>)
-    #define PCREATE_PresenceChangeNotifier(fn) PCREATE_NOTIFIER2(fn, PAutoPtr<OpalPresenceInfo>)
+    typedef PNotifierTemplate<std::shared_ptr<OpalPresenceInfo>> PresenceChangeNotifier;
+    #define PDECLARE_PresenceChangeNotifier(cls, fn) PDECLARE_NOTIFIER2(OpalPresentity, cls, fn, std::shared_ptr<OpalPresenceInfo>)
+    #define PDECLARE_ASYNC_PresenceChangeNotifier(cls, fn) PDECLARE_ASYNC_NOTIFIER2(OpalPresentity, cls, fn, std::shared_ptr<OpalPresenceInfo>)
+    #define PCREATE_PresenceChangeNotifier(fn) PCREATE_NOTIFIER(fn)
 
     /// Set the notifier for the OnPresenceChange() function.
     void SetPresenceChangeNotifier(
@@ -507,7 +507,7 @@ class OpalPresentity : public PSafeObject
     typedef PNotifierTemplate<OpalIM> ReceivedMessageNotifier;
     #define PDECLARE_ReceivedMessageNotifier(cls, fn) PDECLARE_NOTIFIER2(OpalPresentity, cls, fn, OpalIM)
     #define PDECLARE_ASYNC_ReceivedMessageNotifier(cls, fn) PDECLARE_ASYNC_NOTIFIER2(OpalPresentity, cls, fn, OpalIM)
-    #define PCREATE_ReceivedMessageNotifier(fn) PCREATE_NOTIFIER2(fn, OpalIM)
+    #define PCREATE_ReceivedMessageNotifier(fn) PCREATE_NOTIFIER(fn)
 
     /// Set the notifier for the OnPresenceChange() function.
     void SetReceivedMessageNotifier(

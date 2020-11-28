@@ -95,8 +95,8 @@ class MyPCSSEndPoint : public OpalPCSSEndPoint
     virtual PSoundChannel * CreateSoundChannel(const OpalPCSSConnection & connection, const OpalMediaFormat & mediaFormat, unsigned sessionID, bool isSource);
 
   private:
-    virtual PBoolean OnShowIncoming(const OpalPCSSConnection & connection);
-    virtual PBoolean OnShowOutgoing(const OpalPCSSConnection & connection);
+    virtual bool OnShowIncoming(const OpalPCSSConnection & connection);
+    virtual bool OnShowOutgoing(const OpalPCSSConnection & connection);
 
     MyManager & m_manager;
 };
@@ -376,7 +376,7 @@ struct StatisticsField
   virtual ~StatisticsField() { }
   void Init(wxWindow * panel);
   void Clear();
-  double CalculateBandwidth(PUInt64 bytes);
+  double CalculateBandwidth(uint64_t bytes);
   double CalculateFrameRate(DWORD frames);
   virtual StatisticsField * Clone() const = 0;
   virtual void Update(const OpalConnection & connection, const OpalMediaStream & stream, const OpalMediaStatistics & statistics);
@@ -388,7 +388,7 @@ struct StatisticsField
   wxString        m_printFormat;
 
   PTimeInterval   m_lastBandwidthTick;
-  PUInt64         m_lastBytes;
+  uint64_t         m_lastBytes;
 
   PTimeInterval   m_lastFrameTick;
   DWORD           m_lastFrames;
@@ -459,7 +459,7 @@ class InCallPanel : public CallPanelBase, PAsyncNotifierTarget
 
 #if OPAL_HAS_H281
     void OnMouseFECC(wxMouseEvent & /*event*/);
-    PDECLARE_ASYNC_NOTIFIER(OpalH281Client, InCallPanel, OnChangedFECC);
+    PDECLARE_OpalH281CapabilityChangeNotifier(InCallPanel, OnChangedFECC);
 #endif
 
     void SpeakerVolume(wxScrollEvent & /*event*/);
@@ -1049,7 +1049,7 @@ class MyManager : public wxFrame, public OpalManager, public PAsyncNotifierTarge
     void OnEvtAsyncNotification(wxCommandEvent & /*event*/);
 
     // OpalManager overrides
-    virtual PBoolean OnIncomingConnection(
+    virtual bool OnIncomingConnection(
       OpalConnection & connection,   ///<  Connection that is calling
       unsigned options,              ///<  options for new connection (can't use default as overrides will fail)
       OpalConnection::StringOptions * stringOptions
@@ -1103,24 +1103,24 @@ class MyManager : public wxFrame, public OpalManager, public PAsyncNotifierTarge
       unsigned lastDigitTimeout = 4,      ///<  Timeout on last digit in string
       unsigned firstDigitTimeout = 30     ///<  Timeout on receiving any digits
     );
-    virtual PBoolean CreateVideoInputDevice(
+    virtual bool CreateVideoInputDevice(
       const OpalConnection & connection,    ///<  Connection needing created video device
       const OpalMediaFormat & mediaFormat,  ///<  Media format for stream
       PVideoInputDevice * & device,         ///<  Created device
-      PBoolean & autoDelete                     ///<  Flag for auto delete device
+      bool & autoDelete                     ///<  Flag for auto delete device
     );
     virtual bool CreateVideoInputDevice(
       const OpalConnection & connection,    ///<  Connection needing created video device
       const PVideoDevice::OpenArgs & args,  ///< Device to change to
       PVideoInputDevice * & device,         ///<  Created device
-      PBoolean & autoDelete                     ///<  Flag for auto delete device
+      bool & autoDelete                     ///<  Flag for auto delete device
     );
-    virtual PBoolean CreateVideoOutputDevice(
+    virtual bool CreateVideoOutputDevice(
       const OpalConnection & connection,    ///<  Connection needing created video device
       const OpalMediaFormat & mediaFormat,  ///<  Media format for stream
-      PBoolean preview,                         ///<  Flag indicating is a preview output
+      bool preview,                         ///<  Flag indicating is a preview output
       PVideoOutputDevice * & device,        ///<  Created device
-      PBoolean & autoDelete                     ///<  Flag for auto delete device
+      bool & autoDelete                     ///<  Flag for auto delete device
     );
 
     void OnClose(wxCloseEvent & /*event*/);
@@ -1245,7 +1245,7 @@ class MyManager : public wxFrame, public OpalManager, public PAsyncNotifierTarge
     wxImageList      * m_imageListSmall;
     wxDataFormat       m_ClipboardFormat;
 
-    set<SpeedDialInfo> m_speedDialInfo;
+    std::set<SpeedDialInfo> m_speedDialInfo;
     SpeedDialInfo * GetSelectedSpeedDial() const;
 
     MyPCSSEndPoint   * pcssEP;

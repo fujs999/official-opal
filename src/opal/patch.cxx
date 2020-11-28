@@ -231,7 +231,7 @@ void OpalMediaPatch::Close()
 }
 
 
-PBoolean OpalMediaPatch::AddSink(const OpalMediaStreamPtr & sinkStream)
+bool OpalMediaPatch::AddSink(const OpalMediaStreamPtr & sinkStream)
 {
   P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
@@ -554,7 +554,7 @@ void OpalMediaPatch::AddFilter(const PNotifier & filter, const OpalMediaFormat &
 }
 
 
-PBoolean OpalMediaPatch::RemoveFilter(const PNotifier & filter, const OpalMediaFormat & stage)
+bool OpalMediaPatch::RemoveFilter(const PNotifier & filter, const OpalMediaFormat & stage)
 {
   P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
@@ -576,7 +576,7 @@ void OpalMediaPatch::FilterFrame(RTP_DataFrame & frame, const OpalMediaFormat & 
 
   for (PList<Filter>::iterator f = m_filters.begin(); f != m_filters.end(); ++f) {
     if (f->m_stage.IsEmpty() || f->m_stage == mediaFormat)
-      f->m_notifier(frame, (P_INT_PTR)this);
+      f->m_notifier(frame, (intptr_t)this);
   }
 }
 
@@ -599,7 +599,7 @@ bool OpalMediaPatch::UpdateMediaFormat(const OpalMediaFormat & mediaFormat)
 }
 
 
-PBoolean OpalMediaPatch::ExecuteCommand(const OpalMediaCommand & command)
+bool OpalMediaPatch::ExecuteCommand(const OpalMediaCommand & command)
 {
   bool atLeastOne = false;
   PSafePtr<OpalMediaPatch> fromPatch, toPatch;
@@ -650,7 +650,7 @@ PBoolean OpalMediaPatch::ExecuteCommand(const OpalMediaCommand & command)
 }
 
 
-void OpalMediaPatch::InternalOnMediaCommand1(OpalMediaCommand & command, P_INT_PTR)
+void OpalMediaPatch::InternalOnMediaCommand1(OpalMediaCommand & command, intptr_t)
 {
   m_source.GetConnection().GetEndPoint().GetManager().QueueDecoupledEvent(new PSafeWorkArg1<OpalMediaPatch, OpalMediaCommand *>(
               this, command.CloneAs<OpalMediaCommand>(), &OpalMediaPatch::InternalOnMediaCommand2));
@@ -859,7 +859,7 @@ bool OpalMediaPatch::SetBypassPatch(const OpalMediaPatchPtr & patch)
 }
 
 
-PBoolean OpalMediaPatch::PushFrame(RTP_DataFrame & frame)
+bool OpalMediaPatch::PushFrame(RTP_DataFrame & frame)
 {
   return DispatchFrame(frame);
 }

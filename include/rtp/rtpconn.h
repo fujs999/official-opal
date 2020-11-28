@@ -131,7 +131,7 @@ class OpalRTPConnection : public OpalConnection
     virtual OpalMediaStream * CreateMediaStream(
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
-      PBoolean isSource                        ///<  Is a source stream
+      bool isSource                        ///<  Is a source stream
     );
 
     /**Get transports for the media session on the connection.
@@ -178,7 +178,7 @@ class OpalRTPConnection : public OpalConnection
        called before that thread has started.
       */
     virtual void OnPatchMediaStream(
-      PBoolean isSource,        ///< Is source/sink call
+      bool isSource,        ///< Is source/sink call
       OpalMediaPatch & patch    ///<  New patch
     );
 
@@ -192,7 +192,7 @@ class OpalRTPConnection : public OpalConnection
       const OpalMediaCommand & command  ///< Media command being executed
     );
 
-    virtual PBoolean SendUserInputTone(
+    virtual bool SendUserInputTone(
       char tone,        ///<  DTMF tone code
       unsigned duration = 0  ///<  Duration of tone in milliseconds
     );
@@ -347,7 +347,7 @@ class OpalRTPConnection : public OpalConnection
     OpalRFC2833Proto * m_ciscoNSEHandler;
 #endif
 
-    P_REMOVE_VIRTUAL(PBoolean,IsRTPNATEnabled(const PIPSocket::Address&,const PIPSocket::Address&,const PIPSocket::Address&,PBoolean),false);
+    P_REMOVE_VIRTUAL(bool,IsRTPNATEnabled(const PIPSocket::Address&,const PIPSocket::Address&,const PIPSocket::Address&,bool),false);
     P_REMOVE_VIRTUAL_VOID(AddAudioVideoGroup(const PString&));
     P_REMOVE_VIRTUAL_VOID(SetAudioVideoMediaStreamIDs(OpalRTPSession::Direction));
 };

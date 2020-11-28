@@ -201,10 +201,10 @@ class OpalSDPHTTPResource : public PHTTPResource
       const PHTTPAuthority & auth ///< Authorisation for the resource.
     );
 
-    virtual PBoolean OnGETData(
+    virtual bool OnGETData(
       PHTTPRequest & request                      ///< request state information
     );
-    virtual PBoolean OnPOSTData(
+    virtual bool OnPOSTData(
       PHTTPRequest & request,        ///< request information
       const PStringToString & data   ///< Variables in the POST data.
     );
@@ -247,7 +247,7 @@ class OpalSDPHTTPConnection : public OpalSDPConnection
        The default behaviour calls OnIncomingConnection() and OpalCall::OnSetUp()
        if it is first conenction in the call.
       */
-    virtual PBoolean SetUpConnection();
+    virtual bool SetUpConnection();
 
     /**Indicate to remote endpoint we are connected.
 
@@ -259,7 +259,7 @@ class OpalSDPHTTPConnection : public OpalSDPConnection
        In other words, this method is used to handle incoming calls,
        and is an indication that we have accepted the incoming call.
       */
-    virtual PBoolean SetConnected();
+    virtual bool SetConnected();
 
     /**Clean up the termination of the connection.
        This function can do any internal cleaning up and waiting on background

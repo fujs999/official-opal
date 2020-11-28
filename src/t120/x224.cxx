@@ -94,7 +94,7 @@ void X224::PrintOn(ostream & strm) const
 }
 
 
-PBoolean X224::Decode(const PBYTEArray & rawData)
+bool X224::Decode(const PBYTEArray & rawData)
 {
   PINDEX packetLength = rawData.GetSize();
 
@@ -114,7 +114,7 @@ PBoolean X224::Decode(const PBYTEArray & rawData)
 }
 
 
-PBoolean X224::Encode(PBYTEArray & rawData) const
+bool X224::Encode(PBYTEArray & rawData) const
 {
   PINDEX headerLength = header.GetSize();
   PINDEX dataLength = data.GetSize();

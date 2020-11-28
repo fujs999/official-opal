@@ -93,7 +93,7 @@ class H323_AnnexG : public H323Transactor
 
     /**Handle and dispatch a transaction PDU
       */
-    virtual PBoolean HandleTransaction(
+    virtual bool HandleTransaction(
       const PASN_Object & rawPDU
     );
 
@@ -106,38 +106,38 @@ class H323_AnnexG : public H323Transactor
 
   /**@name Protocol callbacks */
   //@{
-    virtual PBoolean OnReceiveServiceRequest              (const H501PDU & pdu, const H501_ServiceRequest & pduBody);
-    virtual PBoolean OnReceiveServiceConfirmation         (const H501PDU & pdu, const H501_ServiceConfirmation & pduBody);
-    virtual PBoolean OnReceiveServiceRejection            (const H501PDU & pdu, const H501_ServiceRejection & pduBody);
-    virtual PBoolean OnReceiveServiceRelease              (const H501PDU & pdu, const H501_ServiceRelease & pduBody);
-    virtual PBoolean OnReceiveDescriptorRequest           (const H501PDU & pdu, const H501_DescriptorRequest & pduBody);
-    virtual PBoolean OnReceiveDescriptorConfirmation      (const H501PDU & pdu, const H501_DescriptorConfirmation & pduBody);
-    virtual PBoolean OnReceiveDescriptorRejection         (const H501PDU & pdu, const H501_DescriptorRejection & pduBody);
-    virtual PBoolean OnReceiveDescriptorIDRequest         (const H501PDU & pdu, const H501_DescriptorIDRequest & pduBody);
-    virtual PBoolean OnReceiveDescriptorIDConfirmation    (const H501PDU & pdu, const H501_DescriptorIDConfirmation & pduBody);
-    virtual PBoolean OnReceiveDescriptorIDRejection       (const H501PDU & pdu, const H501_DescriptorIDRejection & pduBody);
-    virtual PBoolean OnReceiveDescriptorUpdate            (const H501PDU & pdu, const H501_DescriptorUpdate & pduBody);
-    virtual PBoolean OnReceiveDescriptorUpdateACK         (const H501PDU & pdu, const H501_DescriptorUpdateAck & pduBody);
-    virtual PBoolean OnReceiveAccessRequest               (const H501PDU & pdu, const H501_AccessRequest & pduBody);
-    virtual PBoolean OnReceiveAccessConfirmation          (const H501PDU & pdu, const H501_AccessConfirmation & pduBody);
-    virtual PBoolean OnReceiveAccessRejection             (const H501PDU & pdu, const H501_AccessRejection & pduBody);
-    virtual PBoolean OnReceiveRequestInProgress           (const H501PDU & pdu, const H501_RequestInProgress & pduBody);
-    virtual PBoolean OnReceiveNonStandardRequest          (const H501PDU & pdu, const H501_NonStandardRequest & pduBody);
-    virtual PBoolean OnReceiveNonStandardConfirmation     (const H501PDU & pdu, const H501_NonStandardConfirmation & pduBody);
-    virtual PBoolean OnReceiveNonStandardRejection        (const H501PDU & pdu, const H501_NonStandardRejection & pduBody);
-    virtual PBoolean OnReceiveUnknownMessageResponse      (const H501PDU & pdu, const H501_UnknownMessageResponse & pduBody);
-    virtual PBoolean OnReceiveUsageRequest                (const H501PDU & pdu, const H501_UsageRequest & pduBody);
-    virtual PBoolean OnReceiveUsageConfirmation           (const H501PDU & pdu, const H501_UsageConfirmation & pduBody);
-    virtual PBoolean OnReceiveUsageIndicationConfirmation (const H501PDU & pdu, const H501_UsageIndicationConfirmation & pduBody);
-    virtual PBoolean OnReceiveUsageIndicationRejection    (const H501PDU & pdu, const H501_UsageIndicationRejection & pduBody);
-    virtual PBoolean OnReceiveUsageRejection              (const H501PDU & pdu, const H501_UsageRejection & pduBody);
-    virtual PBoolean OnReceiveValidationRequest           (const H501PDU & pdu, const H501_ValidationRequest & pduBody);
-    virtual PBoolean OnReceiveValidationConfirmation      (const H501PDU & pdu, const H501_ValidationConfirmation & pduBody);
-    virtual PBoolean OnReceiveValidationRejection         (const H501PDU & pdu, const H501_ValidationRejection & pduBody);
-    virtual PBoolean OnReceiveAuthenticationRequest       (const H501PDU & pdu, const H501_AuthenticationRequest & pduBody);
-    virtual PBoolean OnReceiveAuthenticationConfirmation  (const H501PDU & pdu, const H501_AuthenticationConfirmation & pduBody);
-    virtual PBoolean OnReceiveAuthenticationRejection     (const H501PDU & pdu, const H501_AuthenticationRejection & pduBody);
-    virtual PBoolean OnReceiveUnknown(const H501PDU &);
+    virtual bool OnReceiveServiceRequest              (const H501PDU & pdu, const H501_ServiceRequest & pduBody);
+    virtual bool OnReceiveServiceConfirmation         (const H501PDU & pdu, const H501_ServiceConfirmation & pduBody);
+    virtual bool OnReceiveServiceRejection            (const H501PDU & pdu, const H501_ServiceRejection & pduBody);
+    virtual bool OnReceiveServiceRelease              (const H501PDU & pdu, const H501_ServiceRelease & pduBody);
+    virtual bool OnReceiveDescriptorRequest           (const H501PDU & pdu, const H501_DescriptorRequest & pduBody);
+    virtual bool OnReceiveDescriptorConfirmation      (const H501PDU & pdu, const H501_DescriptorConfirmation & pduBody);
+    virtual bool OnReceiveDescriptorRejection         (const H501PDU & pdu, const H501_DescriptorRejection & pduBody);
+    virtual bool OnReceiveDescriptorIDRequest         (const H501PDU & pdu, const H501_DescriptorIDRequest & pduBody);
+    virtual bool OnReceiveDescriptorIDConfirmation    (const H501PDU & pdu, const H501_DescriptorIDConfirmation & pduBody);
+    virtual bool OnReceiveDescriptorIDRejection       (const H501PDU & pdu, const H501_DescriptorIDRejection & pduBody);
+    virtual bool OnReceiveDescriptorUpdate            (const H501PDU & pdu, const H501_DescriptorUpdate & pduBody);
+    virtual bool OnReceiveDescriptorUpdateACK         (const H501PDU & pdu, const H501_DescriptorUpdateAck & pduBody);
+    virtual bool OnReceiveAccessRequest               (const H501PDU & pdu, const H501_AccessRequest & pduBody);
+    virtual bool OnReceiveAccessConfirmation          (const H501PDU & pdu, const H501_AccessConfirmation & pduBody);
+    virtual bool OnReceiveAccessRejection             (const H501PDU & pdu, const H501_AccessRejection & pduBody);
+    virtual bool OnReceiveRequestInProgress           (const H501PDU & pdu, const H501_RequestInProgress & pduBody);
+    virtual bool OnReceiveNonStandardRequest          (const H501PDU & pdu, const H501_NonStandardRequest & pduBody);
+    virtual bool OnReceiveNonStandardConfirmation     (const H501PDU & pdu, const H501_NonStandardConfirmation & pduBody);
+    virtual bool OnReceiveNonStandardRejection        (const H501PDU & pdu, const H501_NonStandardRejection & pduBody);
+    virtual bool OnReceiveUnknownMessageResponse      (const H501PDU & pdu, const H501_UnknownMessageResponse & pduBody);
+    virtual bool OnReceiveUsageRequest                (const H501PDU & pdu, const H501_UsageRequest & pduBody);
+    virtual bool OnReceiveUsageConfirmation           (const H501PDU & pdu, const H501_UsageConfirmation & pduBody);
+    virtual bool OnReceiveUsageIndicationConfirmation (const H501PDU & pdu, const H501_UsageIndicationConfirmation & pduBody);
+    virtual bool OnReceiveUsageIndicationRejection    (const H501PDU & pdu, const H501_UsageIndicationRejection & pduBody);
+    virtual bool OnReceiveUsageRejection              (const H501PDU & pdu, const H501_UsageRejection & pduBody);
+    virtual bool OnReceiveValidationRequest           (const H501PDU & pdu, const H501_ValidationRequest & pduBody);
+    virtual bool OnReceiveValidationConfirmation      (const H501PDU & pdu, const H501_ValidationConfirmation & pduBody);
+    virtual bool OnReceiveValidationRejection         (const H501PDU & pdu, const H501_ValidationRejection & pduBody);
+    virtual bool OnReceiveAuthenticationRequest       (const H501PDU & pdu, const H501_AuthenticationRequest & pduBody);
+    virtual bool OnReceiveAuthenticationConfirmation  (const H501PDU & pdu, const H501_AuthenticationConfirmation & pduBody);
+    virtual bool OnReceiveAuthenticationRejection     (const H501PDU & pdu, const H501_AuthenticationRejection & pduBody);
+    virtual bool OnReceiveUnknown(const H501PDU &);
 
   protected:
     void Construct();

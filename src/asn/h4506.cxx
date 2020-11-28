@@ -139,7 +139,7 @@ PINDEX H4506_CallWaitingArg::GetDataLength() const
 }
 
 
-PBoolean H4506_CallWaitingArg::Decode(PASN_Stream & strm)
+bool H4506_CallWaitingArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;

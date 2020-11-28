@@ -58,7 +58,7 @@
 OpalIAX2MediaStream::OpalIAX2MediaStream(IAX2Connection & conn, 
                                   const OpalMediaFormat & mediaFormat,
 					 unsigned sessionID,   
-					 PBoolean isSource)
+					 bool isSource)
   : OpalMediaStream(conn, mediaFormat, sessionID, isSource),
     connection(conn)
 {
@@ -74,7 +74,7 @@ OpalIAX2MediaStream::~OpalIAX2MediaStream()
 }
  
  
-PBoolean OpalIAX2MediaStream::ReadPacket(RTP_DataFrame & packet)
+bool OpalIAX2MediaStream::ReadPacket(RTP_DataFrame & packet)
 {
   PTRACE(5, "Media\tRead media compressed audio packet from the iax2 connection");
 
@@ -88,12 +88,12 @@ PBoolean OpalIAX2MediaStream::ReadPacket(RTP_DataFrame & packet)
     return false;
   }
     
-  PBoolean success = connection.ReadSoundPacket(packet); 
+  bool success = connection.ReadSoundPacket(packet); 
 
   return success;
 }
 
-PBoolean OpalIAX2MediaStream::IsSynchronous() const
+bool OpalIAX2MediaStream::IsSynchronous() const
 {
   return IsSource();
 }
@@ -102,7 +102,7 @@ PBoolean OpalIAX2MediaStream::IsSynchronous() const
 /////////////////////////////////////////////////////////////////////////////
 
 // This routine takes data from the source (eg mic) and sends the data to the remote host.
-PBoolean OpalIAX2MediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDEX & written)
+bool OpalIAX2MediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDEX & written)
 {
   written = 0;
   if (IsSource()) {

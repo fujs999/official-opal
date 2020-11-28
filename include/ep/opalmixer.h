@@ -69,9 +69,9 @@ class OpalMixerConnection;
     Note the timestamps of the input media are extremely important as they are
     used so that breaks or too fast data in the input media is dealt with correctly.
   */
-class OpalBaseMixer : public PSmartObject
+class OpalBaseMixer : public PObject
 {
-    PCLASSINFO(OpalBaseMixer, PSmartObject);
+    PCLASSINFO(OpalBaseMixer, PObject);
   public:
     OpalBaseMixer(
       bool pushThread,    ///< Indicate if the push thread should be started
@@ -473,7 +473,7 @@ class OpalMixerNodeManager
         Default behaviour deletes the objects that have been
         removed from the m_nodesByUID list.
       */
-    virtual PBoolean GarbageCollection();
+    virtual bool GarbageCollection();
   //@}
 
   /**@name Operations */
@@ -686,7 +686,7 @@ class OpalMixerEndPoint : public OpalLocalEndPoint, public OpalMixerNodeManager
         Returns true if all garbage has been collected.
         Default behaviour deletes the objects in the connectionsActive list.
       */
-    virtual PBoolean GarbageCollection();
+    virtual bool GarbageCollection();
   //@}
 
   /**@name Operations */
@@ -872,7 +872,7 @@ class OpalMixerConnection : public OpalLocalConnection
     virtual OpalMediaStream * CreateMediaStream(
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
-      PBoolean isSource                    ///<  Is a source stream
+      bool isSource                    ///<  Is a source stream
     );
 
     /**Call back when media stream patch thread starts.
@@ -890,7 +890,7 @@ class OpalMixerConnection : public OpalLocalConnection
        The default behaviour is to call SendUserInputTone() for each character
        in the string.
       */
-    virtual PBoolean SendUserInputString(
+    virtual bool SendUserInputString(
       const PString & value                   ///<  String value of indication
     );
 
@@ -910,7 +910,7 @@ class OpalMixerConnection : public OpalLocalConnection
 
        The default behaviour sends the tone using RFC2833.
       */
-    virtual PBoolean SendUserInputTone(
+    virtual bool SendUserInputTone(
       char tone,        ///<  DTMF tone code
       unsigned duration = 0  ///<  Duration of tone in milliseconds
     );
@@ -985,21 +985,21 @@ class OpalMixerMediaStream : public OpalMediaStream
   //@{
     /**Open the media stream using the media format.
       */
-    virtual PBoolean Open();
+    virtual bool Open();
 
     /**Write an RTP frame of data to the sink media stream.
        The default behaviour simply calls WriteData() on the data portion of the
        RTP_DataFrame and and sets the internal timestamp and marker from the
        member variables of the media stream class.
       */
-    virtual PBoolean WritePacket(
+    virtual bool WritePacket(
       RTP_DataFrame & packet
     );
 
     /**Indicate if the media stream is synchronous.
        Returns true for LID streams.
       */
-    virtual PBoolean IsSynchronous() const;
+    virtual bool IsSynchronous() const;
 
     /**Indicate if the media stream requires a OpalMediaPatch thread (active patch).
        This is called on the source/sink stream and is passed the sink/source
@@ -1011,7 +1011,7 @@ class OpalMixerMediaStream : public OpalMediaStream
        The default behaviour returns true if a sink stream. If source stream
        then threading is from the mixer class.
       */
-    virtual PBoolean RequiresPatchThread() const;
+    virtual bool RequiresPatchThread() const;
   //@}
 
   /**@name Member variable access */
@@ -1293,20 +1293,20 @@ class OpalMixerNode : public PSafeObject
     OpalMixerNodeManager & m_manager;
     PGloballyUniqueID      m_guid;
     PStringSet             m_names;
-    OpalMixerNodeInfo    * m_info;
+    std::unique_ptr<OpalMixerNodeInfo> m_info;
     PTime                  m_creationTime;
     atomic<bool>           m_shuttingDown;
 
     PSafeArray<OpalConnection> m_connections;
     PString                    m_ownerConnection;
 
-    OpalAudioStreamMixer * m_audioMixer;
+    std::shared_ptr<OpalAudioStreamMixer> m_audioMixer;
 #if OPAL_VIDEO
-    typedef std::map<OpalVideoFormat::ContentRole, OpalVideoStreamMixer *> VideoMixerMap;
+    typedef std::map<OpalVideoFormat::ContentRole, std::shared_ptr<OpalVideoStreamMixer>> VideoMixerMap;
     VideoMixerMap m_videoMixers;
 #endif // OPAL_VIDEO
 
-    typedef std::map<PString, OpalBaseMixer *> MixerByIdMap;
+    typedef std::map<PString, std::shared_ptr<OpalBaseMixer>> MixerByIdMap;
     MixerByIdMap m_mixerById;
 };
 

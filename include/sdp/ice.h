@@ -87,7 +87,7 @@ class OpalICEMediaTransport : public OpalUDPMediaTransport
         PCLASSINFO(ICEChannel, PIndirectChannel);
       public:
         ICEChannel(OpalICEMediaTransport & owner, SubChannels subchannel, PChannel * channel);
-        virtual PBoolean Read(void * buf, PINDEX len);
+        virtual bool Read(void * buf, PINDEX len);
       protected:
         OpalICEMediaTransport & m_owner;
         SubChannels             m_subchannel;

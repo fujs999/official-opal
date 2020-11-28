@@ -137,7 +137,7 @@ bool MyManager::OnLocalIncomingCall(OpalLocalConnection & connection)
 }
 
 
-void MyManager::AutoAnswer(PTimer &, P_INT_PTR)
+void MyManager::AutoAnswer(PTimer &, intptr_t)
 {
   if (m_incomingCall == NULL)
     return;
@@ -203,14 +203,14 @@ bool MyManager::SetAutoAnswer(ostream & output, bool verbose, const PArgList & a
 }
 
 
-void MyManager::CmdAutoAnswer(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::CmdAutoAnswer(PCLI::Arguments & args, intptr_t)
 {
   if (!SetAutoAnswer(args.GetContext(), true, args, NULL))
     args.WriteError("Invalid value for seconds");
 }
 
 
-void MyManager::CmdAnswer(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::CmdAnswer(PCLI::Arguments & args, intptr_t)
 {
   if (m_incomingCall == NULL)
     args.WriteError() << "No call to answer." << endl;
@@ -228,7 +228,7 @@ void MyManager::CmdAnswer(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void MyManager::CmdSpeedDial(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::CmdSpeedDial(PCLI::Arguments & args, intptr_t)
 {
   PStringToString::iterator it;
   switch (args.GetCount()) {

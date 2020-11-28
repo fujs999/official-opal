@@ -52,7 +52,7 @@
 
 OpalRTPMediaStream::OpalRTPMediaStream(OpalRTPConnection & conn,
                                    const OpalMediaFormat & mediaFormat,
-                                                  PBoolean isSource,
+                                                  bool isSource,
                                           OpalRTPSession & rtp)
   : OpalMediaStream(conn, mediaFormat, rtp.GetSessionID(), isSource)
   , m_rtpSession(rtp)
@@ -94,7 +94,7 @@ OpalRTPMediaStream::~OpalRTPMediaStream()
 }
 
 
-PBoolean OpalRTPMediaStream::Open()
+bool OpalRTPMediaStream::Open()
 {
   if (m_isOpen)
     return true;
@@ -141,7 +141,7 @@ bool OpalRTPMediaStream::IsEstablished() const
 }
 
 
-PBoolean OpalRTPMediaStream::Start()
+bool OpalRTPMediaStream::Start()
 {
   // We make referenced copy of pointer so can't be deleted out from under us
   OpalMediaPatchPtr mediaPatch = m_mediaPatch;
@@ -338,7 +338,7 @@ void OpalRTPMediaStream::OnReceivedPacket(OpalRTPSession &, OpalRTPSession::Data
 }
 
 
-PBoolean OpalRTPMediaStream::ReadPacket(RTP_DataFrame & packet)
+bool OpalRTPMediaStream::ReadPacket(RTP_DataFrame & packet)
 {
   if (!IsOpen()) {
     PTRACE(4, "Read from closed media stream " << *this);
@@ -390,7 +390,7 @@ PBoolean OpalRTPMediaStream::ReadPacket(RTP_DataFrame & packet)
 }
 
 
-PBoolean OpalRTPMediaStream::WritePacket(RTP_DataFrame & packet)
+bool OpalRTPMediaStream::WritePacket(RTP_DataFrame & packet)
 {
   if (!IsOpen()) {
     PTRACE(4, "Write to closed media stream " << *this);
@@ -453,7 +453,7 @@ PBoolean OpalRTPMediaStream::WritePacket(RTP_DataFrame & packet)
 }
 
 
-PBoolean OpalRTPMediaStream::SetDataSize(PINDEX PTRACE_PARAM(dataSize), PINDEX /*frameTime*/)
+bool OpalRTPMediaStream::SetDataSize(PINDEX PTRACE_PARAM(dataSize), PINDEX /*frameTime*/)
 {
   PTRACE(3, "Data size cannot be changed to " << dataSize << ", fixed at " << GetDataSize());
   return true;
@@ -466,7 +466,7 @@ PString OpalRTPMediaStream::GetPatchThreadName() const
 }
 
 
-PBoolean OpalRTPMediaStream::IsSynchronous() const
+bool OpalRTPMediaStream::IsSynchronous() const
 {
   // Sinks never block
   if (!IsSource())
@@ -486,7 +486,7 @@ PBoolean OpalRTPMediaStream::IsSynchronous() const
 }
 
 
-PBoolean OpalRTPMediaStream::RequiresPatchThread() const
+bool OpalRTPMediaStream::RequiresPatchThread() const
 {
   return !dynamic_cast<OpalRTPEndPoint &>(m_connection.GetEndPoint()).CheckForLocalRTP(*this);
 }
@@ -509,7 +509,7 @@ bool OpalRTPMediaStream::InternalUpdateMediaFormat(const OpalMediaFormat & newMe
 }
 
 
-PBoolean OpalRTPMediaStream::SetPatch(OpalMediaPatch * patch)
+bool OpalRTPMediaStream::SetPatch(OpalMediaPatch * patch)
 {
   if (!IsOpen() || IsSink())
     return OpalMediaStream::SetPatch(patch);

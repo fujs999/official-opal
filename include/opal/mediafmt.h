@@ -105,7 +105,7 @@ class OpalBandwidth : public PObject
 
 ///////////////////////////////////////////////////////////////////////////////
 
-PLIST(OpalMediaFormatBaseList, OpalMediaFormat);
+typedef PList<OpalMediaFormat> OpalMediaFormatBaseList;
 
 /**This class contains a list of media formats.
   */
@@ -221,7 +221,7 @@ class OpalMediaFormatList : public OpalMediaFormatBaseList
 
     /**Determine if a format matching the payload type is in the list.
       */
-    PBoolean HasFormat(
+    bool HasFormat(
       RTP_DataFrame::PayloadTypes rtpPayloadType ///<  RTP payload type code
     ) const { return FindFormat(rtpPayloadType) != end(); }
 
@@ -230,7 +230,7 @@ class OpalMediaFormatList : public OpalMediaFormatBaseList
        character. For example: "G.711*" would match "G.711-uLaw-64k" and
        "G.711-ALaw-64k".
       */
-    PBoolean HasFormat(
+    bool HasFormat(
       const PString & wildcard    ///<  Wildcard string name.
     ) const { return FindFormat(wildcard) != end(); }
 
@@ -756,7 +756,7 @@ class OpalMediaFormatInternal : public PObject
     virtual bool GetOptionOctets(const PString & name, PBYTEArray & octets) const;
     virtual bool SetOptionOctets(const PString & name, const PBYTEArray & octets);
     virtual bool SetOptionOctets(const PString & name, const BYTE * data, PINDEX length);
-    virtual bool AddOption(OpalMediaOption * option, PBoolean overwrite = false);
+    virtual bool AddOption(OpalMediaOption * option, bool overwrite = false);
     virtual OpalMediaOption * FindOption(const PString & name) const;
 
     virtual bool ToNormalisedOptions();
@@ -810,7 +810,7 @@ class OpalMediaFormat : public PContainer
     OpalMediaFormat(const OpalMediaFormat & c);
     virtual ~OpalMediaFormat();
     OpalMediaFormat & operator=(const OpalMediaFormat & c)     { AssignContents(c); return *this; }
-    virtual PBoolean MakeUnique();
+    virtual bool MakeUnique();
   protected:
     virtual void DestroyContents();
     virtual void AssignContents(const PContainer & c);
@@ -843,7 +843,7 @@ class OpalMediaFormat : public PContainer
       const OpalMediaType & mediaType,            ///<  media type for this format
       RTP_DataFrame::PayloadTypes rtpPayloadType, ///<  RTP payload type code
       const char * encodingName,                  ///<  RTP encoding name
-      PBoolean     needsJitter,                   ///<  Indicate format requires a jitter buffer
+      bool     needsJitter,                   ///<  Indicate format requires a jitter buffer
       OpalBandwidth bandwidth,                    ///<  Bandwidth in bits/second
       PINDEX   frameSize,                         ///<  Size of frame in bytes (if applicable)
       unsigned frameTime,                         ///<  Time for frame in RTP units (if applicable)
@@ -991,12 +991,12 @@ class OpalMediaFormat : public PContainer
        single string constructor is used to check that it matched something
        in the registered media formats database.
       */
-    PBoolean IsValid() const { PWaitAndSignal m(m_mutex); return m_info != NULL && m_info->IsValid(); }
+    bool IsValid() const { PWaitAndSignal m(m_mutex); return m_info != NULL && m_info->IsValid(); }
 
     /**Return true if media format info may be sent via RTP. Some formats are internal
        use only and are never transported "over the wire".
       */
-    PBoolean IsTransportable() const { PWaitAndSignal m(m_mutex); return m_info != NULL && m_info->IsTransportable(); }
+    bool IsTransportable() const { PWaitAndSignal m(m_mutex); return m_info != NULL && m_info->IsTransportable(); }
 
     /**Get the RTP payload type that is to be used for this media format.
        This will either be an intrinsic one for the media format eg GSM or it
@@ -1303,7 +1303,7 @@ class OpalMediaFormat : public PContainer
       */
     bool AddOption(
       OpalMediaOption * option,
-      PBoolean overwrite = false
+      bool overwrite = false
     ) { PWaitAndSignal m(m_mutex); MakeUnique(); return m_info != NULL && m_info->AddOption(option, overwrite); }
 
     /**
@@ -1351,7 +1351,7 @@ class OpalMediaFormat : public PContainer
 #endif
 
     // Backward compatibility
-    virtual PBoolean IsEmpty() const { PWaitAndSignal m(m_mutex); return m_info == NULL || !m_info->IsValid(); }
+    virtual bool IsEmpty() const { PWaitAndSignal m(m_mutex); return m_info == NULL || !m_info->IsValid(); }
     operator PString() const { PWaitAndSignal m(m_mutex); return m_info == NULL ? "" : m_info->formatName; }
     operator const char *() const { PWaitAndSignal m(m_mutex); return m_info == NULL ? "" : m_info->formatName; }
     bool operator==(const char * other) const { PWaitAndSignal m(m_mutex); return m_info != NULL && m_info->formatName == other; }
@@ -1374,7 +1374,7 @@ class OpalMediaFormat : public PContainer
 #endif
 
   private:
-    PBoolean SetSize(PINDEX) { return true; }
+    bool SetSize(PINDEX) { return true; }
 
   protected:
     void Construct(OpalMediaFormatInternal * info);
@@ -1444,7 +1444,7 @@ class OpalAudioFormat : public OpalMediaFormat
       virtual ~FrameDetector() { }
       virtual FrameType GetFrameType(const BYTE * rtp, PINDEX size, unsigned sampleRate) = 0;
     };
-    typedef PAutoPtr<FrameDetector> FrameDetectorPtr;
+    typedef std::unique_ptr<FrameDetector> FrameDetectorPtr;
     typedef PFactory<FrameDetector, PCaselessString> FrameDetectFactory;
 
     FrameType GetFrameType(const BYTE * payloadPtr, PINDEX payloadSize, FrameDetectorPtr & detector) const;
@@ -1563,7 +1563,7 @@ class OpalVideoFormat : public OpalMediaFormat
       virtual ~FrameDetector() { }
       virtual FrameType GetFrameType(const BYTE * rtp, PINDEX size) = 0;
     };
-    typedef PAutoPtr<FrameDetector> FrameDetectorPtr;
+    typedef std::unique_ptr<FrameDetector> FrameDetectorPtr;
     typedef PFactory<FrameDetector, PCaselessString> FrameDetectFactory;
 
     FrameType GetFrameType(const BYTE * payloadPtr, PINDEX payloadSize, FrameDetectorPtr & detector) const;

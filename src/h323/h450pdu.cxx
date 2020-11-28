@@ -327,7 +327,7 @@ void H450ServiceAPDU::AttachSupplementaryServiceAPDU(H323SignalPDU & pdu)
 }
 
 
-PBoolean H450ServiceAPDU::WriteFacilityPDU(H323Connection & connection)
+bool H450ServiceAPDU::WriteFacilityPDU(H323Connection & connection)
 {
   H323SignalPDU facilityPDU;
   facilityPDU.BuildFacility(connection, true);
@@ -421,9 +421,9 @@ void H450xDispatcher::AttachToReleaseComplete(H323SignalPDU & pdu)
 }
 
 
-PBoolean H450xDispatcher::HandlePDU(const H323SignalPDU & pdu)
+bool H450xDispatcher::HandlePDU(const H323SignalPDU & pdu)
 {
-PBoolean result = true;
+bool result = true;
   for (PINDEX i = 0; i < pdu.m_h323_uu_pdu.m_h4501SupplementaryService.GetSize(); i++) {
     H4501_SupplementaryService supplementaryService;
 
@@ -475,9 +475,9 @@ PBoolean result = true;
 }
 
 
-PBoolean H450xDispatcher::OnReceivedInvoke(X880_Invoke & invoke, H4501_InterpretationApdu & interpretation)
+bool H450xDispatcher::OnReceivedInvoke(X880_Invoke & invoke, H4501_InterpretationApdu & interpretation)
 {
-  PBoolean result = true;
+  bool result = true;
   // Get the invokeId
   int invokeId = invoke.m_invokeId.GetValue();
 
@@ -517,7 +517,7 @@ PBoolean H450xDispatcher::OnReceivedInvoke(X880_Invoke & invoke, H4501_Interpret
 }
 
 
-PBoolean H450xDispatcher::OnReceivedReturnResult(X880_ReturnResult & returnResult)
+bool H450xDispatcher::OnReceivedReturnResult(X880_ReturnResult & returnResult)
 {
   unsigned invokeId = returnResult.m_invokeId.GetValue();
 
@@ -531,9 +531,9 @@ PBoolean H450xDispatcher::OnReceivedReturnResult(X880_ReturnResult & returnResul
 }
 
 
-PBoolean H450xDispatcher::OnReceivedReturnError(X880_ReturnError & returnError)
+bool H450xDispatcher::OnReceivedReturnError(X880_ReturnError & returnError)
 {
-  PBoolean result=true;
+  bool result=true;
   unsigned invokeId = returnError.m_invokeId.GetValue();
   int errorCode = 0;
 
@@ -550,7 +550,7 @@ PBoolean H450xDispatcher::OnReceivedReturnError(X880_ReturnError & returnError)
 }
 
 
-PBoolean H450xDispatcher::OnReceivedReject(X880_Reject & reject)
+bool H450xDispatcher::OnReceivedReject(X880_Reject & reject)
 {
   int problem = 0;
 
@@ -694,20 +694,20 @@ void H450xHandler::AttachToReleaseComplete(H323SignalPDU &)
 }
 
 
-PBoolean H450xHandler::OnReceivedReturnResult(X880_ReturnResult & /*returnResult*/)
+bool H450xHandler::OnReceivedReturnResult(X880_ReturnResult & /*returnResult*/)
 {
   return true;
 }
 
 
-PBoolean H450xHandler::OnReceivedReturnError(int /*errorCode*/,
+bool H450xHandler::OnReceivedReturnError(int /*errorCode*/,
                                         X880_ReturnError & /*returnError*/)
 {
   return true;
 }
 
 
-PBoolean H450xHandler::OnReceivedReject(int /*problemType*/,
+bool H450xHandler::OnReceivedReject(int /*problemType*/,
                                    int /*problemNumber*/)
 {
   return true;
@@ -749,7 +749,7 @@ void H450xHandler::SendReturnErrorReject(int problem)
 }
 
 
-PBoolean H450xHandler::DecodeArguments(PASN_OctetString * argString,
+bool H450xHandler::DecodeArguments(PASN_OctetString * argString,
                                   PASN_Object & argObject,
                                   int absentErrorCode)
 {
@@ -869,7 +869,7 @@ void H4502Handler::AttachToReleaseComplete(H323SignalPDU & pdu)
 }
 
 
-PBoolean H4502Handler::OnReceivedInvoke(int opcode,
+bool H4502Handler::OnReceivedInvoke(int opcode,
                                     int invokeId,
                                     int linkedId,
                                     PASN_OctetString * argument)
@@ -1105,7 +1105,7 @@ void H4502Handler::OnReceivedCallTransferActive(int /*linkedId*/,
 }
 
 
-PBoolean H4502Handler::OnReceivedReturnResult(X880_ReturnResult & returnResult)
+bool H4502Handler::OnReceivedReturnResult(X880_ReturnResult & returnResult)
 {
   if (currentInvokeId == returnResult.m_invokeId.GetValue()) {
     switch (ctState) {
@@ -1193,7 +1193,7 @@ void H4502Handler::OnReceivedIdentifyReturnResult(X880_ReturnResult &returnResul
 }
 
 
-PBoolean H4502Handler::OnReceivedReturnError(int errorCode, X880_ReturnError &returnError)
+bool H4502Handler::OnReceivedReturnError(int errorCode, X880_ReturnError &returnError)
 {
   if (currentInvokeId == returnError.m_invokeId.GetValue()) {
     switch (ctState) {
@@ -1420,7 +1420,7 @@ void H4502Handler::StopctTimer()
 }
 
 
-void H4502Handler::OnCallTransferTimeOut(PTimer &, P_INT_PTR)
+void H4502Handler::OnCallTransferTimeOut(PTimer &, intptr_t)
 {
   switch (ctState) {
     // CT-T3 Timeout
@@ -1468,7 +1468,7 @@ H4504Handler::H4504Handler(H323Connection & conn, H450xDispatcher & disp)
 }
 
 
-PBoolean H4504Handler::OnReceivedInvoke(int opcode,
+bool H4504Handler::OnReceivedInvoke(int opcode,
                                     int invokeId,
                                     int linkedId,
                                     PASN_OctetString *)
@@ -1527,7 +1527,7 @@ void H4504Handler::OnReceivedRemoteCallRetrieve(int /*linkedId*/)
 }
 
 
-bool H4504Handler::HoldCall(PBoolean localHold)
+bool H4504Handler::HoldCall(bool localHold)
 {
   // TBD: Implement Remote Hold. This implementation only does 
   // local hold. -- dcassel 4/01. 
@@ -1583,7 +1583,7 @@ H4506Handler::H4506Handler(H323Connection & conn, H450xDispatcher & disp)
 }
 
 
-PBoolean H4506Handler::OnReceivedInvoke(int opcode,
+bool H4506Handler::OnReceivedInvoke(int opcode,
                                     int invokeId,
                                     int linkedId,
                                     PASN_OctetString *argument)
@@ -1645,7 +1645,7 @@ H4507Handler::H4507Handler(H323Connection & conn, H450xDispatcher & disp)
 }
 
 
-PBoolean H4507Handler::OnReceivedInvoke(int opcode,
+bool H4507Handler::OnReceivedInvoke(int opcode,
                                     int invokeId,
                                     int /*linkedId*/,
                                     PASN_OctetString * /*argument*/)
@@ -1747,12 +1747,12 @@ H45011Handler::H45011Handler(H323Connection & conn, H450xDispatcher & disp)
 }
 
 
-PBoolean H45011Handler::OnReceivedInvoke(int opcode,
+bool H45011Handler::OnReceivedInvoke(int opcode,
                                     int invokeId,
                                     int linkedId,
                                     PASN_OctetString * argument)
 {
-  PBoolean result = true;
+  bool result = true;
   currentInvokeId = invokeId;
 
   switch (opcode) {
@@ -2069,10 +2069,10 @@ void H45011Handler::OnReceivedCallIntrusionIsolate(int /*linkedId*/,
 }
 
 
-PBoolean H45011Handler::OnReceivedCallIntrusionForcedRelease(int /*linkedId*/,
+bool H45011Handler::OnReceivedCallIntrusionForcedRelease(int /*linkedId*/,
                                                          PASN_OctetString *argument)
 {
-  PBoolean result = true;
+  bool result = true;
   PTRACE(4, "H450.11\tReceived ForcedRelease Invoke");
 
   H45011_CIFrcRelArg ciArg;
@@ -2211,7 +2211,7 @@ void H45011Handler::OnReceivedCallWaiting(int /*linkedId*/,
 }
 
 
-PBoolean H45011Handler::OnReceivedReturnResult(X880_ReturnResult & returnResult)
+bool H45011Handler::OnReceivedReturnResult(X880_ReturnResult & returnResult)
 {
   PTRACE(4, "H450.11\tReceived Return Result");
   if (currentInvokeId == returnResult.m_invokeId.GetValue()) {
@@ -2294,9 +2294,9 @@ void H45011Handler::OnReceivedCIGetCIPLResult(X880_ReturnResult & returnResult)
 }
 
 
-PBoolean H45011Handler::OnReceivedReturnError(int errorCode, X880_ReturnError &returnError)
+bool H45011Handler::OnReceivedReturnError(int errorCode, X880_ReturnError &returnError)
 {
-  PBoolean result = true;
+  bool result = true;
   PTRACE(4, "H450.11\tReceived Return Error CODE=" <<errorCode << ", InvokeId=" <<returnError.m_invokeId.GetValue());
   if (currentInvokeId == returnError.m_invokeId.GetValue()) {
     switch (ciState) {
@@ -2314,9 +2314,9 @@ PBoolean H45011Handler::OnReceivedReturnError(int errorCode, X880_ReturnError &r
 }
 
 
-PBoolean H45011Handler::OnReceivedInvokeReturnError(int errorCode, const bool timerExpiry)
+bool H45011Handler::OnReceivedInvokeReturnError(int errorCode, const bool timerExpiry)
 {
-  PBoolean result = false;
+  bool result = false;
   PTRACE(4, "H450.11\tOnReceivedInvokeReturnError CODE =" << errorCode);
   if (!timerExpiry) {
     // stop timer CI-T1
@@ -2350,7 +2350,7 @@ PBoolean H45011Handler::OnReceivedInvokeReturnError(int errorCode, const bool ti
 }
 
 
-PBoolean H45011Handler::OnReceivedGetCIPLReturnError(int PTRACE_PARAM(errorCode),
+bool H45011Handler::OnReceivedGetCIPLReturnError(int PTRACE_PARAM(errorCode),
                                                  const bool timerExpiry)
 {
   PTRACE(4, "H450.11\tOnReceivedGetCIPLReturnError ErrorCode=" << errorCode);
@@ -2404,7 +2404,7 @@ void H45011Handler::AwaitSetupResponse(const PString & token,
 }
 
 
-PBoolean H45011Handler::GetRemoteCallIntrusionProtectionLevel(const PString & token,
+bool H45011Handler::GetRemoteCallIntrusionProtectionLevel(const PString & token,
                                                           unsigned intrusionCICL)
 {
   intrudingCallToken = token;
@@ -2459,7 +2459,7 @@ void H45011Handler::StopciTimer()
 }
 
 
-void H45011Handler::OnCallIntrudeTimeOut(PTimer &, P_INT_PTR)
+void H45011Handler::OnCallIntrudeTimeOut(PTimer &, intptr_t)
 {
   switch (ciState) {
     // CI-T1 Timeout
@@ -2492,7 +2492,7 @@ void H45011Handler::OnCallIntrudeTimeOut(PTimer &, P_INT_PTR)
 }
 
 
-PBoolean H45011Handler::OnReceivedReject(int PTRACE_PARAM(problemType), int PTRACE_PARAM(problemNumber))
+bool H45011Handler::OnReceivedReject(int PTRACE_PARAM(problemType), int PTRACE_PARAM(problemNumber))
 {
   PTRACE(4, "H450.11\tH45011Handler::OnReceivedReject - problemType= "
          << problemType << ", problemNumber= " << problemNumber);

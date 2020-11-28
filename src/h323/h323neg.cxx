@@ -58,7 +58,7 @@ H245Negotiator::H245Negotiator(H323EndPoint & end, H323Connection & conn)
 }
 
 
-void H245Negotiator::HandleTimeoutUnlocked(PTimer &, P_INT_PTR)
+void H245Negotiator::HandleTimeoutUnlocked(PTimer &, intptr_t)
 {
   if (connection.LockReadWrite()) {
     HandleTimeout();
@@ -85,7 +85,7 @@ H245NegMasterSlaveDetermination::H245NegMasterSlaveDetermination(H323EndPoint & 
 }
 
 
-PBoolean H245NegMasterSlaveDetermination::Start(PBoolean renegotiate)
+bool H245NegMasterSlaveDetermination::Start(bool renegotiate)
 {
   if (m_state != e_Idle) {
     PTRACE(3, "H245\tMasterSlaveDetermination already in progress");
@@ -100,7 +100,7 @@ PBoolean H245NegMasterSlaveDetermination::Start(PBoolean renegotiate)
 }
 
 
-PBoolean H245NegMasterSlaveDetermination::Restart()
+bool H245NegMasterSlaveDetermination::Restart()
 {
   PTRACE(3, "H245\tSending MasterSlaveDetermination");
 
@@ -127,7 +127,7 @@ void H245NegMasterSlaveDetermination::Stop()
 }
 
 
-PBoolean H245NegMasterSlaveDetermination::HandleIncoming(const H245_MasterSlaveDetermination & pdu)
+bool H245NegMasterSlaveDetermination::HandleIncoming(const H245_MasterSlaveDetermination & pdu)
 {
   PTRACE(3, "H245\tReceived MasterSlaveDetermination: state=" << m_state);
 
@@ -182,7 +182,7 @@ PBoolean H245NegMasterSlaveDetermination::HandleIncoming(const H245_MasterSlaveD
 }
 
 
-PBoolean H245NegMasterSlaveDetermination::HandleAck(const H245_MasterSlaveDeterminationAck & pdu)
+bool H245NegMasterSlaveDetermination::HandleAck(const H245_MasterSlaveDeterminationAck & pdu)
 {
   PTRACE(3, "H245\tReceived MasterSlaveDeterminationAck: state=" << m_state);
 
@@ -218,7 +218,7 @@ PBoolean H245NegMasterSlaveDetermination::HandleAck(const H245_MasterSlaveDeterm
 }
 
 
-PBoolean H245NegMasterSlaveDetermination::HandleReject(const H245_MasterSlaveDeterminationReject & pdu)
+bool H245NegMasterSlaveDetermination::HandleReject(const H245_MasterSlaveDeterminationReject & pdu)
 {
   PTRACE(3, "H245\tReceived MasterSlaveDeterminationReject: state=" << m_state);
 
@@ -244,7 +244,7 @@ PBoolean H245NegMasterSlaveDetermination::HandleReject(const H245_MasterSlaveDet
 }
 
 
-PBoolean H245NegMasterSlaveDetermination::HandleRelease(const H245_MasterSlaveDeterminationRelease & /*pdu*/)
+bool H245NegMasterSlaveDetermination::HandleRelease(const H245_MasterSlaveDeterminationRelease & /*pdu*/)
 {
   PTRACE(3, "H245\tReceived MasterSlaveDeterminationRelease: state=" << m_state);
 
@@ -292,7 +292,7 @@ H245NegTerminalCapabilitySet::H245NegTerminalCapabilitySet(H323EndPoint & end,
 }
 
 
-PBoolean H245NegTerminalCapabilitySet::Start(PBoolean renegotiate, PBoolean empty)
+bool H245NegTerminalCapabilitySet::Start(bool renegotiate, bool empty)
 {
   if (state == e_InProgress) {
     PTRACE(2, "H245\tTerminalCapabilitySet already in progress: outSeq=" << outSequenceNumber);
@@ -317,7 +317,7 @@ PBoolean H245NegTerminalCapabilitySet::Start(PBoolean renegotiate, PBoolean empt
 }
 
 
-void H245NegTerminalCapabilitySet::Stop(PBoolean dec)
+void H245NegTerminalCapabilitySet::Stop(bool dec)
 {
   PTRACE(3, "H245\tStopping TerminalCapabilitySet: state=" << state);
 
@@ -337,7 +337,7 @@ void H245NegTerminalCapabilitySet::Stop(PBoolean dec)
 }
 
 
-PBoolean H245NegTerminalCapabilitySet::HandleIncoming(const H245_TerminalCapabilitySet & pdu)
+bool H245NegTerminalCapabilitySet::HandleIncoming(const H245_TerminalCapabilitySet & pdu)
 {
   PTRACE(3, "H245\tReceived TerminalCapabilitySet:"
                      " state=" << state <<
@@ -373,7 +373,7 @@ PBoolean H245NegTerminalCapabilitySet::HandleIncoming(const H245_TerminalCapabil
 }
 
 
-PBoolean H245NegTerminalCapabilitySet::HandleAck(const H245_TerminalCapabilitySetAck & pdu)
+bool H245NegTerminalCapabilitySet::HandleAck(const H245_TerminalCapabilitySetAck & pdu)
 {
   PTRACE(3, "H245\tReceived TerminalCapabilitySetAck:"
                      " state=" << state <<
@@ -393,7 +393,7 @@ PBoolean H245NegTerminalCapabilitySet::HandleAck(const H245_TerminalCapabilitySe
 }
 
 
-PBoolean H245NegTerminalCapabilitySet::HandleReject(const H245_TerminalCapabilitySetReject & pdu)
+bool H245NegTerminalCapabilitySet::HandleReject(const H245_TerminalCapabilitySetReject & pdu)
 {
   PTRACE(3, "H245\tReceived TerminalCapabilitySetReject:"
                      " state=" << state <<
@@ -413,7 +413,7 @@ PBoolean H245NegTerminalCapabilitySet::HandleReject(const H245_TerminalCapabilit
 }
 
 
-PBoolean H245NegTerminalCapabilitySet::HandleRelease(const H245_TerminalCapabilitySetRelease & /*pdu*/)
+bool H245NegTerminalCapabilitySet::HandleRelease(const H245_TerminalCapabilitySetRelease & /*pdu*/)
 {
   PTRACE(3, "H245\tReceived TerminalCapabilityRelease: state=" << state);
 
@@ -471,7 +471,7 @@ H245NegLogicalChannel::~H245NegLogicalChannel()
 }
 
 
-PBoolean H245NegLogicalChannel::Open(const H323Capability & capability,
+bool H245NegLogicalChannel::Open(const H323Capability & capability,
                                  unsigned sessionID,
                                  unsigned replacementFor,
                                  OpalMediaStreamPtr mediaStream)
@@ -533,7 +533,7 @@ PBoolean H245NegLogicalChannel::Open(const H323Capability & capability,
 }
 
 
-PBoolean H245NegLogicalChannel::Close()
+bool H245NegLogicalChannel::Close()
 {
   switch (state) {
     case e_Establishing :
@@ -566,7 +566,7 @@ PBoolean H245NegLogicalChannel::Close()
 }
 
 
-PBoolean H245NegLogicalChannel::HandleOpen(const H245_OpenLogicalChannel & pdu)
+bool H245NegLogicalChannel::HandleOpen(const H245_OpenLogicalChannel & pdu)
 {
   H323ControlPDU reply;
   H245_OpenLogicalChannelAck & ack = reply.BuildOpenLogicalChannelAck(channelNumber);
@@ -589,7 +589,7 @@ PBoolean H245NegLogicalChannel::HandleOpen(const H245_OpenLogicalChannel & pdu)
 
   state = e_Establishing;
 
-  PBoolean ok = false;
+  bool ok = false;
 
   unsigned cause = H245_OpenLogicalChannelReject_cause::e_unspecified;
   channel = connection.CreateLogicalChannel(pdu, FALSE, cause);
@@ -635,7 +635,7 @@ PBoolean H245NegLogicalChannel::HandleOpen(const H245_OpenLogicalChannel & pdu)
 }
 
 
-PBoolean H245NegLogicalChannel::HandleOpenAck(const H245_OpenLogicalChannelAck & pdu)
+bool H245NegLogicalChannel::HandleOpenAck(const H245_OpenLogicalChannelAck & pdu)
 {
   PTRACE(3, "H245\tReceived open channel ack: " << channelNumber << ", state=" << state);
 
@@ -683,7 +683,7 @@ PBoolean H245NegLogicalChannel::HandleOpenAck(const H245_OpenLogicalChannelAck &
 }
 
 
-PBoolean H245NegLogicalChannel::HandleOpenConfirm(const H245_OpenLogicalChannelConfirm & /*pdu*/)
+bool H245NegLogicalChannel::HandleOpenConfirm(const H245_OpenLogicalChannelConfirm & /*pdu*/)
 {
   PTRACE(3, "H245\tReceived open channel confirm: " << channelNumber << ", state=" << state);
 
@@ -710,7 +710,7 @@ PBoolean H245NegLogicalChannel::HandleOpenConfirm(const H245_OpenLogicalChannelC
 }
 
 
-PBoolean H245NegLogicalChannel::HandleReject(const H245_OpenLogicalChannelReject & pdu)
+bool H245NegLogicalChannel::HandleReject(const H245_OpenLogicalChannelReject & pdu)
 {
   PTRACE(3, "H245\tReceived open channel reject: " << channelNumber
          << ", cause=" << pdu.m_cause.GetTagName() << ", state=" << state);
@@ -743,7 +743,7 @@ PBoolean H245NegLogicalChannel::HandleReject(const H245_OpenLogicalChannelReject
 }
 
 
-PBoolean H245NegLogicalChannel::HandleClose(const H245_CloseLogicalChannel & /*pdu*/)
+bool H245NegLogicalChannel::HandleClose(const H245_CloseLogicalChannel & /*pdu*/)
 {
   PTRACE(3, "H245\tReceived close channel: " << channelNumber << ", state=" << state);
   Release();
@@ -751,7 +751,7 @@ PBoolean H245NegLogicalChannel::HandleClose(const H245_CloseLogicalChannel & /*p
 }
 
 
-PBoolean H245NegLogicalChannel::HandleCloseAck(const H245_CloseLogicalChannelAck & /*pdu*/)
+bool H245NegLogicalChannel::HandleCloseAck(const H245_CloseLogicalChannelAck & /*pdu*/)
 {
   PTRACE(3, "H245\tReceived close channel ack: " << channelNumber << ", state=" << state);
 
@@ -772,7 +772,7 @@ PBoolean H245NegLogicalChannel::HandleCloseAck(const H245_CloseLogicalChannelAck
 }
 
 
-PBoolean H245NegLogicalChannel::HandleRequestClose(const H245_RequestChannelClose & pdu)
+bool H245NegLogicalChannel::HandleRequestClose(const H245_RequestChannelClose & pdu)
 {
   PTRACE(3, "H245\tReceived request close channel: " << channelNumber << ", state=" << state);
 
@@ -804,7 +804,7 @@ PBoolean H245NegLogicalChannel::HandleRequestClose(const H245_RequestChannelClos
 }
 
 
-PBoolean H245NegLogicalChannel::HandleRequestCloseAck(const H245_RequestChannelCloseAck & /*pdu*/)
+bool H245NegLogicalChannel::HandleRequestCloseAck(const H245_RequestChannelCloseAck & /*pdu*/)
 {
   PTRACE(3, "H245\tReceived request close ack channel: " << channelNumber << ", state=" << state);
 
@@ -815,7 +815,7 @@ PBoolean H245NegLogicalChannel::HandleRequestCloseAck(const H245_RequestChannelC
 }
 
 
-PBoolean H245NegLogicalChannel::HandleRequestCloseReject(const H245_RequestChannelCloseReject & /*pdu*/)
+bool H245NegLogicalChannel::HandleRequestCloseReject(const H245_RequestChannelCloseReject & /*pdu*/)
 {
   PTRACE(3, "H245\tReceived request close reject channel: " << channelNumber << ", state=" << state);
 
@@ -827,7 +827,7 @@ PBoolean H245NegLogicalChannel::HandleRequestCloseReject(const H245_RequestChann
 }
 
 
-PBoolean H245NegLogicalChannel::HandleRequestCloseRelease(const H245_RequestChannelCloseRelease & /*pdu*/)
+bool H245NegLogicalChannel::HandleRequestCloseRelease(const H245_RequestChannelCloseRelease & /*pdu*/)
 {
   PTRACE(3, "H245\tReceived request close release channel: " << channelNumber << ", state=" << state);
 
@@ -906,7 +906,7 @@ void H245NegLogicalChannels::Add(H323Channel & channel)
 }
 
 
-PBoolean H245NegLogicalChannels::Open(const H323Capability & capability,
+bool H245NegLogicalChannels::Open(const H323Capability & capability,
                                   unsigned sessionID,
                                   unsigned replacementFor,
                                   OpalMediaStreamPtr mediaStream)
@@ -918,7 +918,7 @@ PBoolean H245NegLogicalChannels::Open(const H323Capability & capability,
 }
 
 
-PBoolean H245NegLogicalChannels::Close(unsigned channelNumber, PBoolean fromRemote)
+bool H245NegLogicalChannels::Close(unsigned channelNumber, bool fromRemote)
 {
   H245NegLogicalChannel * chan = FindNegLogicalChannel(channelNumber, fromRemote);
   if (chan != NULL)
@@ -929,7 +929,7 @@ PBoolean H245NegLogicalChannels::Close(unsigned channelNumber, PBoolean fromRemo
 }
 
 
-PBoolean H245NegLogicalChannels::HandleOpen(const H245_OpenLogicalChannel & pdu)
+bool H245NegLogicalChannels::HandleOpen(const H245_OpenLogicalChannel & pdu)
 {
   H323ChannelNumber chanNum(pdu.m_forwardLogicalChannelNumber, true);
   H245NegLogicalChannel * chan;
@@ -945,7 +945,7 @@ PBoolean H245NegLogicalChannels::HandleOpen(const H245_OpenLogicalChannel & pdu)
 }
 
 
-PBoolean H245NegLogicalChannels::HandleOpenAck(const H245_OpenLogicalChannelAck & pdu)
+bool H245NegLogicalChannels::HandleOpenAck(const H245_OpenLogicalChannelAck & pdu)
 {
   H245NegLogicalChannel * chan = FindNegLogicalChannel(pdu.m_forwardLogicalChannelNumber, false);
   if (chan != NULL)
@@ -956,7 +956,7 @@ PBoolean H245NegLogicalChannels::HandleOpenAck(const H245_OpenLogicalChannelAck 
 }
 
 
-PBoolean H245NegLogicalChannels::HandleOpenConfirm(const H245_OpenLogicalChannelConfirm & pdu)
+bool H245NegLogicalChannels::HandleOpenConfirm(const H245_OpenLogicalChannelConfirm & pdu)
 {
   H245NegLogicalChannel * chan = FindNegLogicalChannel(pdu.m_forwardLogicalChannelNumber, true);
   if (chan != NULL)
@@ -967,7 +967,7 @@ PBoolean H245NegLogicalChannels::HandleOpenConfirm(const H245_OpenLogicalChannel
 }
 
 
-PBoolean H245NegLogicalChannels::HandleReject(const H245_OpenLogicalChannelReject & pdu)
+bool H245NegLogicalChannels::HandleReject(const H245_OpenLogicalChannelReject & pdu)
 {
   H245NegLogicalChannel * chan = FindNegLogicalChannel(pdu.m_forwardLogicalChannelNumber, false);
   if (chan != NULL)
@@ -978,7 +978,7 @@ PBoolean H245NegLogicalChannels::HandleReject(const H245_OpenLogicalChannelRejec
 }
 
 
-PBoolean H245NegLogicalChannels::HandleClose(const H245_CloseLogicalChannel & pdu)
+bool H245NegLogicalChannels::HandleClose(const H245_CloseLogicalChannel & pdu)
 {
   H245NegLogicalChannel * chan = FindNegLogicalChannel(pdu.m_forwardLogicalChannelNumber, true);
   if (chan != NULL) {
@@ -996,7 +996,7 @@ PBoolean H245NegLogicalChannels::HandleClose(const H245_CloseLogicalChannel & pd
 }
 
 
-PBoolean H245NegLogicalChannels::HandleCloseAck(const H245_CloseLogicalChannelAck & pdu)
+bool H245NegLogicalChannels::HandleCloseAck(const H245_CloseLogicalChannelAck & pdu)
 {
   H245NegLogicalChannel * chan = FindNegLogicalChannel(pdu.m_forwardLogicalChannelNumber, false);
   if (chan != NULL)
@@ -1007,7 +1007,7 @@ PBoolean H245NegLogicalChannels::HandleCloseAck(const H245_CloseLogicalChannelAc
 }
 
 
-PBoolean H245NegLogicalChannels::HandleRequestClose(const H245_RequestChannelClose & pdu)
+bool H245NegLogicalChannels::HandleRequestClose(const H245_RequestChannelClose & pdu)
 {
   H245NegLogicalChannel * chan = FindNegLogicalChannel(pdu.m_forwardLogicalChannelNumber, false);
   if (chan != NULL)
@@ -1022,7 +1022,7 @@ PBoolean H245NegLogicalChannels::HandleRequestClose(const H245_RequestChannelClo
 }
 
 
-PBoolean H245NegLogicalChannels::HandleRequestCloseAck(const H245_RequestChannelCloseAck & pdu)
+bool H245NegLogicalChannels::HandleRequestCloseAck(const H245_RequestChannelCloseAck & pdu)
 {
   H245NegLogicalChannel * chan = FindNegLogicalChannel(pdu.m_forwardLogicalChannelNumber, true);
   if (chan != NULL)
@@ -1033,7 +1033,7 @@ PBoolean H245NegLogicalChannels::HandleRequestCloseAck(const H245_RequestChannel
 }
 
 
-PBoolean H245NegLogicalChannels::HandleRequestCloseReject(const H245_RequestChannelCloseReject & pdu)
+bool H245NegLogicalChannels::HandleRequestCloseReject(const H245_RequestChannelCloseReject & pdu)
 {
   H245NegLogicalChannel * chan = FindNegLogicalChannel(pdu.m_forwardLogicalChannelNumber, true);
   if (chan != NULL)
@@ -1044,7 +1044,7 @@ PBoolean H245NegLogicalChannels::HandleRequestCloseReject(const H245_RequestChan
 }
 
 
-PBoolean H245NegLogicalChannels::HandleRequestCloseRelease(const H245_RequestChannelCloseRelease & pdu)
+bool H245NegLogicalChannels::HandleRequestCloseRelease(const H245_RequestChannelCloseRelease & pdu)
 {
   H245NegLogicalChannel * chan = FindNegLogicalChannel(pdu.m_forwardLogicalChannelNumber, false);
   if (chan != NULL)
@@ -1064,7 +1064,7 @@ H323ChannelNumber H245NegLogicalChannels::GetNextChannelNumber(bool fromRemote)
 
 
 H323Channel * H245NegLogicalChannels::FindChannel(unsigned channelNumber,
-                                                  PBoolean fromRemote)
+                                                  bool fromRemote)
 {
   H323ChannelNumber chanNum(channelNumber, fromRemote);
 
@@ -1076,7 +1076,7 @@ H323Channel * H245NegLogicalChannels::FindChannel(unsigned channelNumber,
 
 
 H245NegLogicalChannel * H245NegLogicalChannels::FindNegLogicalChannel(unsigned channelNumber,
-                                                                      PBoolean fromRemote)
+                                                                      bool fromRemote)
 {
   H323ChannelNumber chanNum(channelNumber, fromRemote);
   return channels.GetAt(chanNum);
@@ -1124,7 +1124,7 @@ H245NegRequestMode::H245NegRequestMode(H323EndPoint & end, H323Connection & conn
 }
 
 
-PBoolean H245NegRequestMode::StartRequest(const PString & newModes)
+bool H245NegRequestMode::StartRequest(const PString & newModes)
 {
   PStringArray modes = newModes.Lines();
   if (modes.IsEmpty()) {
@@ -1167,7 +1167,7 @@ PBoolean H245NegRequestMode::StartRequest(const PString & newModes)
 }
 
 
-PBoolean H245NegRequestMode::StartRequest(const H245_ArrayOf_ModeDescription & newModes)
+bool H245NegRequestMode::StartRequest(const H245_ArrayOf_ModeDescription & newModes)
 {
   PTRACE(3, "H245\tStarted request mode: outSeq=" << outSequenceNumber
          << (awaitingResponse ? " awaitingResponse" : " idle"));
@@ -1191,7 +1191,7 @@ PBoolean H245NegRequestMode::StartRequest(const H245_ArrayOf_ModeDescription & n
 }
 
 
-PBoolean H245NegRequestMode::HandleRequest(const H245_RequestMode & pdu)
+bool H245NegRequestMode::HandleRequest(const H245_RequestMode & pdu)
 {
   inSequenceNumber = pdu.m_sequenceNumber;
 
@@ -1220,7 +1220,7 @@ PBoolean H245NegRequestMode::HandleRequest(const H245_RequestMode & pdu)
 }
 
 
-PBoolean H245NegRequestMode::HandleAck(const H245_RequestModeAck & pdu)
+bool H245NegRequestMode::HandleAck(const H245_RequestModeAck & pdu)
 {
   PTRACE(3, "H245\tReceived ack on request mode: outSeq=" << outSequenceNumber
          << (awaitingResponse ? " awaitingResponse" : " idle"));
@@ -1234,7 +1234,7 @@ PBoolean H245NegRequestMode::HandleAck(const H245_RequestModeAck & pdu)
   return true;
 }
 
-PBoolean H245NegRequestMode::HandleReject(const H245_RequestModeReject & pdu)
+bool H245NegRequestMode::HandleReject(const H245_RequestModeReject & pdu)
 {
   PTRACE(3, "H245\tReceived reject on request mode: outSeq=" << outSequenceNumber
          << (awaitingResponse ? " awaitingResponse" : " idle"));
@@ -1249,7 +1249,7 @@ PBoolean H245NegRequestMode::HandleReject(const H245_RequestModeReject & pdu)
 }
 
 
-PBoolean H245NegRequestMode::HandleRelease(const H245_RequestModeRelease & /*pdu*/)
+bool H245NegRequestMode::HandleRelease(const H245_RequestModeRelease & /*pdu*/)
 {
   PTRACE(3, "H245\tReceived release on request mode: inSeq=" << inSequenceNumber);
   return true;
@@ -1286,7 +1286,7 @@ H245NegRoundTripDelay::H245NegRoundTripDelay(H323EndPoint & end, H323Connection 
 }
 
 
-PBoolean H245NegRoundTripDelay::StartRequest()
+bool H245NegRoundTripDelay::StartRequest()
 {
   replyTimer = endpoint.GetRoundTripDelayTimeout();
   sequenceNumber = (sequenceNumber + 1)%256;
@@ -1305,7 +1305,7 @@ PBoolean H245NegRoundTripDelay::StartRequest()
 }
 
 
-PBoolean H245NegRoundTripDelay::HandleRequest(const H245_RoundTripDelayRequest & pdu)
+bool H245NegRoundTripDelay::HandleRequest(const H245_RoundTripDelayRequest & pdu)
 {
   PTRACE(3, "H245\tStarted round trip delay: seq=" << sequenceNumber
          << (awaitingResponse ? " awaitingResponse" : " idle"));
@@ -1316,7 +1316,7 @@ PBoolean H245NegRoundTripDelay::HandleRequest(const H245_RoundTripDelayRequest &
 }
 
 
-PBoolean H245NegRoundTripDelay::HandleResponse(const H245_RoundTripDelayResponse & pdu)
+bool H245NegRoundTripDelay::HandleResponse(const H245_RoundTripDelayResponse & pdu)
 {
   PTimeInterval tripEndTime = PTimer::Tick();
 

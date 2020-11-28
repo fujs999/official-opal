@@ -40,7 +40,7 @@
 #define new PNEW
 
 IAX2Transmit::IAX2Transmit(IAX2EndPoint & _newEndpoint, PUDPSocket & _newSocket)
-  : PThread(1000, NoAutoDeleteThread, NormalPriority, "IAX2 Transmitter"),
+  : PThread(NoAutoDeleteThread, NormalPriority, "IAX2 Transmitter"),
      ep(_newEndpoint),
      sock(_newSocket)
 {
@@ -50,7 +50,7 @@ IAX2Transmit::IAX2Transmit(IAX2EndPoint & _newEndpoint, PUDPSocket & _newSocket)
   keepGoing = true;
   
   PTRACE(6,"IAX2Transmit\tConstructor - IAX2 Transmitter");
-  Resume();
+  Start();
 }
 
 IAX2Transmit::~IAX2Transmit()
@@ -150,7 +150,7 @@ void IAX2Transmit::ProcessSendList()
     if (active == NULL) 
       break;
     
-    PBoolean isFullFrame = false;
+    bool isFullFrame = false;
     if (PIsDescendant(active, IAX2FullFrame)) {
       isFullFrame = true;
       IAX2FullFrame *f= (IAX2FullFrame *)active;

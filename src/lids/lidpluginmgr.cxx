@@ -219,7 +219,7 @@ PluginLID_Errors OpalPluginLID::CheckError(PluginLID_Errors error, const char * 
 #endif // PTRACING
 
 
-PBoolean OpalPluginLID::Open(const PString & device)
+bool OpalPluginLID::Open(const PString & device)
 {
   if (BAD_FN(Open))
     return false;
@@ -267,7 +267,7 @@ PBoolean OpalPluginLID::Open(const PString & device)
 }
 
 
-PBoolean OpalPluginLID::Close()
+bool OpalPluginLID::Close()
 {
   OpalLineInterfaceDevice::Close();
 
@@ -321,7 +321,7 @@ unsigned OpalPluginLID::GetLineCount() const
 }
 
 
-PBoolean OpalPluginLID::IsLineTerminal(unsigned line)
+bool OpalPluginLID::IsLineTerminal(unsigned line)
 {
   PluginLID_Boolean isTerminal = FALSE;
   CHECK_FN(IsLineTerminal, (m_context, line, &isTerminal));
@@ -329,7 +329,7 @@ PBoolean OpalPluginLID::IsLineTerminal(unsigned line)
 }
 
 
-PBoolean OpalPluginLID::IsLinePresent(unsigned line, PBoolean force)
+bool OpalPluginLID::IsLinePresent(unsigned line, bool force)
 {
   PluginLID_Boolean isPresent = FALSE;
   CHECK_FN(IsLinePresent, (m_context, line, force, &isPresent));
@@ -337,7 +337,7 @@ PBoolean OpalPluginLID::IsLinePresent(unsigned line, PBoolean force)
 }
 
 
-PBoolean OpalPluginLID::IsLineOffHook(unsigned line)
+bool OpalPluginLID::IsLineOffHook(unsigned line)
 {
   PluginLID_Boolean offHook = FALSE;
   CHECK_FN(IsLineOffHook, (m_context, line, &offHook));
@@ -345,13 +345,13 @@ PBoolean OpalPluginLID::IsLineOffHook(unsigned line)
 }
 
 
-PBoolean OpalPluginLID::SetLineOffHook(unsigned line, PBoolean newState)
+bool OpalPluginLID::SetLineOffHook(unsigned line, bool newState)
 {
   return CHECK_FN(SetLineOffHook, (m_context, line, newState)) == PluginLID_NoError;
 }
 
 
-PBoolean OpalPluginLID::HookFlash(unsigned line, unsigned flashTime)
+bool OpalPluginLID::HookFlash(unsigned line, unsigned flashTime)
 {
   switch (CHECK_FN(HookFlash, (m_context, line, flashTime))) {
     case PluginLID_UnimplementedFunction :
@@ -366,7 +366,7 @@ PBoolean OpalPluginLID::HookFlash(unsigned line, unsigned flashTime)
 }
 
 
-PBoolean OpalPluginLID::HasHookFlash(unsigned line)
+bool OpalPluginLID::HasHookFlash(unsigned line)
 {
   PluginLID_Boolean flashed = FALSE;
   CHECK_FN(HasHookFlash, (m_context, line, &flashed));
@@ -374,7 +374,7 @@ PBoolean OpalPluginLID::HasHookFlash(unsigned line)
 }
 
 
-PBoolean OpalPluginLID::IsLineRinging(unsigned line, DWORD * cadence)
+bool OpalPluginLID::IsLineRinging(unsigned line, DWORD * cadence)
 {
   DWORD localCadence;
   if (cadence == NULL)
@@ -387,7 +387,7 @@ PBoolean OpalPluginLID::IsLineRinging(unsigned line, DWORD * cadence)
 }
 
 
-PBoolean OpalPluginLID::RingLine(unsigned line, PINDEX nCadence, const unsigned * pattern, unsigned frequency)
+bool OpalPluginLID::RingLine(unsigned line, PINDEX nCadence, const unsigned * pattern, unsigned frequency)
 {
   PUnsignedArray cadence;
 
@@ -426,7 +426,7 @@ PBoolean OpalPluginLID::RingLine(unsigned line, PINDEX nCadence, const unsigned 
 }
 
 
-PBoolean OpalPluginLID::SetLineConnected(unsigned line)
+bool OpalPluginLID::SetLineConnected(unsigned line)
 {
   switch (CHECK_FN(SetLineConnected, (m_context, line))) {
     case PluginLID_UnimplementedFunction :
@@ -441,7 +441,7 @@ PBoolean OpalPluginLID::SetLineConnected(unsigned line)
 }
 
 
-PBoolean OpalPluginLID::IsLineConnected(unsigned line)
+bool OpalPluginLID::IsLineConnected(unsigned line)
 {
   PluginLID_Boolean connected = FALSE;
   switch (CHECK_FN(IsLineConnected, (m_context, line, &connected))) {
@@ -457,7 +457,7 @@ PBoolean OpalPluginLID::IsLineConnected(unsigned line)
 }
 
 
-PBoolean OpalPluginLID::IsLineDisconnected(unsigned line, PBoolean checkForWink)
+bool OpalPluginLID::IsLineDisconnected(unsigned line, bool checkForWink)
 {
   PluginLID_Boolean disconnected = FALSE;
   switch (CHECK_FN(IsLineDisconnected, (m_context, line, checkForWink, &disconnected))) {
@@ -473,13 +473,13 @@ PBoolean OpalPluginLID::IsLineDisconnected(unsigned line, PBoolean checkForWink)
 }
 
 
-PBoolean OpalPluginLID::SetLineToLineDirect(unsigned line1, unsigned line2, PBoolean connect)
+bool OpalPluginLID::SetLineToLineDirect(unsigned line1, unsigned line2, bool connect)
 {
   return CHECK_FN(SetLineToLineDirect, (m_context, line1, line2, connect)) == PluginLID_NoError;
 }
 
 
-PBoolean OpalPluginLID::IsLineToLineDirect(unsigned line1, unsigned line2)
+bool OpalPluginLID::IsLineToLineDirect(unsigned line1, unsigned line2)
 {
   PluginLID_Boolean connected = FALSE;
   CHECK_FN(IsLineToLineDirect, (m_context, line1, line2, &connected));
@@ -519,7 +519,7 @@ OpalMediaFormatList OpalPluginLID::GetMediaFormats() const
 }
 
 
-PBoolean OpalPluginLID::SetReadFormat(unsigned line, const OpalMediaFormat & mediaFormat)
+bool OpalPluginLID::SetReadFormat(unsigned line, const OpalMediaFormat & mediaFormat)
 {
   switch (CHECK_FN(SetReadFormat, (m_context, line, mediaFormat))) {
     case PluginLID_UnimplementedFunction :
@@ -534,7 +534,7 @@ PBoolean OpalPluginLID::SetReadFormat(unsigned line, const OpalMediaFormat & med
 }
 
 
-PBoolean OpalPluginLID::SetWriteFormat(unsigned line, const OpalMediaFormat & mediaFormat)
+bool OpalPluginLID::SetWriteFormat(unsigned line, const OpalMediaFormat & mediaFormat)
 {
   switch (CHECK_FN(SetWriteFormat, (m_context, line, mediaFormat))) {
     case PluginLID_UnimplementedFunction :
@@ -581,7 +581,7 @@ OpalMediaFormat OpalPluginLID::GetWriteFormat(unsigned line)
 }
 
 
-PBoolean OpalPluginLID::StopReading(unsigned line)
+bool OpalPluginLID::StopReading(unsigned line)
 {
   OpalLineInterfaceDevice::StopReading(line);
 
@@ -598,7 +598,7 @@ PBoolean OpalPluginLID::StopReading(unsigned line)
 }
 
 
-PBoolean OpalPluginLID::StopWriting(unsigned line)
+bool OpalPluginLID::StopWriting(unsigned line)
 {
   OpalLineInterfaceDevice::StopWriting(line);
 
@@ -617,7 +617,7 @@ PBoolean OpalPluginLID::StopWriting(unsigned line)
 }
 
 
-PBoolean OpalPluginLID::SetReadFrameSize(unsigned line, PINDEX frameSize)
+bool OpalPluginLID::SetReadFrameSize(unsigned line, PINDEX frameSize)
 {
   switch (CHECK_FN(SetReadFrameSize, (m_context, line, frameSize))) {
     case PluginLID_UnimplementedFunction :
@@ -632,7 +632,7 @@ PBoolean OpalPluginLID::SetReadFrameSize(unsigned line, PINDEX frameSize)
 }
 
 
-PBoolean OpalPluginLID::SetWriteFrameSize(unsigned line, PINDEX frameSize)
+bool OpalPluginLID::SetWriteFrameSize(unsigned line, PINDEX frameSize)
 {
   switch (CHECK_FN(SetWriteFrameSize, (m_context, line, frameSize))) {
     case PluginLID_UnimplementedFunction :
@@ -683,7 +683,7 @@ PINDEX OpalPluginLID::GetWriteFrameSize(unsigned line)
 }
 
 
-PBoolean OpalPluginLID::ReadFrame(unsigned line, void * buffer, PINDEX & count)
+bool OpalPluginLID::ReadFrame(unsigned line, void * buffer, PINDEX & count)
 {
   unsigned uiCount = 0;
   switch (CHECK_FN(ReadFrame, (m_context, line, buffer, &uiCount))) {
@@ -704,7 +704,7 @@ PBoolean OpalPluginLID::ReadFrame(unsigned line, void * buffer, PINDEX & count)
 }
 
 
-PBoolean OpalPluginLID::WriteFrame(unsigned line, const void * buffer, PINDEX count, PINDEX & written)
+bool OpalPluginLID::WriteFrame(unsigned line, const void * buffer, PINDEX count, PINDEX & written)
 {
   StopTone(line);
   m_lockOutTones = true;
@@ -735,7 +735,7 @@ int OpalPluginLID::GetAudioLevelDB(unsigned line, bool playback)
 }
 
 
-PBoolean OpalPluginLID::EnableAudio(unsigned line, PBoolean enable)
+bool OpalPluginLID::EnableAudio(unsigned line, bool enable)
 {
   switch (CHECK_FN(EnableAudio, (m_context, line, enable))) {
     case PluginLID_UnimplementedFunction :
@@ -750,7 +750,7 @@ PBoolean OpalPluginLID::EnableAudio(unsigned line, PBoolean enable)
 }
 
 
-PBoolean OpalPluginLID::IsAudioEnabled(unsigned line) const
+bool OpalPluginLID::IsAudioEnabled(unsigned line) const
 {
   PluginLID_Boolean enabled = FALSE;
   if (CHECK_FN(IsAudioEnabled, (m_context, line, &enabled)) == PluginLID_UnimplementedFunction)
@@ -759,7 +759,7 @@ PBoolean OpalPluginLID::IsAudioEnabled(unsigned line) const
 }
 
 
-PBoolean OpalPluginLID::SetRecordVolume(unsigned line, unsigned volume)
+bool OpalPluginLID::SetRecordVolume(unsigned line, unsigned volume)
 {
   switch (CHECK_FN(SetRecordVolume, (m_context, line, volume))) {
     case PluginLID_UnimplementedFunction :
@@ -774,7 +774,7 @@ PBoolean OpalPluginLID::SetRecordVolume(unsigned line, unsigned volume)
 }
 
 
-PBoolean OpalPluginLID::SetPlayVolume(unsigned line, unsigned volume)
+bool OpalPluginLID::SetPlayVolume(unsigned line, unsigned volume)
 {
   switch (CHECK_FN(SetPlayVolume, (m_context, line, volume))) {
     case PluginLID_UnimplementedFunction :
@@ -789,7 +789,7 @@ PBoolean OpalPluginLID::SetPlayVolume(unsigned line, unsigned volume)
 }
 
 
-PBoolean OpalPluginLID::GetRecordVolume(unsigned line, unsigned & volume)
+bool OpalPluginLID::GetRecordVolume(unsigned line, unsigned & volume)
 {
   switch (CHECK_FN(GetRecordVolume, (m_context, line, &volume))) {
     case PluginLID_UnimplementedFunction :
@@ -804,7 +804,7 @@ PBoolean OpalPluginLID::GetRecordVolume(unsigned line, unsigned & volume)
 }
 
 
-PBoolean OpalPluginLID::GetPlayVolume(unsigned line, unsigned & volume)
+bool OpalPluginLID::GetPlayVolume(unsigned line, unsigned & volume)
 {
   switch (CHECK_FN(GetPlayVolume, (m_context, line, &volume))) {
     case PluginLID_UnimplementedFunction :
@@ -828,13 +828,13 @@ OpalLineInterfaceDevice::AECLevels OpalPluginLID::GetAEC(unsigned line) const
 }
 
 
-PBoolean OpalPluginLID::SetAEC(unsigned line, AECLevels level)
+bool OpalPluginLID::SetAEC(unsigned line, AECLevels level)
 {
   return CHECK_FN(SetAEC, (m_context, line, level)) == PluginLID_NoError;
 }
 
 
-PBoolean OpalPluginLID::GetVAD(unsigned line) const
+bool OpalPluginLID::GetVAD(unsigned line) const
 {
   PluginLID_Boolean vad = FALSE;
   CHECK_FN(GetVAD, (m_context, line, &vad));
@@ -842,13 +842,13 @@ PBoolean OpalPluginLID::GetVAD(unsigned line) const
 }
 
 
-PBoolean OpalPluginLID::SetVAD(unsigned line, PBoolean enable)
+bool OpalPluginLID::SetVAD(unsigned line, bool enable)
 {
   return CHECK_FN(SetVAD, (m_context, line, enable)) == PluginLID_NoError;
 }
 
 
-PBoolean OpalPluginLID::GetCallerID(unsigned line, PString & idString, PBoolean full)
+bool OpalPluginLID::GetCallerID(unsigned line, PString & idString, bool full)
 {
   char id[500];
   if (CHECK_FN(GetCallerID, (m_context, line, id, sizeof(id), full)) != PluginLID_NoError)
@@ -859,7 +859,7 @@ PBoolean OpalPluginLID::GetCallerID(unsigned line, PString & idString, PBoolean 
 }
 
 
-PBoolean OpalPluginLID::SetCallerID(unsigned line, const PString & idString)
+bool OpalPluginLID::SetCallerID(unsigned line, const PString & idString)
 {
   if (idString.IsEmpty())
     return false;
@@ -868,13 +868,13 @@ PBoolean OpalPluginLID::SetCallerID(unsigned line, const PString & idString)
 }
 
 
-PBoolean OpalPluginLID::SendVisualMessageWaitingIndicator(unsigned line, PBoolean on)
+bool OpalPluginLID::SendVisualMessageWaitingIndicator(unsigned line, bool on)
 {
   return CHECK_FN(SendVisualMessageWaitingIndicator, (m_context, line, on)) == PluginLID_NoError;
 }
 
 
-PBoolean OpalPluginLID::PlayDTMF(unsigned line, const char * digits, DWORD onTime, DWORD offTime)
+bool OpalPluginLID::PlayDTMF(unsigned line, const char * digits, DWORD onTime, DWORD offTime)
 {
   return CHECK_FN(PlayDTMF, (m_context, line, digits, onTime, offTime)) == PluginLID_NoError;
 }
@@ -888,7 +888,7 @@ char OpalPluginLID::ReadDTMF(unsigned line)
 }
 
 
-PBoolean OpalPluginLID::GetRemoveDTMF(unsigned line)
+bool OpalPluginLID::GetRemoveDTMF(unsigned line)
 {
   PluginLID_Boolean remove = FALSE;
   CHECK_FN(GetRemoveDTMF, (m_context, line, &remove));
@@ -896,7 +896,7 @@ PBoolean OpalPluginLID::GetRemoveDTMF(unsigned line)
 }
 
 
-PBoolean OpalPluginLID::SetRemoveDTMF(unsigned line, PBoolean removeTones)
+bool OpalPluginLID::SetRemoveDTMF(unsigned line, bool removeTones)
 {
   return CHECK_FN(SetRemoveDTMF, (m_context, line, removeTones)) == PluginLID_NoError;
 }
@@ -919,7 +919,7 @@ OpalLineInterfaceDevice::CallProgressTones OpalPluginLID::WaitForToneDetect(unsi
 }
 
 
-PBoolean OpalPluginLID::WaitForTone(unsigned line, CallProgressTones tone, unsigned timeout)
+bool OpalPluginLID::WaitForTone(unsigned line, CallProgressTones tone, unsigned timeout)
 {
   switch (CHECK_FN(WaitForTone, (m_context, line, tone, timeout))) {
     case PluginLID_UnimplementedFunction :
@@ -949,7 +949,7 @@ bool OpalPluginLID::SetToneParameters(unsigned line,
 }
 
 
-void OpalPluginLID::TonePlayer(PThread &, P_INT_PTR tone)
+void OpalPluginLID::TonePlayer(PThread &, intptr_t tone)
 {
   // CHeck if we have NumTones added to value which means high volume output
   // typically if handset has no ringer, then just hammer the speaker.
@@ -1018,7 +1018,7 @@ void OpalPluginLID::StopTonePlayerThread()
 }
 
 
-PBoolean OpalPluginLID::PlayTone(unsigned line, CallProgressTones tone)
+bool OpalPluginLID::PlayTone(unsigned line, CallProgressTones tone)
 {
   if (m_lockOutTones)
     return StopTone(line);
@@ -1038,7 +1038,7 @@ PBoolean OpalPluginLID::PlayTone(unsigned line, CallProgressTones tone)
 }
 
 
-PBoolean OpalPluginLID::IsTonePlaying(unsigned line)
+bool OpalPluginLID::IsTonePlaying(unsigned line)
 {
   PluginLID_Boolean playing = FALSE;
   if (m_tonePlayer == NULL || m_tonePlayer->IsTerminated())
@@ -1047,7 +1047,7 @@ PBoolean OpalPluginLID::IsTonePlaying(unsigned line)
 }
 
 
-PBoolean OpalPluginLID::StopTone(unsigned line)
+bool OpalPluginLID::StopTone(unsigned line)
 {
   StopTonePlayerThread();
 
@@ -1107,13 +1107,13 @@ unsigned OpalPluginLID::GetWinkDuration(unsigned line)
 }
 
 
-PBoolean OpalPluginLID::SetWinkDuration(unsigned line, unsigned winkDuration)
+bool OpalPluginLID::SetWinkDuration(unsigned line, unsigned winkDuration)
 {
   return CHECK_FN(SetWinkDuration, (m_context, line, winkDuration)) == PluginLID_NoError;
 }
 
 
-PBoolean OpalPluginLID::SetCountryCode(T35CountryCodes country)
+bool OpalPluginLID::SetCountryCode(T35CountryCodes country)
 {
   switch (CHECK_FN(SetCountryCode, (m_context, country))) {
     case PluginLID_UnimplementedFunction :

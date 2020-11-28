@@ -172,11 +172,11 @@ class MyPlayer : public wxMDIChildFrame
     void OnExportComplete();
 
   private:
-    MyManager & m_manager;
-    PFilePath   m_pcapFilePath;
-    PThread   * m_backgroundThread;
+    MyManager        & m_manager;
+    PFilePath          m_pcapFilePath;
+    PThread          * m_backgroundThread;
+    std::unique_ptr<wxProgressDialog> m_progressDialog;
 
-    PAutoPtr<wxProgressDialog>  m_progressDialog;
     OpalPCAPFile::DiscoveredRTP m_discoveredRTP;
     unsigned                    m_packetCount;
 

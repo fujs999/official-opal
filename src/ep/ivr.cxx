@@ -244,7 +244,7 @@ void OpalIVRConnection::SetVXML(const PString & vxml)
 }
 
 
-PBoolean OpalIVRConnection::StartVXML()
+bool OpalIVRConnection::StartVXML()
 {
   if (m_vxmlScript.IsEmpty())
     return false;
@@ -387,7 +387,7 @@ OpalMediaFormatList OpalIVRConnection::GetMediaFormats() const
 
 OpalMediaStream * OpalIVRConnection::CreateMediaStream(const OpalMediaFormat & mediaFormat,
                                                        unsigned sessionID,
-                                                       PBoolean isSource)
+                                                       bool isSource)
 {
   if (mediaFormat.GetMediaType() == OpalMediaType::Audio())
     return new OpalIVRMediaStream(*this, mediaFormat, sessionID, isSource, m_vxmlSession);
@@ -405,7 +405,7 @@ OpalMediaStream * OpalIVRConnection::CreateMediaStream(const OpalMediaFormat & m
 }
 
 
-PBoolean OpalIVRConnection::SendUserInputString(const PString & value)
+bool OpalIVRConnection::SendUserInputString(const PString & value)
 {
   PTRACE(3, "SendUserInputString(" << value << ')');
 
@@ -421,7 +421,7 @@ PBoolean OpalIVRConnection::SendUserInputString(const PString & value)
 OpalIVRMediaStream::OpalIVRMediaStream(OpalIVRConnection & conn,
                                        const OpalMediaFormat & mediaFormat,
                                        unsigned sessionID,
-                                       PBoolean isSourceStream,
+                                       bool isSourceStream,
                                        PVXMLSession & vxml)
   : OpalRawMediaStream(conn, mediaFormat, sessionID, isSourceStream, &vxml, FALSE)
   , m_vxmlSession(vxml)
@@ -430,7 +430,7 @@ OpalIVRMediaStream::OpalIVRMediaStream(OpalIVRConnection & conn,
 }
 
 
-PBoolean OpalIVRMediaStream::Open()
+bool OpalIVRMediaStream::Open()
 {
   if (m_isOpen)
     return true;
@@ -482,7 +482,7 @@ void OpalIVRMediaStream::InternalClose()
 }
 
 
-PBoolean OpalIVRMediaStream::IsSynchronous() const
+bool OpalIVRMediaStream::IsSynchronous() const
 {
   return true;
 }

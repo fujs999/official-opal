@@ -94,7 +94,7 @@ H323Channel * H323_H224_HDLCTunnelingCapability::CreateChannel(H323Connection & 
 }
 
 
-PBoolean H323_H224_HDLCTunnelingCapability::OnSendingPDU(H245_DataApplicationCapability & pdu) const
+bool H323_H224_HDLCTunnelingCapability::OnSendingPDU(H245_DataApplicationCapability & pdu) const
 {
   m_maxBitRate.SetH245(pdu.m_maxBitRate);
   pdu.m_application.SetTag(H245_DataApplicationCapability_application::e_h224);
@@ -106,7 +106,7 @@ PBoolean H323_H224_HDLCTunnelingCapability::OnSendingPDU(H245_DataApplicationCap
 }
 
 
-PBoolean H323_H224_HDLCTunnelingCapability::OnSendingPDU(H245_DataMode & pdu) const
+bool H323_H224_HDLCTunnelingCapability::OnSendingPDU(H245_DataMode & pdu) const
 {
   m_maxBitRate.SetH245(pdu.m_bitRate);
   pdu.m_application.SetTag(H245_DataMode_application::e_h224);
@@ -118,7 +118,7 @@ PBoolean H323_H224_HDLCTunnelingCapability::OnSendingPDU(H245_DataMode & pdu) co
 }
 
 
-PBoolean H323_H224_HDLCTunnelingCapability::OnReceivedPDU(const H245_DataApplicationCapability & /*pdu*/)
+bool H323_H224_HDLCTunnelingCapability::OnReceivedPDU(const H245_DataApplicationCapability & /*pdu*/)
 {
   //m_maxBitRate.FromH245(pdu.m_bitRate);
   return true;

@@ -119,8 +119,8 @@ void IAX2CallProcessor::AssignConnection(IAX2Connection * _con)
   }
 
   remote.SetSourceCallNumber(newCallNumber);
-  
-  Resume();
+
+  Start();
 }
 
 void IAX2CallProcessor::PrintOn(ostream & strm) const
@@ -462,7 +462,7 @@ void IAX2CallProcessor::SendSoundMessage(PBYTEArray *sound)
   DWORD lastTimeStamp = currentSoundTimeStamp;
   DWORD thisTimeStamp = currentSoundTimeStamp + audioFrameDuration;
 
-  PBoolean sendFullFrame =  (((thisTimeStamp & 0xffff) < (lastTimeStamp & 0xffff))
+  bool sendFullFrame =  (((thisTimeStamp & 0xffff) < (lastTimeStamp & 0xffff))
 			 || audioFramesNotStarted);
 
   currentSoundTimeStamp = thisTimeStamp;
@@ -591,20 +591,14 @@ void IAX2CallProcessor::ProcessNetworkFrame(IAX2MiniFrame * src)
 void IAX2CallProcessor::ProcessNetworkFrame(IAX2FullFrame * src)
 {
   PTRACE(5, "ProcessNetworkFrame(IAX2FullFrame * src)");
-  PStringStream message;
-  message << PString("Do not know how to process networks packets of \"Full Frame\" type ") << *src;
-  PAssertAlways(message);
+  PAssertAlways(PSTRSTRM("Do not know how to process networks packets of \"Full Frame\" type " << *src));
   return;
 }
 
 void IAX2CallProcessor::ProcessNetworkFrame(IAX2Frame * src)
 {
   PTRACE(5, "ProcessNetworkFrame(IAX2Frame * src)");
-  PStringStream message;
-  message << PString("Do not know how to process networks packets of \"Frame\" type ") << *src;
-  PTRACE(3, message);
-  PTRACE(3, message);
-  PAssertAlways(message);
+  PAssertAlways(PSTRSTRM("Do not know how to process networks packets of \"Frame\" type " << *src));
   return;
 }
 
@@ -732,7 +726,7 @@ void IAX2CallProcessor::ProcessNetworkFrame(IAX2FullFrameSessionControl * src)
 }
 
 
-PBoolean IAX2CallProcessor::SetUpConnection()
+bool IAX2CallProcessor::SetUpConnection()
 {
   PTRACE(3, "IAX2\tSet Up Connection to remote node " 
 	 << con->GetRemotePartyName() << " " 
@@ -751,7 +745,7 @@ void IAX2CallProcessor::ProcessNetworkFrame(IAX2FullFrameNull * src)
   return;
 }
 
-PBoolean IAX2CallProcessor::ProcessNetworkFrame(IAX2FullFrameProtocol * src)
+bool IAX2CallProcessor::ProcessNetworkFrame(IAX2FullFrameProtocol * src)
 { /* these frames are labelled as AST_FRAME_IAX in the asterisk souces.
      These frames contain Information Elements in the data field.*/  
   PTRACE(4, "ProcessNetworkFrame " << *src);
@@ -903,7 +897,7 @@ void IAX2CallProcessor::CheckForRemoteCapabilities(IAX2FullFrameProtocol *src)
 
 
   
-PBoolean IAX2CallProcessor::RemoteSelectedCodecOk()
+bool IAX2CallProcessor::RemoteSelectedCodecOk()
 {
   selectedCodec = con->ChooseCodec();
   
@@ -1069,7 +1063,7 @@ void IAX2CallProcessor::SendAnswerMessageToRemoteNode()
   }
 }
 
-PBoolean IAX2CallProcessor::SetAlerting(const PString & PTRACE_PARAM(calleeName), PBoolean /*withMedia*/)
+bool IAX2CallProcessor::SetAlerting(const PString & PTRACE_PARAM(calleeName), bool /*withMedia*/)
 {
   PTRACE(3, "Processor\tSetAlerting from " << calleeName);
   return true;
@@ -1316,7 +1310,7 @@ void IAX2CallProcessor::StartStatusCheckTimer(PINDEX msToWait)
   CleanPendingLists();
 }
 
-void IAX2CallProcessor::OnStatusCheck(PTimer &, P_INT_PTR)
+void IAX2CallProcessor::OnStatusCheck(PTimer &, intptr_t)
 {
   StartStatusCheckTimer();
 }
@@ -1360,7 +1354,7 @@ PString IAX2CallProcessor::GetUserName() const
     return "";
 }
 
-PBoolean IAX2CallProcessor::IncomingMessageOutOfOrder(IAX2FullFrame *f)
+bool IAX2CallProcessor::IncomingMessageOutOfOrder(IAX2FullFrame *f)
 {
   /*Check to see if this frame is legitimate - that sequence numbers match. If it is out of
     sequence, we have to drop it, and send a vnak frame */

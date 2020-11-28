@@ -142,7 +142,7 @@ static int bsd_ioctl(int fd, int code , unsigned long arg = 0)
 
 OpalIxJDevice::ExceptionInfo OpalIxJDevice::exceptionInfo[OpalIxJDevice::MaxIxjDevices];
 PMutex                       OpalIxJDevice::exceptionMutex;
-PBoolean                         OpalIxJDevice::exceptionInit = false;
+bool                         OpalIxJDevice::exceptionInit = false;
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -218,7 +218,7 @@ void OpalIxJDevice::SignalHandler(int sig)
           info.hasRing = true;
 
         if (data.bits.hookstate) {
-          PBoolean newHookState = (IOCTL(fd, PHONE_HOOKSTATE) & 1) != 0;
+          bool newHookState = (IOCTL(fd, PHONE_HOOKSTATE) & 1) != 0;
 #ifdef MANUAL_FLASH
           if (newHookState != info.hookState) {
             timeval now;
@@ -315,7 +315,7 @@ OpalIxJDevice::OpalIxJDevice()
 }
 
 
-PBoolean OpalIxJDevice::Open(const PString & device)
+bool OpalIxJDevice::Open(const PString & device)
 {
   Close();
 
@@ -460,7 +460,7 @@ PBoolean OpalIxJDevice::Open(const PString & device)
   return true;
 }
 
-PBoolean OpalIxJDevice::Close()
+bool OpalIxJDevice::Close()
 {
   if (!IsOpen())
     return false;
@@ -542,12 +542,12 @@ unsigned OpalIxJDevice::GetLineCount()
     Consequently, return (IsLineJACK() ? NumLines : 1); is wrong.*/
 }
 
-PBoolean OpalIxJDevice::IsLinePresent(unsigned line, PBoolean /* force */)
+bool OpalIxJDevice::IsLinePresent(unsigned line, bool /* force */)
 {
   if (line != PSTNLine)
     return false;
 
-  PBoolean stat = IOCTL(os_handle, IXJCTL_PSTN_LINETEST) == 1;
+  bool stat = IOCTL(os_handle, IXJCTL_PSTN_LINETEST) == 1;
   PThread::Sleep(2000);
 
   // clear ring signal status
@@ -557,7 +557,7 @@ PBoolean OpalIxJDevice::IsLinePresent(unsigned line, PBoolean /* force */)
 }
 
 
-PBoolean OpalIxJDevice::IsLineOffHook(unsigned line)
+bool OpalIxJDevice::IsLineOffHook(unsigned line)
 {
   if (line == PSTNLine) 
     return pstnIsOffHook;
@@ -582,7 +582,7 @@ PBoolean OpalIxJDevice::IsLineOffHook(unsigned line)
 #endif
 }
 
-PBoolean OpalIxJDevice::HasHookFlash(unsigned line)
+bool OpalIxJDevice::HasHookFlash(unsigned line)
 { 
   if (line != POTSLine)
     return false;
@@ -590,13 +590,13 @@ PBoolean OpalIxJDevice::HasHookFlash(unsigned line)
   PWaitAndSignal m(exceptionMutex);
   ExceptionInfo * info = GetException();
   
-  PBoolean flash = info->hasFlash;
+  bool flash = info->hasFlash;
   info->hasFlash = false;
   return flash;
 }
 
 
-PBoolean OpalIxJDevice::SetLineOffHook(unsigned line, PBoolean newState)
+bool OpalIxJDevice::SetLineOffHook(unsigned line, bool newState)
 {
   if (line == POTSLine) {
 #ifdef PHONE_WINK
@@ -634,7 +634,7 @@ OpalIxJDevice::ExceptionInfo * OpalIxJDevice::GetException()
 }
 
 
-PBoolean OpalIxJDevice::IsLineRinging(unsigned line, DWORD * /*cadence*/)
+bool OpalIxJDevice::IsLineRinging(unsigned line, DWORD * /*cadence*/)
 {
   if (line != PSTNLine)
     return false;
@@ -642,13 +642,13 @@ PBoolean OpalIxJDevice::IsLineRinging(unsigned line, DWORD * /*cadence*/)
   PWaitAndSignal m(exceptionMutex);
   ExceptionInfo * info = GetException();
 
-  PBoolean ring = info->hasRing;
+  bool ring = info->hasRing;
   info->hasRing = false;
   return ring;
 }
 
 
-PBoolean OpalIxJDevice::RingLine(unsigned line, DWORD cadence)
+bool OpalIxJDevice::RingLine(unsigned line, DWORD cadence)
 {
   if (line != POTSLine)
     return false;
@@ -674,7 +674,7 @@ PBoolean OpalIxJDevice::RingLine(unsigned line, DWORD cadence)
 }
 
 
-PBoolean OpalIxJDevice::RingLine(unsigned line, PINDEX nCadence, unsigned * pattern)
+bool OpalIxJDevice::RingLine(unsigned line, PINDEX nCadence, unsigned * pattern)
 {
   if (line >= GetLineCount())
     return false;
@@ -686,7 +686,7 @@ PBoolean OpalIxJDevice::RingLine(unsigned line, PINDEX nCadence, unsigned * patt
 }
 
 
-PBoolean OpalIxJDevice::IsLineDisconnected(unsigned line, PBoolean checkForWink)
+bool OpalIxJDevice::IsLineDisconnected(unsigned line, bool checkForWink)
 {
   if (line >= GetLineCount())
     return false;
@@ -721,7 +721,7 @@ PBoolean OpalIxJDevice::IsLineDisconnected(unsigned line, PBoolean checkForWink)
   return false;
 }
 
-PBoolean OpalIxJDevice::SetLineToLineDirect(unsigned line1, unsigned line2, PBoolean connect)
+bool OpalIxJDevice::SetLineToLineDirect(unsigned line1, unsigned line2, bool connect)
 {
   if (connect && (line1 != line2)) 
     IOCTL2(os_handle, IXJCTL_POTS_PSTN, 1);
@@ -732,12 +732,12 @@ PBoolean OpalIxJDevice::SetLineToLineDirect(unsigned line1, unsigned line2, PBoo
 }
 
 
-PBoolean OpalIxJDevice::IsLineToLineDirect(unsigned line1, unsigned line2)
+bool OpalIxJDevice::IsLineToLineDirect(unsigned line1, unsigned line2)
 {
   return false;
 }
 
-PBoolean OpalIxJDevice::ConvertOSError(int err) 
+bool OpalIxJDevice::ConvertOSError(int err) 
 {
   PChannel::Errors normalisedError;
   return PChannel::ConvertOSError(err, normalisedError, osError);
@@ -750,7 +750,7 @@ static const struct {
   PINDEX readFrameSize;
   int mode;
   int frameTime;
-  PBoolean vad;
+  bool vad;
 } CodecInfo[] = {
   /* NOTE: These are enumerated in reverse order. */
   { OPAL_PCM16,         480, 480, LINEAR16, 30, false },   // 480 bytes = 240 samples = 30ms
@@ -795,7 +795,7 @@ static PINDEX FindCodec(const OpalMediaFormat & mediaFormat)
 }
 
 
-PBoolean OpalIxJDevice::SetReadFormat(unsigned line, const OpalMediaFormat & mediaFormat)
+bool OpalIxJDevice::SetReadFormat(unsigned line, const OpalMediaFormat & mediaFormat)
 {
   {
     PWaitAndSignal mutex(toneMutex);
@@ -860,7 +860,7 @@ PBoolean OpalIxJDevice::SetReadFormat(unsigned line, const OpalMediaFormat & med
   return true;
 }
 
-PBoolean OpalIxJDevice::SetWriteFormat(unsigned line, const OpalMediaFormat & mediaFormat)
+bool OpalIxJDevice::SetWriteFormat(unsigned line, const OpalMediaFormat & mediaFormat)
 {
   {
     PWaitAndSignal mutex(toneMutex);
@@ -970,7 +970,7 @@ OpalMediaFormat OpalIxJDevice::GetWriteFormat(unsigned)
 }
 
 
-PBoolean OpalIxJDevice::SetRawCodec(unsigned line)
+bool OpalIxJDevice::SetRawCodec(unsigned line)
 {
   if (inRawMode)
     return false;
@@ -1002,7 +1002,7 @@ PBoolean OpalIxJDevice::SetRawCodec(unsigned line)
 }
 
 
-PBoolean OpalIxJDevice::StopReadCodec(unsigned line)
+bool OpalIxJDevice::StopReadCodec(unsigned line)
 {
   PTRACE(3, "xJack\tStopping read codec");
 
@@ -1017,7 +1017,7 @@ PBoolean OpalIxJDevice::StopReadCodec(unsigned line)
 }
 
 
-PBoolean OpalIxJDevice::StopWriteCodec(unsigned line)
+bool OpalIxJDevice::StopWriteCodec(unsigned line)
 {
   PTRACE(3, "xJack\tStopping write codec");
 
@@ -1032,7 +1032,7 @@ PBoolean OpalIxJDevice::StopWriteCodec(unsigned line)
 }
 
 
-PBoolean OpalIxJDevice::StopRawCodec(unsigned line)
+bool OpalIxJDevice::StopRawCodec(unsigned line)
 {
   if (!inRawMode)
     return false;
@@ -1058,7 +1058,7 @@ PINDEX OpalIxJDevice::GetReadFrameSize(unsigned)
   return readFrameSize;
 }
 
-PBoolean OpalIxJDevice::SetReadFrameSize(unsigned, PINDEX)
+bool OpalIxJDevice::SetReadFrameSize(unsigned, PINDEX)
 {
   return false;
 }
@@ -1075,7 +1075,7 @@ static void G728_Pack(const unsigned short * unpacked, BYTE * packed)
 static const PINDEX G723count[4] = { 24, 20, 4, 1 };
 
 
-PBoolean OpalIxJDevice::ReadFrame(unsigned, void * buffer, PINDEX & count)
+bool OpalIxJDevice::ReadFrame(unsigned, void * buffer, PINDEX & count)
 {
   {
     PWaitAndSignal rmutex(readMutex);
@@ -1204,7 +1204,7 @@ PINDEX OpalIxJDevice::GetWriteFrameSize(unsigned)
   return writeFrameSize;
 }
 
-PBoolean OpalIxJDevice::SetWriteFrameSize(unsigned, PINDEX)
+bool OpalIxJDevice::SetWriteFrameSize(unsigned, PINDEX)
 {
   return false;
 }
@@ -1217,7 +1217,7 @@ static void G728_Unpack(const BYTE * packed, unsigned short * unpacked)
   unpacked[3] = ((packed[3] & 0x03) << 8) |   packed[4];
 }
 
-PBoolean OpalIxJDevice::WriteFrame(unsigned, const void * buffer, PINDEX count, PINDEX & written)
+bool OpalIxJDevice::WriteFrame(unsigned, const void * buffer, PINDEX count, PINDEX & written)
 {
   {
     PWaitAndSignal rmutex(readMutex);
@@ -1326,13 +1326,13 @@ PBoolean OpalIxJDevice::WriteFrame(unsigned, const void * buffer, PINDEX count, 
 }
 
 
-unsigned OpalIxJDevice::GetAverageSignalLevel(unsigned, PBoolean playback)
+unsigned OpalIxJDevice::GetAverageSignalLevel(unsigned, bool playback)
 {
   return IOCTL(os_handle, playback ? PHONE_PLAY_LEVEL : PHONE_REC_LEVEL);
 }
 
 
-PBoolean OpalIxJDevice::EnableAudio(unsigned line, PBoolean enable)
+bool OpalIxJDevice::EnableAudio(unsigned line, bool enable)
 {
   if (line >= GetLineCount())
     return false;
@@ -1356,12 +1356,12 @@ PBoolean OpalIxJDevice::EnableAudio(unsigned line, PBoolean enable)
 }
 
 
-PBoolean OpalIxJDevice::IsAudioEnabled(unsigned line)
+bool OpalIxJDevice::IsAudioEnabled(unsigned line)
 {
   return enabledAudioLine == line;
 }
 
-PINDEX OpalIxJDevice::LogScaleVolume(unsigned line, PINDEX volume, PBoolean isPlay)
+PINDEX OpalIxJDevice::LogScaleVolume(unsigned line, PINDEX volume, bool isPlay)
 {
   PINDEX dspMax = isPlay ? 0x100 : 0x200;
 
@@ -1399,7 +1399,7 @@ PINDEX OpalIxJDevice::LogScaleVolume(unsigned line, PINDEX volume, PBoolean isPl
 }
  
 
-PBoolean OpalIxJDevice::SetRecordVolume(unsigned line, unsigned volume)
+bool OpalIxJDevice::SetRecordVolume(unsigned line, unsigned volume)
 {
   PWaitAndSignal mutex1(readMutex);
   userRecVol = volume;
@@ -1409,13 +1409,13 @@ PBoolean OpalIxJDevice::SetRecordVolume(unsigned line, unsigned volume)
   return IOCTL2(os_handle, IXJCTL_REC_VOLUME, LogScaleVolume(line, volume, false));
 }
 
-PBoolean OpalIxJDevice::GetRecordVolume(unsigned, unsigned & volume)
+bool OpalIxJDevice::GetRecordVolume(unsigned, unsigned & volume)
 {
   volume = userRecVol;
   return true;
 }
 
-PBoolean OpalIxJDevice::SetPlayVolume(unsigned line, unsigned volume)
+bool OpalIxJDevice::SetPlayVolume(unsigned line, unsigned volume)
 {
   PWaitAndSignal mutex1(readMutex);
   userPlayVol = volume;
@@ -1425,7 +1425,7 @@ PBoolean OpalIxJDevice::SetPlayVolume(unsigned line, unsigned volume)
   return IOCTL2(os_handle, IXJCTL_PLAY_VOLUME, LogScaleVolume(line, volume, true));
 }
 
-PBoolean OpalIxJDevice::GetPlayVolume(unsigned, unsigned & volume)
+bool OpalIxJDevice::GetPlayVolume(unsigned, unsigned & volume)
 {
   volume = userPlayVol;
   return true;
@@ -1437,7 +1437,7 @@ OpalLineInterfaceDevice::AECLevels OpalIxJDevice::GetAEC(unsigned)
 }
 
 
-PBoolean OpalIxJDevice::SetAEC(unsigned line, AECLevels level)
+bool OpalIxJDevice::SetAEC(unsigned line, AECLevels level)
 {
   aecLevel = level;
 
@@ -1464,7 +1464,7 @@ unsigned OpalIxJDevice::GetWinkDuration(unsigned)
 }
 
 
-PBoolean OpalIxJDevice::SetWinkDuration(unsigned, unsigned winkDuration)
+bool OpalIxJDevice::SetWinkDuration(unsigned, unsigned winkDuration)
 {
   if (!IsOpen())
     return false;  
@@ -1473,19 +1473,19 @@ PBoolean OpalIxJDevice::SetWinkDuration(unsigned, unsigned winkDuration)
 }
 
 
-PBoolean OpalIxJDevice::GetVAD(unsigned)
+bool OpalIxJDevice::GetVAD(unsigned)
 {
   return false;
 }
 
 
-PBoolean OpalIxJDevice::SetVAD(unsigned, PBoolean)
+bool OpalIxJDevice::SetVAD(unsigned, bool)
 {
   return false;
 }
 
 
-PBoolean OpalIxJDevice::GetCallerID(unsigned line, PString & callerId, PBoolean /*full*/)
+bool OpalIxJDevice::GetCallerID(unsigned line, PString & callerId, bool /*full*/)
 {
 #if TELEPHONY_VERSION < 3000
   return false;
@@ -1514,7 +1514,7 @@ PBoolean OpalIxJDevice::GetCallerID(unsigned line, PString & callerId, PBoolean 
 
 #if TELEPHONY_VERSION >= 3000
 
-static PBoolean IsPhoneDigits(const PString & str)
+static bool IsPhoneDigits(const PString & str)
 {
   PINDEX i;
   for (i = 0; i < str.GetLength(); i++) 
@@ -1572,7 +1572,7 @@ static void FormatCallerIdString(const PString & idString, PHONE_CID & callerIdI
 }
 #endif
 
-PBoolean OpalIxJDevice::SetCallerID(unsigned line, const PString & idString)
+bool OpalIxJDevice::SetCallerID(unsigned line, const PString & idString)
 {
 #if TELEPHONY_VERSION < 3000
   return false;
@@ -1586,7 +1586,7 @@ PBoolean OpalIxJDevice::SetCallerID(unsigned line, const PString & idString)
   return true;
 }
 
-PBoolean OpalIxJDevice::SendCallerIDOnCallWaiting(unsigned line, const PString & idString)
+bool OpalIxJDevice::SendCallerIDOnCallWaiting(unsigned line, const PString & idString)
 {
 #if TELEPHONY_VERSION < 3000
   return false;
@@ -1602,7 +1602,7 @@ PBoolean OpalIxJDevice::SendCallerIDOnCallWaiting(unsigned line, const PString &
 }
 
 
-PBoolean OpalIxJDevice::SendVisualMessageWaitingIndicator(unsigned line, PBoolean on)
+bool OpalIxJDevice::SendVisualMessageWaitingIndicator(unsigned line, bool on)
 {
 #if TELEPHONY_VERSION < 3000
   return false;
@@ -1617,7 +1617,7 @@ PBoolean OpalIxJDevice::SendVisualMessageWaitingIndicator(unsigned line, PBoolea
 }
 
 
-PBoolean OpalIxJDevice::PlayDTMF(unsigned, const char * tones, DWORD onTime, DWORD offTime)
+bool OpalIxJDevice::PlayDTMF(unsigned, const char * tones, DWORD onTime, DWORD offTime)
 {
   PWaitAndSignal mutex(toneMutex);
 
@@ -1693,13 +1693,13 @@ char OpalIxJDevice::ReadDTMF(unsigned)
 }
 
 
-PBoolean OpalIxJDevice::GetRemoveDTMF(unsigned)
+bool OpalIxJDevice::GetRemoveDTMF(unsigned)
 {
   return removeDTMF;
 }
 
 
-PBoolean OpalIxJDevice::SetRemoveDTMF(unsigned, PBoolean state)
+bool OpalIxJDevice::SetRemoveDTMF(unsigned, bool state)
 {
   removeDTMF = state;
   return IOCTL2(os_handle, PHONE_DTMF_OOB, state);
@@ -1737,7 +1737,7 @@ OpalLineInterfaceDevice::CallProgressTones OpalIxJDevice::IsToneDetected(unsigne
 }
 
 
-PBoolean OpalIxJDevice::SetToneFilterParameters(unsigned /*line*/,
+bool OpalIxJDevice::SetToneFilterParameters(unsigned /*line*/,
                                             CallProgressTones tone,
                                             unsigned   lowFrequency,
                                             unsigned   highFrequency,
@@ -1883,7 +1883,7 @@ PBoolean OpalIxJDevice::SetToneFilterParameters(unsigned /*line*/,
 }
 
 
-PBoolean OpalIxJDevice::PlayTone(unsigned line, CallProgressTones tone)
+bool OpalIxJDevice::PlayTone(unsigned line, CallProgressTones tone)
 {
   {
     PWaitAndSignal mutex(toneMutex);
@@ -1919,7 +1919,7 @@ PBoolean OpalIxJDevice::PlayTone(unsigned line, CallProgressTones tone)
 }
 
 
-PBoolean OpalIxJDevice::IsTonePlaying(unsigned)
+bool OpalIxJDevice::IsTonePlaying(unsigned)
 {
 //  if (IOCTL(os_handle, PHONE_GET_TONE_STATE) != 0) 
 //    return true;
@@ -1929,7 +1929,7 @@ PBoolean OpalIxJDevice::IsTonePlaying(unsigned)
 }
 
 
-PBoolean OpalIxJDevice::StopTone(unsigned)
+bool OpalIxJDevice::StopTone(unsigned)
 {
   PWaitAndSignal mutex(toneMutex);
   if (!tonePlaying) 
@@ -1940,7 +1940,7 @@ PBoolean OpalIxJDevice::StopTone(unsigned)
 }
 
 
-PBoolean OpalIxJDevice::SetCountryCode(T35CountryCodes country)
+bool OpalIxJDevice::SetCountryCode(T35CountryCodes country)
 {
   OpalLineInterfaceDevice::SetCountryCode(country);
 

@@ -284,7 +284,7 @@ void OpalPresentity::OnReceivedMessage(const OpalIM & message)
 {
   PWaitAndSignal mutex(m_notificationMutex);
 
-  if (!m_onReceivedMessageNotifier.IsNULL())
+  if (m_onReceivedMessageNotifier)
     m_onReceivedMessageNotifier(*this, message);
 }
 
@@ -302,7 +302,7 @@ void OpalPresentity::OnAuthorisationRequest(const AuthorisationRequest & request
 {
   PWaitAndSignal mutex(m_notificationMutex);
 
-  if (m_onAuthorisationRequestNotifier.IsNULL())
+  if (m_onAuthorisationRequestNotifier)
     SetPresenceAuthorisation(request.m_presentity, AuthorisationPermitted);
   else
     m_onAuthorisationRequestNotifier(*this, request);
@@ -320,10 +320,8 @@ void OpalPresentity::OnPresenceChange(const OpalPresenceInfo & info)
 {
   PWaitAndSignal mutex(m_notificationMutex);
 
-  if (!m_onPresenceChangeNotifier.IsNULL()) {
-    PAutoPtr<OpalPresenceInfo> pinfo(info.CloneAs<OpalPresenceInfo>());
-    m_onPresenceChangeNotifier(*this, pinfo);
-  }
+  if (m_onPresenceChangeNotifier)
+    m_onPresenceChangeNotifier(*this, std::shared_ptr<OpalPresenceInfo>(info.CloneAs<OpalPresenceInfo>()));
 }
 
 

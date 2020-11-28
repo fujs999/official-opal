@@ -129,7 +129,7 @@ H225_ReleaseCompleteReason::operator const H225_SecurityErrors &() const
 }
 
 
-PBoolean H225_ReleaseCompleteReason::CreateObject()
+bool H225_ReleaseCompleteReason::CreateObject()
 {
   switch (m_tag) {
     case e_noBandwidth :
@@ -207,7 +207,7 @@ H225_ScnConnectionType::H225_ScnConnectionType(unsigned tag, PASN_Object::TagCla
 }
 
 
-PBoolean H225_ScnConnectionType::CreateObject()
+bool H225_ScnConnectionType::CreateObject()
 {
   choice = (m_tag <= e_multirate) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -248,7 +248,7 @@ H225_ScnConnectionAggregation::H225_ScnConnectionAggregation(unsigned tag, PASN_
 }
 
 
-PBoolean H225_ScnConnectionAggregation::CreateObject()
+bool H225_ScnConnectionAggregation::CreateObject()
 {
   choice = (m_tag <= e_bonded_mode3) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -286,7 +286,7 @@ H225_PresentationIndicator::H225_PresentationIndicator(unsigned tag, PASN_Object
 }
 
 
-PBoolean H225_PresentationIndicator::CreateObject()
+bool H225_PresentationIndicator::CreateObject()
 {
   choice = (m_tag <= e_addressNotAvailable) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -370,7 +370,7 @@ H225_FacilityReason::H225_FacilityReason(unsigned tag, PASN_Object::TagClass tag
 }
 
 
-PBoolean H225_FacilityReason::CreateObject()
+bool H225_FacilityReason::CreateObject()
 {
   choice = (m_tag <= e_transportedInformation) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -522,7 +522,7 @@ H225_TransportAddress::operator const H225_NonStandardParameter &() const
 }
 
 
-PBoolean H225_TransportAddress::CreateObject()
+bool H225_TransportAddress::CreateObject()
 {
   switch (m_tag) {
     case e_ipAddress :
@@ -859,7 +859,7 @@ H225_SupportedProtocols::operator const H225_SIPCaps &() const
 }
 
 
-PBoolean H225_SupportedProtocols::CreateObject()
+bool H225_SupportedProtocols::CreateObject()
 {
   switch (m_tag) {
     case e_nonStandardData :
@@ -970,7 +970,7 @@ PINDEX H225_H221NonStandard::GetDataLength() const
 }
 
 
-PBoolean H225_H221NonStandard::Decode(PASN_Stream & strm)
+bool H225_H221NonStandard::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1060,7 +1060,7 @@ PINDEX H225_TunnelledProtocolAlternateIdentifier::GetDataLength() const
 }
 
 
-PBoolean H225_TunnelledProtocolAlternateIdentifier::Decode(PASN_Stream & strm)
+bool H225_TunnelledProtocolAlternateIdentifier::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1138,7 +1138,7 @@ H225_NonStandardIdentifier::operator const H225_H221NonStandard &() const
 }
 
 
-PBoolean H225_NonStandardIdentifier::CreateObject()
+bool H225_NonStandardIdentifier::CreateObject()
 {
   switch (m_tag) {
     case e_object :
@@ -1278,7 +1278,7 @@ H225_AliasAddress::operator const H225_IsupNumber &() const
 }
 
 
-PBoolean H225_AliasAddress::CreateObject()
+bool H225_AliasAddress::CreateObject()
 {
   switch (m_tag) {
     case e_dialedDigits :
@@ -1391,7 +1391,7 @@ H225_AddressPattern::operator const H225_AddressPattern_range &() const
 }
 
 
-PBoolean H225_AddressPattern::CreateObject()
+bool H225_AddressPattern::CreateObject()
 {
   switch (m_tag) {
     case e_wildcard :
@@ -1506,7 +1506,7 @@ H225_PartyNumber::operator const H225_PrivatePartyNumber &() const
 }
 
 
-PBoolean H225_PartyNumber::CreateObject()
+bool H225_PartyNumber::CreateObject()
 {
   switch (m_tag) {
     case e_e164Number :
@@ -1596,7 +1596,7 @@ H225_PublicTypeOfNumber::H225_PublicTypeOfNumber(unsigned tag, PASN_Object::TagC
 }
 
 
-PBoolean H225_PublicTypeOfNumber::CreateObject()
+bool H225_PublicTypeOfNumber::CreateObject()
 {
   choice = (m_tag <= e_abbreviatedNumber) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -1637,7 +1637,7 @@ H225_PrivateTypeOfNumber::H225_PrivateTypeOfNumber(unsigned tag, PASN_Object::Ta
 }
 
 
-PBoolean H225_PrivateTypeOfNumber::CreateObject()
+bool H225_PrivateTypeOfNumber::CreateObject()
 {
   choice = (m_tag <= e_abbreviatedNumber) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -1718,7 +1718,7 @@ H225_MobileUIM::operator const H225_GSM_UIM &() const
 }
 
 
-PBoolean H225_MobileUIM::CreateObject()
+bool H225_MobileUIM::CreateObject()
 {
   switch (m_tag) {
     case e_ansi_41_uim :
@@ -1860,7 +1860,7 @@ PINDEX H225_GSM_UIM::GetDataLength() const
 }
 
 
-PBoolean H225_GSM_UIM::Decode(PASN_Stream & strm)
+bool H225_GSM_UIM::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2002,7 +2002,7 @@ H225_IsupNumber::operator const H225_IsupPrivatePartyNumber &() const
 }
 
 
-PBoolean H225_IsupNumber::CreateObject()
+bool H225_IsupNumber::CreateObject()
 {
   switch (m_tag) {
     case e_e164Number :
@@ -2059,7 +2059,7 @@ H225_NatureOfAddress::H225_NatureOfAddress(unsigned tag, PASN_Object::TagClass t
 }
 
 
-PBoolean H225_NatureOfAddress::CreateObject()
+bool H225_NatureOfAddress::CreateObject()
 {
   choice = (m_tag <= e_routingNumberWithCalledDirectoryNumber) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -2167,7 +2167,7 @@ PINDEX H225_ExtendedAliasAddress::GetDataLength() const
 }
 
 
-PBoolean H225_ExtendedAliasAddress::Decode(PASN_Stream & strm)
+bool H225_ExtendedAliasAddress::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2228,7 +2228,7 @@ H225_UseSpecifiedTransport::H225_UseSpecifiedTransport(unsigned tag, PASN_Object
 }
 
 
-PBoolean H225_UseSpecifiedTransport::CreateObject()
+bool H225_UseSpecifiedTransport::CreateObject()
 {
   choice = (m_tag <= e_sctp) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -2288,7 +2288,7 @@ H225_SecurityServiceMode::operator const H225_NonStandardParameter &() const
 }
 
 
-PBoolean H225_SecurityServiceMode::CreateObject()
+bool H225_SecurityServiceMode::CreateObject()
 {
   switch (m_tag) {
     case e_nonStandard :
@@ -2349,7 +2349,7 @@ H225_SecurityErrors::H225_SecurityErrors(unsigned tag, PASN_Object::TagClass tag
 }
 
 
-PBoolean H225_SecurityErrors::CreateObject()
+bool H225_SecurityErrors::CreateObject()
 {
   choice = (m_tag <= e_securityUnknownCA) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -2390,7 +2390,7 @@ H225_SecurityErrors2::H225_SecurityErrors2(unsigned tag, PASN_Object::TagClass t
 }
 
 
-PBoolean H225_SecurityErrors2::CreateObject()
+bool H225_SecurityErrors2::CreateObject()
 {
   choice = (m_tag <= e_securityWrongOID) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -2473,7 +2473,7 @@ H225_H245Security::operator const H225_SecurityCapabilities &() const
 }
 
 
-PBoolean H225_H245Security::CreateObject()
+bool H225_H245Security::CreateObject()
 {
   switch (m_tag) {
     case e_nonStandard :
@@ -2551,7 +2551,7 @@ PINDEX H225_Q954Details::GetDataLength() const
 }
 
 
-PBoolean H225_Q954Details::Decode(PASN_Stream & strm)
+bool H225_Q954Details::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3114,7 +3114,7 @@ PINDEX H225_CallIdentifier::GetDataLength() const
 }
 
 
-PBoolean H225_CallIdentifier::Decode(PASN_Stream & strm)
+bool H225_CallIdentifier::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3188,7 +3188,7 @@ H225_EncryptIntAlg::operator const H225_NonStandardParameter &() const
 }
 
 
-PBoolean H225_EncryptIntAlg::CreateObject()
+bool H225_EncryptIntAlg::CreateObject()
 {
   switch (m_tag) {
     case e_nonStandard :
@@ -3258,7 +3258,7 @@ H225_NonIsoIntegrityMechanism::operator const H225_EncryptIntAlg &() const
 }
 
 
-PBoolean H225_NonIsoIntegrityMechanism::CreateObject()
+bool H225_NonIsoIntegrityMechanism::CreateObject()
 {
   switch (m_tag) {
     case e_hMAC_MD5 :
@@ -3354,7 +3354,7 @@ H225_IntegrityMechanism::operator const H225_NonIsoIntegrityMechanism &() const
 }
 
 
-PBoolean H225_IntegrityMechanism::CreateObject()
+bool H225_IntegrityMechanism::CreateObject()
 {
   switch (m_tag) {
     case e_nonStandard :
@@ -3434,7 +3434,7 @@ PINDEX H225_ICV::GetDataLength() const
 }
 
 
-PBoolean H225_ICV::Decode(PASN_Stream & strm)
+bool H225_ICV::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3668,7 +3668,7 @@ H225_CryptoH323Token::operator const H235_CryptoToken &() const
 }
 
 
-PBoolean H225_CryptoH323Token::CreateObject()
+bool H225_CryptoH323Token::CreateObject()
 {
   switch (m_tag) {
     case e_cryptoEPPwdHash :
@@ -3760,7 +3760,7 @@ PINDEX H225_CallLinkage::GetDataLength() const
 }
 
 
-PBoolean H225_CallLinkage::Decode(PASN_Stream & strm)
+bool H225_CallLinkage::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3841,7 +3841,7 @@ PINDEX H225_CapacityReportingCapability::GetDataLength() const
 }
 
 
-PBoolean H225_CapacityReportingCapability::Decode(PASN_Stream & strm)
+bool H225_CapacityReportingCapability::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3927,7 +3927,7 @@ PINDEX H225_CarrierInfo::GetDataLength() const
 }
 
 
-PBoolean H225_CarrierInfo::Decode(PASN_Stream & strm)
+bool H225_CarrierInfo::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -4052,7 +4052,7 @@ H225_ServiceControlDescriptor::operator const H225_CallCreditServiceControl &() 
 }
 
 
-PBoolean H225_ServiceControlDescriptor::CreateObject()
+bool H225_ServiceControlDescriptor::CreateObject()
 {
   switch (m_tag) {
     case e_url :
@@ -4127,7 +4127,7 @@ H225_CallTerminationCause::operator const H225_ReleaseCompleteReason &() const
 }
 
 
-PBoolean H225_CallTerminationCause::CreateObject()
+bool H225_CallTerminationCause::CreateObject()
 {
   switch (m_tag) {
     case e_releaseCompleteReason :
@@ -4206,7 +4206,7 @@ PINDEX H225_CallCreditCapability::GetDataLength() const
 }
 
 
-PBoolean H225_CallCreditCapability::Decode(PASN_Stream & strm)
+bool H225_CallCreditCapability::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -4286,7 +4286,7 @@ H225_GenericIdentifier::operator const H225_GloballyUniqueID &() const
 }
 
 
-PBoolean H225_GenericIdentifier::CreateObject()
+bool H225_GenericIdentifier::CreateObject()
 {
   switch (m_tag) {
     case e_standard :
@@ -4456,7 +4456,7 @@ H225_Content::operator const H225_ArrayOf_GenericData &() const
 }
 
 
-PBoolean H225_Content::CreateObject()
+bool H225_Content::CreateObject()
 {
   switch (m_tag) {
     case e_raw :
@@ -4569,7 +4569,7 @@ PINDEX H225_TransportChannelInfo::GetDataLength() const
 }
 
 
-PBoolean H225_TransportChannelInfo::Decode(PASN_Stream & strm)
+bool H225_TransportChannelInfo::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -4626,7 +4626,7 @@ H225_RehomingModel::H225_RehomingModel(unsigned tag, PASN_Object::TagClass tagCl
 }
 
 
-PBoolean H225_RehomingModel::CreateObject()
+bool H225_RehomingModel::CreateObject()
 {
   choice = (m_tag <= e_endpointBased) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -5420,7 +5420,7 @@ H225_RasMessage::operator const H225_ArrayOf_AdmissionConfirm &() const
 }
 
 
-PBoolean H225_RasMessage::CreateObject()
+bool H225_RasMessage::CreateObject()
 {
   switch (m_tag) {
     case e_gatekeeperRequest :
@@ -5587,7 +5587,7 @@ H225_GatekeeperRejectReason::operator const H225_SecurityErrors &() const
 }
 
 
-PBoolean H225_GatekeeperRejectReason::CreateObject()
+bool H225_GatekeeperRejectReason::CreateObject()
 {
   switch (m_tag) {
     case e_resourceUnavailable :
@@ -5722,7 +5722,7 @@ H225_RegistrationRejectReason::operator const H225_SecurityErrors &() const
 }
 
 
-PBoolean H225_RegistrationRejectReason::CreateObject()
+bool H225_RegistrationRejectReason::CreateObject()
 {
   switch (m_tag) {
     case e_discoveryRequired :
@@ -5816,7 +5816,7 @@ H225_UnregRequestReason::operator const H225_SecurityErrors2 &() const
 }
 
 
-PBoolean H225_UnregRequestReason::CreateObject()
+bool H225_UnregRequestReason::CreateObject()
 {
   switch (m_tag) {
     case e_reregistrationRequired :
@@ -5893,7 +5893,7 @@ H225_UnregRejectReason::operator const H225_SecurityErrors2 &() const
 }
 
 
-PBoolean H225_UnregRejectReason::CreateObject()
+bool H225_UnregRejectReason::CreateObject()
 {
   switch (m_tag) {
     case e_notCurrentlyRegistered :
@@ -5945,7 +5945,7 @@ H225_CallType::H225_CallType(unsigned tag, PASN_Object::TagClass tagClass)
 }
 
 
-PBoolean H225_CallType::CreateObject()
+bool H225_CallType::CreateObject()
 {
   choice = (m_tag <= e_nToN) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -5982,7 +5982,7 @@ H225_CallModel::H225_CallModel(unsigned tag, PASN_Object::TagClass tagClass)
 }
 
 
-PBoolean H225_CallModel::CreateObject()
+bool H225_CallModel::CreateObject()
 {
   choice = (m_tag <= e_gatekeeperRouted) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -6043,7 +6043,7 @@ H225_TransportQOS::operator const H225_ArrayOf_QOSCapability &() const
 }
 
 
-PBoolean H225_TransportQOS::CreateObject()
+bool H225_TransportQOS::CreateObject()
 {
   switch (m_tag) {
     case e_endpointControlled :
@@ -6160,7 +6160,7 @@ PINDEX H225_UUIEsRequested::GetDataLength() const
 }
 
 
-PBoolean H225_UUIEsRequested::Decode(PASN_Stream & strm)
+bool H225_UUIEsRequested::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -6313,7 +6313,7 @@ H225_AdmissionRejectReason::operator const H225_SecurityErrors2 &() const
 }
 
 
-PBoolean H225_AdmissionRejectReason::CreateObject()
+bool H225_AdmissionRejectReason::CreateObject()
 {
   switch (m_tag) {
     case e_calledPartyNotRegistered :
@@ -6410,7 +6410,7 @@ H225_BandRejectReason::operator const H225_SecurityErrors2 &() const
 }
 
 
-PBoolean H225_BandRejectReason::CreateObject()
+bool H225_BandRejectReason::CreateObject()
 {
   switch (m_tag) {
     case e_notBound :
@@ -6520,7 +6520,7 @@ H225_LocationRejectReason::operator const H225_SecurityErrors2 &() const
 }
 
 
-PBoolean H225_LocationRejectReason::CreateObject()
+bool H225_LocationRejectReason::CreateObject()
 {
   switch (m_tag) {
     case e_notRegistered :
@@ -6583,7 +6583,7 @@ H225_DisengageReason::H225_DisengageReason(unsigned tag, PASN_Object::TagClass t
 }
 
 
-PBoolean H225_DisengageReason::CreateObject()
+bool H225_DisengageReason::CreateObject()
 {
   choice = (m_tag <= e_undefinedReason) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -6644,7 +6644,7 @@ H225_DisengageRejectReason::operator const H225_SecurityErrors2 &() const
 }
 
 
-PBoolean H225_DisengageRejectReason::CreateObject()
+bool H225_DisengageRejectReason::CreateObject()
 {
   switch (m_tag) {
     case e_notRegistered :
@@ -6694,7 +6694,7 @@ H225_InfoRequestResponseStatus::H225_InfoRequestResponseStatus(unsigned tag, PAS
 }
 
 
-PBoolean H225_InfoRequestResponseStatus::CreateObject()
+bool H225_InfoRequestResponseStatus::CreateObject()
 {
   switch (m_tag) {
     case e_complete :
@@ -6767,7 +6767,7 @@ H225_InfoRequestNakReason::operator const H225_SecurityErrors2 &() const
 }
 
 
-PBoolean H225_InfoRequestNakReason::CreateObject()
+bool H225_InfoRequestNakReason::CreateObject()
 {
   switch (m_tag) {
     case e_notRegistered :
@@ -6845,7 +6845,7 @@ PINDEX H225_H323_UserInformation_user_data::GetDataLength() const
 }
 
 
-PBoolean H225_H323_UserInformation_user_data::Decode(PASN_Stream & strm)
+bool H225_H323_UserInformation_user_data::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -7175,7 +7175,7 @@ H225_H323_UU_PDU_h323_message_body::operator const H225_Notify_UUIE &() const
 }
 
 
-PBoolean H225_H323_UU_PDU_h323_message_body::CreateObject()
+bool H225_H323_UU_PDU_h323_message_body::CreateObject()
 {
   switch (m_tag) {
     case e_setup :
@@ -7538,7 +7538,7 @@ H225_Setup_UUIE_conferenceGoal::H225_Setup_UUIE_conferenceGoal(unsigned tag, PAS
 }
 
 
-PBoolean H225_Setup_UUIE_conferenceGoal::CreateObject()
+bool H225_Setup_UUIE_conferenceGoal::CreateObject()
 {
   choice = (m_tag <= e_callIndependentSupplementaryService) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -7639,7 +7639,7 @@ PINDEX H225_Setup_UUIE_connectionParameters::GetDataLength() const
 }
 
 
-PBoolean H225_Setup_UUIE_connectionParameters::Decode(PASN_Stream & strm)
+bool H225_Setup_UUIE_connectionParameters::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -7886,7 +7886,7 @@ PINDEX H225_TransportAddress_ipAddress::GetDataLength() const
 }
 
 
-PBoolean H225_TransportAddress_ipAddress::Decode(PASN_Stream & strm)
+bool H225_TransportAddress_ipAddress::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -7976,7 +7976,7 @@ PINDEX H225_TransportAddress_ipxAddress::GetDataLength() const
 }
 
 
-PBoolean H225_TransportAddress_ipxAddress::Decode(PASN_Stream & strm)
+bool H225_TransportAddress_ipxAddress::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -8064,7 +8064,7 @@ PINDEX H225_TransportAddress_ip6Address::GetDataLength() const
 }
 
 
-PBoolean H225_TransportAddress_ip6Address::Decode(PASN_Stream & strm)
+bool H225_TransportAddress_ip6Address::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -8234,7 +8234,7 @@ H225_TunnelledProtocol_id::operator const H225_TunnelledProtocolAlternateIdentif
 }
 
 
-PBoolean H225_TunnelledProtocol_id::CreateObject()
+bool H225_TunnelledProtocol_id::CreateObject()
 {
   switch (m_tag) {
     case e_tunnelledProtocolObjectID :
@@ -8308,7 +8308,7 @@ PINDEX H225_AddressPattern_range::GetDataLength() const
 }
 
 
-PBoolean H225_AddressPattern_range::Decode(PASN_Stream & strm)
+bool H225_AddressPattern_range::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -8363,7 +8363,7 @@ H225_ANSI_41_UIM_system_id::H225_ANSI_41_UIM_system_id(unsigned tag, PASN_Object
 }
 
 
-PBoolean H225_ANSI_41_UIM_system_id::CreateObject()
+bool H225_ANSI_41_UIM_system_id::CreateObject()
 {
   switch (m_tag) {
     case e_sid :
@@ -8505,7 +8505,7 @@ PINDEX H225_CryptoH323Token_cryptoEPPwdHash::GetDataLength() const
 }
 
 
-PBoolean H225_CryptoH323Token_cryptoEPPwdHash::Decode(PASN_Stream & strm)
+bool H225_CryptoH323Token_cryptoEPPwdHash::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -8595,7 +8595,7 @@ PINDEX H225_CryptoH323Token_cryptoGKPwdHash::GetDataLength() const
 }
 
 
-PBoolean H225_CryptoH323Token_cryptoGKPwdHash::Decode(PASN_Stream & strm)
+bool H225_CryptoH323Token_cryptoGKPwdHash::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -8685,7 +8685,7 @@ PINDEX H225_CapacityReportingSpecification_when::GetDataLength() const
 }
 
 
-PBoolean H225_CapacityReportingSpecification_when::Decode(PASN_Stream & strm)
+bool H225_CapacityReportingSpecification_when::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -8840,7 +8840,7 @@ H225_ServiceControlSession_reason::H225_ServiceControlSession_reason(unsigned ta
 }
 
 
-PBoolean H225_ServiceControlSession_reason::CreateObject()
+bool H225_ServiceControlSession_reason::CreateObject()
 {
   choice = (m_tag <= e_close) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -8915,7 +8915,7 @@ PINDEX H225_RasUsageSpecification_when::GetDataLength() const
 }
 
 
-PBoolean H225_RasUsageSpecification_when::Decode(PASN_Stream & strm)
+bool H225_RasUsageSpecification_when::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -9008,7 +9008,7 @@ PINDEX H225_RasUsageSpecification_callStartingPoint::GetDataLength() const
 }
 
 
-PBoolean H225_RasUsageSpecification_callStartingPoint::Decode(PASN_Stream & strm)
+bool H225_RasUsageSpecification_callStartingPoint::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -9065,7 +9065,7 @@ H225_CallCreditServiceControl_billingMode::H225_CallCreditServiceControl_billing
 }
 
 
-PBoolean H225_CallCreditServiceControl_billingMode::CreateObject()
+bool H225_CallCreditServiceControl_billingMode::CreateObject()
 {
   choice = (m_tag <= e_debit) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -9102,7 +9102,7 @@ H225_CallCreditServiceControl_callStartingPoint::H225_CallCreditServiceControl_c
 }
 
 
-PBoolean H225_CallCreditServiceControl_callStartingPoint::CreateObject()
+bool H225_CallCreditServiceControl_callStartingPoint::CreateObject()
 {
   choice = (m_tag <= e_connect) ? new PASN_Null() : NULL;
   return choice != NULL;

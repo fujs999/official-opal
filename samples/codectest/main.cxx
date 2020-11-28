@@ -751,7 +751,7 @@ void VideoThread::Main()
   TranscoderThread::Main();
 }
 
-void VideoThread::OnTranscoderCommand(OpalMediaCommand & cmd, P_INT_PTR)
+void VideoThread::OnTranscoderCommand(OpalMediaCommand & cmd, intptr_t)
 {
   if (PIsDescendant(&cmd, OpalVideoUpdatePicture)) {
     coutMutex.Wait();
@@ -955,23 +955,23 @@ void VideoThread::WriteFrameStats(const PString & str)
 
 
 struct FrameHistoryEntry {
-  FrameHistoryEntry(unsigned size_, PInt64 timeStamp_, bool iFrame_)
+  FrameHistoryEntry(unsigned size_, int64_t timeStamp_, bool iFrame_)
     : size(size_), timeStamp(timeStamp_), iFrame(iFrame_)
   { }
 
   unsigned size;
-  PInt64 timeStamp;
+  int64_t timeStamp;
   bool iFrame;
 };
 
 void TranscoderThread::Main()
 {
-  PUInt64 maximumBitRate = 0;
-  PUInt64 totalInputFrameCount = 0;
-  PUInt64 totalEncodedPacketCount = 0;
-  PUInt64 totalOutputFrameCount = 0;
-  PUInt64 totalEncodedByteCount = 0;
-  PUInt64 totalDroppedPacketCount = 0;
+  uint64_t maximumBitRate = 0;
+  uint64_t totalInputFrameCount = 0;
+  uint64_t totalEncodedPacketCount = 0;
+  uint64_t totalOutputFrameCount = 0;
+  uint64_t totalEncodedByteCount = 0;
+  uint64_t totalDroppedPacketCount = 0;
   PINDEX  largestPacket = 0;
 
   bool oldSrcState = true;
@@ -1248,10 +1248,10 @@ void TranscoderThread::Main()
 
     {
       PTimeInterval duration = PTimer::Tick() - startTick;
-      PInt64 msecs = duration.GetMilliSeconds();
+      int64_t msecs = duration.GetMilliSeconds();
       if (msecs < m_frameTime / 90)
         msecs = m_frameTime / 90;
-      PUInt64 bitRate = totalEncodedByteCount*8*1000/msecs;
+      uint64_t bitRate = totalEncodedByteCount*8*1000/msecs;
       if (bitRate > maximumBitRate)
         maximumBitRate = bitRate;
     }
@@ -1292,11 +1292,11 @@ void TranscoderThread::Main()
 
   {
     cout << "Average bit rate = ";
-    PInt64 msecs = duration.GetMilliSeconds();
+    int64_t msecs = duration.GetMilliSeconds();
     if (msecs == 0) 
       cout << "N/A";
     else {
-      PUInt64 bitRate = totalEncodedByteCount*8*1000/msecs;
+      uint64_t bitRate = totalEncodedByteCount*8*1000/msecs;
       OUTPUT_BPS(cout, bitRate);
     }
   }

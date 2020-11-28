@@ -132,7 +132,7 @@ PString OpalTransportAddress::GetHostName(bool includeService) const
 }
 
 
-PBoolean OpalTransportAddress::IsEquivalent(const OpalTransportAddress & address, bool wildcard) const
+bool OpalTransportAddress::IsEquivalent(const OpalTransportAddress & address, bool wildcard) const
 {
   if (*this == address)
     return true;
@@ -152,7 +152,7 @@ PBoolean OpalTransportAddress::IsEquivalent(const OpalTransportAddress & address
 }
 
 
-PBoolean OpalTransportAddress::IsCompatible(const OpalTransportAddress & address) const
+bool OpalTransportAddress::IsCompatible(const OpalTransportAddress & address) const
 {
   if (IsEmpty() || address.IsEmpty())
     return true;
@@ -187,7 +187,7 @@ PBoolean OpalTransportAddress::IsCompatible(const OpalTransportAddress & address
 }
 
 
-PBoolean OpalTransportAddress::GetIpAddress(PIPSocket::Address & ip) const
+bool OpalTransportAddress::GetIpAddress(PIPSocket::Address & ip) const
 {
   if (m_transport == NULL)
     return false;
@@ -197,7 +197,7 @@ PBoolean OpalTransportAddress::GetIpAddress(PIPSocket::Address & ip) const
 }
 
 
-PBoolean OpalTransportAddress::GetIpAndPort(PIPSocket::Address & ip, WORD & port) const
+bool OpalTransportAddress::GetIpAndPort(PIPSocket::Address & ip, WORD & port) const
 {
   if (m_transport == NULL)
     return false;
@@ -206,7 +206,7 @@ PBoolean OpalTransportAddress::GetIpAndPort(PIPSocket::Address & ip, WORD & port
 }
 
 
-PBoolean OpalTransportAddress::GetIpAndPort(PIPSocketAddressAndPort & ipPort) const
+bool OpalTransportAddress::GetIpAndPort(PIPSocketAddressAndPort & ipPort) const
 {
   if (m_transport == NULL)
     return false;
@@ -413,7 +413,7 @@ PString OpalInternalTransport::GetHostName(const OpalTransportAddress & address,
 }
 
 
-PBoolean OpalInternalTransport::GetIpAndPort(const OpalTransportAddress &,
+bool OpalInternalTransport::GetIpAndPort(const OpalTransportAddress &,
                                          PIPSocket::Address &,
                                          WORD &) const
 {
@@ -423,7 +423,7 @@ PBoolean OpalInternalTransport::GetIpAndPort(const OpalTransportAddress &,
 
 //////////////////////////////////////////////////////////////////////////
 
-static PBoolean SplitAddress(const PString & addr, PString & host, PString & device, PString & service)
+static bool SplitAddress(const PString & addr, PString & host, PString & device, PString & service)
 {
   // skip transport identifier
   PINDEX pos = addr.Find('$');
@@ -519,17 +519,17 @@ PString OpalInternalIPTransport::GetHostName(const OpalTransportAddress & addres
 }
 
 
-PBoolean OpalInternalIPTransport::GetIpAndPort(const OpalTransportAddress & address,
+bool OpalInternalIPTransport::GetIpAndPort(const OpalTransportAddress & address,
                                            PIPSocket::Address & ip,
                                            WORD & port) const
 {
   PString host, device, service;
   if (!SplitAddress(address, host, device, service))
-    return PFalse;
+    return false;
   
   if (host.IsEmpty() && device.IsEmpty()) {
     PTRACE(2, "Illegal IP transport address: \"" << address << '"');
-    return PFalse;
+    return false;
   }
 
   WORD newPort;
@@ -574,11 +574,11 @@ PBoolean OpalInternalIPTransport::GetIpAndPort(const OpalTransportAddress & addr
 
 //////////////////////////////////////////////////////////////////////////
 
-PBoolean OpalInternalIPTransport::GetAdjustedIpAndPort(const OpalTransportAddress & address,
+bool OpalInternalIPTransport::GetAdjustedIpAndPort(const OpalTransportAddress & address,
                                  OpalEndPoint & endpoint,
                                  OpalTransportAddress::BindOptions option,
                                  PIPSocketAddressAndPort & ap,
-                                 PBoolean & reuseAddr)
+                                 bool & reuseAddr)
 {
   reuseAddr = address[address.GetLength()-1] == '+';
 
@@ -641,7 +641,8 @@ void OpalListener::CloseWait()
 void OpalListener::ListenForConnections()
 {
   PTRACE(3, "Started listening thread on " << GetLocalAddress());
-  PAssert(!m_acceptHandler.IsNULL(), PLogicError);
+  if (!PAssert(m_acceptHandler, PLogicError))
+    return;
 
   while (IsOpen()) {
     OpalTransport * transport = Accept(PMaxTimeInterval);
@@ -691,7 +692,7 @@ void OpalListener::TransportThreadMain(OpalTransportPtr transport)
 OpalListenerIP::OpalListenerIP(OpalEndPoint & ep,
                                PIPSocket::Address binding,
                                WORD port,
-                               PBoolean exclusive)
+                               bool exclusive)
   : OpalListener(ep)
   , m_binding(binding, port)
   , m_exclusiveListener(exclusive)
@@ -752,7 +753,7 @@ bool OpalListenerIP::CanCreateTransport(const OpalTransportAddress & localAddres
 OpalListenerTCP::OpalListenerTCP(OpalEndPoint & ep,
                                  PIPSocket::Address binding,
                                  WORD port,
-                                 PBoolean exclusive)
+                                 bool exclusive)
   : OpalListenerIP(ep, binding, port, exclusive)
 {
 }
@@ -772,7 +773,7 @@ OpalListenerTCP::~OpalListenerTCP()
 }
 
 
-PBoolean OpalListenerTCP::Open(const AcceptHandler & theAcceptHandler, ThreadMode mode)
+bool OpalListenerTCP::Open(const AcceptHandler & theAcceptHandler, ThreadMode mode)
 {
   if (m_binding.GetPort() == 0) {
     OpalManager & manager = m_endpoint.GetManager();
@@ -856,7 +857,7 @@ const PCaselessString & OpalListenerTCP::GetProtoPrefix() const
 OpalListenerUDP::OpalListenerUDP(OpalEndPoint & endpoint,
                                  PIPSocket::Address binding,
                                  WORD port,
-                                 PBoolean exclusive)
+                                 bool exclusive)
   : OpalListenerIP(endpoint, binding, port, exclusive)
   , m_listenerBundle(PMonitoredSockets::Create(binding.AsString(),
                                                !exclusive
@@ -885,7 +886,7 @@ OpalListenerUDP::~OpalListenerUDP()
 }
 
 
-PBoolean OpalListenerUDP::Open(const AcceptHandler & theAcceptHandler, ThreadMode /*mode*/)
+bool OpalListenerUDP::Open(const AcceptHandler & theAcceptHandler, ThreadMode /*mode*/)
 {
   if (m_listenerBundle != NULL &&
       m_listenerBundle->Open(m_binding.GetPort()) &&
@@ -1041,7 +1042,7 @@ bool OpalTransport::SetInterface(const PString &)
 }
 
 
-PBoolean OpalTransport::Close()
+bool OpalTransport::Close()
 {
   m_keepAliveTimer.Stop();
 
@@ -1063,7 +1064,7 @@ void OpalTransport::CloseWait()
 }
 
 
-PBoolean OpalTransport::IsCompatibleTransport(const OpalTransportAddress &) const
+bool OpalTransport::IsCompatibleTransport(const OpalTransportAddress &) const
 {
   PAssertAlways(PUnimplementedFunction);
   return false;
@@ -1087,7 +1088,7 @@ PString OpalTransport::GetLastReceivedInterface() const
 }
 
 
-PBoolean OpalTransport::WriteConnect(const WriteConnectCallback & function)
+bool OpalTransport::WriteConnect(const WriteConnectCallback & function)
 {
   bool succeeded = false;
   function(*this, succeeded);
@@ -1113,7 +1114,7 @@ void OpalTransport::AttachThread(PThread * thrd)
 }
 
 
-PBoolean OpalTransport::IsRunning() const
+bool OpalTransport::IsRunning() const
 {
   PWaitAndSignal lock(m_threadMutex);
   return m_thread != NULL && !m_thread->IsTerminated();
@@ -1194,7 +1195,7 @@ void OpalTransport::SetKeepAlive(const PTimeInterval & timeout, const PBYTEArray
 }
 
 
-void OpalTransport::KeepAlive(PTimer &, P_INT_PTR)
+void OpalTransport::KeepAlive(PTimer &, intptr_t)
 {
   if (!IsOpen()) {
     PTRACE(4, "Keep alive attempt while not open on " << *this);
@@ -1213,7 +1214,7 @@ void OpalTransport::KeepAlive(PTimer &, P_INT_PTR)
 }
 
 
-PBoolean OpalTransport::Write(const void * buf, PINDEX len)
+bool OpalTransport::Write(const void * buf, PINDEX len)
 {
   if (!IsOpen())
     return false;
@@ -1272,7 +1273,7 @@ OpalTransportAddress OpalTransportIP::GetRemoteAddress() const
 }
 
 
-PBoolean OpalTransportIP::SetRemoteAddress(const OpalTransportAddress & address)
+bool OpalTransportIP::SetRemoteAddress(const OpalTransportAddress & address)
 {
   if (IsCompatibleTransport(address))
     return address.GetIpAndPort(m_remoteAP);
@@ -1287,7 +1288,7 @@ PBoolean OpalTransportIP::SetRemoteAddress(const OpalTransportAddress & address)
 OpalTransportTCP::OpalTransportTCP(OpalEndPoint & ep,
                                    PIPSocket::Address binding,
                                    WORD port,
-                                   PBoolean)
+                                   bool)
   : OpalTransportIP(ep, new PTCPSocket(port), binding, port)
   , m_pduLengthFormat(0)
   , m_pduLengthOffset(0)
@@ -1312,20 +1313,20 @@ OpalTransportTCP::~OpalTransportTCP()
 }
 
 
-PBoolean OpalTransportTCP::IsReliable() const
+bool OpalTransportTCP::IsReliable() const
 {
   return true;
 }
 
 
-PBoolean OpalTransportTCP::IsCompatibleTransport(const OpalTransportAddress & address) const
+bool OpalTransportTCP::IsCompatibleTransport(const OpalTransportAddress & address) const
 {
   return (address.NumCompare(OpalTransportAddress::TcpPrefix()) == EqualTo) ||
          (address.NumCompare(OpalTransportAddress::IpPrefix())  == EqualTo);
 }
 
 
-PBoolean OpalTransportTCP::Connect()
+bool OpalTransportTCP::Connect()
 {
   if (IsOpen())
     return true;
@@ -1353,7 +1354,7 @@ PBoolean OpalTransportTCP::Connect()
 }
 
 
-PBoolean OpalTransportTCP::ReadPDU(PBYTEArray & pdu)
+bool OpalTransportTCP::ReadPDU(PBYTEArray & pdu)
 {
   BYTE header[8];
   if (!m_channel->Read(header, 1))
@@ -1405,7 +1406,7 @@ PBoolean OpalTransportTCP::ReadPDU(PBYTEArray & pdu)
 }
 
 
-PBoolean OpalTransportTCP::WritePDU(const PBYTEArray & pdu)
+bool OpalTransportTCP::WritePDU(const PBYTEArray & pdu)
 {
   // We copy the data into a new buffer so we can do a single write call. This
   // is necessary as we have disabled the Nagle TCP delay algorithm to improve
@@ -1553,20 +1554,20 @@ OpalTransportUDP::~OpalTransportUDP()
 }
 
 
-PBoolean OpalTransportUDP::IsReliable() const
+bool OpalTransportUDP::IsReliable() const
 {
   return false;
 }
 
 
-PBoolean OpalTransportUDP::IsCompatibleTransport(const OpalTransportAddress & address) const
+bool OpalTransportUDP::IsCompatibleTransport(const OpalTransportAddress & address) const
 {
   return (address.NumCompare(OpalTransportAddress::UdpPrefix()) == EqualTo) ||
          (address.NumCompare(OpalTransportAddress::IpPrefix())  == EqualTo);
 }
 
 
-PBoolean OpalTransportUDP::Connect()
+bool OpalTransportUDP::Connect()
 {	
   if (m_remoteAP.GetPort() == 0)
     return false;
@@ -1640,7 +1641,7 @@ OpalTransportAddress OpalTransportUDP::GetLocalAddress() const
 }
 
 
-PBoolean OpalTransportUDP::SetRemoteAddress(const OpalTransportAddress & address)
+bool OpalTransportUDP::SetRemoteAddress(const OpalTransportAddress & address)
 {
   if (!OpalTransportIP::SetRemoteAddress(address))
     return false;
@@ -1694,7 +1695,7 @@ PString OpalTransportUDP::GetLastReceivedInterface() const
 }
 
 
-PBoolean OpalTransportUDP::Read(void * buffer, PINDEX length)
+bool OpalTransportUDP::Read(void * buffer, PINDEX length)
 {
   if (m_preReadPacket.IsEmpty())
     return m_channel->Read(buffer, length);
@@ -1706,7 +1707,7 @@ PBoolean OpalTransportUDP::Read(void * buffer, PINDEX length)
 }
 
 
-PBoolean OpalTransportUDP::ReadPDU(PBYTEArray & packet)
+bool OpalTransportUDP::ReadPDU(PBYTEArray & packet)
 {
   if (m_preReadPacket.GetSize() > 0) {
     packet = m_preReadPacket;
@@ -1724,7 +1725,7 @@ PBoolean OpalTransportUDP::ReadPDU(PBYTEArray & packet)
 }
 
 
-PBoolean OpalTransportUDP::WritePDU(const PBYTEArray & packet)
+bool OpalTransportUDP::WritePDU(const PBYTEArray & packet)
 {
   return Write((const BYTE *)packet, packet.GetSize());
 }
@@ -1741,7 +1742,7 @@ bool OpalTransportUDP::WriteConnect(const WriteConnectCallback & function)
   GetRemoteAddress().GetIpAddress(address);
   PStringArray interfaces = bundle->GetInterfaces(false, address);
 
-  PBoolean ok = false;
+  bool ok = false;
   for (PINDEX i = 0; i < interfaces.GetSize(); i++) {
     PIPSocket::Address ifip(interfaces[i]);
     if (ifip.GetVersion() != m_remoteAP.GetAddress().GetVersion())
@@ -1775,7 +1776,7 @@ const PCaselessString & OpalTransportUDP::GetProtoPrefix() const
 OpalListenerTLS::OpalListenerTLS(OpalEndPoint & ep,
                                  PIPSocket::Address binding,
                                  WORD port,
-                                 PBoolean exclusive)
+                                 bool exclusive)
                                  : OpalListenerTCP(ep, binding, port, exclusive)
                                  , m_sslContext(NULL)
 {
@@ -1797,7 +1798,7 @@ OpalListenerTLS::~OpalListenerTLS()
 }
 
 
-PBoolean OpalListenerTLS::Open(const AcceptHandler & acceptHandler, ThreadMode mode)
+bool OpalListenerTLS::Open(const AcceptHandler & acceptHandler, ThreadMode mode)
 {
   m_sslContext = new PSSLContext();
   m_sslContext->SetCipherList("ALL");
@@ -1844,7 +1845,7 @@ OpalTransport * OpalListenerTLS::CreateTransport(const OpalTransportAddress & lo
 OpalTransportTLS::OpalTransportTLS(OpalEndPoint & ep,
                                    PIPSocket::Address binding,
                                    WORD port,
-                                   PBoolean reuseAddr)
+                                   bool reuseAddr)
   : OpalTransportTCP(ep, binding, port, reuseAddr)
 {
 }
@@ -1865,14 +1866,14 @@ OpalTransportTLS::~OpalTransportTLS()
 
 //////////////////////////////////////////////////////////////////////////
 
-PBoolean OpalTransportTLS::IsCompatibleTransport(const OpalTransportAddress & address) const
+bool OpalTransportTLS::IsCompatibleTransport(const OpalTransportAddress & address) const
 {
   return OpalTransportTCP::IsCompatibleTransport(address) ||
          address.NumCompare(OpalTransportAddress::TlsPrefix()) == EqualTo;
 }
 
 
-PBoolean OpalTransportTLS::Connect()
+bool OpalTransportTLS::Connect()
 {
   if (IsOpen())
     return true;
@@ -2005,7 +2006,7 @@ const PCaselessString & OpalListenerWS::GetProtoPrefix() const
 
 //////////////////////////////////////////////////////////////////////////
 
-OpalListenerWSS::OpalListenerWSS(OpalEndPoint & endpoint, PIPSocket::Address binding, WORD port, PBoolean exclusive)
+OpalListenerWSS::OpalListenerWSS(OpalEndPoint & endpoint, PIPSocket::Address binding, WORD port, bool exclusive)
   : OpalListenerTLS(endpoint, binding, port, exclusive)
 {
 }
@@ -2054,14 +2055,14 @@ OpalTransportWS::OpalTransportWS(OpalEndPoint & endpoint, PChannel * socket)
 }
 
 
-PBoolean OpalTransportWS::IsCompatibleTransport(const OpalTransportAddress & address) const
+bool OpalTransportWS::IsCompatibleTransport(const OpalTransportAddress & address) const
 {
     return OpalTransportTCP::IsCompatibleTransport(address) ||
                address.NumCompare(OpalTransportAddress::WsPrefix()) == EqualTo;
 }
 
 
-PBoolean OpalTransportWS::Connect()
+bool OpalTransportWS::Connect()
 {
   PSafeLockReadWrite mutex(*this);
 
@@ -2078,13 +2079,13 @@ PBoolean OpalTransportWS::Connect()
 }
 
 
-PBoolean OpalTransportWS::ReadPDU(PBYTEArray & pdu)
+bool OpalTransportWS::ReadPDU(PBYTEArray & pdu)
 {
   return dynamic_cast<PWebSocket *>(m_channel)->ReadMessage(pdu);
 }
 
 
-PBoolean OpalTransportWS::WritePDU(const PBYTEArray & pdu)
+bool OpalTransportWS::WritePDU(const PBYTEArray & pdu)
 {
   return Write(pdu, pdu.GetSize());
 }
@@ -2111,14 +2112,14 @@ OpalTransportWSS::OpalTransportWSS(OpalEndPoint & endpoint, PChannel * socket)
 }
 
 
-PBoolean OpalTransportWSS::IsCompatibleTransport(const OpalTransportAddress & address) const
+bool OpalTransportWSS::IsCompatibleTransport(const OpalTransportAddress & address) const
 {
     return OpalTransportTLS::IsCompatibleTransport(address) ||
                address.NumCompare(OpalTransportAddress::WssPrefix()) == EqualTo;
 }
 
 
-PBoolean OpalTransportWSS::Connect()
+bool OpalTransportWSS::Connect()
 {
   PSafeLockReadWrite mutex(*this);
 
@@ -2135,13 +2136,13 @@ PBoolean OpalTransportWSS::Connect()
 }
 
 
-PBoolean OpalTransportWSS::ReadPDU(PBYTEArray & pdu)
+bool OpalTransportWSS::ReadPDU(PBYTEArray & pdu)
 {
   return dynamic_cast<PWebSocket *>(m_channel)->ReadMessage(pdu);
 }
 
 
-PBoolean OpalTransportWSS::WritePDU(const PBYTEArray & pdu)
+bool OpalTransportWSS::WritePDU(const PBYTEArray & pdu)
 {
   return Write(pdu, pdu.GetSize());
 }

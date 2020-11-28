@@ -117,7 +117,12 @@ bool OpalManagerConsole::GetStreamFromArgs(PCLI::Arguments & args,
 }
 
 
-template <typename T> static int GetValueFromArgs(PCLI::Arguments & args, const PString & option, T & value, T minimum, T maximum, const char * errorContext)
+template <typename T> static int GetValueFromArgs(PCLI::Arguments & args,
+                                                  const PString & option,
+                                                  T & value,
+                                                  T minimum,
+                                                  T maximum,
+                                                  const PString & errorContext)
 {
   if (!args.HasOption(option))
     return 0;
@@ -135,7 +140,7 @@ template <typename T> static int GetValueFromArgs(PCLI::Arguments & args, const 
 static const OpalBandwidth AbsoluteMinBitRate("10kbps");
 static const OpalBandwidth AbsoluteMaxBitRate("2Gbps");
 
-static int GetResolutionFromArgs(PCLI::Arguments & args, const PString & option, unsigned & width, unsigned & height, const char * errorContext)
+static int GetResolutionFromArgs(PCLI::Arguments & args, const PString & option, unsigned & width, unsigned & height, const PString & errorContext)
 {
   if (!args.HasOption(option))
     return 0;
@@ -319,7 +324,7 @@ bool OpalRTPConsoleEndPoint::Initialise(PArgList & args, ostream & output, bool 
 
 
 #if P_CLI
-void OpalRTPConsoleEndPoint::CmdInterfaces(PCLI::Arguments & args, P_INT_PTR)
+void OpalRTPConsoleEndPoint::CmdInterfaces(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() > 0 && !m_endpoint.StartListeners(args.GetParameters(), !args.HasOption("clear"))) {
     args.WriteError("Could not start listening on specified interfaces.");
@@ -330,7 +335,7 @@ void OpalRTPConsoleEndPoint::CmdInterfaces(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalRTPConsoleEndPoint::CmdCryptoSuites(PCLI::Arguments & args, P_INT_PTR)
+void OpalRTPConsoleEndPoint::CmdCryptoSuites(PCLI::Arguments & args, intptr_t)
 {
   if (args.HasOption("list")) {
     args.GetContext() << "All crypto suites: " << setfill(',') << m_endpoint.GetAllMediaCryptoSuites() << setfill (' ') << endl;
@@ -344,7 +349,7 @@ void OpalRTPConsoleEndPoint::CmdCryptoSuites(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalRTPConsoleEndPoint::CmdBandwidth(PCLI::Arguments & args, P_INT_PTR)
+void OpalRTPConsoleEndPoint::CmdBandwidth(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() < 1)
     args.GetContext() << "Bandwidth:"
@@ -367,7 +372,7 @@ void OpalRTPConsoleEndPoint::CmdBandwidth(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalRTPConsoleEndPoint::CmdUserInputMode(PCLI::Arguments & args, P_INT_PTR)
+void OpalRTPConsoleEndPoint::CmdUserInputMode(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() < 1)
     args.WriteUsage();
@@ -376,7 +381,7 @@ void OpalRTPConsoleEndPoint::CmdUserInputMode(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalRTPConsoleEndPoint::CmdStringOption(PCLI::Arguments & args, P_INT_PTR)
+void OpalRTPConsoleEndPoint::CmdStringOption(PCLI::Arguments & args, intptr_t)
 {
   if (args.HasOption('l')) {
     args.GetContext() << "Options available for " << m_endpoint.GetPrefixName() << ":\n"
@@ -541,7 +546,7 @@ bool H323ConsoleEndPoint::Initialise(PArgList & args, bool verbose, const PStrin
 
 
 #if P_CLI
-void H323ConsoleEndPoint::CmdTerminalType(PCLI::Arguments & args, P_INT_PTR)
+void H323ConsoleEndPoint::CmdTerminalType(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() > 0) {
     unsigned newType = args[0].AsUnsigned();
@@ -555,7 +560,7 @@ void H323ConsoleEndPoint::CmdTerminalType(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void H323ConsoleEndPoint::CmdAlias(PCLI::Arguments & args, P_INT_PTR)
+void H323ConsoleEndPoint::CmdAlias(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() == 0) {
     args.WriteUsage();
@@ -591,7 +596,7 @@ void H323ConsoleEndPoint::CmdAlias(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void H323ConsoleEndPoint::CmdGatekeeper(PCLI::Arguments & args, P_INT_PTR)
+void H323ConsoleEndPoint::CmdGatekeeper(PCLI::Arguments & args, intptr_t)
 {
   SetGatekeeperAliasLimit(args.GetOptionAs<PINDEX>("limit", GetGatekeeperAliasLimit()));
 
@@ -617,7 +622,7 @@ void H323ConsoleEndPoint::CmdGatekeeper(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void H323ConsoleEndPoint::CmdCompatibility(PCLI::Arguments & args, P_INT_PTR)
+void H323ConsoleEndPoint::CmdCompatibility(PCLI::Arguments & args, intptr_t)
 {
   H323Connection::CompatibilityIssues issue;
 
@@ -812,7 +817,7 @@ bool SIPConsoleEndPoint::Initialise(PArgList & args, bool verbose, const PString
 
 
 #if P_CLI
-void SIPConsoleEndPoint::CmdProxy(PCLI::Arguments & args, P_INT_PTR)
+void SIPConsoleEndPoint::CmdProxy(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() < 1)
     args.WriteUsage();
@@ -823,7 +828,7 @@ void SIPConsoleEndPoint::CmdProxy(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void SIPConsoleEndPoint::CmdRegister(PCLI::Arguments & args, P_INT_PTR)
+void SIPConsoleEndPoint::CmdRegister(PCLI::Arguments & args, intptr_t)
 {
   DoRegistration(args.GetContext(), true, args[0], args[1], args, "auth-id", "realm", "proxy", "mode", "ttl");
 }
@@ -945,7 +950,7 @@ bool OpalConsoleSkinnyEndPoint::Initialise(PArgList & args, bool verbose, const 
 
 
 #if P_CLI
-void OpalConsoleSkinnyEndPoint::CmdRegister(PCLI::Arguments & args, P_INT_PTR)
+void OpalConsoleSkinnyEndPoint::CmdRegister(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() < 2)
     args.WriteUsage();
@@ -954,7 +959,7 @@ void OpalConsoleSkinnyEndPoint::CmdRegister(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalConsoleSkinnyEndPoint::CmdStatus(PCLI::Arguments & args, P_INT_PTR)
+void OpalConsoleSkinnyEndPoint::CmdStatus(PCLI::Arguments & args, intptr_t)
 {
   ostream & out = args.GetContext();
 
@@ -1052,7 +1057,7 @@ bool OpalConsoleLyncEndPoint::Initialise(PArgList & args, bool verbose, const PS
 
 
 #if P_CLI
-void OpalConsoleLyncEndPoint::CmdRegister(PCLI::Arguments & args, P_INT_PTR)
+void OpalConsoleLyncEndPoint::CmdRegister(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() < 1)
     args.WriteUsage();
@@ -1140,7 +1145,7 @@ bool OpalConsoleLineEndPoint::Initialise(PArgList & args, bool verbose, const PS
 
 
 #if P_CLI
-void OpalConsoleLineEndPoint::CmdCountry(PCLI::Arguments & args, P_INT_PTR)
+void OpalConsoleLineEndPoint::CmdCountry(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() < 1)
     args.WriteUsage();
@@ -1241,7 +1246,7 @@ static struct {
   const char * m_name;
   const char * m_description;
   const PString & (OpalPCSSEndPoint:: *m_get)() const;
-  PBoolean (OpalPCSSEndPoint:: *m_set)(const PString &);
+  bool (OpalPCSSEndPoint:: *m_set)(const PString &);
 
   bool Initialise(OpalPCSSEndPoint & ep, ostream & output, bool verbose, const PArgList & args, bool fromCLI)
   {
@@ -1282,7 +1287,7 @@ static struct {
   const char * m_name;
   const char * m_description;
   const PVideoDevice::OpenArgs & (OpalConsolePCSSEndPoint:: *m_get)() const;
-  PBoolean(OpalConsolePCSSEndPoint:: *m_set)(const PVideoDevice::OpenArgs &);
+  bool(OpalConsolePCSSEndPoint:: *m_set)(const PVideoDevice::OpenArgs &);
   PStringArray (*m_list)(const PString &, PPluginManager *);
 
   bool Initialise(OpalConsolePCSSEndPoint & ep, ostream & output, bool verbose, const PArgList & args, bool fromCLI)
@@ -1419,7 +1424,7 @@ bool OpalConsolePCSSEndPoint::Initialise(PArgList & args, bool verbose, const PS
 
 
 #if P_CLI
-void OpalConsolePCSSEndPoint::CmdRingFileAndDevice(PCLI::Arguments & args, P_INT_PTR)
+void OpalConsolePCSSEndPoint::CmdRingFileAndDevice(PCLI::Arguments & args, intptr_t)
 {
   SetRingInfo(args.GetContext(), true,
               args.GetCount() < 1 ? m_ringFileName : args[0],
@@ -1428,7 +1433,7 @@ void OpalConsolePCSSEndPoint::CmdRingFileAndDevice(PCLI::Arguments & args, P_INT
 }
 
 
-void OpalConsolePCSSEndPoint::CmdRingbackTone(PCLI::Arguments & args, P_INT_PTR)
+void OpalConsolePCSSEndPoint::CmdRingbackTone(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() > 0 && !SetLocalRingbackTone(args[0]))
     args.WriteError("Invalid ringback tone");
@@ -1437,7 +1442,7 @@ void OpalConsolePCSSEndPoint::CmdRingbackTone(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalConsolePCSSEndPoint::CmdVolume(PCLI::Arguments & args, P_INT_PTR)
+void OpalConsolePCSSEndPoint::CmdVolume(PCLI::Arguments & args, intptr_t)
 {
   PSafePtr<OpalConnection> connection = GetConnectionWithLock(args.GetOptionString('c', "*"), PSafeReadOnly);
   if (connection == NULL) {
@@ -1461,7 +1466,7 @@ void OpalConsolePCSSEndPoint::CmdVolume(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalConsolePCSSEndPoint::CmdDefaultAudioDevice(PCLI::Arguments & args, P_INT_PTR)
+void OpalConsolePCSSEndPoint::CmdDefaultAudioDevice(PCLI::Arguments & args, intptr_t)
 {
   for (PINDEX i = 0; i < PARRAYSIZE(AudioDeviceVariables); ++i) {
     if (args.GetCommandName().Find(AudioDeviceVariables[i].m_name) != P_MAX_INDEX)
@@ -1470,7 +1475,7 @@ void OpalConsolePCSSEndPoint::CmdDefaultAudioDevice(PCLI::Arguments & args, P_IN
 }
 
 
-void OpalConsolePCSSEndPoint::CmdChangeAudioDevice(PCLI::Arguments & args, P_INT_PTR)
+void OpalConsolePCSSEndPoint::CmdChangeAudioDevice(PCLI::Arguments & args, intptr_t)
 {
   PSafePtr<OpalPCSSConnection> connection;
   if (m_console.GetConnectionFromArgs(args, connection)) {
@@ -1482,7 +1487,7 @@ void OpalConsolePCSSEndPoint::CmdChangeAudioDevice(PCLI::Arguments & args, P_INT
 }
 
 
-void OpalConsolePCSSEndPoint::CmdAudioBuffers(PCLI::Arguments & args, P_INT_PTR)
+void OpalConsolePCSSEndPoint::CmdAudioBuffers(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() > 0)
     SetSoundChannelBufferTime(args[0].AsUnsigned());
@@ -1491,7 +1496,7 @@ void OpalConsolePCSSEndPoint::CmdAudioBuffers(PCLI::Arguments & args, P_INT_PTR)
 
 
 #if OPAL_VIDEO
-void OpalConsolePCSSEndPoint::CmdDefaultVideoDevice(PCLI::Arguments & args, P_INT_PTR)
+void OpalConsolePCSSEndPoint::CmdDefaultVideoDevice(PCLI::Arguments & args, intptr_t)
 {
   for (PINDEX i = 0; i < PARRAYSIZE(VideoDeviceVariables); ++i) {
     if (args.GetCommandName().NumCompare(GetPrefixName() & VideoDeviceVariables[i].m_name) == EqualTo)
@@ -1500,7 +1505,7 @@ void OpalConsolePCSSEndPoint::CmdDefaultVideoDevice(PCLI::Arguments & args, P_IN
 }
 
 
-void OpalConsolePCSSEndPoint::CmdChangeVideoDevice(PCLI::Arguments & args, P_INT_PTR)
+void OpalConsolePCSSEndPoint::CmdChangeVideoDevice(PCLI::Arguments & args, intptr_t)
 {
   PSafePtr<OpalPCSSConnection> connection;
   if (m_console.GetConnectionFromArgs(args, connection)) {
@@ -1514,7 +1519,7 @@ void OpalConsolePCSSEndPoint::CmdChangeVideoDevice(PCLI::Arguments & args, P_INT
 }
 
 
-void OpalConsolePCSSEndPoint::CmdOpenVideoStream(PCLI::Arguments & args, P_INT_PTR)
+void OpalConsolePCSSEndPoint::CmdOpenVideoStream(PCLI::Arguments & args, intptr_t)
 {
   PSafePtr<OpalPCSSConnection> connection;
   if (m_console.GetConnectionFromArgs(args, connection)) {
@@ -1560,7 +1565,7 @@ static OpalMediaStreamPtr FindStreamForRole(OpalRTPConnection & connection, Opal
   return stream;
 }
 
-void OpalConsolePCSSEndPoint::CmdCloseVideoStream(PCLI::Arguments & args, P_INT_PTR)
+void OpalConsolePCSSEndPoint::CmdCloseVideoStream(PCLI::Arguments & args, intptr_t)
 {
   PSafePtr<OpalRTPConnection> connection;
   if (m_console.GetConnectionFromArgs(args, connection)) {
@@ -1597,11 +1602,11 @@ struct OpalCmdFarEndCameraControlMode
   P_DECLARE_STREAMABLE_ENUM(Cmd, external, device);
 };
 
-void OpalConsolePCSSEndPoint::CmdExternalCameraControl(PCLI::Arguments & args, P_INT_PTR)
+void OpalConsolePCSSEndPoint::CmdExternalCameraControl(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() == 0) {
     args.GetContext() << "Far End Camera Control mode: "
-                      << (GetFarEndCameraActionNotifier().IsNULL() ? OpalCmdFarEndCameraControlMode::device : OpalCmdFarEndCameraControlMode::external)
+                      << (!GetFarEndCameraActionNotifier() ? OpalCmdFarEndCameraControlMode::device : OpalCmdFarEndCameraControlMode::external)
                       << endl;
     return;
   }
@@ -1612,7 +1617,7 @@ void OpalConsolePCSSEndPoint::CmdExternalCameraControl(PCLI::Arguments & args, P
       break;
 
     case OpalCmdFarEndCameraControlMode::device :
-      SetFarEndCameraActionNotifier(PNotifier());
+      SetFarEndCameraActionNotifier(nullptr);
       break;
 
     default :
@@ -1621,13 +1626,12 @@ void OpalConsolePCSSEndPoint::CmdExternalCameraControl(PCLI::Arguments & args, P
   }
 }
 
-void OpalConsolePCSSEndPoint::ExternalCameraControlNotification(OpalH281Client &, P_INT_PTR param)
+void OpalConsolePCSSEndPoint::ExternalCameraControlNotification(OpalH281Client &, int *directions)
 {
   PStringStream str;
-  if (param == 0)
+  if (!directions)
     str << "FECC STOPPED";
   else {
-    const int * directions = (const int *)param;
     str << "FECC START";
     for (PVideoControlInfo::Types type = PVideoControlInfo::BeginTypes; type < PVideoControlInfo::EndTypes; ++type) {
       if (directions[type] != 0)
@@ -3209,7 +3213,7 @@ static int GetPortRange(PCLI::Arguments & args, unsigned & basePort, unsigned & 
 }
 
 
-void OpalManagerCLI::CmdIpTcpPorts(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdIpTcpPorts(PCLI::Arguments & args, intptr_t)
 {
   unsigned basePort, maxPort;
   switch (GetPortRange(args, basePort, maxPort)) {
@@ -3221,7 +3225,7 @@ void OpalManagerCLI::CmdIpTcpPorts(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdIpUdpPorts(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdIpUdpPorts(PCLI::Arguments & args, intptr_t)
 {
   unsigned basePort, maxPort;
   switch (GetPortRange(args, basePort, maxPort)) {
@@ -3233,7 +3237,7 @@ void OpalManagerCLI::CmdIpUdpPorts(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdIpRtpPorts(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdIpRtpPorts(PCLI::Arguments & args, intptr_t)
 {
   unsigned basePort, maxPort;
   switch (GetPortRange(args, basePort, maxPort)) {
@@ -3245,7 +3249,7 @@ void OpalManagerCLI::CmdIpRtpPorts(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdIpRtpTos(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdIpRtpTos(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() > 0) {
     unsigned tos = args[0].AsUnsigned();
@@ -3259,7 +3263,7 @@ void OpalManagerCLI::CmdIpRtpTos(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdIpRtpSize(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdIpRtpSize(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() > 0) {
     unsigned sz = args[0].AsUnsigned();
@@ -3273,7 +3277,7 @@ void OpalManagerCLI::CmdIpRtpSize(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdIpQoS(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdIpQoS(PCLI::Arguments & args, intptr_t)
 {
   switch (args.GetCount()) {
     case 2 :
@@ -3291,7 +3295,7 @@ void OpalManagerCLI::CmdIpQoS(PCLI::Arguments & args, P_INT_PTR)
 
 
 #if OPAL_PTLIB_SSL
-void OpalManagerCLI::CmdSSL(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdSSL(PCLI::Arguments & args, intptr_t)
 {
   SetSSLCertificateAuthorityFiles(args.GetOptionString("ca", GetSSLCertificateAuthorityFiles()));
   SetSSLCertificateFile(args.GetOptionString("cert", GetSSLCertificateFile()));
@@ -3309,7 +3313,7 @@ void OpalManagerCLI::CmdSSL(PCLI::Arguments & args, P_INT_PTR)
 #endif
 
 #if OPAL_PTLIB_NAT
-void OpalManagerCLI::CmdNatList(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdNatList(PCLI::Arguments & args, intptr_t)
 {
   PCLI::Context & out = args.GetContext();
   out << std::left
@@ -3345,7 +3349,7 @@ void OpalManagerCLI::CmdNatList(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdNatServer(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdNatServer(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() < 2) {
     args.WriteUsage();
@@ -3394,7 +3398,7 @@ void OpalManagerCLI::CmdNatServer(PCLI::Arguments & args, P_INT_PTR)
 
 
 #if PTRACING
-void OpalManagerCLI::CmdTrace(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdTrace(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() > 0)
     PTrace::Initialise(args, PTrace::GetOptions(), NULL, "1", "option", NULL, "0");
@@ -3405,7 +3409,7 @@ void OpalManagerCLI::CmdTrace(PCLI::Arguments & args, P_INT_PTR)
 
 
 #if OPAL_STATISTICS
-void OpalManagerCLI::CmdStatistics(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdStatistics(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() == 0) {
     OutputStatistics(args.GetContext());
@@ -3429,7 +3433,7 @@ struct OpalCmdFarEndCameraControlDirection
   P_DECLARE_STREAMABLE_ENUM(Cmd, left, right, up, down, tight, wide, in, out);
 };
 
-void OpalManagerCLI::CmdFarEndCamera(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdFarEndCamera(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() < 2) {
     args.WriteUsage();
@@ -3525,7 +3529,7 @@ void OpalManagerCLI::CmdFarEndCamera(PCLI::Arguments & args, P_INT_PTR)
 #endif // OPAL_HAS_H281
 
 
-void OpalManagerCLI::CmdAutoStart(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdAutoStart(PCLI::Arguments & args, intptr_t)
 {
   switch (args.GetCount()) {
     case 0:
@@ -3562,7 +3566,7 @@ void OpalManagerCLI::CmdAutoStart(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdCodecList(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdCodecList(PCLI::Arguments & args, intptr_t)
 {
   OpalMediaFormatList formats;
   OpalMediaFormat::GetAllRegisteredMediaFormats(formats);
@@ -3597,7 +3601,7 @@ void OpalManagerCLI::CmdCodecList(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdCodecOption(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdCodecOption(PCLI::Arguments & args, intptr_t)
 {
   PString name;
 
@@ -3667,20 +3671,20 @@ static void ChangeMediaCodec(OpalManagerCLI & manager, PCLI::Arguments & args, c
 }
 
 
-void OpalManagerCLI::CmdAudioCodec(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdAudioCodec(PCLI::Arguments & args, intptr_t)
 {
   ChangeMediaCodec(*this, args, OpalMediaType::Audio());
 }
 
 
 #if OPAL_VIDEO
-void OpalManagerCLI::CmdVideoCodec(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdVideoCodec(PCLI::Arguments & args, intptr_t)
 {
   ChangeMediaCodec(*this, args, OpalMediaType::Video());
 }
 
 
-void OpalManagerCLI::CmdVideoDefault(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdVideoDefault(PCLI::Arguments & args, intptr_t)
 {
   OpalMediaFormatList mediaFormats;
 
@@ -3707,7 +3711,7 @@ void OpalManagerCLI::CmdVideoDefault(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdVideoTransmit(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdVideoTransmit(PCLI::Arguments & args, intptr_t)
 {
   OpalMediaStreamPtr stream;
   if (!GetStreamFromArgs(args, OpalMediaType::Video(), true, stream))
@@ -3719,7 +3723,7 @@ void OpalManagerCLI::CmdVideoTransmit(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdVideoReceive(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdVideoReceive(PCLI::Arguments & args, intptr_t)
 {
   OpalMediaStreamPtr stream;
   if (!GetStreamFromArgs(args, OpalMediaType::Video(), false, stream))
@@ -3743,7 +3747,7 @@ struct OpalCmdPresentationToken
   P_DECLARE_STREAMABLE_ENUM(Cmd, request, release);
 };
 
-void OpalManagerCLI::CmdPresentationToken(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdPresentationToken(PCLI::Arguments & args, intptr_t)
 {
   PSafePtr<OpalRTPConnection> connection;
   if (GetConnectionFromArgs(args, connection)) {
@@ -3779,7 +3783,7 @@ void OpalManagerCLI::CmdPresentationToken(PCLI::Arguments & args, P_INT_PTR)
 
 
 #if OPAL_HAS_MIXER
-void OpalManagerCLI::CmdRecord(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdRecord(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() == 0) {
     args.WriteUsage();
@@ -3829,7 +3833,7 @@ void OpalManagerCLI::CmdRecord(PCLI::Arguments & args, P_INT_PTR)
 #endif // OPAL_HAS_MIXER
 
 
-void OpalManagerCLI::CmdSilenceDetect(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdSilenceDetect(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() > 1) {
     args.WriteUsage();
@@ -3895,19 +3899,19 @@ static void CmdCodecOrderMask(OpalManager & manager, PCLI::Arguments & args, boo
 }
 
 
-void OpalManagerCLI::CmdCodecOrder(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdCodecOrder(PCLI::Arguments & args, intptr_t)
 {
   CmdCodecOrderMask(*this, args, true, "");
 }
 
 
-void OpalManagerCLI::CmdCodecMask(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdCodecMask(PCLI::Arguments & args, intptr_t)
 {
   CmdCodecOrderMask(*this, args, false, args.GetCommandName().Find("select") != P_MAX_INDEX ? "!" : "");
 }
 
 
-void OpalManagerCLI::CmdCall(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdCall(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() < 1) {
     args.WriteUsage();
@@ -3939,7 +3943,7 @@ void OpalManagerCLI::AdjustCmdCallArguments(PString &, PString &)
 }
 
 
-void OpalManagerCLI::CmdHold(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdHold(PCLI::Arguments & args, intptr_t)
 {
   PSafePtr<OpalCall> call;
   if (!GetCallFromArgs(args, call))
@@ -3956,7 +3960,7 @@ void OpalManagerCLI::CmdHold(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdRetrieve(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdRetrieve(PCLI::Arguments & args, intptr_t)
 {
   PSafePtr<OpalCall> call;
   if (!GetCallFromArgs(args, call))
@@ -3971,7 +3975,7 @@ void OpalManagerCLI::CmdRetrieve(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdTransfer(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdTransfer(PCLI::Arguments & args, intptr_t)
 {
   PSafePtr<OpalCall> call;
   if (!GetCallFromArgs(args, call))
@@ -3986,7 +3990,7 @@ void OpalManagerCLI::CmdTransfer(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdHangUp(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdHangUp(PCLI::Arguments & args, intptr_t)
 {
   PSafePtr<OpalCall> call;
   if (GetCallFromArgs(args, call)) {
@@ -3996,7 +4000,7 @@ void OpalManagerCLI::CmdHangUp(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdSendUserInput(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdSendUserInput(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() == 0) {
     args.WriteUsage();
@@ -4011,7 +4015,7 @@ void OpalManagerCLI::CmdSendUserInput(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdWaitPhase(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdWaitPhase(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() == 0) {
     args.WriteUsage();
@@ -4057,7 +4061,7 @@ void OpalManagerCLI::CmdWaitPhase(PCLI::Arguments & args, P_INT_PTR)
 
 
 #if OPAL_STATISTICS
-void OpalManagerCLI::CmdWaitPackets(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdWaitPackets(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() == 0) {
     args.WriteUsage();
@@ -4115,7 +4119,7 @@ void OpalManagerCLI::CmdWaitPackets(PCLI::Arguments & args, P_INT_PTR)
 #endif //OPAL_STATISTICS
 
 
-void OpalManagerCLI::CmdShowCalls(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdShowCalls(PCLI::Arguments & args, intptr_t)
 {
   ostream & out = args.GetContext();
 
@@ -4139,7 +4143,7 @@ void OpalManagerCLI::CmdShowCalls(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdDelay(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdDelay(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() < 1)
     args.WriteUsage();
@@ -4151,13 +4155,13 @@ void OpalManagerCLI::CmdDelay(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdVersion(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdVersion(PCLI::Arguments & args, intptr_t)
 {
   PrintVersion(args.GetContext());
 }
 
 
-void OpalManagerCLI::CmdQuit(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdQuit(PCLI::Arguments & args, intptr_t)
 {
   if (PIsDescendant(args.GetContext().GetBaseReadChannel(), PConsoleChannel))
     CmdShutDown(args, 0);
@@ -4166,7 +4170,7 @@ void OpalManagerCLI::CmdQuit(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdShutDown(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdShutDown(PCLI::Arguments & args, intptr_t)
 {
 #if _WIN32
   if (!args.HasOption("wait"))

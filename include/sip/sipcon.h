@@ -181,7 +181,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
 
        The default behaviour is .
       */
-    virtual PBoolean SetUpConnection();
+    virtual bool SetUpConnection();
 
     /** Get the remote transport address
       */
@@ -298,16 +298,16 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
 
        The default behaviour does nothing.
       */
-    virtual PBoolean SetAlerting(
+    virtual bool SetAlerting(
       const PString & calleeName,   ///<  Name of endpoint being alerted.
-      PBoolean withMedia            ///<  Flag to alert with/without media
+      bool withMedia            ///<  Flag to alert with/without media
     );
 
     /**Indicate to remote endpoint we are connected.
 
        The default behaviour does nothing.
       */
-    virtual PBoolean SetConnected();
+    virtual bool SetConnected();
 
     /**Get the data formats this endpoint is capable of operating in.
       */
@@ -335,7 +335,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     virtual OpalMediaStream * CreateMediaStream(
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
-      PBoolean isSource                        ///<  Is a source stream
+      bool isSource                        ///<  Is a source stream
     );
 
     /**Open source or sink media stream for session.
@@ -379,7 +379,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
        called before that thread has started.
       */
     virtual void OnPatchMediaStream(
-      PBoolean isSource,        ///< Is source/sink call
+      bool isSource,        ///< Is source/sink call
       OpalMediaPatch & patch    ///<  New patch
     );
 
@@ -418,7 +418,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
        otherwise. Note that if the call is forwarded, the current connection
        is cleared with the ended call code set to EndedByCallForwarded.
       */
-    virtual PBoolean ForwardCall(
+    virtual bool ForwardCall(
       const PString & forwardParty   ///<  Party to forward call to.
     );
 
@@ -435,7 +435,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
        The default behaviour is to call SendUserInputTone() for each character
        in the string.
       */
-    virtual PBoolean SendUserInputString(
+    virtual bool SendUserInputString(
       const PString & value                   ///<  String value of indication
     );
 
@@ -455,7 +455,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
 
        The default behaviour sends the tone using RFC2833.
       */
-    PBoolean SendUserInputTone(char tone, unsigned duration);
+    bool SendUserInputTone(char tone, unsigned duration);
   //@}
 
   /**@name Protocol handling functions */
@@ -555,7 +555,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     /**Handle an incoming Proxy Authentication Required response PDU
        Returns: true if handled, if false is returned connection is released.
       */
-    virtual PBoolean OnReceivedAuthenticationRequired(
+    virtual bool OnReceivedAuthenticationRequired(
       SIPTransaction & transaction,
       SIP_PDU & response
     );
@@ -653,7 +653,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
        Return false if default reponse of Failure_UnsupportedMediaType is to be returned
 
       */
-    virtual PBoolean OnMediaControlXML(SIP_PDU & pdu);
+    virtual bool OnMediaControlXML(SIP_PDU & pdu);
 #endif
 
     /** Callback for media commands.
@@ -712,7 +712,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     virtual bool SendDelayedACK(bool force);
     void OnDelayedAckTimeout();
 
-    virtual PBoolean SendInviteResponse(
+    virtual bool SendInviteResponse(
       SIP_PDU::StatusCodes code,
       const SDPSessionDescription * sdp = NULL
     );

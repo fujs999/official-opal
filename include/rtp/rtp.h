@@ -488,7 +488,7 @@ class RTP_ControlFrame : public PBYTEArray
     PINDEX m_payloadSize;
 
   private:
-    virtual PBoolean SetSize(PINDEX sz) { return PBYTEArray::SetSize(sz); }
+    virtual bool SetSize(PINDEX sz) { return PBYTEArray::SetSize(sz); }
 };
 
 
@@ -807,10 +807,10 @@ class RTP_DataFrame : public PBYTEArray
 #endif
 
   private:
-    virtual PBoolean SetSize(PINDEX sz) { return PBYTEArray::SetSize(sz); }
+    virtual bool SetSize(PINDEX sz) { return PBYTEArray::SetSize(sz); }
 };
 
-PLIST(RTP_DataFrameList, RTP_DataFrame);
+typedef PList<RTP_DataFrame> RTP_DataFrameList;
 
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -375,10 +375,10 @@ void IAX2IeString::WriteBinary(BYTE *data)
 
 BYTE IAX2IeString::GetLengthOfData() const
 { 
-  if (dataValue.GetSize() == 0)
+  if (dataValue.empty())
     return 0;
   else 
-    return (BYTE)(dataValue.GetSize() - 1); 
+    return (BYTE)(dataValue.size() - 1); 
 }
 
 void IAX2IeString::SetData(const PString & newData) 
@@ -546,7 +546,7 @@ void IAX2IeCallToken::WriteKeySequence(PIPSocket::Address & remote)
   SetData(data);
 }
 
-PBoolean IAX2IeCallToken::ValidKeySequence (IAX2IeCallToken & cf, 
+bool IAX2IeCallToken::ValidKeySequence (IAX2IeCallToken & cf, 
 					    PIPSocket::Address & remote)
 {
   time_t startTime = PTime().GetTimeInSeconds();
@@ -795,10 +795,7 @@ void IAX2IeMd5Result::InitializeChallengePassword(const PString &newChallenge, c
   for (PINDEX i = 0; i < digester.GetSize(); i++) 
     res  << ::hex << ::setfill('0') << ::setw(2) << digester.GetAs<int>(i);
 
-  res.Trim();
-  res.MakeMinimumSize();
-  
-  SetData(res);
+  SetData(res.str());
 
   PTRACE(3, "IAX2IeMd5Result\tChallenge is " << newChallenge);
   PTRACE(3, "IAX2IeMd5Result\tPassword  is " << newPassword);

@@ -112,15 +112,15 @@ class IAX2Remote : public PObject
   /**Return true if remote port & address & destCallNumber & source
      call number match up.  This is used when finding a Connection
      that generated an ethernet frame which is to be transmitted*/
-  PBoolean operator == (IAX2Remote & other);
+  bool operator == (IAX2Remote & other);
   
   /**Return true if remote port & address & destCallNumber==sourceCallNumber  match up.
      This is used when finding a Connection to process an incoming ethernet frame */
-  PBoolean operator *= (IAX2Remote & other);
+  bool operator *= (IAX2Remote & other);
   
   
   /**Returns true if these are are different */
-  PBoolean operator != (IAX2Remote & other);
+  bool operator != (IAX2Remote & other);
   
   
  protected:
@@ -180,7 +180,7 @@ class IAX2FrameIdValue : public PObject
 
   /**The combination of time and sequence number is stored in this
      element, which is a pwlib construct of 64 bits */
-  PUInt64 value;
+  uint64_t value;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -189,15 +189,11 @@ class IAX2FrameIdValue : public PObject
 of all frames we have sent and received. This will be sued to keep the
 iseqno correct (for use in sent frames), and to ensure that we never
 send two frames with the same iseqno and timestamp pair.*/
-PDECLARE_SORTED_LIST(IAX2PacketIdList, IAX2FrameIdValue)
-#ifdef DOC_PLUS_PLUS
-class IAX2PacketIdList : public PSortedList
-{
-#endif
-  
+class IAX2PacketIdList : public PSortedList<IAX2FrameIdValue>
+{  
   /**Return true if a FrameIdValue object is found in the list that
    * matches the value in the supplied arguement*/
-  PBoolean Contains(IAX2FrameIdValue &src);
+  bool Contains(IAX2FrameIdValue &src);
   
   /**Return the value at the beginning of the list. Use this value as
      the InSeqNo of this endpoint.*/
@@ -252,11 +248,11 @@ class IAX2SequenceNumbers
   
   /**Report true if the frame has inSeqNo and outSeqNo of 1 and 0 respectively, 
      indicating this is a reply to a new frame (could be an ack, accept frame) */
-  PBoolean IsFirstReplyFrame();
+  bool IsFirstReplyFrame();
 
   /**Report if the sequences numbers (in and out) are both Zero. This is the case for
      some frames (new, invalid) */
-  PBoolean IsSequenceNosZero();
+  bool IsSequenceNosZero();
 
   /**Assign new value to the in (or expected) seq number */
   void SetInSeqNo(PINDEX newVal);
@@ -273,10 +269,10 @@ class IAX2SequenceNumbers
   void SetAckSequenceInfo(IAX2SequenceNumbers & other);
   
   /**Comparison operator - tests if sequence numbers are different */
-  PBoolean  operator !=(IAX2SequenceNumbers &other);
+  bool  operator !=(IAX2SequenceNumbers &other);
   
   /**Comparison operator - tests if sequence numbers are equal */
-  PBoolean operator ==(IAX2SequenceNumbers &other);
+  bool operator ==(IAX2SequenceNumbers &other);
   
   /**Increment this sequences outSeqNo, and assign the results to the source arg */
   void MassageSequenceForSending(IAX2FullFrame &src /*<!src will be transmitted to the remote node */
@@ -304,7 +300,7 @@ class IAX2SequenceNumbers
 
   /**Report true if this sequnece info is the very first packet
      received from a remote node, where we have initiated the call */
-  PBoolean IsFirstReply() { return (inSeqNo == 1) && (outSeqNo == 0); }
+  bool IsFirstReply() { return (inSeqNo == 1) && (outSeqNo == 0); }
 
   /**Add an offset to the inSeqNo and outSeqNo variables */
   void AddWrapAroundValue(PINDEX newOffset);
@@ -343,7 +339,7 @@ class IAX2Encryption : public PObject
   IAX2Encryption();
 
   /**Set the flag that indicates this communication session is all encrypted.. */
-  void SetEncryptionOn (PBoolean newState = true);
+  void SetEncryptionOn (bool newState = true);
 
   /**Set the password/key used in encryption process */
   void SetEncryptionKey(PString & newKey);
@@ -358,7 +354,7 @@ class IAX2Encryption : public PObject
   const PString & ChallengeKey() const;
 
   /**Report if the encryption is enabled  (or turned on) */
-  PBoolean IsEncrypted() const;
+  bool IsEncrypted() const;
 
 #ifdef P_SSL_AES
   /**Get a pointer to a filled AES_KEY encrypt structure */
@@ -380,7 +376,7 @@ class IAX2Encryption : public PObject
   PString challengeKey;
 
   /**Flag to specify if encryption is happening */
-  PBoolean encryptionEnabled;
+  bool encryptionEnabled;
 
 #ifdef P_SSL_AES
   /**key to be used for AES 128 encryption */

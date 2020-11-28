@@ -130,7 +130,7 @@ class H225_RAS : public H323Transactor
 
     /**Handle and dispatch a transaction PDU
       */
-    virtual PBoolean HandleTransaction(
+    virtual bool HandleTransaction(
       const PASN_Object & rawPDU
     );
 
@@ -149,12 +149,12 @@ class H225_RAS : public H323Transactor
     virtual void OnSendGatekeeperRequest(H225_GatekeeperRequest &);
     virtual void OnSendGatekeeperConfirm(H225_GatekeeperConfirm &);
     virtual void OnSendGatekeeperReject(H225_GatekeeperReject &);
-    virtual PBoolean OnReceiveGatekeeperRequest(const H323RasPDU &, const H225_GatekeeperRequest &);
-    virtual PBoolean OnReceiveGatekeeperConfirm(const H323RasPDU &, const H225_GatekeeperConfirm &);
-    virtual PBoolean OnReceiveGatekeeperReject(const H323RasPDU &, const H225_GatekeeperReject &);
-    virtual PBoolean OnReceiveGatekeeperRequest(const H225_GatekeeperRequest &);
-    virtual PBoolean OnReceiveGatekeeperConfirm(const H225_GatekeeperConfirm &);
-    virtual PBoolean OnReceiveGatekeeperReject(const H225_GatekeeperReject &);
+    virtual bool OnReceiveGatekeeperRequest(const H323RasPDU &, const H225_GatekeeperRequest &);
+    virtual bool OnReceiveGatekeeperConfirm(const H323RasPDU &, const H225_GatekeeperConfirm &);
+    virtual bool OnReceiveGatekeeperReject(const H323RasPDU &, const H225_GatekeeperReject &);
+    virtual bool OnReceiveGatekeeperRequest(const H225_GatekeeperRequest &);
+    virtual bool OnReceiveGatekeeperConfirm(const H225_GatekeeperConfirm &);
+    virtual bool OnReceiveGatekeeperReject(const H225_GatekeeperReject &);
 
     virtual void OnSendRegistrationRequest(H323RasPDU &, H225_RegistrationRequest &);
     virtual void OnSendRegistrationConfirm(H323RasPDU &, H225_RegistrationConfirm &);
@@ -162,12 +162,12 @@ class H225_RAS : public H323Transactor
     virtual void OnSendRegistrationRequest(H225_RegistrationRequest &);
     virtual void OnSendRegistrationConfirm(H225_RegistrationConfirm &);
     virtual void OnSendRegistrationReject(H225_RegistrationReject &);
-    virtual PBoolean OnReceiveRegistrationRequest(const H323RasPDU &, const H225_RegistrationRequest &);
-    virtual PBoolean OnReceiveRegistrationConfirm(const H323RasPDU &, const H225_RegistrationConfirm &);
-    virtual PBoolean OnReceiveRegistrationReject(const H323RasPDU &, const H225_RegistrationReject &);
-    virtual PBoolean OnReceiveRegistrationRequest(const H225_RegistrationRequest &);
-    virtual PBoolean OnReceiveRegistrationConfirm(const H225_RegistrationConfirm &);
-    virtual PBoolean OnReceiveRegistrationReject(const H225_RegistrationReject &);
+    virtual bool OnReceiveRegistrationRequest(const H323RasPDU &, const H225_RegistrationRequest &);
+    virtual bool OnReceiveRegistrationConfirm(const H323RasPDU &, const H225_RegistrationConfirm &);
+    virtual bool OnReceiveRegistrationReject(const H323RasPDU &, const H225_RegistrationReject &);
+    virtual bool OnReceiveRegistrationRequest(const H225_RegistrationRequest &);
+    virtual bool OnReceiveRegistrationConfirm(const H225_RegistrationConfirm &);
+    virtual bool OnReceiveRegistrationReject(const H225_RegistrationReject &);
 
     virtual void OnSendUnregistrationRequest(H323RasPDU &, H225_UnregistrationRequest &);
     virtual void OnSendUnregistrationConfirm(H323RasPDU &, H225_UnregistrationConfirm &);
@@ -175,12 +175,12 @@ class H225_RAS : public H323Transactor
     virtual void OnSendUnregistrationRequest(H225_UnregistrationRequest &);
     virtual void OnSendUnregistrationConfirm(H225_UnregistrationConfirm &);
     virtual void OnSendUnregistrationReject(H225_UnregistrationReject &);
-    virtual PBoolean OnReceiveUnregistrationRequest(const H323RasPDU &, const H225_UnregistrationRequest &);
-    virtual PBoolean OnReceiveUnregistrationConfirm(const H323RasPDU &, const H225_UnregistrationConfirm &);
-    virtual PBoolean OnReceiveUnregistrationReject(const H323RasPDU &, const H225_UnregistrationReject &);
-    virtual PBoolean OnReceiveUnregistrationRequest(const H225_UnregistrationRequest &);
-    virtual PBoolean OnReceiveUnregistrationConfirm(const H225_UnregistrationConfirm &);
-    virtual PBoolean OnReceiveUnregistrationReject(const H225_UnregistrationReject &);
+    virtual bool OnReceiveUnregistrationRequest(const H323RasPDU &, const H225_UnregistrationRequest &);
+    virtual bool OnReceiveUnregistrationConfirm(const H323RasPDU &, const H225_UnregistrationConfirm &);
+    virtual bool OnReceiveUnregistrationReject(const H323RasPDU &, const H225_UnregistrationReject &);
+    virtual bool OnReceiveUnregistrationRequest(const H225_UnregistrationRequest &);
+    virtual bool OnReceiveUnregistrationConfirm(const H225_UnregistrationConfirm &);
+    virtual bool OnReceiveUnregistrationReject(const H225_UnregistrationReject &);
 
     virtual void OnSendAdmissionRequest(H323RasPDU &, H225_AdmissionRequest &);
     virtual void OnSendAdmissionConfirm(H323RasPDU &, H225_AdmissionConfirm &);
@@ -188,12 +188,12 @@ class H225_RAS : public H323Transactor
     virtual void OnSendAdmissionRequest(H225_AdmissionRequest &);
     virtual void OnSendAdmissionConfirm(H225_AdmissionConfirm &);
     virtual void OnSendAdmissionReject(H225_AdmissionReject &);
-    virtual PBoolean OnReceiveAdmissionRequest(const H323RasPDU &, const H225_AdmissionRequest &);
-    virtual PBoolean OnReceiveAdmissionConfirm(const H323RasPDU &, const H225_AdmissionConfirm &);
-    virtual PBoolean OnReceiveAdmissionReject(const H323RasPDU &, const H225_AdmissionReject &);
-    virtual PBoolean OnReceiveAdmissionRequest(const H225_AdmissionRequest &);
-    virtual PBoolean OnReceiveAdmissionConfirm(const H225_AdmissionConfirm &);
-    virtual PBoolean OnReceiveAdmissionReject(const H225_AdmissionReject &);
+    virtual bool OnReceiveAdmissionRequest(const H323RasPDU &, const H225_AdmissionRequest &);
+    virtual bool OnReceiveAdmissionConfirm(const H323RasPDU &, const H225_AdmissionConfirm &);
+    virtual bool OnReceiveAdmissionReject(const H323RasPDU &, const H225_AdmissionReject &);
+    virtual bool OnReceiveAdmissionRequest(const H225_AdmissionRequest &);
+    virtual bool OnReceiveAdmissionConfirm(const H225_AdmissionConfirm &);
+    virtual bool OnReceiveAdmissionReject(const H225_AdmissionReject &);
 
     virtual void OnSendBandwidthRequest(H323RasPDU &, H225_BandwidthRequest &);
     virtual void OnSendBandwidthConfirm(H323RasPDU &, H225_BandwidthConfirm &);
@@ -201,12 +201,12 @@ class H225_RAS : public H323Transactor
     virtual void OnSendBandwidthRequest(H225_BandwidthRequest &);
     virtual void OnSendBandwidthConfirm(H225_BandwidthConfirm &);
     virtual void OnSendBandwidthReject(H225_BandwidthReject &);
-    virtual PBoolean OnReceiveBandwidthRequest(const H323RasPDU &, const H225_BandwidthRequest &);
-    virtual PBoolean OnReceiveBandwidthConfirm(const H323RasPDU &, const H225_BandwidthConfirm &);
-    virtual PBoolean OnReceiveBandwidthReject(const H323RasPDU &, const H225_BandwidthReject &);
-    virtual PBoolean OnReceiveBandwidthRequest(const H225_BandwidthRequest &);
-    virtual PBoolean OnReceiveBandwidthConfirm(const H225_BandwidthConfirm &);
-    virtual PBoolean OnReceiveBandwidthReject(const H225_BandwidthReject &);
+    virtual bool OnReceiveBandwidthRequest(const H323RasPDU &, const H225_BandwidthRequest &);
+    virtual bool OnReceiveBandwidthConfirm(const H323RasPDU &, const H225_BandwidthConfirm &);
+    virtual bool OnReceiveBandwidthReject(const H323RasPDU &, const H225_BandwidthReject &);
+    virtual bool OnReceiveBandwidthRequest(const H225_BandwidthRequest &);
+    virtual bool OnReceiveBandwidthConfirm(const H225_BandwidthConfirm &);
+    virtual bool OnReceiveBandwidthReject(const H225_BandwidthReject &);
 
     virtual void OnSendDisengageRequest(H323RasPDU &, H225_DisengageRequest &);
     virtual void OnSendDisengageConfirm(H323RasPDU &, H225_DisengageConfirm &);
@@ -214,12 +214,12 @@ class H225_RAS : public H323Transactor
     virtual void OnSendDisengageRequest(H225_DisengageRequest &);
     virtual void OnSendDisengageConfirm(H225_DisengageConfirm &);
     virtual void OnSendDisengageReject(H225_DisengageReject &);
-    virtual PBoolean OnReceiveDisengageRequest(const H323RasPDU &, const H225_DisengageRequest &);
-    virtual PBoolean OnReceiveDisengageConfirm(const H323RasPDU &, const H225_DisengageConfirm &);
-    virtual PBoolean OnReceiveDisengageReject(const H323RasPDU &, const H225_DisengageReject &);
-    virtual PBoolean OnReceiveDisengageRequest(const H225_DisengageRequest &);
-    virtual PBoolean OnReceiveDisengageConfirm(const H225_DisengageConfirm &);
-    virtual PBoolean OnReceiveDisengageReject(const H225_DisengageReject &);
+    virtual bool OnReceiveDisengageRequest(const H323RasPDU &, const H225_DisengageRequest &);
+    virtual bool OnReceiveDisengageConfirm(const H323RasPDU &, const H225_DisengageConfirm &);
+    virtual bool OnReceiveDisengageReject(const H323RasPDU &, const H225_DisengageReject &);
+    virtual bool OnReceiveDisengageRequest(const H225_DisengageRequest &);
+    virtual bool OnReceiveDisengageConfirm(const H225_DisengageConfirm &);
+    virtual bool OnReceiveDisengageReject(const H225_DisengageReject &);
 
     virtual void OnSendLocationRequest(H323RasPDU &, H225_LocationRequest &);
     virtual void OnSendLocationConfirm(H323RasPDU &, H225_LocationConfirm &);
@@ -227,12 +227,12 @@ class H225_RAS : public H323Transactor
     virtual void OnSendLocationRequest(H225_LocationRequest &);
     virtual void OnSendLocationConfirm(H225_LocationConfirm &);
     virtual void OnSendLocationReject(H225_LocationReject &);
-    virtual PBoolean OnReceiveLocationRequest(const H323RasPDU &, const H225_LocationRequest &);
-    virtual PBoolean OnReceiveLocationConfirm(const H323RasPDU &, const H225_LocationConfirm &);
-    virtual PBoolean OnReceiveLocationReject(const H323RasPDU &, const H225_LocationReject &);
-    virtual PBoolean OnReceiveLocationRequest(const H225_LocationRequest &);
-    virtual PBoolean OnReceiveLocationConfirm(const H225_LocationConfirm &);
-    virtual PBoolean OnReceiveLocationReject(const H225_LocationReject &);
+    virtual bool OnReceiveLocationRequest(const H323RasPDU &, const H225_LocationRequest &);
+    virtual bool OnReceiveLocationConfirm(const H323RasPDU &, const H225_LocationConfirm &);
+    virtual bool OnReceiveLocationReject(const H323RasPDU &, const H225_LocationReject &);
+    virtual bool OnReceiveLocationRequest(const H225_LocationRequest &);
+    virtual bool OnReceiveLocationConfirm(const H225_LocationConfirm &);
+    virtual bool OnReceiveLocationReject(const H225_LocationReject &);
 
     virtual void OnSendInfoRequest(H323RasPDU &, H225_InfoRequest &);
     virtual void OnSendInfoRequestAck(H323RasPDU &, H225_InfoRequestAck &);
@@ -242,50 +242,50 @@ class H225_RAS : public H323Transactor
     virtual void OnSendInfoRequestAck(H225_InfoRequestAck &);
     virtual void OnSendInfoRequestNak(H225_InfoRequestNak &);
     virtual void OnSendInfoRequestResponse(H225_InfoRequestResponse &);
-    virtual PBoolean OnReceiveInfoRequest(const H323RasPDU &, const H225_InfoRequest &);
-    virtual PBoolean OnReceiveInfoRequestAck(const H323RasPDU &, const H225_InfoRequestAck &);
-    virtual PBoolean OnReceiveInfoRequestNak(const H323RasPDU &, const H225_InfoRequestNak &);
-    virtual PBoolean OnReceiveInfoRequestResponse(const H323RasPDU &, const H225_InfoRequestResponse &);
-    virtual PBoolean OnReceiveInfoRequest(const H225_InfoRequest &);
-    virtual PBoolean OnReceiveInfoRequestAck(const H225_InfoRequestAck &);
-    virtual PBoolean OnReceiveInfoRequestNak(const H225_InfoRequestNak &);
-    virtual PBoolean OnReceiveInfoRequestResponse(const H225_InfoRequestResponse &);
+    virtual bool OnReceiveInfoRequest(const H323RasPDU &, const H225_InfoRequest &);
+    virtual bool OnReceiveInfoRequestAck(const H323RasPDU &, const H225_InfoRequestAck &);
+    virtual bool OnReceiveInfoRequestNak(const H323RasPDU &, const H225_InfoRequestNak &);
+    virtual bool OnReceiveInfoRequestResponse(const H323RasPDU &, const H225_InfoRequestResponse &);
+    virtual bool OnReceiveInfoRequest(const H225_InfoRequest &);
+    virtual bool OnReceiveInfoRequestAck(const H225_InfoRequestAck &);
+    virtual bool OnReceiveInfoRequestNak(const H225_InfoRequestNak &);
+    virtual bool OnReceiveInfoRequestResponse(const H225_InfoRequestResponse &);
 
     virtual void OnSendResourcesAvailableIndicate(H323RasPDU &, H225_ResourcesAvailableIndicate &);
     virtual void OnSendResourcesAvailableConfirm(H323RasPDU &, H225_ResourcesAvailableConfirm &);
     virtual void OnSendResourcesAvailableIndicate(H225_ResourcesAvailableIndicate &);
     virtual void OnSendResourcesAvailableConfirm(H225_ResourcesAvailableConfirm &);
-    virtual PBoolean OnReceiveResourcesAvailableIndicate(const H323RasPDU &, const H225_ResourcesAvailableIndicate &);
-    virtual PBoolean OnReceiveResourcesAvailableConfirm(const H323RasPDU &, const H225_ResourcesAvailableConfirm &);
-    virtual PBoolean OnReceiveResourcesAvailableIndicate(const H225_ResourcesAvailableIndicate &);
-    virtual PBoolean OnReceiveResourcesAvailableConfirm(const H225_ResourcesAvailableConfirm &);
+    virtual bool OnReceiveResourcesAvailableIndicate(const H323RasPDU &, const H225_ResourcesAvailableIndicate &);
+    virtual bool OnReceiveResourcesAvailableConfirm(const H323RasPDU &, const H225_ResourcesAvailableConfirm &);
+    virtual bool OnReceiveResourcesAvailableIndicate(const H225_ResourcesAvailableIndicate &);
+    virtual bool OnReceiveResourcesAvailableConfirm(const H225_ResourcesAvailableConfirm &);
 
     virtual void OnSendServiceControlIndication(H323RasPDU &, H225_ServiceControlIndication &);
     virtual void OnSendServiceControlResponse(H323RasPDU &, H225_ServiceControlResponse &);
     virtual void OnSendServiceControlIndication(H225_ServiceControlIndication &);
     virtual void OnSendServiceControlResponse(H225_ServiceControlResponse &);
-    virtual PBoolean OnReceiveServiceControlIndication(const H323RasPDU &, const H225_ServiceControlIndication &);
-    virtual PBoolean OnReceiveServiceControlResponse(const H323RasPDU &, const H225_ServiceControlResponse &);
-    virtual PBoolean OnReceiveServiceControlIndication(const H225_ServiceControlIndication &);
-    virtual PBoolean OnReceiveServiceControlResponse(const H225_ServiceControlResponse &);
+    virtual bool OnReceiveServiceControlIndication(const H323RasPDU &, const H225_ServiceControlIndication &);
+    virtual bool OnReceiveServiceControlResponse(const H323RasPDU &, const H225_ServiceControlResponse &);
+    virtual bool OnReceiveServiceControlIndication(const H225_ServiceControlIndication &);
+    virtual bool OnReceiveServiceControlResponse(const H225_ServiceControlResponse &);
 
     virtual void OnSendNonStandardMessage(H323RasPDU &, H225_NonStandardMessage &);
     virtual void OnSendNonStandardMessage(H225_NonStandardMessage &);
-    virtual PBoolean OnReceiveNonStandardMessage(const H323RasPDU &, const H225_NonStandardMessage &);
-    virtual PBoolean OnReceiveNonStandardMessage(const H225_NonStandardMessage &);
+    virtual bool OnReceiveNonStandardMessage(const H323RasPDU &, const H225_NonStandardMessage &);
+    virtual bool OnReceiveNonStandardMessage(const H225_NonStandardMessage &);
 
     virtual void OnSendUnknownMessageResponse(H323RasPDU &, H225_UnknownMessageResponse &);
     virtual void OnSendUnknownMessageResponse(H225_UnknownMessageResponse &);
-    virtual PBoolean OnReceiveUnknownMessageResponse(const H323RasPDU &, const H225_UnknownMessageResponse &);
-    virtual PBoolean OnReceiveUnknownMessageResponse(const H225_UnknownMessageResponse &);
+    virtual bool OnReceiveUnknownMessageResponse(const H323RasPDU &, const H225_UnknownMessageResponse &);
+    virtual bool OnReceiveUnknownMessageResponse(const H225_UnknownMessageResponse &);
 
     virtual void OnSendRequestInProgress(H323RasPDU &, H225_RequestInProgress &);
     virtual void OnSendRequestInProgress(H225_RequestInProgress &);
-    virtual PBoolean OnReceiveRequestInProgress(const H323RasPDU &, const H225_RequestInProgress &);
-    virtual PBoolean OnReceiveRequestInProgress(const H225_RequestInProgress &);
+    virtual bool OnReceiveRequestInProgress(const H323RasPDU &, const H225_RequestInProgress &);
+    virtual bool OnReceiveRequestInProgress(const H225_RequestInProgress &);
     
 #if OPAL_H460
-    virtual PBoolean OnSendFeatureSet(H460_MessageType, H225_FeatureSet &) const { return false; }
+    virtual bool OnSendFeatureSet(H460_MessageType, H225_FeatureSet &) const { return false; }
     virtual void OnReceiveFeatureSet(H460_MessageType, const H225_FeatureSet &) const {}
 #endif
 
@@ -294,7 +294,7 @@ class H225_RAS : public H323Transactor
 
     /**Handle unknown PDU type.
       */
-    virtual PBoolean OnReceiveUnknown(
+    virtual bool OnReceiveUnknown(
       const H323RasPDU & pdu  ///<  PDU that was not handled.
     );
   //@}

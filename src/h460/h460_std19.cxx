@@ -512,7 +512,7 @@ void H46019UDPSocket::ActivateKeepAliveRTCP(unsigned ttl)
 }
 
 
-void H46019UDPSocket::KeepAliveTimeout(PTimer &, P_INT_PTR)
+void H46019UDPSocket::KeepAliveTimeout(PTimer &, intptr_t)
 {
   PTRACE(4, "Keep Alive timer fired for " << (m_component == PNatMethod::eComponent_RTP ? "RTP" : "RTCP"));
   if (m_component == PNatMethod::eComponent_RTCP)
@@ -531,7 +531,7 @@ void H46019UDPSocket::SendKeepAliveRTP(const PIPSocketAddressAndPort & ipAndPort
 }
 
 
-PBoolean H46019UDPSocket::InternalWriteTo(const Slice * slices, size_t sliceCount, const PIPSocketAddressAndPort & ipAndPort)
+bool H46019UDPSocket::InternalWriteTo(const Slice * slices, size_t sliceCount, const PIPSocketAddressAndPort & ipAndPort)
 {
   if (sliceCount == 1 && slices[0].GetLength() <= 1) {
     PTRACE(5, "Ignoring old NAT opening packet for " << (m_component == PNatMethod::eComponent_RTP ? "RTP" : "RTCP"));

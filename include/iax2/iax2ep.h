@@ -90,7 +90,7 @@ public:
   PSyncPoint activate;
 
   /**Flag to indicate if this receiver thread should keep listening for network data */
-  PBoolean           keepGoing;
+  bool           keepGoing;
 };
 
 
@@ -179,7 +179,7 @@ class IAX2EndPoint : public OpalEndPoint
   //@{
   /**Setup the Endpoint internval variables, which is called at program 
      startup.*/
-  PBoolean Initialise();
+  bool Initialise();
 
   /**Handle a received IAX frame. This may be a mini frame or full frame */
   virtual void IncomingEthernetFrame (IAX2Frame *frame);
@@ -189,7 +189,7 @@ class IAX2EndPoint : public OpalEndPoint
      frame. If the connection is gone, don't bother transmitting the
      frame. There are exceptins to this rule, such as when a hangup
      packet is sent (which is after the connections has died. */
-  PBoolean ConectionForFrameIsAlive(IAX2Frame *f);
+  bool ConectionForFrameIsAlive(IAX2Frame *f);
   
   /**Request a new source call number, one that is different to 
      all other source call numbers for this program.  
@@ -236,7 +236,7 @@ class IAX2EndPoint : public OpalEndPoint
 
      @return True if a connection (which matches this Frame ) can be
      found. */
-  PBoolean ConnectionForFrameIsAlive(IAX2Frame *f);
+  bool ConnectionForFrameIsAlive(IAX2Frame *f);
  
   /**Get out sequence number to use on status query frames*/
   PINDEX GetOutSequenceNumberForStatusQuery();
@@ -355,7 +355,7 @@ class IAX2EndPoint : public OpalEndPoint
   virtual void OnRegistered(
       const PString & host,
       const PString & userName,
-      PBoolean isFailure,
+      bool isFailure,
       RegisteredError reason = RegisteredFailureUnknown);
    
    /**Unregister from a registrar. This function is synchronous so it
@@ -375,12 +375,12 @@ class IAX2EndPoint : public OpalEndPoint
   virtual void OnUnregistered(
       const PString & host,
       const PString & userName,
-      PBoolean isFailure,
+      bool isFailure,
       UnregisteredError reason = UnregisteredFailureUnknown);
       
   
   /**Check if an account is registered or being registered*/
-  PBoolean IsRegistered(const PString & host, const PString & username);
+  bool IsRegistered(const PString & host, const PString & username);
   
   /**Get the number of accounts that are being registered*/
   PINDEX GetRegistrationsCount();
@@ -395,11 +395,11 @@ class IAX2EndPoint : public OpalEndPoint
   );
   
   /**Report if this iax2 endpoint class is correctly initialised */
-  PBoolean InitialisedOK() { return (transmitter != NULL) && (receiver != NULL); }
+  bool InitialisedOK() { return (transmitter != NULL) && (receiver != NULL); }
 
   /**Report if there are frames (from the ethernet) waiting to be
      processed */
-  PBoolean EthernetFramesToBeProcessed() 
+  bool EthernetFramesToBeProcessed() 
   { return m_packetsReadFromEthernet.GetSize() > 0; }
   //@}
   
@@ -454,7 +454,7 @@ class IAX2EndPoint : public OpalEndPoint
      If a matching connections is found, give the frame to the
      connection (for the connection to process) and return true;
   */
-  PBoolean ProcessInMatchingConnection(IAX2Frame *f);  
+  bool ProcessInMatchingConnection(IAX2Frame *f);  
 
   /**For the supplied IAX2Frame, pass it to a connection in the
      connectionsActive structure.  We are told the token of the connection
@@ -464,7 +464,7 @@ class IAX2EndPoint : public OpalEndPoint
      @return true - this is the normal and expected outcome. 
      @return false - connection not found - say it died immediately
      before this method was called */
-    PBoolean ProcessFrameInConnection(IAX2Frame *f, const PString & token);  
+    bool ProcessFrameInConnection(IAX2Frame *f, const PString & token);  
     
   /**Take the supplied frame, and compare it with all the existing
      connections.  If any of the existing connections has a matching
@@ -472,7 +472,7 @@ class IAX2EndPoint : public OpalEndPoint
 
      Update the token translation dictionary if the supplied frame has
      a valid connection token. */
-  PBoolean ProcessInConnectionTestAll(IAX2Frame *f);
+  bool ProcessInConnectionTestAll(IAX2Frame *f);
   
   /**tokenTable is a hack to allow IAX2 to fit in with one of the
      demands of the opal library. 

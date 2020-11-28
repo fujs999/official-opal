@@ -73,7 +73,7 @@ IAX2RegProcessor::IAX2RegProcessor(
   remote.SetRemoteAddress(ip);
   
   Activate();
-  Resume();
+  Start();
 }
 
 IAX2RegProcessor::~IAX2RegProcessor()
@@ -158,7 +158,7 @@ void IAX2RegProcessor::ProcessFullFrame(IAX2FullFrame & fullFrame)
   
 }
 
-PBoolean IAX2RegProcessor::ProcessNetworkFrame(IAX2FullFrameProtocol * src)
+bool IAX2RegProcessor::ProcessNetworkFrame(IAX2FullFrameProtocol * src)
 {
   PTRACE(3, "ProcessNetworkFrame(IAX2FullFrameProtocol * src)");  
   src->CopyDataFromIeListTo(ieData);
@@ -310,7 +310,7 @@ void IAX2RegProcessor::ProcessIaxCmdUnRegRej(IAX2FullFrameProtocol *src)
   delete src;
 }
 
-void IAX2RegProcessor::OnDoRegistration(PTimer &, P_INT_PTR)
+void IAX2RegProcessor::OnDoRegistration(PTimer &, intptr_t)
 {
   //this is run in a different thread
   PWaitAndSignal m(stateMutex);

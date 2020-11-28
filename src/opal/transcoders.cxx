@@ -117,7 +117,7 @@ bool OpalTranscoder::UpdateMediaFormats(const OpalMediaFormat & input, const Opa
 }
 
 
-PBoolean OpalTranscoder::ExecuteCommand(const OpalMediaCommand & command)
+bool OpalTranscoder::ExecuteCommand(const OpalMediaCommand & command)
 {
   if (outputMediaFormat.IsTransportable()) {
     const OpalMediaFlowControl * flow = dynamic_cast<const OpalMediaFlowControl *>(&command);
@@ -156,7 +156,7 @@ void OpalTranscoder::NotifyCommand(const OpalMediaCommand & command) const
 }
 
 
-RTP_DataFrame::PayloadTypes OpalTranscoder::GetPayloadType(PBoolean input) const
+RTP_DataFrame::PayloadTypes OpalTranscoder::GetPayloadType(bool input) const
 {
   PWaitAndSignal mutex(updateMutex);
   return (input ? inputMediaFormat : outputMediaFormat).GetPayloadType();
@@ -175,15 +175,15 @@ void OpalTranscoder::CopyTimestamp(RTP_DataFrame & dst, const RTP_DataFrame & sr
   unsigned timestamp = src.GetTimestamp();
   if (m_inClockRate != m_outClockRate) {
     if (inToOut)
-      timestamp = (unsigned)((PUInt64)timestamp*m_outClockRate/m_inClockRate);
+      timestamp = (unsigned)((uint64_t)timestamp*m_outClockRate/m_inClockRate);
     else
-      timestamp = (unsigned)((PUInt64)timestamp*m_inClockRate/m_outClockRate);
+      timestamp = (unsigned)((uint64_t)timestamp*m_inClockRate/m_outClockRate);
   }
   dst.SetTimestamp(timestamp);
 }
 
 
-PBoolean OpalTranscoder::ConvertFrames(const RTP_DataFrame & input, RTP_DataFrameList & output)
+bool OpalTranscoder::ConvertFrames(const RTP_DataFrame & input, RTP_DataFrameList & output)
 {
   PWaitAndSignal mutex(updateMutex);
 
@@ -555,13 +555,13 @@ void OpalFramedTranscoder::CalculateSizes()
 }
 
 
-PINDEX OpalFramedTranscoder::GetOptimalDataFrameSize(PBoolean input) const
+PINDEX OpalFramedTranscoder::GetOptimalDataFrameSize(bool input) const
 {
   return input ? inputBytesPerFrame : outputBytesPerFrame;
 }
 
 
-PBoolean OpalFramedTranscoder::Convert(const RTP_DataFrame & input, RTP_DataFrame & output)
+bool OpalFramedTranscoder::Convert(const RTP_DataFrame & input, RTP_DataFrame & output)
 {
   // Note updateMutex should already be locked at this point.
 
@@ -682,18 +682,17 @@ bool OpalFramedTranscoder::ConvertFramesInPacket(const RTP_DataFrame & input, RT
   return true;
 }
 
-
-PBoolean OpalFramedTranscoder::ConvertFrame(const BYTE * inputPtr, PINDEX & /*consumed*/, BYTE * outputPtr, PINDEX & /*created*/)
+bool OpalFramedTranscoder::ConvertFrame(const BYTE * inputPtr, PINDEX & /*consumed*/, BYTE * outputPtr, PINDEX & /*created*/)
 {
   return ConvertFrame(inputPtr, outputPtr);
 }
 
-PBoolean OpalFramedTranscoder::ConvertFrame(const BYTE * /*inputPtr*/, BYTE * /*outputPtr*/)
+bool OpalFramedTranscoder::ConvertFrame(const BYTE * /*inputPtr*/, BYTE * /*outputPtr*/)
 {
   return false;
 }
 
-PBoolean OpalFramedTranscoder::ConvertSilentFrame(BYTE *dst, PINDEX & created)
+bool OpalFramedTranscoder::ConvertSilentFrame(BYTE *dst, PINDEX & created)
 {
   memset(dst, 0, outputBytesPerFrame);
   created = outputBytesPerFrame;
@@ -713,7 +712,7 @@ OpalStreamedTranscoder::OpalStreamedTranscoder(const OpalMediaFormat & inputMedi
 }
 
 
-PINDEX OpalStreamedTranscoder::GetOptimalDataFrameSize(PBoolean input) const
+PINDEX OpalStreamedTranscoder::GetOptimalDataFrameSize(bool input) const
 {
   // For streamed codecs a "frame" is one milliseconds worth of data
   PString framesPerPacketOption = input ? OpalAudioFormat::TxFramesPerPacketOption()
@@ -729,7 +728,7 @@ PINDEX OpalStreamedTranscoder::GetOptimalDataFrameSize(PBoolean input) const
 }
 
 
-PBoolean OpalStreamedTranscoder::Convert(const RTP_DataFrame & input,
+bool OpalStreamedTranscoder::Convert(const RTP_DataFrame & input,
                                      RTP_DataFrame & output)
 {
   PINDEX i, bit, mask;

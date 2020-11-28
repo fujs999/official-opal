@@ -87,7 +87,7 @@ class H323GatekeeperRequest : public H323Transaction
       unsigned delay
     ) const;
 
-    virtual PBoolean WritePDU(
+    virtual bool WritePDU(
       H323TransactionPDU & pdu
     );
     virtual bool CheckCryptoTokens();
@@ -415,7 +415,7 @@ class H323GatekeeperCall : public PSafeObject
     /**Shut down a call.
        This sendsa DRQ to the endpoint(s) to close the call down.
       */
-    virtual PBoolean Disengage(
+    virtual bool Disengage(
       int reason = -1   ///<  Reason for disengage
     );
 
@@ -460,7 +460,7 @@ class H323GatekeeperCall : public PSafeObject
        it has been too long does an IRQ to see if the call (and endpoint!) is
        still there and running. If the IRQ fails, false is returned.
       */
-    virtual PBoolean OnHeartbeat();
+    virtual bool OnHeartbeat();
 
     /**Get the current credit for this call.
        This function is only called if the client indicates that it can use
@@ -476,7 +476,7 @@ class H323GatekeeperCall : public PSafeObject
 
        The default behaviour calls the same function on the endpoint.
       */
-    virtual PBoolean GetCallCreditMode() const;
+    virtual bool GetCallCreditMode() const;
 
     /**Get the duration limit for this call.
        This function is only called if the client indicates that it can use
@@ -491,7 +491,7 @@ class H323GatekeeperCall : public PSafeObject
        This will send an SCI pdu to the endpoint with the control service
        session information for the current call credit, if enabled.
       */
-    virtual PBoolean SendCallCreditServiceControl();
+    virtual bool SendCallCreditServiceControl();
 
     /**Add call credit and duration information to PDU.
       */
@@ -503,7 +503,7 @@ class H323GatekeeperCall : public PSafeObject
        This will send an SCI pdu to the endpoint with the control service
        session information provided.
       */
-    virtual PBoolean SendServiceControlSession(
+    virtual bool SendServiceControlSession(
       const H323ServiceControlSession & session
     );
 
@@ -512,11 +512,11 @@ class H323GatekeeperCall : public PSafeObject
 
        The default behaviour calls H323GatekeeperServer::TranslateAliasAddress.
       */
-    virtual PBoolean TranslateAliasAddress(
+    virtual bool TranslateAliasAddress(
       const H225_AliasAddress & alias,
       H225_ArrayOf_AliasAddress & aliases,
       H323TransportAddress & address,
-      PBoolean & isGkRouted
+      bool & isGkRouted
     );
 
   //@}
@@ -625,7 +625,7 @@ class H323RegisteredEndPoint : public PSafeObject
        This is largely an internal routine, it is not expected the user would
        need to deal with this function.
       */
-    virtual PBoolean RemoveCall(
+    virtual bool RemoveCall(
       H323GatekeeperCall * call
     );
 
@@ -687,7 +687,7 @@ class H323RegisteredEndPoint : public PSafeObject
     /**Force unregistration of the endpoint.
        This sendsa URQ to the endpoint(s) to close the call down.
       */
-    virtual PBoolean Unregister(
+    virtual bool Unregister(
       int reason = -1   ///<  Reason for unregistration
     );
 
@@ -709,7 +709,7 @@ class H323RegisteredEndPoint : public PSafeObject
        it has been too long does an IRQ to see if the endpoint is
        still there and running. If the IRQ fails, false is returned.
       */
-    virtual PBoolean OnTimeToLive();
+    virtual bool OnTimeToLive();
 
     /**Get the current call credit for this endpoint.
        This function is only called if the client indicates that it can use
@@ -731,20 +731,20 @@ class H323RegisteredEndPoint : public PSafeObject
        The default behaviour return true indicating that calls will debit the
        account.
       */
-    virtual PBoolean GetCallCreditMode() const;
+    virtual bool GetCallCreditMode() const;
 
     /**Send the service control session for the PDU.
        This will send an SCI pdu to the endpoint with the control service
        session information provided.
       */
-    virtual PBoolean SendServiceControlSession(
+    virtual bool SendServiceControlSession(
       const H323ServiceControlSession & session
     );
 
     /**Set the service control session for the PDU.
        This is an internal function.
       */
-    virtual PBoolean AddServiceControlSession(
+    virtual bool AddServiceControlSession(
       const H323ServiceControlSession & session,
       H225_ArrayOf_ServiceControlSession & serviceControl
     );
@@ -754,7 +754,7 @@ class H323RegisteredEndPoint : public PSafeObject
   //@{
     /**Set password for user activating H.235 security.
       */
-    virtual PBoolean SetPassword(
+    virtual bool SetPassword(
       const PString & password,
       const PString & username = PString::Empty()
     );
@@ -894,7 +894,7 @@ class H323RegisteredEndPoint : public PSafeObject
       *
       * If returns false then the desriptor is not sent
       */
-      virtual PBoolean OnSendDescriptorForEndpoint(
+      virtual bool OnSendDescriptorForEndpoint(
         H225_ArrayOf_AliasAddress & aliases,          ///<  aliases for the enndpoint
         H225_EndpointType & terminalType,             ///<  terminal type
         H225_ArrayOf_AliasAddress & transportAddresses  ///<  transport addresses
@@ -968,28 +968,28 @@ class H323GatekeeperListener : public H225_RAS
   //@{
     /**Send a UnregistrationRequest (URQ) to endpoint.
       */
-    virtual PBoolean UnregistrationRequest(
+    virtual bool UnregistrationRequest(
       const H323RegisteredEndPoint & ep,
       unsigned reason
     );
 
     /**Send a DisengageRequest (DRQ) to endpoint.
       */
-    virtual PBoolean DisengageRequest(
+    virtual bool DisengageRequest(
       const H323GatekeeperCall & call,
       unsigned reason
     );
 
     /**Send an InfoRequest (IRQ) to endpoint.
       */
-    virtual PBoolean InfoRequest(
+    virtual bool InfoRequest(
       H323RegisteredEndPoint & ep,
       H323GatekeeperCall * call = NULL
     );
 
     /**Send an ServiceControlIndication (SCI) to endpoint.
       */
-    virtual PBoolean ServiceControlIndication(
+    virtual bool ServiceControlIndication(
       H323RegisteredEndPoint & ep,
       const H323ServiceControlSession & session,
       H323GatekeeperCall * call = NULL
@@ -1065,23 +1065,23 @@ class H323GatekeeperListener : public H225_RAS
 
   /**@name Low level protocol callbacks */
   //@{
-    virtual PBoolean OnReceiveGatekeeperRequest(const H323RasPDU &, const H225_GatekeeperRequest &);
-    virtual PBoolean OnReceiveRegistrationRequest(const H323RasPDU &, const H225_RegistrationRequest &);
-    virtual PBoolean OnReceiveUnregistrationRequest(const H323RasPDU &, const H225_UnregistrationRequest &);
-    virtual PBoolean OnReceiveUnregistrationConfirm(const H225_UnregistrationConfirm &);
-    virtual PBoolean OnReceiveUnregistrationReject(const H225_UnregistrationReject &);
-    virtual PBoolean OnReceiveAdmissionRequest(const H323RasPDU &, const H225_AdmissionRequest &);
-    virtual PBoolean OnReceiveBandwidthRequest(const H323RasPDU &, const H225_BandwidthRequest &);
-    virtual PBoolean OnReceiveBandwidthConfirm(const H225_BandwidthConfirm &);
-    virtual PBoolean OnReceiveBandwidthReject(const H225_BandwidthReject &);
-    virtual PBoolean OnReceiveDisengageRequest(const H323RasPDU &, const H225_DisengageRequest &);
-    virtual PBoolean OnReceiveDisengageConfirm(const H225_DisengageConfirm &);
-    virtual PBoolean OnReceiveDisengageReject(const H225_DisengageReject &);
-    virtual PBoolean OnReceiveLocationRequest(const H323RasPDU &, const H225_LocationRequest &);
-    virtual PBoolean OnReceiveInfoRequestResponse(const H323RasPDU &, const H225_InfoRequestResponse &);
-    virtual PBoolean OnReceiveResourcesAvailableConfirm(const H225_ResourcesAvailableConfirm &);
+    virtual bool OnReceiveGatekeeperRequest(const H323RasPDU &, const H225_GatekeeperRequest &);
+    virtual bool OnReceiveRegistrationRequest(const H323RasPDU &, const H225_RegistrationRequest &);
+    virtual bool OnReceiveUnregistrationRequest(const H323RasPDU &, const H225_UnregistrationRequest &);
+    virtual bool OnReceiveUnregistrationConfirm(const H225_UnregistrationConfirm &);
+    virtual bool OnReceiveUnregistrationReject(const H225_UnregistrationReject &);
+    virtual bool OnReceiveAdmissionRequest(const H323RasPDU &, const H225_AdmissionRequest &);
+    virtual bool OnReceiveBandwidthRequest(const H323RasPDU &, const H225_BandwidthRequest &);
+    virtual bool OnReceiveBandwidthConfirm(const H225_BandwidthConfirm &);
+    virtual bool OnReceiveBandwidthReject(const H225_BandwidthReject &);
+    virtual bool OnReceiveDisengageRequest(const H323RasPDU &, const H225_DisengageRequest &);
+    virtual bool OnReceiveDisengageConfirm(const H225_DisengageConfirm &);
+    virtual bool OnReceiveDisengageReject(const H225_DisengageReject &);
+    virtual bool OnReceiveLocationRequest(const H323RasPDU &, const H225_LocationRequest &);
+    virtual bool OnReceiveInfoRequestResponse(const H323RasPDU &, const H225_InfoRequestResponse &);
+    virtual bool OnReceiveResourcesAvailableConfirm(const H225_ResourcesAvailableConfirm &);
 #if OPAL_H460
-    virtual PBoolean OnSendFeatureSet(H460_MessageType pduType, H225_FeatureSet & features) const;
+    virtual bool OnSendFeatureSet(H460_MessageType pduType, H225_FeatureSet & features) const;
     virtual void OnReceiveFeatureSet(H460_MessageType pduType, const H225_FeatureSet & features) const;
 #endif
   //@}
@@ -1195,7 +1195,7 @@ class H323GatekeeperServer : public H323TransactionServer
 
     /**Remove a registered endpoint from the server database.
       */
-    virtual PBoolean RemoveEndPoint(
+    virtual bool RemoveEndPoint(
       H323RegisteredEndPoint * ep
     );
 
@@ -1344,7 +1344,7 @@ class H323GatekeeperServer : public H323TransactionServer
       */
     virtual PSafePtr<H323GatekeeperCall> FindCall(
       const OpalGloballyUniqueID & callIdentifier,
-      PBoolean answeringCall,
+      bool answeringCall,
       PSafetyMode mode = PSafeReference
     );
 
@@ -1387,11 +1387,11 @@ class H323GatekeeperServer : public H323TransactionServer
        The default behaviour calls TranslateAliasAddressToSignalAddress() which
        is provided only for backwards compatibility.
       */
-    virtual PBoolean TranslateAliasAddress(
+    virtual bool TranslateAliasAddress(
       const H225_AliasAddress & alias,
       H225_ArrayOf_AliasAddress & aliases,
       H323TransportAddress & address,
-      PBoolean & isGkRouted,
+      bool & isGkRouted,
       H323GatekeeperCall * call
     );
 
@@ -1414,7 +1414,7 @@ class H323GatekeeperServer : public H323TransactionServer
        changed and the function returns true if it is a valid address, false
        if it was empty.
       */
-    virtual PBoolean TranslateAliasAddressToSignalAddress(
+    virtual bool TranslateAliasAddressToSignalAddress(
       const H225_AliasAddress & alias,
       H323TransportAddress & address
     );
@@ -1431,7 +1431,7 @@ class H323GatekeeperServer : public H323TransactionServer
 
        The default behaviour simply returns true.
       */
-    virtual PBoolean CheckSignalAddressPolicy(
+    virtual bool CheckSignalAddressPolicy(
       const H323RegisteredEndPoint & ep,
       const H225_AdmissionRequest & arq,
       const H323TransportAddress & address
@@ -1449,7 +1449,7 @@ class H323GatekeeperServer : public H323TransactionServer
        incoming call and if that is true only allows the call to proceed
        if the alias is also registered with the gatekeeper.
       */
-    virtual PBoolean CheckAliasAddressPolicy(
+    virtual bool CheckAliasAddressPolicy(
       const H323RegisteredEndPoint & ep,
       const H225_AdmissionRequest & arq,
       const H225_AliasAddress & alias
@@ -1467,7 +1467,7 @@ class H323GatekeeperServer : public H323TransactionServer
        incoming call and if that is true only allows the call to proceed
        if the alias is also registered with the gatekeeper.
       */
-    virtual PBoolean CheckAliasStringPolicy(
+    virtual bool CheckAliasStringPolicy(
       const H323RegisteredEndPoint & ep,
       const H225_AdmissionRequest & arq,
       const PString & alias
@@ -1495,7 +1495,7 @@ class H323GatekeeperServer : public H323TransactionServer
 
        The default behavour does nothing and returns false.
       */
-    virtual PBoolean GetAdmissionRequestAuthentication(
+    virtual bool GetAdmissionRequestAuthentication(
       H323GatekeeperARQ & info,           ///<  ARQ being constructed
       H235Authenticators & authenticators ///<  New authenticators for ARQ
     );
@@ -1505,12 +1505,12 @@ class H323GatekeeperServer : public H323TransactionServer
        may be empty in which case the user was found but explicitly ddoes not
        require security, possibly overriding the requireH235 flag.
       */
-    virtual PBoolean GetUsersPassword(
+    virtual bool GetUsersPassword(
       const PString & alias,
       PString & password,
       H323RegisteredEndPoint & registeredEndpoint
     ) const;
-    virtual PBoolean GetUsersPassword(
+    virtual bool GetUsersPassword(
       const PString & alias,
       PString & password
     ) const;
@@ -1705,7 +1705,7 @@ class H323GatekeeperServer : public H323TransactionServer
     );
 
     // called when an endpoint needs to send a descriptor to the H.501 peer element
-    virtual PBoolean OnSendDescriptorForEndpoint(
+    virtual bool OnSendDescriptorForEndpoint(
       H323RegisteredEndPoint & /*ep*/,                    ///<  endpoint
       H225_ArrayOf_AliasAddress & /*aliases*/,            ///<  aliases for the enndpoint
       H225_EndpointType & /*terminalType*/,               ///<  terminal type
@@ -1713,13 +1713,13 @@ class H323GatekeeperServer : public H323TransactionServer
     )
     { return true; } 
 
-    virtual PBoolean AllowDuplicateAlias(const H225_ArrayOf_AliasAddress & /*aliases*/)
+    virtual bool AllowDuplicateAlias(const H225_ArrayOf_AliasAddress & /*aliases*/)
     { return m_canHaveDuplicateAlias; }
 
     virtual PString AllocateAlias(H225_RegistrationRequest & rrq);
 
 #if OPAL_H460
-    virtual PBoolean OnSendFeatureSet(H460_MessageType pduType, H225_FeatureSet & features) const;
+    virtual bool OnSendFeatureSet(H460_MessageType pduType, H225_FeatureSet & features) const;
     virtual void OnReceiveFeatureSet(H460_MessageType pduType, const H225_FeatureSet & features) const;
 #endif
 
@@ -1758,7 +1758,7 @@ class H323GatekeeperServer : public H323TransactionServer
     PThread   * m_monitorThread;
     PSyncPoint  m_monitorExit;
 
-    PLIST(ListenerList, H323GatekeeperListener);
+    typedef PList<H323GatekeeperListener> ListenerList;
     ListenerList m_listeners;
 
 #if OPAL_H501

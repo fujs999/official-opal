@@ -336,7 +336,7 @@ bool OpalMSRPMediaSession::SetRemoteAddress(const OpalTransportAddress & transpo
 
 OpalMediaStream * OpalMSRPMediaSession::CreateMediaStream(const OpalMediaFormat & mediaFormat, 
                                                                          unsigned sessionID, 
-                                                                         PBoolean isSource)
+                                                                         bool isSource)
 {
   PTRACE(2, "MSRP\tCreated " << (isSource ? "source" : "sink") << " media stream in "
          << (m_connection.IsOriginating() ? "originator" : "receiver") << " with " << m_localUrl);
@@ -418,8 +418,7 @@ OpalMSRPMediaStream::OpalMSRPMediaStream(OpalConnection & connection,
 {
   PTRACE(3, "MSRP\tOpening MSRP connection from " << m_msrpSession.GetLocalURL() << " to " << m_remoteParty);
   if (isSource) 
-    m_msrpSession.GetManager().SetNotifier(m_msrpSession.GetLocalURL(), m_remoteParty,
-                                           PCREATE_NOTIFIER2(OnReceiveMSRP, OpalMSRPManager::IncomingMSRP &));
+    m_msrpSession.GetManager().SetNotifier(m_msrpSession.GetLocalURL(), m_remoteParty, PCREATE_NOTIFIER(OnReceiveMSRP));
 }
 
 
@@ -440,14 +439,14 @@ bool OpalMSRPMediaStream::Open()
 }
 
 
-PBoolean OpalMSRPMediaStream::ReadPacket(RTP_DataFrame &)
+bool OpalMSRPMediaStream::ReadPacket(RTP_DataFrame &)
 {
   PAssertAlways("Cannot ReadData from OpalMSRPMediaStream");
   return false;
 }
 
 
-PBoolean OpalMSRPMediaStream::WritePacket(RTP_DataFrame & frame)
+bool OpalMSRPMediaStream::WritePacket(RTP_DataFrame & frame)
 {
   if (!IsOpen())
     return false;
@@ -968,7 +967,7 @@ bool MSRPProtocol::ReadMessage(int & command,
       if (line.Find(terminator) == 0) {
         break;
       }
-      if ((body.GetSize() + line.GetLength()) > 10240) {
+      if ((body.size() + line.length()) > 10240) {
         PTRACE(2, "MSRP\tMaximum body size exceeded");
         return false;
       }

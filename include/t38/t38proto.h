@@ -235,10 +235,10 @@ class OpalFaxConnection : public OpalLocalConnection
     virtual void AdjustMediaFormats(bool local, const OpalConnection * otherConnection, OpalMediaFormatList & mediaFormats) const;
     virtual void OnEstablished();
     virtual void OnReleased();
-    virtual OpalMediaStream * CreateMediaStream(const OpalMediaFormat & mediaFormat, unsigned sessionID, PBoolean isSource);
+    virtual OpalMediaStream * CreateMediaStream(const OpalMediaFormat & mediaFormat, unsigned sessionID, bool isSource);
     virtual void OnClosedMediaStream(const OpalMediaStream & stream);
     virtual void OnStopMediaPatch(OpalMediaPatch & patch);
-    virtual PBoolean SendUserInputTone(char tone, unsigned duration);
+    virtual bool SendUserInputTone(char tone, unsigned duration);
     virtual void OnUserInputTone(char tone, unsigned duration);
     virtual bool SwitchFaxMediaStreams(bool toT38);
     virtual void OnSwitchedFaxMediaStreams(bool toT38, bool success);
@@ -349,9 +349,9 @@ class OpalFaxSession : public OpalMediaSession
     PTimer             m_timerWriteDataIdle;
     PDECLARE_NOTIFIER(PTimer,  OpalFaxSession, OnWriteDataIdle);
 
-    PUInt64  m_txBytes;
+    uint64_t  m_txBytes;
     unsigned m_txPackets;
-    PUInt64  m_rxBytes;
+    uint64_t  m_rxBytes;
     unsigned m_rxPackets;
     unsigned m_missingPackets;
 };
@@ -367,12 +367,12 @@ class OpalFaxMediaStream : public OpalMediaStream
                        bool isSource,
                        OpalFaxSession & session);
 
-    virtual PBoolean Open();
-    virtual PBoolean Start();
-    virtual PBoolean ReadPacket(RTP_DataFrame & packet);
-    virtual PBoolean WritePacket(RTP_DataFrame & packet);
+    virtual bool Open();
+    virtual bool Start();
+    virtual bool ReadPacket(RTP_DataFrame & packet);
+    virtual bool WritePacket(RTP_DataFrame & packet);
     virtual PString GetPatchThreadName() const;
-    virtual PBoolean IsSynchronous() const;
+    virtual bool IsSynchronous() const;
     virtual bool InternalUpdateMediaFormat(const OpalMediaFormat & mediaFormat);
     virtual void GetStatistics(OpalMediaStatistics & statistics, bool fromPatch) const;
 

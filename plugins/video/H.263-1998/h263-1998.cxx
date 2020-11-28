@@ -200,11 +200,11 @@ static struct PluginCodec_Option const mediaPacketizationPlus =
 
 static int MergeCustomH263(char ** result, const char * dest, const char * src)
 {
-  char buffer[H263_CUSTOM_RESOLUTION_BUFFER_SIZE];
+  std::string buffer;
   if (!MergeCustomResolution(dest, src, buffer))
     return false;
 
-  *result = strdup(buffer);
+  *result = strdup(buffer.c_str());
   return true;
 }
 

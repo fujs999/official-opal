@@ -253,8 +253,7 @@ void OpalRFC2833Proto::UseRTPSession(bool rx, OpalRTPSession * rtpSession)
 {
   if (rx) {
     if (rtpSession != NULL) {
-      PTRACE(3, "Setting receive handler " << m_receiveHandler.GetObject()
-             << " in RTP session " << rtpSession << " for " << m_baseMediaFormat);
+      PTRACE(3, "Setting receive handler in RTP session " << rtpSession << " for " << m_baseMediaFormat);
       rtpSession->AddDataNotifier(50, m_receiveHandler);
     }
   }
@@ -267,7 +266,7 @@ void OpalRFC2833Proto::UseRTPSession(bool rx, OpalRTPSession * rtpSession)
 }
 
 
-PBoolean OpalRFC2833Proto::SendToneAsync(char tone, unsigned milliseconds)
+bool OpalRFC2833Proto::SendToneAsync(char tone, unsigned milliseconds)
 {
   PWaitAndSignal mutex(m_transmitMutex);
 
@@ -409,7 +408,7 @@ bool OpalRFC2833Proto::InternalTransmitFrame()
 }
 
 
-void OpalRFC2833Proto::TransmitTimeout(PTimer & timer, P_INT_PTR)
+void OpalRFC2833Proto::TransmitTimeout(PTimer & timer, intptr_t)
 {
   if (!m_transmitMutex.Try()) {
     timer = 2; // Try again in a couple of milliseconds
@@ -601,7 +600,7 @@ void OpalRFC2833Proto::ReceivedPacket(OpalRTPSession &, OpalRTPSession::Data & d
 }
 
 
-void OpalRFC2833Proto::ReceiveTimeout(PTimer & timer, P_INT_PTR)
+void OpalRFC2833Proto::ReceiveTimeout(PTimer & timer, intptr_t)
 {
   if (!m_receiveMutex.Try()) {
     timer = 2; // Try again in a couple of milliseconds

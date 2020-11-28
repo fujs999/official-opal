@@ -41,7 +41,7 @@
 #define new PNEW
 
 IAX2Receiver::IAX2Receiver(IAX2EndPoint & _newEndpoint, PUDPSocket & _newSocket)
-  : PThread(1000, NoAutoDeleteThread, NormalPriority, "IAX2 Receiver"),
+  : PThread(NoAutoDeleteThread, NormalPriority, "IAX2 Receiver"),
      endpoint(_newEndpoint),
      sock(_newSocket)
 {
@@ -50,7 +50,7 @@ IAX2Receiver::IAX2Receiver(IAX2EndPoint & _newEndpoint, PUDPSocket & _newSocket)
   
   PTRACE(6, "IAX2 Rx\tReceiver Constructed just fine");
   PTRACE(6, "IAX2 Rx\tListen on socket " << sock);
-  Resume();
+  Start();
 }
 
 IAX2Receiver::~IAX2Receiver()
@@ -80,7 +80,7 @@ void IAX2Receiver::Main()
   SetThreadName("IAX2Receiver");
   
   while (keepGoing) {
-    PBoolean res = ReadNetworkSocket();
+    bool res = ReadNetworkSocket();
     
     if ((res == false) || (keepGoing == false)) {
       PTRACE(3, "IAX2 Rx\tNetwork socket has closed down, so exit");
@@ -107,12 +107,12 @@ void IAX2Receiver::AddNewReceivedFrame(IAX2Frame *newFrame)
   fromNetworkFrames.AddNewFrame(newFrame);
 }
 
-PBoolean IAX2Receiver::ReadNetworkSocket()
+bool IAX2Receiver::ReadNetworkSocket()
 {
   IAX2Frame *frame = new IAX2Frame(endpoint);
   
   PTRACE(5, "IAX2 Rx\tWait for packet on socket.with port " << sock.GetPort() << " FrameID-->" << frame->IdString());
-  PBoolean res = frame->ReadNetworkPacket(sock);
+  bool res = frame->ReadNetworkPacket(sock);
   
   if (res == false) {
     PTRACE(3, "IAX2 Rx\tFailed to read network packet from socket for FrameID-->" << frame->IdString());
