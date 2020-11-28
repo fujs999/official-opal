@@ -1759,7 +1759,6 @@
     <ClCompile Include="..\opal\connection.cxx" />
     <ClCompile Include="..\opal\console_mgr.cxx" />
     <ClCompile Include="..\opal\endpoint.cxx" />
-    <ClCompile Include="..\opal\guid.cxx" />
     <ClCompile Include="..\ep\ivr.cxx" />
     <ClCompile Include="..\ep\localep.cxx" />
     <ClCompile Include="..\opal\manager.cxx" />

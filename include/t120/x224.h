@@ -60,8 +60,8 @@ class X224 : public PObject
     void BuildData(const PBYTEArray & data);
 
     void PrintOn(ostream & strm) const;
-    PBoolean Decode(const PBYTEArray & rawData);
-    PBoolean Encode(PBYTEArray & rawData) const;
+    bool Decode(const PBYTEArray & rawData);
+    bool Encode(PBYTEArray & rawData) const;
 
     int GetCode() const { return header[0]; }
     const PBYTEArray & GetData() const { return data; }

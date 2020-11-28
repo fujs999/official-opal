@@ -814,7 +814,7 @@ PINDEX IAX2EndPoint::GetRegistrationsCount() {
 ////////////////////////////////////////////////////////////////////////////////
 
 IAX2IncomingEthernetFrames::IAX2IncomingEthernetFrames() 
-  : PThread(1000, NoAutoDeleteThread, NormalPriority, "IAX Incoming")
+  : PThread(NoAutoDeleteThread, NormalPriority, "IAX Incoming")
 {
   keepGoing = true;
 }
@@ -822,7 +822,7 @@ IAX2IncomingEthernetFrames::IAX2IncomingEthernetFrames()
 void IAX2IncomingEthernetFrames::Assign(IAX2EndPoint *ep)
 {
   endpoint = ep;
-  Resume();
+  Start();
 }
 
 void IAX2IncomingEthernetFrames::Terminate()

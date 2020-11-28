@@ -122,6 +122,10 @@ class OpalIMContext : public PSafeObject
       */
     struct ConversationInfo
     {
+      ConversationInfo()
+        : m_opening(false)
+        , m_byRemote(false)
+      { }
       ConversationInfo(
         const PString & id,
         bool opening,
@@ -221,7 +225,7 @@ class OpalIMContext : public PSafeObject
     #define PDECLARE_ASYNC_MessageDispositionNotifier(cls, fn) PDECLARE_NOTIFIER2(OpalIMContext, cls, fn, OpalIMContext::DispositionInfo)
 
     /// Macro to create correctly typed disposition notifier
-    #define PCREATE_MessageDispositionNotifier(fn) PCREATE_NOTIFIER2(fn, OpalIMContext::DispositionInfo)
+    #define PCREATE_MessageDispositionNotifier(fn) PCREATE_NOTIFIER(fn)
 
     /// Set the notifier for the OnMessageDisposition() function.
     void SetMessageDispositionNotifier(
@@ -251,7 +255,7 @@ class OpalIMContext : public PSafeObject
     #define PDECLARE_ASYNC_MessageReceivedNotifier(cls, fn) PDECLARE_ASYNC_NOTIFIER2(OpalIMContext, cls, fn, OpalIM)
 
     /// Macro to create correctly typed message received notifier
-    #define PCREATE_MessageReceivedNotifier(fn) PCREATE_NOTIFIER2(fn, OpalIM)
+    #define PCREATE_MessageReceivedNotifier(fn) PCREATE_NOTIFIER(fn)
 
     /// Set the notifier for the OnMessageReceived() function.
     void SetMessageReceivedNotifier(
@@ -273,6 +277,8 @@ class OpalIMContext : public PSafeObject
       PString m_state;          ///< New state, usually CompositionIndicationActive() or CompositionIndicationIdle()
       PString m_contentType;    ///< MIME type of composed message
 
+      CompositionInfo()
+      { }
       CompositionInfo(
         const PString & id,
         const PString & state,
@@ -308,7 +314,7 @@ class OpalIMContext : public PSafeObject
     #define PDECLARE_ASYNC_CompositionIndicationNotifier(cls, fn) PDECLARE_ASYNC_NOTIFIER2(OpalIMContext, cls, fn, OpalIMContext::CompositionInfo)
 
     /// Macro to create correctly typed composition indication notifier
-    #define PCREATE_CompositionIndicationNotifier(fn) PCREATE_NOTIFIER2(fn, OpalIMContext::CompositionInfo)
+    #define PCREATE_CompositionIndicationNotifier(fn) PCREATE_NOTIFIER(fn)
 
     /// Set the notifier for the OnCompositionIndication() function.
     void SetCompositionIndicationNotifier(

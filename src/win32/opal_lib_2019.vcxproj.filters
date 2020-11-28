@@ -453,9 +453,6 @@
     <ClCompile Include="..\opal\endpoint.cxx">
       <Filter>Source Files\OPAL</Filter>
     </ClCompile>
-    <ClCompile Include="..\opal\guid.cxx">
-      <Filter>Source Files\OPAL</Filter>
-    </ClCompile>
     <ClCompile Include="..\opal\manager.cxx">
       <Filter>Source Files\OPAL</Filter>
     </ClCompile>

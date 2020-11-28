@@ -3638,7 +3638,7 @@ bool H323GatekeeperServer::OpenPeerElement(const H323TransportAddress & remotePe
 #endif
 
 
-void H323GatekeeperServer::MonitorMain(PThread &, P_INT_PTR)
+void H323GatekeeperServer::MonitorMain(PThread &, intptr_t)
 {
   while (!m_monitorExit.Wait(1000)) {
     PTRACE(6, "RAS\tAging registered endpoints");

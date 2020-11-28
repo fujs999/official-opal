@@ -1246,9 +1246,6 @@ OpalMixerNode::~OpalMixerNode()
 {
   ShutDown(); // Fail safe
 
-  delete m_audioMixer;
-  delete m_info;
-
   PTRACE(4, "Destroyed " << *this);
 }
 
@@ -1271,8 +1268,6 @@ void OpalMixerNode::ShutDown()
   if (LockReadWrite()) {
     m_audioMixer->RemoveAllStreams();
 #if OPAL_VIDEO
-    for (VideoMixerMap::iterator it = m_videoMixers.begin(); it != m_videoMixers.end(); ++it)
-      delete it->second;
     m_videoMixers.clear();
 #endif
     m_manager.RemoveNodeNames(GetNames());
@@ -1379,12 +1374,12 @@ bool OpalMixerNode::AttachStream(OpalMixerMediaStream * stream)
 #if OPAL_VIDEO
   if (stream->GetMediaFormat().GetMediaType() == OpalMediaType::Video()) {
     OpalVideoFormat::ContentRole role = stream->GetMediaFormat().GetOptionEnum(OpalVideoFormat::ContentRoleOption(), OpalVideoFormat::eNoRole);
-    OpalVideoStreamMixer * videoMixer;
+    std::shared_ptr<OpalVideoStreamMixer> videoMixer;
     VideoMixerMap::iterator it = m_videoMixers.find(role);
     if (it != m_videoMixers.end())
       videoMixer = it->second;
     else {
-      videoMixer = m_manager.CreateVideoMixer(*m_info);
+      videoMixer.reset(m_manager.CreateVideoMixer(*m_info));
       m_videoMixers[role] = videoMixer;
     }
 

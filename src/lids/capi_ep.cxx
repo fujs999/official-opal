@@ -146,9 +146,9 @@ struct OpalCapiMessage
       WORD    m_Length;
       WORD    m_Handle;
       WORD    m_Flags;
-      PUInt64 m_Data64;
+      uint64_t m_Data64;
 #if P_64BIT
-      void SetPtr(const void * ptr) { m_Data64 = (PUInt64)ptr; }
+      void SetPtr(const void * ptr) { m_Data64 = (uint64_t)ptr; }
 #else
       void SetPtr(const void * ptr) { m_Data = (DWORD)ptr; }
 #endif
@@ -166,7 +166,7 @@ struct OpalCapiMessage
       WORD    m_Length;
       WORD    m_Handle;
       WORD    m_Flags;
-      PUInt64 m_Data64;
+      uint64_t m_Data64;
 #if P_64BIT
       void * GetPtr() const { return (void *)m_Data64; }
 #else
@@ -762,7 +762,7 @@ bool OpalCapiEndPoint::Controller::GetFreeLine(unsigned & bearer)
 }
 
 
-void OpalCapiEndPoint::ProcessMessages(PThread &, P_INT_PTR)
+void OpalCapiEndPoint::ProcessMessages(PThread &, intptr_t)
 {
   PTRACE(4, "CAPI\tStarted message thread.");
 

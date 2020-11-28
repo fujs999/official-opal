@@ -35,6 +35,7 @@
 #include <opal_config.h>
 
 #include <opal/endpoint.h>
+#include <h224/h281handler.h>
 
 
 class OpalLocalConnection;
@@ -441,16 +442,16 @@ class OpalLocalEndPoint : public OpalEndPoint
 
 #if OPAL_HAS_H281
     /// Set a callback for when the far end camera control capabilities change.
-    void SetFarEndCameraCapabilityChangedNotifier(const PNotifier & notifier) { m_farEndCameraCapabilityChangedNotifier = notifier; }
+    void SetFarEndCameraCapabilityChangedNotifier(const OpalH281Client::CapabilityChangeNotifier & notifier) { m_farEndCameraCapabilityChangedNotifier = notifier; }
 
     /// Get a callback for when the far end camera control capabilities change.
-    const PNotifier & GetFarEndCameraCapabilityChangedNotifier() const { return m_farEndCameraCapabilityChangedNotifier; }
+    const OpalH281Client::CapabilityChangeNotifier & GetFarEndCameraCapabilityChangedNotifier() const { return m_farEndCameraCapabilityChangedNotifier; }
 
     /// Set a callback for when a far end camera control action comes from remote.
-    void SetFarEndCameraActionNotifier(const PNotifier & notifier) { m_farEndCameraActionNotifier = notifier; }
+    void SetFarEndCameraActionNotifier(const OpalH281Client::ActionNotifier & notifier) { m_farEndCameraActionNotifier = notifier; }
 
     /// Get a callback for when a far end camera control action comes from remote.
-    const PNotifier & GetFarEndCameraActionNotifier() const { return m_farEndCameraActionNotifier; }
+    const OpalH281Client::ActionNotifier & GetFarEndCameraActionNotifier() const { return m_farEndCameraActionNotifier; }
 #endif // OPAL_HAS_H281
   //@}
 
@@ -469,8 +470,8 @@ class OpalLocalEndPoint : public OpalEndPoint
     SynchronicityMap m_defaultSynchronicity;
 
 #if OPAL_HAS_H281
-    PNotifier m_farEndCameraCapabilityChangedNotifier;
-    PNotifier m_farEndCameraActionNotifier;
+    OpalH281Client::CapabilityChangeNotifier m_farEndCameraCapabilityChangedNotifier;
+    OpalH281Client::ActionNotifier           m_farEndCameraActionNotifier;
 #endif // OPAL_HAS_H281
 
   private:
@@ -824,10 +825,10 @@ class OpalLocalConnection : public OpalConnection
     );
 
     /// Set a callback for when the far end camera control capabilities change.
-    void SetFarEndCameraCapabilityChangedNotifier(const PNotifier & notifier);
+    void SetFarEndCameraCapabilityChangedNotifier(const OpalH281Client::CapabilityChangeNotifier & notifier);
 
     /// Set a callback for when a far end camera control action comes from remote.
-    void SetFarEndCameraActionNotifier(const PNotifier & notifier);
+    void SetFarEndCameraActionNotifier(const OpalH281Client::ActionNotifier & notifier);
 #endif // OPAL_HAS_H281
   //@}
 

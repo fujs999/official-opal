@@ -440,7 +440,7 @@ void OpalIntraFrameControl::IntraFrameDetected()
 }
 
 
-void OpalIntraFrameControl::OnTimedRequest(PTimer &, P_INT_PTR)
+void OpalIntraFrameControl::OnTimedRequest(PTimer &, intptr_t)
 {
   PWaitAndSignal mutex(m_mutex);
 

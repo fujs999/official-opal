@@ -34,6 +34,7 @@
 #include <opal.h>
 #include <opal/manager.h>
 #include <h323/h323ep.h>
+#include <h224/h281handler.h>
 #include <sip/sipep.h>
 #include <sdp/sdphttpep.h>
 #include <lids/lidep.h>
@@ -301,7 +302,7 @@ public:
 #endif // OPAL_VIDEO
 #if OPAL_HAS_H281
   PDECLARE_NOTIFIER(PCLI::Arguments, OpalConsolePCSSEndPoint, CmdExternalCameraControl);
-  PDECLARE_NOTIFIER(OpalH281Client, OpalConsolePCSSEndPoint, ExternalCameraControlNotification);
+  PDECLARE_OpalH281ClientActionNotifier(OpalConsolePCSSEndPoint, ExternalCameraControlNotification);
 #endif
 
   virtual void AddCommands(PCLI & cli);

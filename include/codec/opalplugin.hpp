@@ -411,8 +411,8 @@ class PluginCodec_OptionMap : public PluginCodec_OptionMapBase, public PluginCod
 
       char ** opt = options;
       for (const_iterator it = begin(); it != end(); ++it) {
-        *opt++ = strdup(it->first.c_str());
-        *opt++ = strdup(it->second.c_str());
+        *opt++ = _strdup(it->first.c_str());
+        *opt++ = _strdup(it->second.c_str());
       }
 
       return options;

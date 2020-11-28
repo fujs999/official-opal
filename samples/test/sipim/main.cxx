@@ -102,7 +102,7 @@ bool MyManager::Initialise(PArgList & args, bool verbose)
 }
 
 
-void MyManager::CmdSet(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::CmdSet(PCLI::Arguments & args, intptr_t)
 {
   switch (args.GetCount()) {
     case 0 :
@@ -149,7 +149,7 @@ bool MyManager::GetToFromURL(const PArgList & args, PURL & to, PURL & from)
 }
 
 
-void MyManager::CmdSend(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::CmdSend(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() == 0) {
     args.WriteUsage();
@@ -173,7 +173,7 @@ void MyManager::CmdSend(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void MyManager::CmdComp(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::CmdComp(PCLI::Arguments & args, intptr_t)
 {
   if (args.GetCount() != 1) {
     args.WriteUsage();

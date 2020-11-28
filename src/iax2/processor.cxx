@@ -110,7 +110,7 @@ PString IAX2WaitingForAck::GetResponseAsString() const
 ////////////////////////////////////////////////////////////////////////////////
 
 IAX2Processor::IAX2Processor(IAX2EndPoint &ep)
-  : PThread(1000, NoAutoDeleteThread, NormalPriority, "IAX2 Processor")
+  : PThread(NoAutoDeleteThread, NormalPriority, "IAX2 Processor")
   , endpoint(ep)
   , controlFramesSent(0)
   , controlFramesRcvd(0)
@@ -218,7 +218,7 @@ void IAX2Processor::StartNoResponseTimer(PINDEX msToWait)
   noResponseTimer = PTimeInterval(msToWait); 
 }
 
-void IAX2Processor::OnNoResponseTimeoutStart(PTimer &, P_INT_PTR)
+void IAX2Processor::OnNoResponseTimeoutStart(PTimer &, intptr_t)
 {
   //call sub class to alert that there was a timeout for a response from the server
   OnNoResponseTimeout();
@@ -232,8 +232,6 @@ void IAX2Processor::Activate()
 void IAX2Processor::Terminate()
 {
   endThread = true;
-  if (IsSuspended())
-    Resume();
 
   PTRACE(4, "Processor\tProcessor has been directed to end. " 
 	 << (IsTerminated() ? "Has already ended" : "So end now."));

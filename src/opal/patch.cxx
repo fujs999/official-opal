@@ -576,7 +576,7 @@ void OpalMediaPatch::FilterFrame(RTP_DataFrame & frame, const OpalMediaFormat & 
 
   for (PList<Filter>::iterator f = m_filters.begin(); f != m_filters.end(); ++f) {
     if (f->m_stage.IsEmpty() || f->m_stage == mediaFormat)
-      f->m_notifier(frame, (P_INT_PTR)this);
+      f->m_notifier(frame, (intptr_t)this);
   }
 }
 
@@ -650,7 +650,7 @@ bool OpalMediaPatch::ExecuteCommand(const OpalMediaCommand & command)
 }
 
 
-void OpalMediaPatch::InternalOnMediaCommand1(OpalMediaCommand & command, P_INT_PTR)
+void OpalMediaPatch::InternalOnMediaCommand1(OpalMediaCommand & command, intptr_t)
 {
   m_source.GetConnection().GetEndPoint().GetManager().QueueDecoupledEvent(new PSafeWorkArg1<OpalMediaPatch, OpalMediaCommand *>(
               this, command.CloneAs<OpalMediaCommand>(), &OpalMediaPatch::InternalOnMediaCommand2));

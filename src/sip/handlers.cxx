@@ -1086,7 +1086,7 @@ void SIPSubscribeHandler::SendStatus(SIP_PDU::StatusCodes code, State state)
       PAssertAlways(PInvalidParameter);
   }
 
-  if (!m_parameters.m_onSubcribeStatus.IsNULL()) 
+  if (m_parameters.m_onSubcribeStatus) 
     m_parameters.m_onSubcribeStatus(*this, status);
 
   GetEndPoint().OnSubscriptionStatus(status);
@@ -1192,7 +1192,7 @@ bool SIPSubscribeHandler::OnReceivedNOTIFY(SIP_PDU & request)
   }
 
   // Check if we know how to deal with this event
-  if (m_packageHandler == NULL && m_parameters.m_onNotify.IsNULL()) {
+  if (m_packageHandler == NULL && !m_parameters.m_onNotify) {
     PTRACE(2, "No handler for NOTIFY received for event \"" << requestEvent << '"');
     response->SetStatusCode(SIP_PDU::Failure_InternalServerError);
     return response->Send();
@@ -1311,7 +1311,7 @@ bool SIPSubscribeHandler::DispatchNOTIFY(SIP_PDU & request, SIP_PDU & response)
 {
   SIPSubscribe::NotifyCallbackInfo notifyInfo(*this, GetEndPoint(), request, response);
 
-  if (!m_parameters.m_onNotify.IsNULL()) {
+  if (m_parameters.m_onNotify) {
     PTRACE(4, "Calling NOTIFY callback for " << GetEventPackage() << " of AOR \"" << GetAddressOfRecord() << "\"");
     m_parameters.m_onNotify(*this, notifyInfo);
     return notifyInfo.m_sendResponse;

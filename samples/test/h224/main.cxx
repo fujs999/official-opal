@@ -159,7 +159,7 @@ void MyManager::OnApplyStringOptions(OpalConnection & conn, OpalConnection::Stri
   OpalManager::OnApplyStringOptions(conn, options);
 }
 
-PBoolean MyPCSSEndPoint::OnShowIncoming(const OpalPCSSConnection & connection)
+bool MyPCSSEndPoint::OnShowIncoming(const OpalPCSSConnection & connection)
 {
   MyManager & mgr = (MyManager &)manager;
   mgr.m_callToken = connection.GetCall().GetToken();
@@ -173,7 +173,7 @@ PBoolean MyPCSSEndPoint::OnShowIncoming(const OpalPCSSConnection & connection)
 }
 
 
-PBoolean MyPCSSEndPoint::OnShowOutgoing(const OpalPCSSConnection & connection)
+bool MyPCSSEndPoint::OnShowOutgoing(const OpalPCSSConnection & connection)
 {
   MyManager & mgr = (MyManager &)manager;
 

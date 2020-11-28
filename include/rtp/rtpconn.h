@@ -347,7 +347,7 @@ class OpalRTPConnection : public OpalConnection
     OpalRFC2833Proto * m_ciscoNSEHandler;
 #endif
 
-    P_REMOVE_VIRTUAL(PBoolean,IsRTPNATEnabled(const PIPSocket::Address&,const PIPSocket::Address&,const PIPSocket::Address&,PBoolean),false);
+    P_REMOVE_VIRTUAL(bool,IsRTPNATEnabled(const PIPSocket::Address&,const PIPSocket::Address&,const PIPSocket::Address&,bool),false);
     P_REMOVE_VIRTUAL_VOID(AddAudioVideoGroup(const PString&));
     P_REMOVE_VIRTUAL_VOID(SetAudioVideoMediaStreamIDs(OpalRTPSession::Direction));
 };

@@ -2428,7 +2428,7 @@ SIP_PDU::StatusCodes SIP_PDU::Parse(istream & stream, bool truncated)
       contentLength = 0;
       int c;
       while ((c = stream.get()) != EOF) {
-        m_entityBody.SetMinSize((++contentLength/1000+1)*1000);
+        m_entityBody.reserve((++contentLength/1000+1)*1000);
         m_entityBody += (char)c;
       }
     }

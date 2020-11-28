@@ -742,7 +742,7 @@ class SIPEndPoint : public OpalSDPEndPoint
 
     typedef PNotifierTemplate<ConnectionlessMessageInfo &> ConnectionlessMessageNotifier;
     #define PDECLARE_ConnectionlessMessageNotifier(cls, fn) PDECLARE_NOTIFIER2(SIPEndPoint, cls, fn, SIPEndPoint::ConnectionlessMessageInfo &)
-    #define PCREATE_ConnectionlessMessageNotifier(fn) PCREATE_NOTIFIER2(fn, SIPEndPoint::ConnectionlessMessageInfo &)
+    #define PCREATE_ConnectionlessMessageNotifier(fn) PCREATE_NOTIFIER(fn)
 
     void SetConnectionlessMessageNotifier(
       const ConnectionlessMessageNotifier & notifier

@@ -615,7 +615,7 @@ bool MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
         help << ", ";
       help << *it;
     }
-    SetMediaFormatOrder(rsrc->AddStringArrayField(PreferredMediaKey, true, 25, GetMediaFormatOrder(), help));
+    SetMediaFormatOrder(rsrc->AddStringArrayField(PreferredMediaKey, true, 25, GetMediaFormatOrder(), help.str().c_str()));
   }
 
   SetMediaFormatMask(rsrc->AddStringArrayField(RemovedMediaKey, true, 25, GetMediaFormatMask(),

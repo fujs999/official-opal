@@ -1359,7 +1359,7 @@ bool SIPEndPoint::OnReceivedMESSAGE(SIP_PDU & request)
   PTRACE(4, "Received MESSAGE outside the context of a call");
 
   // if there is a callback, assume that the application knows what it is doing
-  if (!m_onConnectionlessMessage.IsNULL()) {
+  if (m_onConnectionlessMessage) {
     ConnectionlessMessageInfo info(request);
     m_onConnectionlessMessage(*this, info);
     switch (info.m_status) {

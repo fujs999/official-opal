@@ -525,11 +525,11 @@ bool OpalInternalIPTransport::GetIpAndPort(const OpalTransportAddress & address,
 {
   PString host, device, service;
   if (!SplitAddress(address, host, device, service))
-    return PFalse;
+    return false;
   
   if (host.IsEmpty() && device.IsEmpty()) {
     PTRACE(2, "Illegal IP transport address: \"" << address << '"');
-    return PFalse;
+    return false;
   }
 
   WORD newPort;
@@ -641,7 +641,8 @@ void OpalListener::CloseWait()
 void OpalListener::ListenForConnections()
 {
   PTRACE(3, "Started listening thread on " << GetLocalAddress());
-  PAssert(!m_acceptHandler.IsNULL(), PLogicError);
+  if (!PAssert(m_acceptHandler, PLogicError))
+    return;
 
   while (IsOpen()) {
     OpalTransport * transport = Accept(PMaxTimeInterval);
@@ -1194,7 +1195,7 @@ void OpalTransport::SetKeepAlive(const PTimeInterval & timeout, const PBYTEArray
 }
 
 
-void OpalTransport::KeepAlive(PTimer &, P_INT_PTR)
+void OpalTransport::KeepAlive(PTimer &, intptr_t)
 {
   if (!IsOpen()) {
     PTRACE(4, "Keep alive attempt while not open on " << *this);

@@ -242,7 +242,7 @@ void H323Transactor::StopChannel()
 }
 
 
-void H323Transactor::HandleTransactions(PThread &, P_INT_PTR)
+void H323Transactor::HandleTransactions(PThread &, intptr_t)
 {
   if (PAssertNULL(m_transport) == NULL)
     return;
@@ -726,7 +726,7 @@ bool H323Transaction::HandlePDU()
 }
 
 
-void H323Transaction::SlowHandler(PThread &, P_INT_PTR)
+void H323Transaction::SlowHandler(PThread &, intptr_t)
 {
   PTRACE(4, "Trans\tStarted slow PDU handler thread.");
 

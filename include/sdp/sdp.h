@@ -472,7 +472,7 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
   P_REMOVE_VIRTUAL_VOID(Copy(SDPMediaDescription &));
 };
 
-PARRAY(SDPMediaDescriptionArray, SDPMediaDescription);
+typedef PArray<SDPMediaDescription> SDPMediaDescriptionArray;
 
 
 class SDPDummyMediaDescription : public SDPMediaDescription
@@ -516,7 +516,7 @@ class SDPCryptoSuite : public PObject
       { }
 
       PString  m_keySalt;
-      PUInt64  m_lifetime;
+      uint64_t m_lifetime;
       unsigned m_mkiIndex;
       unsigned m_mkiLength;
     };

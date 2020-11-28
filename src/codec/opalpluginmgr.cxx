@@ -1537,7 +1537,7 @@ class OpalFaxTranscoder : public OpalTranscoder, public OpalPluginTranscoder
           unsigned outClockRate = outputMediaFormat.GetClockRate();
 
           if (inClockRate != outClockRate)
-            timestamp = (unsigned)((PUInt64)timestamp*outClockRate/inClockRate);
+            timestamp = (unsigned)((uint64_t)timestamp*outClockRate/inClockRate);
           bufferRTP->SetTimestamp(timestamp);
 
           dstList.Append(bufferRTP);
@@ -1638,7 +1638,7 @@ OpalPluginCodecManager::~OpalPluginCodecManager()
 {
 }
 
-void OpalPluginCodecManager::OnLoadPlugin(PDynaLink & dll, P_INT_PTR code)
+void OpalPluginCodecManager::OnLoadPlugin(PDynaLink & dll, intptr_t code)
 {
   PluginCodec_GetCodecFunction getCodecs;
   {

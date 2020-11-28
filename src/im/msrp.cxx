@@ -418,8 +418,7 @@ OpalMSRPMediaStream::OpalMSRPMediaStream(OpalConnection & connection,
 {
   PTRACE(3, "MSRP\tOpening MSRP connection from " << m_msrpSession.GetLocalURL() << " to " << m_remoteParty);
   if (isSource) 
-    m_msrpSession.GetManager().SetNotifier(m_msrpSession.GetLocalURL(), m_remoteParty,
-                                           PCREATE_NOTIFIER2(OnReceiveMSRP, OpalMSRPManager::IncomingMSRP &));
+    m_msrpSession.GetManager().SetNotifier(m_msrpSession.GetLocalURL(), m_remoteParty, PCREATE_NOTIFIER(OnReceiveMSRP));
 }
 
 
@@ -968,7 +967,7 @@ bool MSRPProtocol::ReadMessage(int & command,
       if (line.Find(terminator) == 0) {
         break;
       }
-      if ((body.GetSize() + line.GetLength()) > 10240) {
+      if ((body.size() + line.length()) > 10240) {
         PTRACE(2, "MSRP\tMaximum body size exceeded");
         return false;
       }

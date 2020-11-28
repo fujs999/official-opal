@@ -192,10 +192,8 @@ PString RegistrationStatusPage::LoadText(PHTTPRequest & request)
     for (PINDEX i = 0; i < names.GetSize(); ++i) {
       OpalSkinnyEndPoint::PhoneDevice * phoneDevice = skinnyEP->GetPhoneDevice(names[i]);
       if (phoneDevice != NULL) {
-        PStringStream str;
-        str << *phoneDevice;
         PString name, status;
-        if (str.Split('\t', name, status))
+        if (PSTRSTRM(*phoneDevice).Split('\t', name, status))
           m_skinny[name] = status;
       }
     }

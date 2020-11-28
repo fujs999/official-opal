@@ -156,7 +156,8 @@ class OpalMessageBuffer
     std::vector<size_t> m_strPtrOffset;
 };
 
-#define SET_MESSAGE_STRING(msg, member, str) (msg).SetString(&(msg)->member, str)
+#define SET_MESSAGE_STRING(msg, member, str)  (msg).SetString(&(msg)->member, str)
+#define SET_MESSAGE_STREAM(msg, member, strm) (msg).SetString(&(msg)->member, strm.str().c_str())
 #define SET_MESSAGE_DATA(msg, member, data, len) (msg).SetData((const char **)&(msg)->member, data, len)
 
 
@@ -880,7 +881,7 @@ void OpalIVREndPoint_C::OnEndDialog(OpalIVRConnection & connection)
 
   PStringStream varStr;
   varStr << connection.GetVXMLSession().GetVariables();
-  SET_MESSAGE_STRING(message, m_param.m_ivrStatus.m_variables, varStr);
+  SET_MESSAGE_STREAM(message, m_param.m_ivrStatus.m_variables, varStr);
 
   m_manager.PostMessage(message);
 }
@@ -929,7 +930,7 @@ void SIPEndPoint_C::OnRegistrationStatus(const RegistrationStatus & status)
     if (!status.m_wasRegistering)
       strm << "un";
     strm << "registration.";
-    SET_MESSAGE_STRING(message, m_param.m_registrationStatus.m_error, strm);
+    SET_MESSAGE_STREAM(message, m_param.m_registrationStatus.m_error, strm);
     message->m_param.m_registrationStatus.m_status = status.m_wasRegistering ? OpalRegisterFailed : OpalRegisterRemoved;
   }
   PTRACE(4, "OnRegistrationStatus " << status.m_addressofRecord << ", status=" << message->m_param.m_registrationStatus.m_status);
@@ -1510,13 +1511,13 @@ void OpalManager_C::HandleSetGeneral(const OpalMessage & command, OpalMessageBuf
 
   PStringStream strm;
   strm << setfill('\n') << GetMediaFormatOrder();
-  SET_MESSAGE_STRING(response, m_param.m_general.m_mediaOrder, strm);
+  SET_MESSAGE_STREAM(response, m_param.m_general.m_mediaOrder, strm);
   if (!IsNullString(command.m_param.m_general.m_mediaOrder))
     SetMediaFormatOrder(PString(command.m_param.m_general.m_mediaOrder).Lines());
 
   strm.flush();
   strm << setfill('\n') << GetMediaFormatMask();
-  SET_MESSAGE_STRING(response, m_param.m_general.m_mediaMask, strm);
+  SET_MESSAGE_STREAM(response, m_param.m_general.m_mediaMask, strm);
   if (!IsNullString(command.m_param.m_general.m_mediaMask))
     SetMediaFormatMask(PString(command.m_param.m_general.m_mediaMask).Lines());
 
@@ -1538,14 +1539,14 @@ void OpalManager_C::HandleSetGeneral(const OpalMessage & command, OpalMessageBuf
 
     PString autoXxMedia;
     if (autoStart == OpalMediaType::Receive) {
-      SET_MESSAGE_STRING(response, m_param.m_general.m_autoRxMedia, strm);
+      SET_MESSAGE_STREAM(response, m_param.m_general.m_autoRxMedia, strm);
       if (command.m_param.m_general.m_autoRxMedia != NULL)
         autoXxMedia = command.m_param.m_general.m_autoRxMedia;
       else
         autoXxMedia = strm;
     }
     else {
-      SET_MESSAGE_STRING(response, m_param.m_general.m_autoTxMedia, strm);
+      SET_MESSAGE_STREAM(response, m_param.m_general.m_autoTxMedia, strm);
       if (command.m_param.m_general.m_autoTxMedia != NULL)
         autoXxMedia = command.m_param.m_general.m_autoTxMedia;
       else
@@ -1584,8 +1585,8 @@ void OpalManager_C::HandleSetGeneral(const OpalMessage & command, OpalMessageBuf
       }
       it->Activate(false);
     }
-    SET_MESSAGE_STRING(response, m_param.m_general.m_natMethod, natMethods);
-    SET_MESSAGE_STRING(response, m_param.m_general.m_natServer, natServers);
+    SET_MESSAGE_STREAM(response, m_param.m_general.m_natMethod, natMethods);
+    SET_MESSAGE_STREAM(response, m_param.m_general.m_natServer, natServers);
   }
 
   // Note: in this case there is a difference between NULL and "".
@@ -1621,7 +1622,7 @@ void OpalManager_C::HandleSetGeneral(const OpalMessage & command, OpalMessageBuf
         }
       }
       if (!error.IsEmpty()) {
-        response.SetError(error);
+        response.SetError(error.str().c_str());
         return;
       }
     }
@@ -1760,7 +1761,7 @@ void OpalManager_C::HandleSetGeneral(const OpalMessage & command, OpalMessageBuf
       }
     }
   }
-  SET_MESSAGE_STRING(response, m_param.m_general.m_mediaOptions, mediaOptions);
+  SET_MESSAGE_STREAM(response, m_param.m_general.m_mediaOptions, mediaOptions);
 
   PStringArray options = PString(command.m_param.m_general.m_mediaOptions).Lines();
   for (PINDEX i = 0; i < options.GetSize(); ++i) {
@@ -2086,7 +2087,7 @@ void OpalManager_C::HandleSetProtocol(const OpalMessage & command, OpalMessageBu
 
   PStringStream strm;
   strm << ep->GetDefaultStringOptions();
-  SET_MESSAGE_STRING(response, m_param.m_protocol.m_defaultOptions, strm);
+  SET_MESSAGE_STREAM(response, m_param.m_protocol.m_defaultOptions, strm);
   if (!IsNullString(command.m_param.m_protocol.m_defaultOptions)) {
     OpalConnection::StringOptions newOptions;
     strm = command.m_param.m_protocol.m_defaultOptions;
@@ -2099,7 +2100,7 @@ void OpalManager_C::HandleSetProtocol(const OpalMessage & command, OpalMessageBu
 
   strm.MakeEmpty();
   strm << setfill('\n') << ep->GetMediaCryptoSuites();
-  SET_MESSAGE_STRING(response, m_param.m_protocol.m_mediaCryptoSuites, strm);
+  SET_MESSAGE_STREAM(response, m_param.m_protocol.m_mediaCryptoSuites, strm);
   if (!IsNullString(command.m_param.m_protocol.m_mediaCryptoSuites))
     ep->SetMediaCryptoSuites(PString(command.m_param.m_protocol.m_mediaCryptoSuites).Lines());
 
@@ -2109,7 +2110,7 @@ void OpalManager_C::HandleSetProtocol(const OpalMessage & command, OpalMessageBu
     OpalMediaCryptoSuite * cryptoSuite = OpalMediaCryptoSuiteFactory::CreateInstance(allMediaCryptoSutes[i]);
     strm << cryptoSuite->GetFactoryName() << '=' << cryptoSuite->GetDescription() << 'n';
   }
-  SET_MESSAGE_STRING(response, m_param.m_protocol.m_allMediaCryptoSuites, strm);
+  SET_MESSAGE_STREAM(response, m_param.m_protocol.m_allMediaCryptoSuites, strm);
 
   if (m_apiVersion < 37)
     return;
@@ -2814,7 +2815,7 @@ bool OpalManager_C::OnTransferNotify(OpalConnection & connection,
 
   PStringStream infoStr;
   infoStr << info;
-  SET_MESSAGE_STRING(message, m_param.m_transferStatus.m_info, infoStr);
+  SET_MESSAGE_STREAM(message, m_param.m_transferStatus.m_info, infoStr);
 
   PostMessage(message);
 
@@ -2833,7 +2834,7 @@ void OpalManager_C::OnIndMediaStream(const OpalMediaStream & stream, OpalMediaSt
   SET_MESSAGE_STRING(message, m_param.m_mediaStream.m_identifier, stream.GetID());
   PStringStream type;
   type << stream.GetMediaFormat().GetMediaType() << (stream.IsSource() ? " in" : " out");
-  SET_MESSAGE_STRING(message, m_param.m_mediaStream.m_type, type);
+  SET_MESSAGE_STREAM(message, m_param.m_mediaStream.m_type, type);
   SET_MESSAGE_STRING(message, m_param.m_mediaStream.m_format, stream.GetMediaFormat().GetName());
   message->m_param.m_mediaStream.m_state = state;
   PTRACE(4, "OnIndMediaStream:"
@@ -2932,7 +2933,7 @@ void OpalManager_C::OnClearedCall(OpalCall & call)
   PStringStream str;
   str << (unsigned)call.GetCallEndReason() << ": " << call.GetCallEndReasonText();
 
-  SET_MESSAGE_STRING(message, m_param.m_callCleared.m_reason, str);
+  SET_MESSAGE_STREAM(message, m_param.m_callCleared.m_reason, str);
   PTRACE(4, "OnClearedCall:"
             " token=\""  << message->m_param.m_callCleared.m_callToken << "\""
             " reason=\"" << message->m_param.m_callCleared.m_reason << '"');
@@ -2967,12 +2968,11 @@ void OpalManager_C::OnMWIReceived(const PString & party, MessageWaitingType type
 #if OPAL_HAS_PRESENCE
 PString ConvertStringSetWithoutLastNewine(const PStringSet & set)
 {
-  PStringStream strm;
-  strm << setfill('\n') << set;
-  return strm.Left(strm.GetLength()-1);
+  PString str = PSTRSTRM(setfill('\n') << set);
+  return str.Left(str.GetLength()-1);
 }
 
-void OpalManager_C::OnPresenceChange(OpalPresentity &, PAutoPtr<OpalPresenceInfo> info)
+void OpalManager_C::OnPresenceChange(OpalPresentity &, std::shared_ptr<OpalPresenceInfo> info)
 {
   OpalMessageBuffer message(OpalIndPresenceChange);
   SET_MESSAGE_STRING(message, m_param.m_presenceStatus.m_entity,   info->m_entity.AsString());
