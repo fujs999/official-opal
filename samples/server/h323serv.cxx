@@ -489,10 +489,10 @@ H323GatekeeperCall * MyGatekeeperServer::CreateCall(const OpalGloballyUniqueID &
 }
 
 
-bool MyGatekeeperServer::TranslateAliasAddress(const H225_AliasAddress & alias,
+PBoolean MyGatekeeperServer::TranslateAliasAddress(const H225_AliasAddress & alias,
                                                    H225_ArrayOf_AliasAddress & aliases,
                                                    H323TransportAddress & address,
-                                                   bool & isGkRouted,
+                                                   PBoolean & isGkRouted,
                                                    H323GatekeeperCall * call)
 {
 #ifdef H323_TRANSNEXUS_OSP
@@ -575,7 +575,7 @@ static bool GetE164Alias(const H225_ArrayOf_AliasAddress & aliases, H225_AliasAd
   return false;
 }
 
-bool MyGatekeeperCall::AuthoriseOSPCall(H323GatekeeperARQ & info)
+PBoolean MyGatekeeperCall::AuthoriseOSPCall(H323GatekeeperARQ & info)
 {
   int result;
 

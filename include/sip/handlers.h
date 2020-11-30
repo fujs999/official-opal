@@ -87,7 +87,7 @@ public:
   virtual const SIPURL & GetAddressOfRecord() const
     { return m_addressOfRecord; }
 
-  virtual bool OnReceivedNOTIFY(SIP_PDU & response);
+  virtual PBoolean OnReceivedNOTIFY(SIP_PDU & response);
 
   virtual void SetExpire(int e);
 
@@ -127,7 +127,7 @@ public:
   virtual bool ShutDown();
 
 protected:
-  virtual bool SendRequest(SIPHandler::State state);
+  virtual PBoolean SendRequest(SIPHandler::State state);
   void RetryLater(unsigned after);
   void OnExpireTimeout();
   PDECLARE_WriteConnectCallback(SIPHandler, WriteTransaction);
@@ -189,7 +189,7 @@ public:
   const SIPURLList & GetServiceRoute() const { return m_serviceRoute; }
 
 protected:
-  virtual bool SendRequest(SIPHandler::State state);
+  virtual PBoolean SendRequest(SIPHandler::State state);
   virtual void SendStatus(SIP_PDU::StatusCodes code, State state);
   PString CreateRegisterContact(const OpalTransportAddress & address, int q);
 
@@ -211,7 +211,7 @@ public:
 
   virtual SIPTransaction * CreateTransaction (OpalTransport &);
   virtual void OnReceivedOK(SIPTransaction & transaction, SIP_PDU & response);
-  virtual bool OnReceivedNOTIFY(SIP_PDU & response);
+  virtual PBoolean OnReceivedNOTIFY(SIP_PDU & response);
   virtual void OnFailed(SIP_PDU::StatusCodes);
   virtual SIPEventPackage GetEventPackage() const
     { return m_parameters.m_eventPackage; }
@@ -260,7 +260,7 @@ public:
   };
 
 protected:
-  virtual bool SendRequest(SIPHandler::State state);
+  virtual PBoolean SendRequest(SIPHandler::State state);
   virtual void WriteTransaction(OpalTransport & transport, bool & succeeded);
 
   SIPEventPackage          m_eventPackage;

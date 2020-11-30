@@ -236,7 +236,7 @@ H225_CryptoH323Token * H235AuthProcedure1::CreateCryptoToken(bool digits)
 }
 
 
-bool H235AuthProcedure1::Finalise(PBYTEArray & rawPDU)
+PBoolean H235AuthProcedure1::Finalise(PBYTEArray & rawPDU)
 {
   if (!IsEnabled())
     return false;
@@ -280,7 +280,7 @@ bool H235AuthProcedure1::Finalise(PBYTEArray & rawPDU)
 }
 
 
-static bool CheckOID(const PASN_ObjectId & oid1, const PASN_ObjectId & oid2)
+static PBoolean CheckOID(const PASN_ObjectId & oid1, const PASN_ObjectId & oid2)
 {
   if (oid1.GetSize() != oid2.GetSize())
     return false;
@@ -465,7 +465,7 @@ H235Authenticator::ValidationResult H235AuthProcedure1::ValidateCryptoToken(
 }
 
 
-bool H235AuthProcedure1::IsCapability(const H235_AuthenticationMechanism & mechansim,
+PBoolean H235AuthProcedure1::IsCapability(const H235_AuthenticationMechanism & mechansim,
                                       const PASN_ObjectId & algorithmOID)
 {
   return mechansim.GetTag() == H235_AuthenticationMechanism::e_pwdHash &&
@@ -473,14 +473,14 @@ bool H235AuthProcedure1::IsCapability(const H235_AuthenticationMechanism & mecha
 }
 
 
-bool H235AuthProcedure1::SetCapability(H225_ArrayOf_AuthenticationMechanism & mechanisms,
+PBoolean H235AuthProcedure1::SetCapability(H225_ArrayOf_AuthenticationMechanism & mechanisms,
                                       H225_ArrayOf_PASN_ObjectId & algorithmOIDs)
 {
   return AddCapabilityIfNeeded(H235_AuthenticationMechanism::e_pwdHash, OID_U, mechanisms, algorithmOIDs) != P_MAX_INDEX;
 }
 
 
-bool H235AuthProcedure1::UseGkAndEpIdentifiers() const
+PBoolean H235AuthProcedure1::UseGkAndEpIdentifiers() const
 {
   return true;
 }
@@ -656,19 +656,19 @@ H235Authenticator::ValidationResult H235AuthPwd_DES_ECB::ValidateCryptoToken(con
 }
 
 
-bool H235AuthPwd_DES_ECB::IsCapability(const H235_AuthenticationMechanism & mechanism, const PASN_ObjectId & algorithmOID)
+PBoolean H235AuthPwd_DES_ECB::IsCapability(const H235_AuthenticationMechanism & mechanism, const PASN_ObjectId & algorithmOID)
 {
   return mechanism.GetTag() == H235_AuthenticationMechanism::e_pwdSymEnc && algorithmOID.AsString() == OID_DES_ECB;
 }
 
 
-bool H235AuthPwd_DES_ECB::SetCapability(H225_ArrayOf_AuthenticationMechanism & mechanisms, H225_ArrayOf_PASN_ObjectId & algorithmOIDs)
+PBoolean H235AuthPwd_DES_ECB::SetCapability(H225_ArrayOf_AuthenticationMechanism & mechanisms, H225_ArrayOf_PASN_ObjectId & algorithmOIDs)
 {
   return AddCapabilityIfNeeded(H235_AuthenticationMechanism::e_pwdSymEnc, OID_DES_ECB, mechanisms, algorithmOIDs) != P_MAX_INDEX;
 }
 
 
-bool H235AuthPwd_DES_ECB::IsSecuredPDU(unsigned rasPDU, bool received) const
+PBoolean H235AuthPwd_DES_ECB::IsSecuredPDU(unsigned rasPDU, PBoolean received) const
 {
   switch (rasPDU) {
     case H225_RasMessage::e_gatekeeperConfirm :

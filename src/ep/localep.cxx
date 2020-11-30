@@ -352,7 +352,7 @@ void OpalLocalConnection::OnApplyStringOptions()
 }
 
 
-bool OpalLocalConnection::OnIncomingConnection(unsigned int options, OpalConnection::StringOptions * stringOptions)
+PBoolean OpalLocalConnection::OnIncomingConnection(unsigned int options, OpalConnection::StringOptions * stringOptions)
 {
   if (!OpalConnection::OnIncomingConnection(options, stringOptions))
     return false;
@@ -366,7 +366,7 @@ bool OpalLocalConnection::OnIncomingConnection(unsigned int options, OpalConnect
 }
 
 
-bool OpalLocalConnection::SetUpConnection()
+PBoolean OpalLocalConnection::SetUpConnection()
 {
   if (m_ownerCall.IsEstablished())
     return OpalConnection::SetUpConnection();
@@ -392,7 +392,7 @@ bool OpalLocalConnection::SetUpConnection()
 }
 
 
-bool OpalLocalConnection::SetAlerting(const PString & calleeName, bool)
+PBoolean OpalLocalConnection::SetAlerting(const PString & calleeName, PBoolean)
 {
   PTRACE(3, "SetAlerting(" << calleeName << ')');
   SetPhase(AlertingPhase);
@@ -401,7 +401,7 @@ bool OpalLocalConnection::SetAlerting(const PString & calleeName, bool)
 }
 
 
-bool OpalLocalConnection::SetConnected()
+PBoolean OpalLocalConnection::SetConnected()
 {
   PTRACE(3, "SetConnected()");
 
@@ -432,7 +432,7 @@ bool OpalLocalConnection::HoldRemote(bool placeOnHold)
 
 OpalMediaStream * OpalLocalConnection::CreateMediaStream(const OpalMediaFormat & mediaFormat,
                                                          unsigned sessionID,
-                                                         bool isSource)
+                                                         PBoolean isSource)
 {
   if (m_endpoint.UseCallback(mediaFormat, isSource))
     return new OpalLocalMediaStream(*this, mediaFormat, sessionID, isSource, GetSynchronicity(mediaFormat, isSource));
@@ -441,7 +441,7 @@ OpalMediaStream * OpalLocalConnection::CreateMediaStream(const OpalMediaFormat &
   if (mediaFormat.GetMediaType() == OpalMediaType::Video()) {
     if (isSource) {
       PVideoInputDevice * videoDevice;
-      bool autoDeleteGrabber;
+      PBoolean autoDeleteGrabber;
       if (CreateVideoInputDevice(mediaFormat, videoDevice, autoDeleteGrabber))
         PTRACE(4, "Created video input device \"" << videoDevice->GetDeviceName() << '"');
       else {
@@ -453,7 +453,7 @@ OpalMediaStream * OpalLocalConnection::CreateMediaStream(const OpalMediaFormat &
       }
 
       PVideoOutputDevice * previewDevice;
-      bool autoDeletePreview;
+      PBoolean autoDeletePreview;
       if (CreateVideoOutputDevice(mediaFormat, true, previewDevice, autoDeletePreview))
         PTRACE(4, "Created preview device \"" << previewDevice->GetDeviceName() << '"');
       else
@@ -463,7 +463,7 @@ OpalMediaStream * OpalLocalConnection::CreateMediaStream(const OpalMediaFormat &
     }
     else {
       PVideoOutputDevice * videoDevice;
-      bool autoDelete;
+      PBoolean autoDelete;
       if (CreateVideoOutputDevice(mediaFormat, false, videoDevice, autoDelete)) {
         PTRACE(4, "Created display device \"" << videoDevice->GetDeviceName() << '"');
         return new OpalVideoMediaStream(*this, mediaFormat, sessionID, NULL, videoDevice, false, autoDelete);
@@ -675,13 +675,13 @@ bool OpalLocalConnection::FarEndCameraControl(PVideoControlInfo::Types what, int
 }
 
 
-void OpalLocalConnection::SetFarEndCameraCapabilityChangedNotifier(const OpalH281Client::CapabilityChangeNotifier & notifier)
+void OpalLocalConnection::SetFarEndCameraCapabilityChangedNotifier(const PNotifier & notifier)
 {
   m_farEndCameraControl->SetCapabilityChangedNotifier(notifier);
 }
 
 
-void OpalLocalConnection::SetFarEndCameraActionNotifier(const OpalH281Client::ActionNotifier & notifier)
+void OpalLocalConnection::SetFarEndCameraActionNotifier(const PNotifier & notifier)
 {
   m_farEndCameraControl->SetOnActionNotifier(notifier);
 }
@@ -703,7 +703,7 @@ OpalLocalMediaStream::OpalLocalMediaStream(OpalLocalConnection & connection,
 }
 
 
-bool OpalLocalMediaStream::ReadPacket(RTP_DataFrame & frame)
+PBoolean OpalLocalMediaStream::ReadPacket(RTP_DataFrame & frame)
 {
   if (!IsOpen())
     return false;
@@ -720,7 +720,7 @@ bool OpalLocalMediaStream::ReadPacket(RTP_DataFrame & frame)
 }
 
 
-bool OpalLocalMediaStream::WritePacket(RTP_DataFrame & frame)
+PBoolean OpalLocalMediaStream::WritePacket(RTP_DataFrame & frame)
 {
   if (!IsOpen())
     return false;
@@ -736,7 +736,7 @@ bool OpalLocalMediaStream::WritePacket(RTP_DataFrame & frame)
 
 static PINDEX const MaxDataLen = 8;
 
-bool OpalLocalMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & length)
+PBoolean OpalLocalMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & length)
 {
   if (!m_connection.OnReadMediaData(*this, data, size, length))
     return false;
@@ -762,7 +762,7 @@ bool OpalLocalMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & length)
 }
 
 
-bool OpalLocalMediaStream::WriteData(const BYTE * data, PINDEX length, PINDEX & written)
+PBoolean OpalLocalMediaStream::WriteData(const BYTE * data, PINDEX length, PINDEX & written)
 {
   if (GetMediaFormat().GetName().NumCompare(OPAL_PCM16) == EqualTo) {
     if (data != NULL && length != 0)
@@ -792,13 +792,13 @@ bool OpalLocalMediaStream::WriteData(const BYTE * data, PINDEX length, PINDEX & 
 }
 
 
-bool OpalLocalMediaStream::IsSynchronous() const
+PBoolean OpalLocalMediaStream::IsSynchronous() const
 {
   return m_synchronicity != OpalLocalEndPoint::e_Asynchronous;
 }
 
 
-bool OpalLocalMediaStream::RequiresPatchThread(OpalMediaStream *) const
+PBoolean OpalLocalMediaStream::RequiresPatchThread(OpalMediaStream *) const
 {
   return IsSink() || m_synchronicity != OpalLocalEndPoint::e_PushSynchronous;
 }

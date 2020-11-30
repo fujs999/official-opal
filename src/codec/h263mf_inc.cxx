@@ -55,6 +55,7 @@ static const char H263plusEncodingName[] = "H263-1998";
 #define TIMESTAMP_29_97_FPS 3003
 
 #define MAX_H263_CUSTOM_RESOLUTIONS 10
+#define H263_CUSTOM_RESOLUTION_BUFFER_SIZE (MAX_H263_CUSTOM_RESOLUTIONS*20)
 #define DEFAULT_CUSTOM_MPI "0,0," STRINGIZE(PLUGINCODEC_MPI_DISABLED)
 
 static const char SQCIF_MPI[]  = PLUGINCODEC_SQCIF_MPI;
@@ -132,7 +133,7 @@ static bool GetCustomMPI(const char * str,
 }
 
 
-static int MergeCustomResolution(const char * dest, const char * src, std::string result)
+static int MergeCustomResolution(const char * dest, const char * src, char * result)
 {
   size_t resultCount = 0;
   CustomResolutions resultRes;
@@ -165,15 +166,12 @@ static int MergeCustomResolution(const char * dest, const char * src, std::strin
   }
 
   if (resultCount == 0)
-    result = DEFAULT_CUSTOM_MPI;
+    strcpy(result, strdup(DEFAULT_CUSTOM_MPI));
   else {
-    std::ostringstream strm;
-    for (size_t i = 0; i < resultCount; ++i) {
-      if (i > 0)
-        strm << ';';
-      strm << resultRes[i].width << ',' << resultRes[i].height << ',' << resultRes[i].mpi;
-    }
-    result = strm.str();
+    size_t len = 0;
+    for (size_t i = 0; i < resultCount; ++i)
+      len += sprintf(result+len, len == 0 ? "%u,%u,%u" : ";%u,%u,%u",
+                     resultRes[i].width, resultRes[i].height, resultRes[i].mpi);
   }
 
   return true;

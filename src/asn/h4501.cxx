@@ -39,7 +39,7 @@ H4501_EntityType::H4501_EntityType(unsigned tag, PASN_Object::TagClass tagClass)
 }
 
 
-bool H4501_EntityType::CreateObject()
+PBoolean H4501_EntityType::CreateObject()
 {
   choice = (m_tag <= e_anyEntity) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -96,7 +96,7 @@ H4501_InterpretationApdu::H4501_InterpretationApdu(unsigned tag, PASN_Object::Ta
 }
 
 
-bool H4501_InterpretationApdu::CreateObject()
+PBoolean H4501_InterpretationApdu::CreateObject()
 {
   choice = (m_tag <= e_rejectAnyUnrecognizedInvokePdu) ? new PASN_Null() : NULL;
   return choice != NULL;
@@ -154,7 +154,7 @@ H4501_ServiceApdus::operator const H4501_ArrayOf_ROS &() const
 }
 
 
-bool H4501_ServiceApdus::CreateObject()
+PBoolean H4501_ServiceApdus::CreateObject()
 {
   switch (m_tag) {
     case e_rosApdus :
@@ -289,7 +289,7 @@ H4501_PresentedAddressScreened::operator const H4501_AddressScreened &() const
 }
 
 
-bool H4501_PresentedAddressScreened::CreateObject()
+PBoolean H4501_PresentedAddressScreened::CreateObject()
 {
   switch (m_tag) {
     case e_presentationAllowedAddress :
@@ -361,7 +361,7 @@ H4501_PresentedAddressUnscreened::operator const H4501_Address &() const
 }
 
 
-bool H4501_PresentedAddressUnscreened::CreateObject()
+PBoolean H4501_PresentedAddressUnscreened::CreateObject()
 {
   switch (m_tag) {
     case e_presentationAllowedAddress :
@@ -433,7 +433,7 @@ H4501_PresentedNumberScreened::operator const H4501_NumberScreened &() const
 }
 
 
-bool H4501_PresentedNumberScreened::CreateObject()
+PBoolean H4501_PresentedNumberScreened::CreateObject()
 {
   switch (m_tag) {
     case e_presentationAllowedAddress :
@@ -505,7 +505,7 @@ H4501_PresentedNumberUnscreened::operator const H225_PartyNumber &() const
 }
 
 
-bool H4501_PresentedNumberUnscreened::CreateObject()
+PBoolean H4501_PresentedNumberUnscreened::CreateObject()
 {
   switch (m_tag) {
     case e_presentationAllowedAddress :
@@ -597,7 +597,7 @@ H4501_PartySubaddress::operator const H4501_NSAPSubaddress &() const
 }
 
 
-bool H4501_PartySubaddress::CreateObject()
+PBoolean H4501_PartySubaddress::CreateObject()
 {
   switch (m_tag) {
     case e_userSpecifiedSubaddress :
@@ -788,7 +788,7 @@ H4501_PresentationAllowedIndicator::H4501_PresentationAllowedIndicator(unsigned 
 }
 
 
-H4501_PresentationAllowedIndicator & H4501_PresentationAllowedIndicator::operator=(bool v)
+H4501_PresentationAllowedIndicator & H4501_PresentationAllowedIndicator::operator=(PBoolean v)
 {
   SetValue(v);
   return *this;
@@ -958,7 +958,7 @@ PINDEX H4501_Extension::GetDataLength() const
 }
 
 
-bool H4501_Extension::Decode(PASN_Stream & strm)
+PBoolean H4501_Extension::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1115,7 +1115,7 @@ PINDEX H4501_NetworkFacilityExtension::GetDataLength() const
 }
 
 
-bool H4501_NetworkFacilityExtension::Decode(PASN_Stream & strm)
+PBoolean H4501_NetworkFacilityExtension::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1212,7 +1212,7 @@ PINDEX H4501_AddressScreened::GetDataLength() const
 }
 
 
-bool H4501_AddressScreened::Decode(PASN_Stream & strm)
+PBoolean H4501_AddressScreened::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1299,7 +1299,7 @@ PINDEX H4501_NumberScreened::GetDataLength() const
 }
 
 
-bool H4501_NumberScreened::Decode(PASN_Stream & strm)
+PBoolean H4501_NumberScreened::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1384,7 +1384,7 @@ PINDEX H4501_Address::GetDataLength() const
 }
 
 
-bool H4501_Address::Decode(PASN_Stream & strm)
+PBoolean H4501_Address::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1470,7 +1470,7 @@ PINDEX H4501_EndpointAddress::GetDataLength() const
 }
 
 
-bool H4501_EndpointAddress::Decode(PASN_Stream & strm)
+PBoolean H4501_EndpointAddress::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1556,7 +1556,7 @@ PINDEX H4501_UserSpecifiedSubaddress::GetDataLength() const
 }
 
 
-bool H4501_UserSpecifiedSubaddress::Decode(PASN_Stream & strm)
+PBoolean H4501_UserSpecifiedSubaddress::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1648,7 +1648,7 @@ PINDEX H4501_SupplementaryService::GetDataLength() const
 }
 
 
-bool H4501_SupplementaryService::Decode(PASN_Stream & strm)
+PBoolean H4501_SupplementaryService::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;

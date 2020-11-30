@@ -265,7 +265,7 @@ OpalIMContext::MessageDisposition OpalIMContext::OnMessageReceived(const OpalIM 
 
   PWaitAndSignal mutex(m_notificationMutex);
 
-  if (!m_messageReceivedNotifier)
+  if (m_messageReceivedNotifier.IsNULL())
     m_endpoint->OnMessageReceived(message);
   else
     m_messageReceivedNotifier(*this, message);
@@ -303,7 +303,7 @@ void OpalIMContext::SetMessageDispositionNotifier(const MessageDispositionNotifi
 void OpalIMContext::OnMessageDisposition(const DispositionInfo & info)
 {
   PWaitAndSignal mutex(m_notificationMutex);
-  if (!m_messageDispositionNotifier)
+  if (m_messageDispositionNotifier.IsNULL())
     m_endpoint->GetManager().OnMessageDisposition(info);
   else
     m_messageDispositionNotifier(*this, info);
@@ -312,7 +312,7 @@ void OpalIMContext::OnMessageDisposition(const DispositionInfo & info)
 void OpalIMContext::OnCompositionIndication(const CompositionInfo & info)
 {
   PWaitAndSignal mutex(m_notificationMutex);
-  if (!m_compositionIndicationNotifier)
+  if (m_compositionIndicationNotifier.IsNULL())
     m_endpoint->GetManager().OnCompositionIndication(info);
   else
     m_compositionIndicationNotifier(*this, info);
@@ -652,7 +652,7 @@ OpalIMConnection::OpalIMConnection(OpalCall & call,
 }
 
 
-bool OpalIMConnection::OnSetUpConnection()
+PBoolean OpalIMConnection::OnSetUpConnection()
 {
   if (!OpalConnection::OnSetUpConnection())
     return false;

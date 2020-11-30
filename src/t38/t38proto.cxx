@@ -288,7 +288,7 @@ bool OpalFaxSession::WriteData(RTP_DataFrame & frame)
 }
 
 
-void OpalFaxSession::OnWriteDataIdle(PTimer &, intptr_t)
+void OpalFaxSession::OnWriteDataIdle(PTimer &, P_INT_PTR)
 {
   PWaitAndSignal mutex(m_writeMutex);
 
@@ -807,7 +807,7 @@ void OpalFaxConnection::OnStopMediaPatch(OpalMediaPatch & patch)
 }
 
 
-bool OpalFaxConnection::SendUserInputTone(char tone, unsigned duration)
+PBoolean OpalFaxConnection::SendUserInputTone(char tone, unsigned duration)
 {
   OnUserInputTone(tone, duration);
   return true;
@@ -865,7 +865,7 @@ void OpalFaxConnection::GetStatistics(OpalMediaStatistics & statistics) const
 }
 
 
-void OpalFaxConnection::OnSwitchTimeout(PTimer &, intptr_t)
+void OpalFaxConnection::OnSwitchTimeout(PTimer &, P_INT_PTR)
 {
   if (m_disableT38 || IsReleased())
     return;
@@ -963,7 +963,7 @@ OpalFaxMediaStream::OpalFaxMediaStream(OpalConnection & conn,
 }
 
 
-bool OpalFaxMediaStream::Open()
+PBoolean OpalFaxMediaStream::Open()
 {
   if (m_isOpen)
     return true;
@@ -975,7 +975,7 @@ bool OpalFaxMediaStream::Open()
 }
 
 
-bool OpalFaxMediaStream::Start()
+PBoolean OpalFaxMediaStream::Start()
 {
   m_session.Start();
   return OpalMediaStream::Start();
@@ -992,7 +992,7 @@ bool OpalFaxMediaStream::InternalUpdateMediaFormat(const OpalMediaFormat & media
 }
 
 
-bool OpalFaxMediaStream::ReadPacket(RTP_DataFrame & packet)
+PBoolean OpalFaxMediaStream::ReadPacket(RTP_DataFrame & packet)
 {
   if (!IsOpen())
     return false;
@@ -1005,7 +1005,7 @@ bool OpalFaxMediaStream::ReadPacket(RTP_DataFrame & packet)
 }
 
 
-bool OpalFaxMediaStream::WritePacket(RTP_DataFrame & packet)
+PBoolean OpalFaxMediaStream::WritePacket(RTP_DataFrame & packet)
 {
   if (!IsOpen())
     return false;
@@ -1021,7 +1021,7 @@ PString OpalFaxMediaStream::GetPatchThreadName() const
 }
 
 
-bool OpalFaxMediaStream::IsSynchronous() const
+PBoolean OpalFaxMediaStream::IsSynchronous() const
 {
   return false;
 }

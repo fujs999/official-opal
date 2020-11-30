@@ -748,7 +748,7 @@ bool OpalPluginFramedAudioTranscoder::OnCreated(const OpalMediaFormat & srcForma
 }
 
 
-bool OpalPluginFramedAudioTranscoder::UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output)
+PBoolean OpalPluginFramedAudioTranscoder::UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output)
 {
   PWaitAndSignal mutex(updateMutex);
   if (!OpalFramedTranscoder::UpdateMediaFormats(input, output))
@@ -762,7 +762,7 @@ bool OpalPluginFramedAudioTranscoder::UpdateMediaFormats(const OpalMediaFormat &
 }
 
 
-bool OpalPluginFramedAudioTranscoder::ExecuteCommand(const OpalMediaCommand & command)
+PBoolean OpalPluginFramedAudioTranscoder::ExecuteCommand(const OpalMediaCommand & command)
 {
   PWaitAndSignal mutex(updateMutex);
   return OpalPluginTranscoder::ExecuteCommand(command) || OpalFramedTranscoder::ExecuteCommand(command);
@@ -791,7 +791,7 @@ void OpalPluginFramedAudioTranscoder::GetStatistics(OpalMediaStatistics & statis
 #endif // OPAL_STATISTICS
 
 
-bool OpalPluginFramedAudioTranscoder::ConvertFrame(const BYTE * input,
+PBoolean OpalPluginFramedAudioTranscoder::ConvertFrame(const BYTE * input,
                                                    PINDEX & consumed,
                                                    BYTE * output,
                                                    PINDEX & created)
@@ -812,7 +812,7 @@ bool OpalPluginFramedAudioTranscoder::ConvertFrame(const BYTE * input,
   return stat;
 }
 
-bool OpalPluginFramedAudioTranscoder::ConvertSilentFrame(BYTE * buffer, PINDEX & created)
+PBoolean OpalPluginFramedAudioTranscoder::ConvertSilentFrame(BYTE * buffer, PINDEX & created)
 { 
   if (codecDef == NULL || context == NULL)
     return false;
@@ -879,7 +879,7 @@ bool OpalPluginStreamedAudioTranscoder::OnCreated(const OpalMediaFormat & srcFor
 }
 
 
-bool OpalPluginStreamedAudioTranscoder::UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output)
+PBoolean OpalPluginStreamedAudioTranscoder::UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output)
 {
   PWaitAndSignal mutex(updateMutex);
   return OpalStreamedTranscoder::UpdateMediaFormats(input, output) &&
@@ -887,7 +887,7 @@ bool OpalPluginStreamedAudioTranscoder::UpdateMediaFormats(const OpalMediaFormat
 }
 
 
-bool OpalPluginStreamedAudioTranscoder::ExecuteCommand(const OpalMediaCommand & command)
+PBoolean OpalPluginStreamedAudioTranscoder::ExecuteCommand(const OpalMediaCommand & command)
 {
   PWaitAndSignal mutex(updateMutex);
   return OpalPluginTranscoder::ExecuteCommand(command) || OpalStreamedTranscoder::ExecuteCommand(command);
@@ -946,7 +946,7 @@ bool OpalPluginVideoTranscoder::OnCreated(const OpalMediaFormat & srcFormat,
 }
 
 
-bool OpalPluginVideoTranscoder::UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output)
+PBoolean OpalPluginVideoTranscoder::UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output)
 {
   PWaitAndSignal mutex(updateMutex);
 
@@ -970,14 +970,14 @@ bool OpalPluginVideoTranscoder::UpdateMediaFormats(const OpalMediaFormat & input
 }
 
 
-bool OpalPluginVideoTranscoder::ExecuteCommand(const OpalMediaCommand & command)
+PBoolean OpalPluginVideoTranscoder::ExecuteCommand(const OpalMediaCommand & command)
 {
   PWaitAndSignal mutex(updateMutex);
   return OpalPluginTranscoder::ExecuteCommand(command) || OpalVideoTranscoder::ExecuteCommand(command);
 }
 
 
-bool OpalPluginVideoTranscoder::ConvertFrames(const RTP_DataFrame & src, RTP_DataFrameList & dstList)
+PBoolean OpalPluginVideoTranscoder::ConvertFrames(const RTP_DataFrame & src, RTP_DataFrameList & dstList)
 {
   if (context == NULL)
     return false;
@@ -1453,7 +1453,7 @@ class OpalFaxTranscoder : public OpalTranscoder, public OpalPluginTranscoder
       return CreateContext(instance, instanceLen) && OpalTranscoder::OnCreated(srcFormat, destFormat, instance, instanceLen);
     }
 
-    virtual PINDEX GetOptimalDataFrameSize(bool input) const
+    virtual PINDEX GetOptimalDataFrameSize(PBoolean input) const
     {
       const OpalMediaFormat & fmt = (input ? inputMediaFormat : outputMediaFormat);
       if (fmt == OpalPCM16)
@@ -1462,14 +1462,14 @@ class OpalFaxTranscoder : public OpalTranscoder, public OpalPluginTranscoder
       return fmt.GetFrameSize();
     }
 
-    bool UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output)
+    PBoolean UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output)
     {
       PWaitAndSignal mutex(updateMutex);
       return OpalTranscoder::UpdateMediaFormats(input, output) &&
              UpdateOptions(inputMediaFormat) && UpdateOptions(outputMediaFormat);
     }
 
-    virtual bool ExecuteCommand(const OpalMediaCommand & command)
+    virtual PBoolean ExecuteCommand(const OpalMediaCommand & command)
     {
       PWaitAndSignal mutex(updateMutex);
       return OpalPluginTranscoder::ExecuteCommand(command) || OpalTranscoder::ExecuteCommand(command);
@@ -1480,7 +1480,7 @@ class OpalFaxTranscoder : public OpalTranscoder, public OpalPluginTranscoder
       return true;
     }
 
-    virtual bool ConvertFrames(const RTP_DataFrame & src, RTP_DataFrameList & dstList)
+    virtual PBoolean ConvertFrames(const RTP_DataFrame & src, RTP_DataFrameList & dstList)
     {
       if (context == NULL)
         return false;
@@ -1537,7 +1537,7 @@ class OpalFaxTranscoder : public OpalTranscoder, public OpalPluginTranscoder
           unsigned outClockRate = outputMediaFormat.GetClockRate();
 
           if (inClockRate != outClockRate)
-            timestamp = (unsigned)((uint64_t)timestamp*outClockRate/inClockRate);
+            timestamp = (unsigned)((PUInt64)timestamp*outClockRate/inClockRate);
           bufferRTP->SetTimestamp(timestamp);
 
           dstList.Append(bufferRTP);
@@ -1551,7 +1551,7 @@ class OpalFaxTranscoder : public OpalTranscoder, public OpalPluginTranscoder
       return true;
     }
 
-    virtual bool Convert(const RTP_DataFrame &, RTP_DataFrame &)
+    virtual PBoolean Convert(const RTP_DataFrame &, RTP_DataFrame &)
     {
       // Dummy function, never called
       return false;
@@ -1638,7 +1638,7 @@ OpalPluginCodecManager::~OpalPluginCodecManager()
 {
 }
 
-void OpalPluginCodecManager::OnLoadPlugin(PDynaLink & dll, intptr_t code)
+void OpalPluginCodecManager::OnLoadPlugin(PDynaLink & dll, P_INT_PTR code)
 {
   PluginCodec_GetCodecFunction getCodecs;
   {
@@ -2050,7 +2050,7 @@ PObject * H323PluginG7231Capability::Clone() const
 }
 
 
-bool H323PluginG7231Capability::OnSendingPDU(H245_AudioCapability & cap, unsigned packetSize) const
+PBoolean H323PluginG7231Capability::OnSendingPDU(H245_AudioCapability & cap, unsigned packetSize) const
 {
   cap.SetTag(H245_AudioCapability::e_g7231);
   H245_AudioCapability_g7231 & g7231 = cap;
@@ -2059,7 +2059,7 @@ bool H323PluginG7231Capability::OnSendingPDU(H245_AudioCapability & cap, unsigne
   return true;
 }
 
-bool H323PluginG7231Capability::OnReceivedPDU(const H245_AudioCapability & cap,  unsigned & packetSize)
+PBoolean H323PluginG7231Capability::OnReceivedPDU(const H245_AudioCapability & cap,  unsigned & packetSize)
 {
   if (cap.GetTag() != H245_AudioCapability::e_g7231)
     return false;
@@ -2099,12 +2099,12 @@ class H323GSMPluginCapability : public H323AudioPluginCapability
     virtual PObject * Clone() const
     { return new H323GSMPluginCapability(*this); }
 
-    virtual bool OnSendingPDU(
+    virtual PBoolean OnSendingPDU(
       H245_AudioCapability & pdu,  /// PDU to set information on
       unsigned packetSize          /// Packet size to use in capability
     ) const;
 
-    virtual bool OnReceivedPDU(
+    virtual PBoolean OnReceivedPDU(
       const H245_AudioCapability & pdu,  /// PDU to get information from
       unsigned & packetSize              /// Packet size to use in capability
     );
@@ -2248,7 +2248,7 @@ PObject::Comparison H323GSMPluginCapability::Compare(const PObject & obj) const
 }
 
 
-bool H323GSMPluginCapability::OnSendingPDU(H245_AudioCapability & cap, unsigned packetSize) const
+PBoolean H323GSMPluginCapability::OnSendingPDU(H245_AudioCapability & cap, unsigned packetSize) const
 {
   cap.SetTag(pluginSubType);
   H245_GSMAudioCapability & gsm = cap;
@@ -2260,7 +2260,7 @@ bool H323GSMPluginCapability::OnSendingPDU(H245_AudioCapability & cap, unsigned 
 }
 
 
-bool H323GSMPluginCapability::OnReceivedPDU(const H245_AudioCapability & cap, unsigned & packetSize)
+PBoolean H323GSMPluginCapability::OnReceivedPDU(const H245_AudioCapability & cap, unsigned & packetSize)
 {
   const H245_GSMAudioCapability & gsm = cap;
   packetSize   = gsm.m_audioUnitSize / m_codecDefn->parm.audio.bytesPerFrame;
@@ -2362,7 +2362,7 @@ unsigned H323H261Capability::GetSubType() const
 }
 
 
-bool H323H261Capability::OnSendingPDU(H245_VideoCapability & cap) const
+PBoolean H323H261Capability::OnSendingPDU(H245_VideoCapability & cap) const
 {
   cap.SetTag(H245_VideoCapability::e_h261VideoCapability);
 
@@ -2406,7 +2406,7 @@ bool H323H261Capability::OnSendingPDU(H245_VideoCapability & cap) const
 }
 
 
-bool H323H261Capability::OnSendingPDU(H245_VideoMode & pdu) const
+PBoolean H323H261Capability::OnSendingPDU(H245_VideoMode & pdu) const
 {
   pdu.SetTag(H245_VideoMode::e_h261VideoMode);
   H245_H261VideoMode & mode = pdu;
@@ -2424,7 +2424,7 @@ bool H323H261Capability::OnSendingPDU(H245_VideoMode & pdu) const
   return true;
 }
 
-bool H323H261Capability::OnReceivedPDU(const H245_VideoCapability & cap)
+PBoolean H323H261Capability::OnReceivedPDU(const H245_VideoCapability & cap)
 {
   if (cap.GetTag() != H245_VideoCapability::e_h261VideoCapability)
     return false;
@@ -2624,7 +2624,7 @@ static bool SetTransmittedCap(const OpalMediaFormat & mediaFormat,
 }
 
 
-bool H323H263Capability::OnSendingPDU(H245_VideoCapability & cap) const
+PBoolean H323H263Capability::OnSendingPDU(H245_VideoCapability & cap) const
 {
   cap.SetTag(H245_VideoCapability::e_h263VideoCapability);
   H245_H263VideoCapability & h263 = cap;
@@ -2701,7 +2701,7 @@ bool H323H263Capability::OnSendingPDU(H245_VideoCapability & cap) const
 }
 
 
-bool H323H263Capability::OnSendingPDU(H245_VideoMode & pdu) const
+PBoolean H323H263Capability::OnSendingPDU(H245_VideoMode & pdu) const
 {
   pdu.SetTag(H245_VideoMode::e_h263VideoMode);
   H245_H263VideoMode & mode = pdu;
@@ -2844,7 +2844,7 @@ static bool OnReceivedCustomMPI(const H245_H263VideoCapability & h263,
 }
 
 
-bool H323H263Capability::IsMatch(const PASN_Object & subTypePDU, const PString & mediaPacketization) const
+PBoolean H323H263Capability::IsMatch(const PASN_Object & subTypePDU, const PString & mediaPacketization) const
 {
   if (subTypePDU.GetTag() != GetSubType())
     return false;
@@ -2907,7 +2907,7 @@ bool H323H263Capability::IsMatch(const PASN_Object & subTypePDU, const PString &
 }
 
 
-bool H323H263Capability::OnReceivedPDU(const H245_VideoCapability & cap)
+PBoolean H323H263Capability::OnReceivedPDU(const H245_VideoCapability & cap)
 {
   if (cap.GetTag() != H245_VideoCapability::e_h263VideoCapability)
     return false;

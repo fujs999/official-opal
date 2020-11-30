@@ -164,7 +164,7 @@ class H235_NonStandardParameter : public PASN_Sequence
     PASN_OctetString m_data;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -191,7 +191,7 @@ class H235_DHset : public PASN_Sequence
     PASN_BitString m_generator;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -223,7 +223,7 @@ class H235_DHsetExt : public PASN_Sequence
     PASN_BitString m_generator;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -254,7 +254,7 @@ class H235_ECpoint : public PASN_Sequence
     PASN_BitString m_y;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -297,7 +297,7 @@ class H235_ECKASDH : public PASN_Choice
     operator const H235_ECKASDH_eckasdh2 &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -318,7 +318,7 @@ class H235_ECGDSASignature : public PASN_Sequence
     PASN_BitString m_s;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -344,7 +344,7 @@ class H235_TypedCertificate : public PASN_Sequence
     PASN_OctetString m_certificate;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -371,7 +371,7 @@ class H235_AuthenticationBES : public PASN_Choice
       e_radius
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -416,7 +416,7 @@ class H235_AuthenticationMechanism : public PASN_Choice
     operator const H235_AuthenticationBES &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -441,7 +441,7 @@ class H235_Element : public PASN_Choice
       e_flag
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -519,7 +519,7 @@ class H235_Params : public PASN_Sequence
     PASN_OctetString m_clearSalt;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -552,7 +552,7 @@ class H235_ReturnSig : public PASN_Sequence
     H235_TypedCertificate m_certificate;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -574,7 +574,7 @@ class H235_EncodedReturnSig : public PASN_OctetString
   public:
     H235_EncodedReturnSig(unsigned tag = 0, TagClass tagClass = UniversalTagClass);
 
-    bool DecodeSubType(H235_ReturnSig & obj) { return PASN_OctetString::DecodeSubType(obj); }
+    PBoolean DecodeSubType(H235_ReturnSig & obj) { return PASN_OctetString::DecodeSubType(obj); }
     void EncodeSubType(const H235_ReturnSig & obj) { PASN_OctetString::EncodeSubType(obj); } 
 
     PObject * Clone() const;
@@ -597,7 +597,7 @@ class H235_KeySyncMaterial : public PASN_Sequence
     H235_KeyMaterial m_keyMaterial;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -619,7 +619,7 @@ class H235_EncodedKeySyncMaterial : public PASN_OctetString
   public:
     H235_EncodedKeySyncMaterial(unsigned tag = 0, TagClass tagClass = UniversalTagClass);
 
-    bool DecodeSubType(H235_KeySyncMaterial & obj) const { return PASN_OctetString::DecodeSubType(obj); }
+    PBoolean DecodeSubType(H235_KeySyncMaterial & obj) const { return PASN_OctetString::DecodeSubType(obj); }
     void EncodeSubType(const H235_KeySyncMaterial & obj) { PASN_OctetString::EncodeSubType(obj); } 
 
     PObject * Clone() const;
@@ -660,7 +660,7 @@ class H235_V3KeySyncMaterial : public PASN_Sequence
     PASN_OctetString m_genericKeyMaterial;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -689,7 +689,7 @@ class H235_ECKASDH_eckasdhp : public PASN_Sequence
     PASN_BitString m_weierstrassB;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -718,7 +718,7 @@ class H235_ECKASDH_eckasdh2 : public PASN_Sequence
     PASN_BitString m_weierstrassB;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -770,7 +770,7 @@ class H235_ProfileElement : public PASN_Sequence
     H235_Element m_element;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -799,7 +799,7 @@ class H235_SIGNED : public PASN_Sequence
     PASN_BitString m_signature;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -828,7 +828,7 @@ class H235_ENCRYPTED : public PASN_Sequence
     ToBeEncrypted m_clearData;  // Note this is not actually encoded
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -856,7 +856,7 @@ class H235_HASHED : public PASN_Sequence
     PASN_BitString m_hash;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -890,7 +890,7 @@ class H235_KeySignedMaterial : public PASN_Sequence
     H235_ENCRYPTED<H235_EncodedKeySyncMaterial> m_encrptval;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -912,7 +912,7 @@ class H235_EncodedKeySignedMaterial : public PASN_OctetString
   public:
     H235_EncodedKeySignedMaterial(unsigned tag = 0, TagClass tagClass = UniversalTagClass);
 
-    bool DecodeSubType(H235_KeySignedMaterial & obj) { return PASN_OctetString::DecodeSubType(obj); }
+    PBoolean DecodeSubType(H235_KeySignedMaterial & obj) { return PASN_OctetString::DecodeSubType(obj); }
     void EncodeSubType(const H235_KeySignedMaterial & obj) { PASN_OctetString::EncodeSubType(obj); } 
 
     PObject * Clone() const;
@@ -941,7 +941,7 @@ class H235_H235CertificateSignature : public PASN_Sequence
     H235_SIGNED<H235_EncodedReturnSig> m_signature;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -1006,7 +1006,7 @@ class H235_H235Key : public PASN_Choice
     operator const H235_KeyMaterialExt &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -1055,7 +1055,7 @@ class H235_ClearToken : public PASN_Sequence
     H235_DHsetExt m_dhkeyext;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -1077,7 +1077,7 @@ class H235_EncodedGeneralToken : public PASN_OctetString
   public:
     H235_EncodedGeneralToken(unsigned tag = 0, TagClass tagClass = UniversalTagClass);
 
-    bool DecodeSubType(H235_ClearToken & obj) { return PASN_OctetString::DecodeSubType(obj); }
+    PBoolean DecodeSubType(H235_ClearToken & obj) { return PASN_OctetString::DecodeSubType(obj); }
     void EncodeSubType(const H235_ClearToken & obj) { PASN_OctetString::EncodeSubType(obj); } 
 
     PObject * Clone() const;
@@ -1112,7 +1112,7 @@ class H235_EncodedPwdCertToken : public PASN_OctetString
   public:
     H235_EncodedPwdCertToken(unsigned tag = 0, TagClass tagClass = UniversalTagClass);
 
-    bool DecodeSubType(H235_PwdCertToken & obj) { return PASN_OctetString::DecodeSubType(obj); }
+    PBoolean DecodeSubType(H235_PwdCertToken & obj) { return PASN_OctetString::DecodeSubType(obj); }
     void EncodeSubType(const H235_PwdCertToken & obj) { PASN_OctetString::EncodeSubType(obj); } 
 
     PObject * Clone() const;
@@ -1167,7 +1167,7 @@ class H235_CryptoToken : public PASN_Choice
     operator const H235_ENCRYPTED<H235_EncodedPwdCertToken> &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -1188,7 +1188,7 @@ class H235_CryptoToken_cryptoEncryptedToken : public PASN_Sequence
     H235_ENCRYPTED<H235_EncodedGeneralToken> m_token;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -1214,7 +1214,7 @@ class H235_CryptoToken_cryptoSignedToken : public PASN_Sequence
     H235_SIGNED<H235_EncodedGeneralToken> m_token;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -1241,7 +1241,7 @@ class H235_CryptoToken_cryptoHashedToken : public PASN_Sequence
     H235_HASHED<H235_EncodedGeneralToken> m_token;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;

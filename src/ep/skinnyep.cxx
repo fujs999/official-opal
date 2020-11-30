@@ -252,7 +252,7 @@ PSafePtr<OpalConnection> OpalSkinnyEndPoint::MakeConnection(OpalCall & call,
 }
 
 
-bool OpalSkinnyEndPoint::GarbageCollection()
+PBoolean OpalSkinnyEndPoint::GarbageCollection()
 {
   m_phoneDevicesMutex.Wait();
   for (PhoneDeviceDict::iterator it = m_phoneDevices.begin(); it != m_phoneDevices.end(); ) {
@@ -420,8 +420,8 @@ bool OpalSkinnyEndPoint::PhoneDevice::SendRegisterMsg()
   m_transport.GetLocalAddress().GetIpAddress(ip);
 
 
-  strncpy_s(msg.m_deviceName, m_name, sizeof(msg.m_deviceName) - 1);
-  strncpy_s(msg.m_macAddress, PIPSocket::GetInterfaceMACAddress().ToUpper(), sizeof(msg.m_macAddress));
+  strncpy(msg.m_deviceName, m_name, sizeof(msg.m_deviceName) - 1);
+  strncpy(msg.m_macAddress, PIPSocket::GetInterfaceMACAddress().ToUpper(), sizeof(msg.m_macAddress));
   msg.m_ip = ip;
   msg.m_maxStreams = 5;
   msg.m_deviceType = m_deviceType;
@@ -625,7 +625,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice & phone, const RegisterAckMsg 
 }
 
 
-void OpalSkinnyEndPoint::PhoneDevice::OnKeepAlive(PTimer &, intptr_t)
+void OpalSkinnyEndPoint::PhoneDevice::OnKeepAlive(PTimer &, P_INT_PTR)
 {
   SendSkinnyMsg(KeepAliveMsg());
 }
@@ -954,7 +954,7 @@ OpalSkinnyConnection::OpalSkinnyConnection(OpalCall & call,
 }
 
 
-bool OpalSkinnyConnection::SetUpConnection()
+PBoolean OpalSkinnyConnection::SetUpConnection()
 {
   InternalSetAsOriginating();
   SetPhase(SetUpPhase);
@@ -988,19 +988,19 @@ OpalMediaFormatList OpalSkinnyConnection::GetMediaFormats() const
 }
 
 
-bool OpalSkinnyConnection::SetAlerting(const PString & calleeName, bool withMedia)
+PBoolean OpalSkinnyConnection::SetAlerting(const PString & calleeName, PBoolean withMedia)
 {
   if (withMedia) {
     // In case we have already received them, try starting them now
-    for (const auto & it : m_passThruMedia)
-      OpenMediaChannel(it);
+    for (set<MediaInfo>::iterator it = m_passThruMedia.begin(); it != m_passThruMedia.end(); ++it)
+      OpenMediaChannel(*it);
   }
 
   return OpalRTPConnection::SetAlerting(calleeName, withMedia);
 }
 
 
-bool OpalSkinnyConnection::SetConnected()
+PBoolean OpalSkinnyConnection::SetConnected()
 {
   if (GetPhase() >= ConnectedPhase)
     return true;
@@ -1008,8 +1008,8 @@ bool OpalSkinnyConnection::SetConnected()
   SetPhase(ConnectedPhase);
 
   // In case we have already received them, start them now
-  for (const auto & it : m_passThruMedia)
-    OpenMediaChannel(it);
+  for (set<MediaInfo>::iterator it = m_passThruMedia.begin(); it != m_passThruMedia.end(); ++it)
+    OpenMediaChannel(*it);
 
   OpalSkinnyEndPoint::SoftKeyEventMsg msg;
   msg.m_event = OpalSkinnyEndPoint::eSoftKeyAnswer;
@@ -1324,9 +1324,9 @@ void OpalSkinnyConnection::OpenSimulatedMediaChannel(const MediaInfo & info, con
 #if OPAL_PTLIB_WAVFILE
   PFilePath simulatedAudioFile = m_endpoint.GetEndpointSimulatedAudioFile(m_phoneDevice.GetName(), info.m_sessionId);
 
-  std::unique_ptr<OpalMediaStream> sourceStream;
+  PAutoPtr<OpalMediaStream> sourceStream;
   {
-    std::unique_ptr<OpalWAVFile> wavFile(new OpalWAVFile(simulatedAudioFile, PFile::ReadOnly, PFile::ModeDefault, PWAVFile::fmt_PCM, false));
+    PAutoPtr<OpalWAVFile> wavFile(new OpalWAVFile(simulatedAudioFile, PFile::ReadOnly, PFile::ModeDefault, PWAVFile::fmt_PCM, false));
     if (!wavFile->IsOpen()) {
       PTRACE(3, "Could not simulate transmit " << mediaFormat << " stream, session=" << info.m_sessionId
              << ", file=" << simulatedAudioFile << ": " << wavFile->GetErrorText());

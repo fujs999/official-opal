@@ -86,7 +86,7 @@ bool H323_RTPChannel::SetSessionID(unsigned sessionID)
 }
 
 
-bool H323_RTPChannel::GetMediaTransportAddress(OpalTransportAddress & data,
+PBoolean H323_RTPChannel::GetMediaTransportAddress(OpalTransportAddress & data,
                                                    OpalTransportAddress & control) const
 {
   data = m_session->GetRemoteAddress(true);
@@ -95,7 +95,7 @@ bool H323_RTPChannel::GetMediaTransportAddress(OpalTransportAddress & data,
 }
 
 
-bool H323_RTPChannel::OnSendingPDU(H245_H2250LogicalChannelParameters & param) const
+PBoolean H323_RTPChannel::OnSendingPDU(H245_H2250LogicalChannelParameters & param) const
 {
   PTRACE(3, "RTP\tOnSendingPDU");
 
@@ -147,7 +147,7 @@ bool H323_RTPChannel::OnSendingPDU(H245_H2250LogicalChannelParameters & param) c
 }
 
 
-bool H323_RTPChannel::OnSendingAltPDU(H245_ArrayOf_GenericInformation & alternate) const
+PBoolean H323_RTPChannel::OnSendingAltPDU(H245_ArrayOf_GenericInformation & alternate) const
 {
   PTRACE(4, "H323RTP\tOnSendingAltPDU");
 #if OPAL_H460
@@ -183,7 +183,7 @@ void H323_RTPChannel::OnSendOpenAck(H245_H2250LogicalChannelAckParameters & para
 }
 
 
-bool H323_RTPChannel::OnReceivedPDU(const H245_H2250LogicalChannelParameters & param,
+PBoolean H323_RTPChannel::OnReceivedPDU(const H245_H2250LogicalChannelParameters & param,
                                     unsigned & errorCode)
 {
   bool explicitMedia = false;
@@ -249,7 +249,7 @@ bool H323_RTPChannel::OnReceivedPDU(const H245_H2250LogicalChannelParameters & p
 }
 
 
-bool H323_RTPChannel::OnReceivedAckPDU(const H245_H2250LogicalChannelAckParameters & param)
+PBoolean H323_RTPChannel::OnReceivedAckPDU(const H245_H2250LogicalChannelAckParameters & param)
 {
   if (!param.HasOptionalField(H245_H2250LogicalChannelAckParameters::e_sessionID)) {
     PTRACE(1, "RTP_UDP\tNo session specified");
@@ -350,7 +350,7 @@ void H323_RTPChannel::OnSendRasInfo(H225_RTPSession & info)
 
 
 #if 0 // NOTE P_QOS?
-bool H323_RTP_UDP::WriteTransportCapPDU(H245_TransportCapability & cap, 
+PBoolean H323_RTP_UDP::WriteTransportCapPDU(H245_TransportCapability & cap, 
                                             const H323_RTPChannel & channel) const
 {
   PQoS & qos = rtp.GetQOS();

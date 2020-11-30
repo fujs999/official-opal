@@ -74,7 +74,7 @@ PINDEX H46024B_AlternateAddress::GetDataLength() const
 }
 
 
-bool H46024B_AlternateAddress::Decode(PASN_Stream & strm)
+PBoolean H46024B_AlternateAddress::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return FALSE;
@@ -189,7 +189,7 @@ PINDEX H46024B_AlternateAddresses::GetDataLength() const
 }
 
 
-bool H46024B_AlternateAddresses::Decode(PASN_Stream & strm)
+PBoolean H46024B_AlternateAddresses::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return FALSE;

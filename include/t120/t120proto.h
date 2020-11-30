@@ -72,13 +72,13 @@ class OpalT120Protocol : public PObject
   //@{
     /**Handle the origination of a T.120 connection.
       */
-    virtual bool Originate(
+    virtual PBoolean Originate(
       OpalTransport & transport
     );
 
     /**Handle the origination of a T.120 connection.
       */
-    virtual bool Answer(
+    virtual PBoolean Answer(
       OpalTransport & transport
     );
 
@@ -86,7 +86,7 @@ class OpalT120Protocol : public PObject
 
        If returns false, then the reading loop should be terminated.
       */
-    virtual bool HandleConnect(
+    virtual PBoolean HandleConnect(
       const MCS_ConnectMCSPDU & pdu
     );
 
@@ -94,7 +94,7 @@ class OpalT120Protocol : public PObject
 
        If returns false, then the reading loop should be terminated.
       */
-    virtual bool HandleDomain(
+    virtual PBoolean HandleDomain(
       const MCS_DomainMCSPDU & pdu
     );
   //@}

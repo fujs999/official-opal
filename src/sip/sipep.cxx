@@ -553,7 +553,7 @@ void SIPEndPoint::OnConferenceStatusChanged(OpalEndPoint & endpoint, const PStri
 }
 
 
-bool SIPEndPoint::GarbageCollection()
+PBoolean SIPEndPoint::GarbageCollection()
 {
   PTRACE(6, "Garbage collection: transactions=" << m_activeTransactions.GetSize() << ", connections=" << m_connectionsActive.GetSize());
 
@@ -634,7 +634,7 @@ PStringList SIPEndPoint::GetAvailableStringOptions() const
 }
 
 
-bool SIPEndPoint::IsAcceptedAddress(const SIPURL & /*toAddr*/)
+PBoolean SIPEndPoint::IsAcceptedAddress(const SIPURL & /*toAddr*/)
 {
   return true;
 }
@@ -647,7 +647,7 @@ SIPConnection * SIPEndPoint::CreateConnection(const SIPConnection::Init & init)
 }
 
 
-bool SIPEndPoint::SetupTransfer(SIPConnection & transferredConnection,
+PBoolean SIPEndPoint::SetupTransfer(SIPConnection & transferredConnection,
                                     const PString & remoteParty,
                                     const PString & replaces)
 {
@@ -706,7 +706,7 @@ bool SIPEndPoint::SetupTransfer(SIPConnection & transferredConnection,
 }
 
 
-bool SIPEndPoint::ForwardConnection(SIPConnection & connection, const PString & forwardParty)
+PBoolean SIPEndPoint::ForwardConnection(SIPConnection & connection, const PString & forwardParty)
 {
   PSafePtr<OpalConnection> otherConnection = connection.GetOtherPartyConnection();
   if (otherConnection != NULL &&
@@ -1021,7 +1021,7 @@ void SIPEndPoint::RegistrarAoR::PrintOn(ostream & strm) const
 }
 
 
-bool SIPEndPoint::RegistrarAoR::ExpireBindings()
+PBoolean SIPEndPoint::RegistrarAoR::ExpireBindings()
 {
   PTime now;
   bool expiredOne = false;
@@ -1359,7 +1359,7 @@ bool SIPEndPoint::OnReceivedMESSAGE(SIP_PDU & request)
   PTRACE(4, "Received MESSAGE outside the context of a call");
 
   // if there is a callback, assume that the application knows what it is doing
-  if (m_onConnectionlessMessage) {
+  if (!m_onConnectionlessMessage.IsNULL()) {
     ConnectionlessMessageInfo info(request);
     m_onConnectionlessMessage(*this, info);
     switch (info.m_status) {
@@ -1470,7 +1470,7 @@ SIPRegisterHandler * SIPEndPoint::CreateRegisterHandler(const SIPRegister::Param
 }
 
 
-bool SIPEndPoint::IsRegistered(const PString & token, bool includeOffline) 
+PBoolean SIPEndPoint::IsRegistered(const PString & token, bool includeOffline) 
 {
   PSafePtr<SIPHandler> handler = m_activeSIPHandlers.FindSIPHandlerByCallID(token, PSafeReference);
   if (handler == NULL)
@@ -1485,7 +1485,7 @@ bool SIPEndPoint::IsRegistered(const PString & token, bool includeOffline)
 }
 
 
-bool SIPEndPoint::Unregister(const PString & token)
+PBoolean SIPEndPoint::Unregister(const PString & token)
 {
   PSafePtr<SIPHandler> handler = m_activeSIPHandlers.FindSIPHandlerByCallID(token, PSafeReference);
   if (handler == NULL)
@@ -1614,8 +1614,8 @@ void SIPEndPoint::OnRegistrationStatus(const RegistrationStatus & status)
 
 
 void SIPEndPoint::OnRegistrationStatus(const PString & aor,
-                                       bool wasRegistering,
-                                       bool /*reRegistering*/,
+                                       PBoolean wasRegistering,
+                                       PBoolean /*reRegistering*/,
                                        SIP_PDU::StatusCodes reason)
 {
   if (reason == SIP_PDU::Information_Trying)
@@ -1630,13 +1630,13 @@ void SIPEndPoint::OnRegistrationStatus(const PString & aor,
 
 void SIPEndPoint::OnRegistrationFailed(const PString & /*aor*/, 
                SIP_PDU::StatusCodes /*reason*/, 
-               bool /*wasRegistering*/)
+               PBoolean /*wasRegistering*/)
 {
 }
     
 
 void SIPEndPoint::OnRegistered(const PString & /*aor*/, 
-             bool /*wasRegistering*/)
+             PBoolean /*wasRegistering*/)
 {
 }
 
@@ -1971,7 +1971,7 @@ void SIPEndPoint::OnOptionsCompleted(const SIPOptions::Params & PTRACE_PARAM(par
 }
 
 
-bool SIPEndPoint::Ping(const PURL & to)
+PBoolean SIPEndPoint::Ping(const PURL & to)
 {
   PSafePtr<SIPHandler> handler = m_activeSIPHandlers.FindSIPHandlerByUrl(to, SIP_PDU::Method_PING, PSafeReference);
   if (handler == NULL) {

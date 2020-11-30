@@ -84,7 +84,7 @@ class H225_ReleaseCompleteReason : public PASN_Choice
     operator const H225_SecurityErrors &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -111,7 +111,7 @@ class H225_ScnConnectionType : public PASN_Choice
       e_multirate
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -137,7 +137,7 @@ class H225_ScnConnectionAggregation : public PASN_Choice
       e_bonded_mode3
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -160,7 +160,7 @@ class H225_PresentationIndicator : public PASN_Choice
       e_addressNotAvailable
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -215,7 +215,7 @@ class H225_FacilityReason : public PASN_Choice
       e_transportedInformation
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -279,7 +279,7 @@ class H225_TransportAddress : public PASN_Choice
     operator const H225_NonStandardParameter &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -397,7 +397,7 @@ class H225_SupportedProtocols : public PASN_Choice
     operator const H225_SIPCaps &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -419,7 +419,7 @@ class H225_H221NonStandard : public PASN_Sequence
     PASN_Integer m_manufacturerCode;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -449,7 +449,7 @@ class H225_TunnelledProtocolAlternateIdentifier : public PASN_Sequence
     PASN_IA5String m_protocolVariant;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -485,7 +485,7 @@ class H225_NonStandardIdentifier : public PASN_Choice
     operator const H225_H221NonStandard &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -543,7 +543,7 @@ class H225_AliasAddress : public PASN_Choice
     operator const H225_IsupNumber &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -581,7 +581,7 @@ class H225_AddressPattern : public PASN_Choice
     operator const H225_AddressPattern_range &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -629,7 +629,7 @@ class H225_PartyNumber : public PASN_Choice
     operator const H225_PrivatePartyNumber &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -673,7 +673,7 @@ class H225_PublicTypeOfNumber : public PASN_Choice
       e_abbreviatedNumber
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -699,7 +699,7 @@ class H225_PrivateTypeOfNumber : public PASN_Choice
       e_abbreviatedNumber
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -737,7 +737,7 @@ class H225_MobileUIM : public PASN_Choice
     operator const H225_GSM_UIM &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -789,7 +789,7 @@ class H225_GSM_UIM : public PASN_Sequence
     PASN_IA5String m_vplmn;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -842,7 +842,7 @@ class H225_IsupNumber : public PASN_Choice
     operator const H225_IsupPrivatePartyNumber &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -870,7 +870,7 @@ class H225_NatureOfAddress : public PASN_Choice
       e_routingNumberWithCalledDirectoryNumber
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -915,7 +915,7 @@ class H225_ExtendedAliasAddress : public PASN_Sequence
     H225_ScreeningIndicator m_screeningIndicator;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -943,7 +943,7 @@ class H225_UseSpecifiedTransport : public PASN_Choice
       e_sctp
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -975,7 +975,7 @@ class H225_SecurityServiceMode : public PASN_Choice
     operator const H225_NonStandardParameter &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -1011,7 +1011,7 @@ class H225_SecurityErrors : public PASN_Choice
       e_securityUnknownCA
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -1037,7 +1037,7 @@ class H225_SecurityErrors2 : public PASN_Choice
       e_securityWrongOID
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -1077,7 +1077,7 @@ class H225_H245Security : public PASN_Choice
     operator const H225_SecurityCapabilities &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -1098,7 +1098,7 @@ class H225_Q954Details : public PASN_Sequence
     PASN_Boolean m_threePartyService;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -1343,7 +1343,7 @@ class H225_CallIdentifier : public PASN_Sequence
     H225_GloballyUniqueID m_guid;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -1379,7 +1379,7 @@ class H225_EncryptIntAlg : public PASN_Choice
     operator const H225_NonStandardParameter &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -1412,7 +1412,7 @@ class H225_NonIsoIntegrityMechanism : public PASN_Choice
     operator const H225_EncryptIntAlg &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -1452,7 +1452,7 @@ class H225_IntegrityMechanism : public PASN_Choice
     operator const H225_NonIsoIntegrityMechanism &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -1473,7 +1473,7 @@ class H225_ICV : public PASN_Sequence
     PASN_BitString m_icv;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -1511,7 +1511,7 @@ class H225_EncodedFastStartToken : public PASN_OctetString
   public:
     H225_EncodedFastStartToken(unsigned tag = 0, TagClass tagClass = UniversalTagClass);
 
-    bool DecodeSubType(H225_FastStartToken & obj) { return PASN_OctetString::DecodeSubType(obj); }
+    PBoolean DecodeSubType(H225_FastStartToken & obj) { return PASN_OctetString::DecodeSubType(obj); }
     void EncodeSubType(const H225_FastStartToken & obj) { PASN_OctetString::EncodeSubType(obj); } 
 
     PObject * Clone() const;
@@ -1582,7 +1582,7 @@ class H225_CryptoH323Token : public PASN_Choice
     operator const H235_CryptoToken &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -1608,7 +1608,7 @@ class H225_CallLinkage : public PASN_Sequence
     H225_GloballyUniqueID m_threadId;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -1633,7 +1633,7 @@ class H225_CapacityReportingCapability : public PASN_Sequence
     PASN_Boolean m_canReportCallCapacity;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -1664,7 +1664,7 @@ class H225_CarrierInfo : public PASN_Sequence
     PASN_IA5String m_carrierName;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -1716,7 +1716,7 @@ class H225_ServiceControlDescriptor : public PASN_Choice
     operator const H225_CallCreditServiceControl &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -1747,7 +1747,7 @@ class H225_CallTerminationCause : public PASN_Choice
     operator const H225_ReleaseCompleteReason &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -1773,7 +1773,7 @@ class H225_CallCreditCapability : public PASN_Sequence
     PASN_Boolean m_canEnforceDurationLimit;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -1810,7 +1810,7 @@ class H225_GenericIdentifier : public PASN_Choice
     operator const H225_GloballyUniqueID &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -1879,7 +1879,7 @@ class H225_Content : public PASN_Choice
     operator const H225_ArrayOf_GenericData &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -1905,7 +1905,7 @@ class H225_TransportChannelInfo : public PASN_Sequence
     H225_TransportAddress m_recvAddress;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -1932,7 +1932,7 @@ class H225_RehomingModel : public PASN_Choice
       e_endpointBased
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -2218,7 +2218,7 @@ class H225_RasMessage : public PASN_Choice
     operator const H225_ArrayOf_AdmissionConfirm &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -2255,7 +2255,7 @@ class H225_GatekeeperRejectReason : public PASN_Choice
     operator const H225_SecurityErrors &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -2317,7 +2317,7 @@ class H225_RegistrationRejectReason : public PASN_Choice
     operator const H225_SecurityErrors &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -2353,7 +2353,7 @@ class H225_UnregRequestReason : public PASN_Choice
     operator const H225_SecurityErrors2 &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -2388,7 +2388,7 @@ class H225_UnregRejectReason : public PASN_Choice
     operator const H225_SecurityErrors2 &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -2412,7 +2412,7 @@ class H225_CallType : public PASN_Choice
       e_nToN
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -2434,7 +2434,7 @@ class H225_CallModel : public PASN_Choice
       e_gatekeeperRouted
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -2467,7 +2467,7 @@ class H225_TransportQOS : public PASN_Choice
     operator const H225_ArrayOf_QOSCapability &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -2506,7 +2506,7 @@ class H225_UUIEsRequested : public PASN_Sequence
     PASN_Boolean m_notify;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -2570,7 +2570,7 @@ class H225_AdmissionRejectReason : public PASN_Choice
     operator const H225_SecurityErrors2 &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -2607,7 +2607,7 @@ class H225_BandRejectReason : public PASN_Choice
     operator const H225_SecurityErrors2 &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -2659,7 +2659,7 @@ class H225_LocationRejectReason : public PASN_Choice
     operator const H225_SecurityErrors2 &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -2682,7 +2682,7 @@ class H225_DisengageReason : public PASN_Choice
       e_undefinedReason
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -2715,7 +2715,7 @@ class H225_DisengageRejectReason : public PASN_Choice
     operator const H225_SecurityErrors2 &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -2739,7 +2739,7 @@ class H225_InfoRequestResponseStatus : public PASN_Choice
       e_invalidCall
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -2772,7 +2772,7 @@ class H225_InfoRequestNakReason : public PASN_Choice
     operator const H225_SecurityErrors2 &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -2793,7 +2793,7 @@ class H225_H323_UserInformation_user_data : public PASN_Sequence
     PASN_OctetString m_user_information;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -2917,7 +2917,7 @@ class H225_H323_UU_PDU_h323_message_body : public PASN_Choice
     operator const H225_Notify_UUIE &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -3118,7 +3118,7 @@ class H225_Setup_UUIE_conferenceGoal : public PASN_Choice
       e_callIndependentSupplementaryService
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -3160,7 +3160,7 @@ class H225_Setup_UUIE_connectionParameters : public PASN_Sequence
     H225_ScnConnectionAggregation m_connectionAggregation;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -3284,7 +3284,7 @@ class H225_TransportAddress_ipAddress : public PASN_Sequence
     PASN_Integer m_port;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -3311,7 +3311,7 @@ class H225_TransportAddress_ipxAddress : public PASN_Sequence
     PASN_OctetString m_port;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -3337,7 +3337,7 @@ class H225_TransportAddress_ip6Address : public PASN_Sequence
     PASN_Integer m_port;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -3433,7 +3433,7 @@ class H225_TunnelledProtocol_id : public PASN_Choice
     operator const H225_TunnelledProtocolAlternateIdentifier &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -3454,7 +3454,7 @@ class H225_AddressPattern_range : public PASN_Sequence
     H225_PartyNumber m_endOfRange;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -3481,7 +3481,7 @@ class H225_ANSI_41_UIM_system_id : public PASN_Choice
       e_mid
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -3543,7 +3543,7 @@ class H225_CryptoH323Token_cryptoEPPwdHash : public PASN_Sequence
     H235_HASHED<H235_EncodedPwdCertToken> m_token;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -3570,7 +3570,7 @@ class H225_CryptoH323Token_cryptoGKPwdHash : public PASN_Sequence
     H235_HASHED<H235_EncodedPwdCertToken> m_token;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -3601,7 +3601,7 @@ class H225_CapacityReportingSpecification_when : public PASN_Sequence
     PASN_Null m_callEnd;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -3685,7 +3685,7 @@ class H225_ServiceControlSession_reason : public PASN_Choice
       e_close
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -3713,7 +3713,7 @@ class H225_RasUsageSpecification_when : public PASN_Sequence
     PASN_Null m_inIrr;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -3744,7 +3744,7 @@ class H225_RasUsageSpecification_callStartingPoint : public PASN_Sequence
     PASN_Null m_connect;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -3771,7 +3771,7 @@ class H225_CallCreditServiceControl_billingMode : public PASN_Choice
       e_debit
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -3793,7 +3793,7 @@ class H225_CallCreditServiceControl_callStartingPoint : public PASN_Choice
       e_connect
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -4035,7 +4035,7 @@ class H225_RegistrationRejectReason_invalidTerminalAliases : public PASN_Sequenc
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4178,7 +4178,7 @@ class H225_ServiceControlIndication_callSpecific : public PASN_Sequence
     PASN_Boolean m_answeredCall;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4208,7 +4208,7 @@ class H225_ServiceControlResponse_result : public PASN_Choice
       e_neededFeatureNotSupported
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -4248,7 +4248,7 @@ class H225_TransportAddress_ipSourceRoute_routing : public PASN_Choice
       e_loose
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -4356,7 +4356,7 @@ class H225_Status_UUIE : public PASN_Sequence
     H225_ArrayOf_CryptoH323Token m_cryptoTokens;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4389,7 +4389,7 @@ class H225_StatusInquiry_UUIE : public PASN_Sequence
     H225_ArrayOf_CryptoH323Token m_cryptoTokens;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4422,7 +4422,7 @@ class H225_SetupAcknowledge_UUIE : public PASN_Sequence
     H225_ArrayOf_CryptoH323Token m_cryptoTokens;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4455,7 +4455,7 @@ class H225_Notify_UUIE : public PASN_Sequence
     H225_ArrayOf_CryptoH323Token m_cryptoTokens;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4489,7 +4489,7 @@ class H225_VendorIdentifier : public PASN_Sequence
     PASN_ObjectId m_enterpriseNumber;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4519,7 +4519,7 @@ class H225_TunnelledProtocol : public PASN_Sequence
     PASN_IA5String m_subIdentifier;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4545,7 +4545,7 @@ class H225_NonStandardParameter : public PASN_Sequence
     PASN_OctetString m_data;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4571,7 +4571,7 @@ class H225_PublicPartyNumber : public PASN_Sequence
     H225_NumberDigits m_publicNumberDigits;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4597,7 +4597,7 @@ class H225_PrivatePartyNumber : public PASN_Sequence
     H225_NumberDigits m_privateNumberDigits;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4647,7 +4647,7 @@ class H225_ANSI_41_UIM : public PASN_Sequence
     PASN_IA5String m_soc;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4673,7 +4673,7 @@ class H225_IsupPublicPartyNumber : public PASN_Sequence
     H225_IsupDigits m_address;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4699,7 +4699,7 @@ class H225_IsupPrivatePartyNumber : public PASN_Sequence
     H225_IsupDigits m_address;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4730,7 +4730,7 @@ class H225_AlternateTransportAddresses : public PASN_Sequence
     H225_ArrayOf_TransportAddress m_sctp;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4762,7 +4762,7 @@ class H225_AlternateGK : public PASN_Sequence
     PASN_Integer m_priority;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4788,7 +4788,7 @@ class H225_AltGKInfo : public PASN_Sequence
     PASN_Boolean m_altGKisPermanent;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4820,7 +4820,7 @@ class H225_SecurityCapabilities : public PASN_Sequence
     H225_SecurityServiceMode m_integrity;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4852,7 +4852,7 @@ class H225_QseriesOptions : public PASN_Sequence
     H225_Q954Details m_q954Info;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4884,7 +4884,7 @@ class H225_DataRate : public PASN_Sequence
     PASN_Integer m_channelMultiplier;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4914,7 +4914,7 @@ class H225_SupportedPrefix : public PASN_Sequence
     H225_AliasAddress m_prefix;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4939,7 +4939,7 @@ class H225_CapacityReportingSpecification : public PASN_Sequence
     H225_CapacityReportingSpecification_when m_when;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -4990,7 +4990,7 @@ class H225_CallCapacityInfo : public PASN_Sequence
     H225_ArrayOf_CallsAvailable m_sipGwCallsAvailable;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5022,7 +5022,7 @@ class H225_CallsAvailable : public PASN_Sequence
     H225_CarrierInfo m_carrier;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5048,7 +5048,7 @@ class H225_CicInfo : public PASN_Sequence
     PASN_OctetString m_pointCode;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5078,7 +5078,7 @@ class H225_GroupID : public PASN_Sequence
     PASN_IA5String m_group;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5109,7 +5109,7 @@ class H225_ServiceControlSession : public PASN_Sequence
     H225_ServiceControlSession_reason m_reason;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5143,7 +5143,7 @@ class H225_RasUsageInfoTypes : public PASN_Sequence
     PASN_Null m_terminationCause;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5174,7 +5174,7 @@ class H225_RasUsageSpecification : public PASN_Sequence
     H225_RasUsageInfoTypes m_required;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5208,7 +5208,7 @@ class H225_RasUsageInformation : public PASN_Sequence
     H235_TimeStamp m_endTime;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5236,7 +5236,7 @@ class H225_BandwidthDetails : public PASN_Sequence
     H225_TransportChannelInfo m_rtcpAddresses;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5273,7 +5273,7 @@ class H225_CallCreditServiceControl : public PASN_Sequence
     H225_CallCreditServiceControl_callStartingPoint m_callStartingPoint;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5303,7 +5303,7 @@ class H225_GenericData : public PASN_Sequence
     H225_ArrayOf_EnumeratedParameter m_parameters;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5333,7 +5333,7 @@ class H225_EnumeratedParameter : public PASN_Sequence
     H225_Content m_content;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5367,7 +5367,7 @@ class H225_FeatureSet : public PASN_Sequence
     H225_ArrayOf_FeatureDescriptor m_supportedFeatures;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5404,7 +5404,7 @@ class H225_RTPSession : public PASN_Sequence
     H225_BandWidth m_bandwidth;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5460,7 +5460,7 @@ class H225_GatekeeperConfirm : public PASN_Sequence
     H225_RehomingModel m_rehomingModel;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5506,7 +5506,7 @@ class H225_GatekeeperReject : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5554,7 +5554,7 @@ class H225_RegistrationReject : public PASN_Sequence
     H225_AlternateGK m_assignedGatekeeper;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5611,7 +5611,7 @@ class H225_UnregistrationRequest : public PASN_Sequence
     H225_AlternateGK m_assignedGatekeeper;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5651,7 +5651,7 @@ class H225_UnregistrationConfirm : public PASN_Sequence
     H225_AlternateGK m_assignedGatekeeper;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5692,7 +5692,7 @@ class H225_UnregistrationReject : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5741,7 +5741,7 @@ class H225_AdmissionReject : public PASN_Sequence
     H225_AlternateGK m_assignedGatekeeper;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5783,7 +5783,7 @@ class H225_BandwidthReject : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5828,7 +5828,7 @@ class H225_LocationReject : public PASN_Sequence
     H225_ArrayOf_ServiceControlSession m_serviceControl;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5869,7 +5869,7 @@ class H225_DisengageReject : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5926,7 +5926,7 @@ class H225_InfoRequest : public PASN_Sequence
     H225_AlternateGK m_assignedGatekeeper;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -5962,7 +5962,7 @@ class H225_InfoRequestAck : public PASN_Sequence
     H225_ICV m_integrityCheckValue;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6001,7 +6001,7 @@ class H225_InfoRequestNak : public PASN_Sequence
     H225_ICV m_integrityCheckValue;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6040,7 +6040,7 @@ class H225_NonStandardMessage : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6076,7 +6076,7 @@ class H225_UnknownMessageResponse : public PASN_Sequence
     PASN_OctetString m_messageNotUnderstood;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6113,7 +6113,7 @@ class H225_RequestInProgress : public PASN_Sequence
     PASN_Integer m_delay;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6152,7 +6152,7 @@ class H225_ResourcesAvailableConfirm : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6197,7 +6197,7 @@ class H225_ServiceControlIndication : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6239,7 +6239,7 @@ class H225_ServiceControlResponse : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6272,7 +6272,7 @@ class H225_H323_UU_PDU_tunnelledSignallingMessage : public PASN_Sequence
     H225_NonStandardParameter m_nonStandardData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6300,7 +6300,7 @@ class H225_TransportAddress_ipSourceRoute : public PASN_Sequence
     H225_TransportAddress_ipSourceRoute_routing m_routing;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6339,7 +6339,7 @@ class H225_RegistrationConfirm_preGrantedARQ : public PASN_Sequence
     H225_UseSpecifiedTransport m_useSpecifiedTransport;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6372,7 +6372,7 @@ class H225_StimulusControl : public PASN_Sequence
     PASN_OctetString m_h248Message;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6405,7 +6405,7 @@ class H225_ConferenceList : public PASN_Sequence
     H225_NonStandardParameter m_nonStandardData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6436,7 +6436,7 @@ class H225_GatewayInfo : public PASN_Sequence
     H225_NonStandardParameter m_nonStandardData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6469,7 +6469,7 @@ class H225_H310Caps : public PASN_Sequence
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6502,7 +6502,7 @@ class H225_H320Caps : public PASN_Sequence
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6535,7 +6535,7 @@ class H225_H321Caps : public PASN_Sequence
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6568,7 +6568,7 @@ class H225_H322Caps : public PASN_Sequence
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6601,7 +6601,7 @@ class H225_H323Caps : public PASN_Sequence
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6634,7 +6634,7 @@ class H225_H324Caps : public PASN_Sequence
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6667,7 +6667,7 @@ class H225_VoiceCaps : public PASN_Sequence
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6700,7 +6700,7 @@ class H225_T120OnlyCaps : public PASN_Sequence
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6732,7 +6732,7 @@ class H225_NonStandardProtocol : public PASN_Sequence
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6766,7 +6766,7 @@ class H225_T38FaxAnnexbOnlyCaps : public PASN_Sequence
     H245_T38FaxProfile m_t38FaxProfile;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6799,7 +6799,7 @@ class H225_SIPCaps : public PASN_Sequence
     H225_ArrayOf_SupportedPrefix m_supportedPrefixes;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6830,7 +6830,7 @@ class H225_McuInfo : public PASN_Sequence
     H225_ArrayOf_SupportedProtocols m_protocol;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6859,7 +6859,7 @@ class H225_TerminalInfo : public PASN_Sequence
     H225_NonStandardParameter m_nonStandardData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6888,7 +6888,7 @@ class H225_GatekeeperInfo : public PASN_Sequence
     H225_NonStandardParameter m_nonStandardData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6935,7 +6935,7 @@ class H225_CallCapacity : public PASN_Sequence
     H225_CallCapacityInfo m_currentCallCapacity;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -6968,7 +6968,7 @@ class H225_CircuitIdentifier : public PASN_Sequence
     H225_CarrierInfo m_carrier;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7045,7 +7045,7 @@ class H225_RegistrationConfirm : public PASN_Sequence
     H225_TransportQOS m_transportQOS;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7105,7 +7105,7 @@ class H225_BandwidthRequest : public PASN_Sequence
     H225_TransportQOS m_transportQOS;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7148,7 +7148,7 @@ class H225_BandwidthConfirm : public PASN_Sequence
     H225_TransportQOS m_transportQOS;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7192,7 +7192,7 @@ class H225_ResourcesAvailableIndicate : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7240,7 +7240,7 @@ class H225_H323_UU_PDU : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7288,7 +7288,7 @@ class H225_ReleaseComplete_UUIE : public PASN_Sequence
     H225_FeatureSet m_featureSet;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7333,7 +7333,7 @@ class H225_EndpointType : public PASN_Sequence
     H225_ArrayOf_TunnelledProtocol m_supportedTunnelledProtocols;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7366,7 +7366,7 @@ class H225_CircuitInfo : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7429,7 +7429,7 @@ class H225_GatekeeperRequest : public PASN_Sequence
     H225_AlternateGK m_assignedGatekeeper;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7523,7 +7523,7 @@ class H225_RegistrationRequest : public PASN_Sequence
     H225_RegistrationRequest_language m_language;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7611,7 +7611,7 @@ class H225_AdmissionRequest : public PASN_Sequence
     PASN_Boolean m_canMapSrcAlias;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7692,7 +7692,7 @@ class H225_AdmissionConfirm : public PASN_Sequence
     H225_AlternateGK m_assignedGatekeeper;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7760,7 +7760,7 @@ class H225_LocationRequest : public PASN_Sequence
     H225_LocationRequest_language m_language;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7826,7 +7826,7 @@ class H225_LocationConfirm : public PASN_Sequence
     H225_BandWidth m_bandWidth;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7886,7 +7886,7 @@ class H225_DisengageRequest : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7932,7 +7932,7 @@ class H225_DisengageConfirm : public PASN_Sequence
     H225_AlternateGK m_assignedGatekeeper;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -7986,7 +7986,7 @@ class H225_InfoRequestResponse : public PASN_Sequence
     H225_ArrayOf_GenericData m_genericData;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -8046,7 +8046,7 @@ class H225_InfoRequestResponse_perCallInfo_subtype : public PASN_Sequence
     H225_CircuitInfo m_circuitInfo;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -8072,7 +8072,7 @@ class H225_InfoRequestResponse_perCallInfo_subtype_pdu_subtype : public PASN_Seq
     PASN_Boolean m_sent;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -8102,7 +8102,7 @@ class H225_H323_UserInformation : public PASN_Sequence
     H225_H323_UserInformation_user_data m_user_data;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -8161,7 +8161,7 @@ class H225_Alerting_UUIE : public PASN_Sequence
     H225_FeatureSet m_featureSet;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -8210,7 +8210,7 @@ class H225_CallProceeding_UUIE : public PASN_Sequence
     H225_FeatureSet m_featureSet;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -8272,7 +8272,7 @@ class H225_Connect_UUIE : public PASN_Sequence
     H225_FeatureSet m_featureSet;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -8312,7 +8312,7 @@ class H225_Information_UUIE : public PASN_Sequence
     H225_CircuitInfo m_circuitInfo;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -8413,7 +8413,7 @@ class H225_Setup_UUIE : public PASN_Sequence
     PASN_Integer m_hopCount;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -8480,7 +8480,7 @@ class H225_Facility_UUIE : public PASN_Sequence
     H225_H245Security m_h245SecurityMode;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -8526,7 +8526,7 @@ class H225_Progress_UUIE : public PASN_Sequence
     PASN_Null m_fastConnectRefused;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -8579,7 +8579,7 @@ class H225_Endpoint : public PASN_Sequence
     H225_FeatureSet m_featureSet;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;

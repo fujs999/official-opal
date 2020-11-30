@@ -163,7 +163,7 @@ static bool InitialiseLine(OpalLine * line)
 }
 
 
-bool OpalLineEndPoint::AddLine(OpalLine * line)
+PBoolean OpalLineEndPoint::AddLine(OpalLine * line)
 {
   if (PAssertNULL(line) == NULL)
     return false;
@@ -212,7 +212,7 @@ void OpalLineEndPoint::RemoveAllLines()
   m_linesMutex.Signal();
 }   
     
-bool OpalLineEndPoint::AddLinesFromDevice(OpalLineInterfaceDevice & device)
+PBoolean OpalLineEndPoint::AddLinesFromDevice(OpalLineInterfaceDevice & device)
 {
   if (!device.IsOpen()){
     PTRACE(1, "LID EP\tAddLinesFromDevice device " << device.GetDeviceName() << " is not opened");
@@ -261,9 +261,9 @@ void OpalLineEndPoint::RemoveLinesFromDevice(OpalLineInterfaceDevice & device)
 }
 
 
-bool OpalLineEndPoint::AddDeviceNames(const PStringArray & descriptors)
+PBoolean OpalLineEndPoint::AddDeviceNames(const PStringArray & descriptors)
 {
-  bool ok = false;
+  PBoolean ok = false;
 
   for (PINDEX i = 0; i < descriptors.GetSize(); i++) {
     if (AddDeviceName(descriptors[i]))
@@ -295,7 +295,7 @@ const OpalLineInterfaceDevice * OpalLineEndPoint::GetDeviceByName(const PString 
 }
 
 
-bool OpalLineEndPoint::AddDeviceName(const PString & descriptor)
+PBoolean OpalLineEndPoint::AddDeviceName(const PString & descriptor)
 {
   if (GetDeviceByName(descriptor) != NULL)
     return true;
@@ -310,7 +310,7 @@ bool OpalLineEndPoint::AddDeviceName(const PString & descriptor)
 }
 
 
-bool OpalLineEndPoint::AddDevice(OpalLineInterfaceDevice * device)
+PBoolean OpalLineEndPoint::AddDevice(OpalLineInterfaceDevice * device)
 {
   if (PAssertNULL(device) == NULL)
     return false;
@@ -393,7 +393,7 @@ bool OpalLineEndPoint::SetCountryCodeName(const PString & countryName)
 }
 
 
-void OpalLineEndPoint::MonitorLines(PThread &, intptr_t)
+void OpalLineEndPoint::MonitorLines(PThread &, P_INT_PTR)
 {
   PTRACE(4, "LID EP\tMonitor thread started for " << GetPrefixName());
 
@@ -520,7 +520,7 @@ PString OpalLineConnection::GetDestinationAddress()
 }
 
 
-bool OpalLineConnection::SetAlerting(const PString & /*calleeName*/, bool /*withMedia*/)
+PBoolean OpalLineConnection::SetAlerting(const PString & /*calleeName*/, PBoolean /*withMedia*/)
 {
   PTRACE(3, "LID Con\tSetAlerting " << *this);
 
@@ -542,7 +542,7 @@ bool OpalLineConnection::SetAlerting(const PString & /*calleeName*/, bool /*with
 }
 
 
-bool OpalLineConnection::SetConnected()
+PBoolean OpalLineConnection::SetConnected()
 {
   PTRACE(3, "LID Con\tSetConnected " << *this);
 
@@ -581,7 +581,7 @@ OpalMediaFormatList OpalLineConnection::GetMediaFormats() const
 
 OpalMediaStream * OpalLineConnection::CreateMediaStream(const OpalMediaFormat & mediaFormat,
                                                         unsigned sessionID,
-                                                        bool isSource)
+                                                        PBoolean isSource)
 {
   OpalMediaFormatList formats = m_line.GetDevice().GetMediaFormats();
   if (formats.FindFormat(mediaFormat) == formats.end())
@@ -591,7 +591,7 @@ OpalMediaStream * OpalLineConnection::CreateMediaStream(const OpalMediaFormat & 
 }
 
 
-bool OpalLineConnection::OnOpenMediaStream(OpalMediaStream & mediaStream)
+PBoolean OpalLineConnection::OnOpenMediaStream(OpalMediaStream & mediaStream)
 {
   if (!OpalConnection::OnOpenMediaStream(mediaStream))
     return false;
@@ -612,7 +612,7 @@ void OpalLineConnection::OnClosedMediaStream(const OpalMediaStream & mediaStream
 }
 
 
-bool OpalLineConnection::SetAudioVolume(bool source, unsigned percentage)
+PBoolean OpalLineConnection::SetAudioVolume(PBoolean source, unsigned percentage)
 {
   PSafePtr<OpalLineMediaStream> stream = PSafePtrCast<OpalMediaStream, OpalLineMediaStream>(GetMediaStream(OpalMediaType::Audio(), source));
   if (stream == NULL)
@@ -634,13 +634,13 @@ int OpalLineConnection::GetAudioLevelDB(bool source)
 }
 
 
-bool OpalLineConnection::SendUserInputString(const PString & value)
+PBoolean OpalLineConnection::SendUserInputString(const PString & value)
 {
   return m_line.PlayDTMF(value);
 }
 
 
-bool OpalLineConnection::SendUserInputTone(char tone, int duration)
+PBoolean OpalLineConnection::SendUserInputTone(char tone, int duration)
 {
   if (duration <= 0)
     return m_line.PlayDTMF(&tone);
@@ -649,7 +649,7 @@ bool OpalLineConnection::SendUserInputTone(char tone, int duration)
 }
 
 
-bool OpalLineConnection::PromptUserInput(bool play)
+PBoolean OpalLineConnection::PromptUserInput(PBoolean play)
 {
   PTRACE(3, "LID Con\tConnection " << m_callToken << " dial tone " << (play ? "started" : "stopped"));
 
@@ -732,7 +732,7 @@ void OpalLineConnection::Monitor()
 }
 
 
-void OpalLineConnection::HandleIncoming(PThread &, intptr_t)
+void OpalLineConnection::HandleIncoming(PThread &, P_INT_PTR)
 {
   PTRACE(3, "LID Con\tHandling incoming call on " << *this);
 
@@ -809,7 +809,7 @@ PString OpalLineConnection::GetPrefixName() const
 }
 
 
-bool OpalLineConnection::SetUpConnection()
+PBoolean OpalLineConnection::SetUpConnection()
 {
   PTRACE(3, "LID Con\tSetUpConnection call on " << *this << " to \"" << m_remotePartyNumber << '"');
 
@@ -909,7 +909,7 @@ bool OpalLineConnection::SetUpConnection()
 OpalLineMediaStream::OpalLineMediaStream(OpalLineConnection & conn, 
                                   const OpalMediaFormat & mediaFormat,
                                                  unsigned sessionID,
-                                                     bool isSource,
+                                                     PBoolean isSource,
                                                OpalLine & ln)
   : OpalMediaStream(conn, mediaFormat, sessionID, isSource)
   , m_line(ln)
@@ -928,7 +928,7 @@ OpalLineMediaStream::~OpalLineMediaStream()
 }
 
 
-bool OpalLineMediaStream::Open()
+PBoolean OpalLineMediaStream::Open()
 {
   if (m_isOpen)
     return true;
@@ -963,7 +963,7 @@ void OpalLineMediaStream::InternalClose()
 }
 
 
-bool OpalLineMediaStream::ReadPacket(RTP_DataFrame & packet)
+PBoolean OpalLineMediaStream::ReadPacket(RTP_DataFrame & packet)
 {
   if (m_notUsingRTP)
     return OpalMediaStream::ReadPacket(packet);
@@ -980,7 +980,7 @@ bool OpalLineMediaStream::ReadPacket(RTP_DataFrame & packet)
 }
 
 
-bool OpalLineMediaStream::WritePacket(RTP_DataFrame & packet)
+PBoolean OpalLineMediaStream::WritePacket(RTP_DataFrame & packet)
 {
   if (m_notUsingRTP)
     return OpalMediaStream::WritePacket(packet);
@@ -990,7 +990,7 @@ bool OpalLineMediaStream::WritePacket(RTP_DataFrame & packet)
 }
 
 
-bool OpalLineMediaStream::ReadData(BYTE * buffer, PINDEX size, PINDEX & length)
+PBoolean OpalLineMediaStream::ReadData(BYTE * buffer, PINDEX size, PINDEX & length)
 {
   PAssert(m_notUsingRTP, PLogicError);
 
@@ -1040,7 +1040,7 @@ bool OpalLineMediaStream::ReadData(BYTE * buffer, PINDEX size, PINDEX & length)
 }
 
 
-bool OpalLineMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDEX & written)
+PBoolean OpalLineMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDEX & written)
 {
   PAssert(m_notUsingRTP, PLogicError);
 
@@ -1112,7 +1112,7 @@ bool OpalLineMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDEX &
 }
 
 
-bool OpalLineMediaStream::SetDataSize(PINDEX dataSize, PINDEX frameTime)
+PBoolean OpalLineMediaStream::SetDataSize(PINDEX dataSize, PINDEX frameTime)
 {
   if (m_notUsingRTP) {
     if (IsSource())
@@ -1133,13 +1133,13 @@ bool OpalLineMediaStream::SetDataSize(PINDEX dataSize, PINDEX frameTime)
 }
 
 
-bool OpalLineMediaStream::IsSynchronous() const
+PBoolean OpalLineMediaStream::IsSynchronous() const
 {
   return true;
 }
 
 
-bool OpalLineMediaStream::RequiresPatchThread(OpalMediaStream * stream) const
+PBoolean OpalLineMediaStream::RequiresPatchThread(OpalMediaStream * stream) const
 {
   OpalLineMediaStream * lineStream = dynamic_cast<OpalLineMediaStream *>(stream);
   if (lineStream != NULL && &m_line.GetDevice() == &lineStream->m_line.GetDevice()) {

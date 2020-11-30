@@ -53,7 +53,7 @@ class H501Transaction : public H323Transaction
     H501Transaction(
       H323PeerElement & pe,
       const H501PDU & pdu,
-      bool hasReject
+      PBoolean hasReject
     );
 
     virtual H323TransactionPDU * CreateRIP(
@@ -184,7 +184,7 @@ class H323PeerElementDescriptor : public PSafeObject
     static inline unsigned GetPriorityOption(unsigned options) { return (options & Option_PrioritySet) != 0 ? ((options >> 6) & 0x7f) : (int)DefaultPriority; }
 
     void CopyTo(H501_Descriptor & descriptor);
-    static bool CopyToAddressTemplate(H501_AddressTemplate & addressTemplates, 
+    static PBoolean CopyToAddressTemplate(H501_AddressTemplate & addressTemplates, 
                                    const H225_EndpointType & ep, 
                            const H225_ArrayOf_AliasAddress & aliases, 
                            const H225_ArrayOf_AliasAddress & transportAddress, 
@@ -195,7 +195,7 @@ class H323PeerElementDescriptor : public PSafeObject
 
     OpalGloballyUniqueID descriptorID;
 
-    bool ContainsNonexistent();
+    PBoolean ContainsNonexistent();
 
     enum States {
       Clean,
@@ -310,12 +310,12 @@ class H323PeerElement : public H323_AnnexG
 
     /**Send a service request
      */
-    bool SetOnlyServiceRelationship(const PString & peer, bool keepTrying = true);
-    bool AddServiceRelationship(const H323TransportAddress & peer, bool keepTrying = true);
-    bool AddServiceRelationship(const H323TransportAddress & peer, OpalGloballyUniqueID & serviceID, bool keepTrying = true);
-    bool RemoveServiceRelationship(const OpalGloballyUniqueID & serviceID, int reason = H501_ServiceReleaseReason::e_terminated);
-    bool RemoveServiceRelationship(const H323TransportAddress & peer, int reason = H501_ServiceReleaseReason::e_terminated);
-    bool RemoveAllServiceRelationships();
+    PBoolean SetOnlyServiceRelationship(const PString & peer, PBoolean keepTrying = true);
+    PBoolean AddServiceRelationship(const H323TransportAddress & peer, PBoolean keepTrying = true);
+    PBoolean AddServiceRelationship(const H323TransportAddress & peer, OpalGloballyUniqueID & serviceID, PBoolean keepTrying = true);
+    PBoolean RemoveServiceRelationship(const OpalGloballyUniqueID & serviceID, int reason = H501_ServiceReleaseReason::e_terminated);
+    PBoolean RemoveServiceRelationship(const H323TransportAddress & peer, int reason = H501_ServiceReleaseReason::e_terminated);
+    PBoolean RemoveAllServiceRelationships();
 
     Error ServiceRequestByAddr(const H323TransportAddress & peer);
     Error ServiceRequestByAddr(const H323TransportAddress & peer, OpalGloballyUniqueID & serviceID);
@@ -323,83 +323,83 @@ class H323PeerElement : public H323_AnnexG
 
     /**Send a service release
      */
-    bool ServiceRelease(const OpalGloballyUniqueID & serviceID, unsigned reason);
+    PBoolean ServiceRelease(const OpalGloballyUniqueID & serviceID, unsigned reason);
 
     /*********************************************************
       functions to manipulate the local descriptor table
      */
 
-    bool AddDescriptor(
+    PBoolean AddDescriptor(
       const OpalGloballyUniqueID & descriptorID,
       const PStringArray & aliases, 
       const H323TransportAddressArray & transportAddrs, 
       unsigned options = H323PeerElementDescriptor::Protocol_H323, 
-      bool now = false
+      PBoolean now = false
     );
 
-    bool AddDescriptor(
+    PBoolean AddDescriptor(
       const OpalGloballyUniqueID & descriptorID,
       const H225_ArrayOf_AliasAddress & aliases, 
       const H323TransportAddressArray & transportAddrs, 
       unsigned options = H323PeerElementDescriptor::Protocol_H323, 
-      bool now = false
+      PBoolean now = false
     );
 
-    bool AddDescriptor(
+    PBoolean AddDescriptor(
       const OpalGloballyUniqueID & descriptorID,
       const H225_ArrayOf_AliasAddress & aliases, 
       const H225_ArrayOf_AliasAddress & transportAddr, 
       unsigned options = H323PeerElementDescriptor::Protocol_H323, 
-      bool now = false
+      PBoolean now = false
     );
 
-    bool AddDescriptor(
+    PBoolean AddDescriptor(
       const OpalGloballyUniqueID & descriptorID,
       const POrdinalKey & creator,
       const H225_ArrayOf_AliasAddress & alias, 
       const H225_ArrayOf_AliasAddress & transportAddresses,
       unsigned options = H323PeerElementDescriptor::Protocol_H323,
-      bool now = false
+      PBoolean now = false
     );
 
-    bool AddDescriptor(
+    PBoolean AddDescriptor(
       const OpalGloballyUniqueID & descriptorID,
       const POrdinalKey & creator,
       const H501_ArrayOf_AddressTemplate & addressTemplates,
       const PTime & updateTime,
-      bool now = false
+      PBoolean now = false
     );
 
     /**Remove a descriptor from the local table
      */
-    bool DeleteDescriptor(const PString & alias, bool now = false);
-    bool DeleteDescriptor(const H225_AliasAddress & alias, bool now = false);
-    bool DeleteDescriptor(const OpalGloballyUniqueID & descriptorID, bool now = false);
+    PBoolean DeleteDescriptor(const PString & alias, PBoolean now = false);
+    PBoolean DeleteDescriptor(const H225_AliasAddress & alias, PBoolean now = false);
+    PBoolean DeleteDescriptor(const OpalGloballyUniqueID & descriptorID, PBoolean now = false);
 
     /** Request access to an alias
     */
-    bool AccessRequest(
+    PBoolean AccessRequest(
       const PString & searchAlias,
       PStringArray & destAliases, 
       H323TransportAddress & transportAddress,
       unsigned options = H323PeerElementDescriptor::Protocol_H323
     );
 
-    bool AccessRequest(
+    PBoolean AccessRequest(
       const PString & searchAlias,
       H225_ArrayOf_AliasAddress & destAliases,
       H323TransportAddress & transportAddress,
       unsigned options = H323PeerElementDescriptor::Protocol_H323
     );
 
-    bool AccessRequest(
+    PBoolean AccessRequest(
       const H225_AliasAddress & searchAlias,
       H225_ArrayOf_AliasAddress & destAliases,
       H323TransportAddress & transportAddress,
       unsigned options = H323PeerElementDescriptor::Protocol_H323
     );
 
-    bool AccessRequest(
+    PBoolean AccessRequest(
       const H225_AliasAddress & alias,
       H225_ArrayOf_AliasAddress & destAliases,
       H225_AliasAddress & transportAddress,
@@ -409,8 +409,8 @@ class H323PeerElement : public H323_AnnexG
     /*********************************************************
       functions to send send descriptors to another peer element
       */
-    bool UpdateDescriptor(H323PeerElementDescriptor * descriptor);
-    bool UpdateDescriptor(H323PeerElementDescriptor * descriptor, H501_UpdateInformation_updateType::Choices updateType);
+    PBoolean UpdateDescriptor(H323PeerElementDescriptor * descriptor);
+    PBoolean UpdateDescriptor(H323PeerElementDescriptor * descriptor, H501_UpdateInformation_updateType::Choices updateType);
 
 
     Error SendUpdateDescriptorByID(const OpalGloballyUniqueID & serviceID, 
@@ -434,7 +434,7 @@ class H323PeerElement : public H323_AnnexG
       low level request functions
       */
 
-    bool MakeRequest(H323_AnnexG::Request & request);
+    PBoolean MakeRequest(H323_AnnexG::Request & request);
 
     virtual void OnAddServiceRelationship(const H323TransportAddress &) { }
     virtual void OnRemoveServiceRelationship(const H323TransportAddress &) { }
@@ -447,26 +447,26 @@ class H323PeerElement : public H323_AnnexG
     virtual H323Transaction::Response OnDescriptorUpdate(H501DescriptorUpdate & info);
     virtual H323Transaction::Response OnAccessRequest(H501AccessRequest & info);
 
-    bool OnReceiveServiceRequest(const H501PDU & pdu, const H501_ServiceRequest & pduBody);
-    bool OnReceiveServiceConfirmation(const H501PDU & pdu, const H501_ServiceConfirmation & pduBody);
+    PBoolean OnReceiveServiceRequest(const H501PDU & pdu, const H501_ServiceRequest & pduBody);
+    PBoolean OnReceiveServiceConfirmation(const H501PDU & pdu, const H501_ServiceConfirmation & pduBody);
 
-    bool OnReceiveDescriptorUpdate(const H501PDU & pdu, const H501_DescriptorUpdate & pduBody);
-    bool OnReceiveDescriptorUpdateACK(const H501PDU & pdu, const H501_DescriptorUpdateAck & pduBody);
+    PBoolean OnReceiveDescriptorUpdate(const H501PDU & pdu, const H501_DescriptorUpdate & pduBody);
+    PBoolean OnReceiveDescriptorUpdateACK(const H501PDU & pdu, const H501_DescriptorUpdateAck & pduBody);
 
-    bool OnReceiveAccessRequest(const H501PDU & pdu, const H501_AccessRequest & pduBody);
-    bool OnReceiveAccessConfirmation (const H501PDU & pdu, const H501_AccessConfirmation & pduBody);
-    bool OnReceiveAccessRejection(const H501PDU & pdu,     const H501_AccessRejection & pduBody);
+    PBoolean OnReceiveAccessRequest(const H501PDU & pdu, const H501_AccessRequest & pduBody);
+    PBoolean OnReceiveAccessConfirmation (const H501PDU & pdu, const H501_AccessConfirmation & pduBody);
+    PBoolean OnReceiveAccessRejection(const H501PDU & pdu,     const H501_AccessRejection & pduBody);
 
     class AliasKey : public H225_AliasAddress
     {
       public:
-        AliasKey(const H225_AliasAddress & _alias, const OpalGloballyUniqueID & _id, PINDEX _pos, bool _wild = false)
+        AliasKey(const H225_AliasAddress & _alias, const OpalGloballyUniqueID & _id, PINDEX _pos, PBoolean _wild = false)
           : H225_AliasAddress(_alias), id(_id), pos(_pos), wild(_wild)
         { }
 
         OpalGloballyUniqueID id;
         PINDEX pos;
-        bool wild;
+        PBoolean wild;
     };
 
   protected:
@@ -477,13 +477,13 @@ class H323PeerElement : public H323_AnnexG
                            H323PeerElementDescriptor * descriptor,
             H501_UpdateInformation_updateType::Choices updateType);
 
-    bool OnRemoteServiceRelationshipDisappeared(OpalGloballyUniqueID & serviceID, const H323TransportAddress & peer);
+    PBoolean OnRemoteServiceRelationshipDisappeared(OpalGloballyUniqueID & serviceID, const H323TransportAddress & peer);
     void InternalRemoveServiceRelationship(const H323TransportAddress & peer);
     H323Transaction::Response HandleServiceRequest(H501ServiceRequest & info);
 
     virtual H323PeerElementDescriptor          * CreateDescriptor(const OpalGloballyUniqueID & descriptorID);
     virtual H323PeerElementServiceRelationship * CreateServiceRelationship();
-    virtual AliasKey                           * CreateAliasKey(const H225_AliasAddress & alias, const OpalGloballyUniqueID & id, PINDEX pos, bool wild = false);
+    virtual AliasKey                           * CreateAliasKey(const H225_AliasAddress & alias, const OpalGloballyUniqueID & id, PINDEX pos, PBoolean wild = false);
 
     void RemoveDescriptorInformation(const H501_ArrayOf_AddressTemplate & addressTemplates);
 
@@ -512,12 +512,12 @@ class H323PeerElement : public H323_AnnexG
     PDECLARE_MUTEX(remotePeerListMutex);
     PSafeSortedList<H323PeerElementServiceRelationship> remoteServiceRelationships;
     PStringToString remotePeerAddrToServiceID;
-    typedef std::map<std::string, POrdinalKey> StringToOrdinalKey;
+    PDICTIONARY(StringToOrdinalKey, PString, POrdinalKey);
     StringToOrdinalKey remotePeerAddrToOrdinalKey;
 
     PSafeSortedList<H323PeerElementDescriptor> descriptors;
 
-    typedef PSortedList<H225_AliasAddress> AliasKeyList;
+    PSORTED_LIST(AliasKeyList, H225_AliasAddress);
 
     PDECLARE_MUTEX(aliasMutex);
     AliasKeyList transportAddressToDescriptorID;

@@ -81,7 +81,7 @@ void BaseStatusPage::CreateHTML(PHTML & html, const PStringToString & query)
 }
 
 
-bool BaseStatusPage::Post(PHTTPRequest & request,
+PBoolean BaseStatusPage::Post(PHTTPRequest & request,
                               const PStringToString & data,
                               PHTML & msg)
 {
@@ -192,8 +192,10 @@ PString RegistrationStatusPage::LoadText(PHTTPRequest & request)
     for (PINDEX i = 0; i < names.GetSize(); ++i) {
       OpalSkinnyEndPoint::PhoneDevice * phoneDevice = skinnyEP->GetPhoneDevice(names[i]);
       if (phoneDevice != NULL) {
+        PStringStream str;
+        str << *phoneDevice;
         PString name, status;
-        if (PSTRSTRM(*phoneDevice).Split('\t', name, status))
+        if (str.Split('\t', name, status))
           m_skinny[name] = status;
       }
     }
@@ -801,7 +803,7 @@ void GkStatusPage::CreateContent(PHTML & html, const PStringToString &) const
 }
 
 
-bool GkStatusPage::OnPostControl(const PStringToString & data, PHTML & msg)
+PBoolean GkStatusPage::OnPostControl(const PStringToString & data, PHTML & msg)
 {
   bool gotOne = false;
 
@@ -866,7 +868,7 @@ void RegistrarStatusPage::CreateContent(PHTML & html, const PStringToString &) c
 }
 
 
-bool RegistrarStatusPage::OnPostControl(const PStringToString & data, PHTML & msg)
+PBoolean RegistrarStatusPage::OnPostControl(const PStringToString & data, PHTML & msg)
 {
   bool gotOne = false;
 

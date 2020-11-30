@@ -123,7 +123,7 @@ class OpalPluginCodecManager : public PPluginModuleManager
                              PluginCodec_GetAPIVersionFunction getApiVerFn,
                              PluginCodec_GetCodecFunction getCodecFn);
 
-    void OnLoadPlugin(PDynaLink & dll, intptr_t code);
+    void OnLoadPlugin(PDynaLink & dll, P_INT_PTR code);
 
     virtual void OnStartup();
 
@@ -268,10 +268,10 @@ class OpalPluginFramedAudioTranscoder : public OpalFramedTranscoder, public Opal
   public:
     OpalPluginFramedAudioTranscoder(const OpalTranscoderKey & key, const PluginCodec_Definition * codecDefn, bool isEncoder);
     bool UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output);
-    bool ExecuteCommand(const OpalMediaCommand & command);
+    PBoolean ExecuteCommand(const OpalMediaCommand & command);
     void GetStatistics(OpalMediaStatistics & statistics) const;
-    bool ConvertFrame(const BYTE * input, PINDEX & consumed, BYTE * output, PINDEX & created);
-    virtual bool ConvertSilentFrame(BYTE * buffer, PINDEX & created);
+    PBoolean ConvertFrame(const BYTE * input, PINDEX & consumed, BYTE * output, PINDEX & created);
+    virtual PBoolean ConvertSilentFrame(BYTE * buffer, PINDEX & created);
     virtual bool AcceptComfortNoise() const { return comfortNoise; }
   protected:
     virtual bool OnCreated(const OpalMediaFormat & srcFormat,
@@ -287,7 +287,7 @@ class OpalPluginStreamedAudioTranscoder : public OpalStreamedTranscoder, public 
   public:
     OpalPluginStreamedAudioTranscoder(const OpalTranscoderKey & key, const PluginCodec_Definition * codec, bool isEncoder);
     bool UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output);
-    bool ExecuteCommand(const OpalMediaCommand & command);
+    PBoolean ExecuteCommand(const OpalMediaCommand & command);
     virtual bool AcceptComfortNoise() const { return comfortNoise; }
     virtual int ConvertOne(int from) const;
   protected:
@@ -329,9 +329,9 @@ class OpalPluginVideoTranscoder : public OpalVideoTranscoder, public OpalPluginT
     virtual void GetStatistics(OpalMediaStatistics & statistics) const;
 #endif
 
-    bool ConvertFrames(const RTP_DataFrame & src, RTP_DataFrameList & dstList);
+    PBoolean ConvertFrames(const RTP_DataFrame & src, RTP_DataFrameList & dstList);
     bool UpdateMediaFormats(const OpalMediaFormat & input, const OpalMediaFormat & output);
-    bool ExecuteCommand(const OpalMediaCommand & command);
+    PBoolean ExecuteCommand(const OpalMediaCommand & command);
 
   protected:
     virtual bool OnCreated(const OpalMediaFormat & srcFormat,
@@ -549,8 +549,8 @@ class H323PluginG7231Capability : public H323AudioPluginCapability
                               const OpalMediaFormat & mediaFormat);
 
     virtual PObject * Clone() const;
-    virtual bool OnSendingPDU(H245_AudioCapability & cap, unsigned packetSize) const;
-    virtual bool OnReceivedPDU(const H245_AudioCapability & cap,  unsigned & packetSize);
+    virtual PBoolean OnSendingPDU(H245_AudioCapability & cap, unsigned packetSize) const;
+    virtual PBoolean OnReceivedPDU(const H245_AudioCapability & cap,  unsigned & packetSize);
 };
 
 
@@ -660,15 +660,15 @@ class H323H261Capability : public H323VideoCapability
     virtual PString GetFormatName() const;
     virtual unsigned GetSubType() const;
 
-    virtual bool OnSendingPDU(
+    virtual PBoolean OnSendingPDU(
       H245_VideoCapability & pdu  /// PDU to set information on
     ) const;
 
-    virtual bool OnSendingPDU(
+    virtual PBoolean OnSendingPDU(
       H245_VideoMode & pdu
     ) const;
 
-    virtual bool OnReceivedPDU(
+    virtual PBoolean OnReceivedPDU(
       const H245_VideoCapability & pdu  /// PDU to get information from
     );
 };
@@ -702,18 +702,18 @@ class H323H263Capability : public H323VideoCapability
     virtual PString GetFormatName() const;
     virtual unsigned GetSubType() const;
 
-    virtual bool OnSendingPDU(
+    virtual PBoolean OnSendingPDU(
       H245_VideoCapability & pdu  /// PDU to set information on
     ) const;
 
-    virtual bool OnSendingPDU(
+    virtual PBoolean OnSendingPDU(
       H245_VideoMode & pdu
     ) const;
 
-    virtual bool OnReceivedPDU(
+    virtual PBoolean OnReceivedPDU(
       const H245_VideoCapability & pdu  /// PDU to get information from
     );
-    virtual bool IsMatch(
+    virtual PBoolean IsMatch(
       const PASN_Object & subTypePDU,     ///<  sub-type PDU of H323Capability
       const PString & mediaPacketization  ///< Media packetization used
     ) const;

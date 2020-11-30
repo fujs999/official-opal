@@ -1226,7 +1226,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnOutOfOrderPacket
     // Add in all the missing packets
     uint32_t lostSN = sequenceNumber;
     while (--lostSN >= expectedSequenceNumber && m_pendingRxPackets.find(lostSN) == m_pendingRxPackets.end())
-      m_pendingRxPackets.emplace(lostSN, RxPacket(now));
+      m_pendingRxPackets.insert(make_pair(lostSN, RxPacket(now)));
 
     PTime nackTime = now - PTimeInterval(std::max(m_session.GetRoundTripTime()*2, 40));
     RTP_ControlFrame::LostPacketMask lostPackets;
@@ -1262,7 +1262,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnOutOfOrderPacket
   }
 
   RxPacket rxp(frame);
-  std::pair<RxPacketMap::iterator,bool> result = m_pendingRxPackets.emplace(sequenceNumber, rxp);
+  std::pair<RxPacketMap::iterator,bool> result = m_pendingRxPackets.insert(make_pair(sequenceNumber, rxp));
   if (!result.second)
     result.first->second = rxp;
   result.first->second.MakeUnique();
@@ -1355,11 +1355,11 @@ void OpalRTPSession::InternalAttachTransport(const OpalMediaTransportPtr & newTr
   if (!IsOpen())
     return;
 
-  if (!m_dataNotifier)
+  if (m_dataNotifier.IsNULL())
     m_dataNotifier = PCREATE_NOTIFIER(OnRxDataPacket);
   newTransport->AddReadNotifier(m_dataNotifier, e_Data);
   if (!m_singlePortRx) {
-    if (!m_controlNotifier)
+    if (m_controlNotifier.IsNULL())
       m_controlNotifier = PCREATE_NOTIFIER(OnRxDataPacket);
     newTransport->AddReadNotifier(m_controlNotifier, e_Control);
   }
@@ -1483,8 +1483,10 @@ void OpalRTPSession::SetCanonicalName(const PString & name, RTP_SyncSourceId ssr
   P_INSTRUMENTED_LOCK_READ_WRITE(return);
 
   SyncSource * info;
-  if (GetSyncSource(ssrc, dir, info))
+  if (GetSyncSource(ssrc, dir, info)) {
     info->m_canonicalName = name;
+    info->m_canonicalName.MakeUnique();
+  }
 }
 
 
@@ -1544,6 +1546,7 @@ void OpalRTPSession::SetMediaStreamId(const PString & id, RTP_SyncSourceId ssrc,
     if (info->m_mediaTrackId.IsEmpty() || info->m_mediaTrackId.NumCompare(info->m_mediaStreamId + '+') == EqualTo)
       info->m_mediaTrackId = PSTRSTRM(id << '+' << m_mediaType);
     info->m_mediaStreamId = id;
+    info->m_mediaStreamId.MakeUnique();
     PTRACE(4, *this << "set MediaStream id for " << dir <<
            " SSRC=" << RTP_TRACE_SRC(info->m_sourceIdentifier) << " to \"" << id << '"');
     if (dir == e_Sender && info->m_rtxSSRC != 0 && !info->IsRtx())
@@ -1566,6 +1569,7 @@ void OpalRTPSession::SetMediaTrackId(const PString & id, RTP_SyncSourceId ssrc, 
   SyncSource * info;
   if (GetSyncSource(ssrc, dir, info)) {
     info->m_mediaTrackId = id;
+    info->m_mediaTrackId.MakeUnique();
     PTRACE(4, *this << "set MediaStreamTrack id for " << dir <<
            " SSRC=" << RTP_TRACE_SRC(info->m_sourceIdentifier) << " to \"" << id << '"');
     if (dir == e_Sender && info->m_rtxSSRC != 0 && !info->IsRtx())
@@ -1585,14 +1589,19 @@ RTP_SyncSourceId OpalRTPSession::GetRtxSyncSource(RTP_SyncSourceId ssrc, Directi
 PString OpalRTPSession::GetToolName() const
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
-  return m_toolName;
+
+  PString s = m_toolName;
+  s.MakeUnique();
+  return s;
 }
 
 
 void OpalRTPSession::SetToolName(const PString & name)
 {
   P_INSTRUMENTED_LOCK_READ_WRITE(return);
+
   m_toolName = name;
+  m_toolName.MakeUnique();
 }
 
 
@@ -2046,7 +2055,7 @@ public:
   virtual unsigned HandleTransmitPacket(unsigned sessionID, uint32_t ssrc)
   {
     unsigned sn = ++m_transportWideSequenceNumber;
-    m_sentPackets.emplace(sn, RTP_TransportWideCongestionControl::Info(0, sessionID, ssrc));
+    m_sentPackets.insert(make_pair(sn, RTP_TransportWideCongestionControl::Info(0, sessionID, ssrc)));
     return sn;
   }
 
@@ -2091,7 +2100,7 @@ public:
 
       if (!m_packetBaseTime.IsValid())
         m_packetBaseTime = info.m_receivedTime;
-      twcc.m_packets.emplace(sn, info.m_receivedTime - m_packetBaseTime);
+      twcc.m_packets.insert(make_pair(sn, info.m_receivedTime - m_packetBaseTime));
 
       m_queue.pop();
     } while (!m_queue.empty());
@@ -2284,7 +2293,7 @@ bool OpalRTPSession::SyncSource::IsStaleReceiver(const PTime & now) const
 }
 
 
-void OpalRTPSession::TimedSendReport(PTimer&, intptr_t)
+void OpalRTPSession::TimedSendReport(PTimer&, P_INT_PTR)
 {
   PTRACE_CONTEXT_ID_PUSH_THREAD(*this);
   PTRACE(5, *this << "sending periodic report");
@@ -3248,7 +3257,7 @@ void OpalRTPSession::RemoveDataNotifier(const DataNotifier & notifier, RTP_SyncS
 void OpalRTPSession::NotifierMap::Add(unsigned priority, const DataNotifier & notifier)
 {
   Remove(notifier);
-  emplace(priority, notifier);
+  insert(make_pair(priority, notifier));
 }
 
 

@@ -149,22 +149,16 @@ class OpalH281Client : public OpalH224Client
      */
     virtual void OnActivatePreset(BYTE presetNumber);
 
-    using CapabilityChangeNotifier = PNotifierTemplate<VideoSourceIds, OpalH281Client>;
-    #define PDECLARE_OpalH281CapabilityChangeNotifier(cls, func) PDECLARE_NOTIFIER_FUNCTION(cls, func, OpalH281Client, OpalH281Client::VideoSourceIds)
-
     /**Set notifier for when remote camera capabilties change
       */
-    void SetCapabilityChangedNotifier(const CapabilityChangeNotifier & notifier);
-
-    using ActionNotifier = PNotifierTemplate<int *, OpalH281Client>;
-    #define PDECLARE_OpalH281ClientActionNotifier(cls, func) PDECLARE_NOTIFIER_FUNCTION(cls, func, OpalH281Client, int *)
+    void SetCapabilityChangedNotifier(const PNotifier & notifier);
 
     /**Set notifier for when remote system sends action to local side.
        The notifier PINT_PTR parameter is actually a pointer to an array of
        integers, PVideoControlInfo::NumTypes long, with -1, 0 or 1 in them.
        A NULL pointer indicates that the action has stopped for all types.
       */
-    void SetOnActionNotifier(const ActionNotifier & notifier);
+    void SetOnActionNotifier(const PNotifier & notifier);
 
     struct Capability
     {
@@ -211,8 +205,8 @@ class OpalH281Client : public OpalH224Client
 
     PDECLARE_MUTEX(m_mutex);
 
-    CapabilityChangeNotifier m_capabilityChanged;
-    ActionNotifier m_onAction;
+    PNotifier      m_capabilityChanged;
+    PNotifier      m_onAction;
 
     VideoSourceIds m_localSourceId;
     Capability     m_localCapability[NumVideoSourceIds];

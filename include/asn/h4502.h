@@ -57,7 +57,7 @@ class H4502_DummyArg : public PASN_Choice
     operator const H225_NonStandardParameter &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -95,7 +95,7 @@ class H4502_DummyRes : public PASN_Choice
     operator const H225_NonStandardParameter &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -267,7 +267,7 @@ class H4502_CTInitiateArg_argumentExtension : public PASN_Choice
     operator const H225_NonStandardParameter &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -305,7 +305,7 @@ class H4502_CTSetupArg_argumentExtension : public PASN_Choice
     operator const H225_NonStandardParameter &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -343,7 +343,7 @@ class H4502_CTIdentifyRes_resultExtension : public PASN_Choice
     operator const H225_NonStandardParameter &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -381,7 +381,7 @@ class H4502_CTUpdateArg_argumentExtension : public PASN_Choice
     operator const H225_NonStandardParameter &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -419,7 +419,7 @@ class H4502_SubaddressTransferArg_argumentExtension : public PASN_Choice
     operator const H225_NonStandardParameter &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -457,7 +457,7 @@ class H4502_CTCompleteArg_argumentExtension : public PASN_Choice
     operator const H225_NonStandardParameter &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -495,7 +495,7 @@ class H4502_CTActiveArg_argumentExtension : public PASN_Choice
     operator const H225_NonStandardParameter &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -521,7 +521,7 @@ class H4502_CTInitiateArg : public PASN_Sequence
     H4502_CTInitiateArg_argumentExtension m_argumentExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -553,7 +553,7 @@ class H4502_CTSetupArg : public PASN_Sequence
     H4502_CTSetupArg_argumentExtension m_argumentExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -584,7 +584,7 @@ class H4502_CTIdentifyRes : public PASN_Sequence
     H4502_CTIdentifyRes_resultExtension m_resultExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -618,7 +618,7 @@ class H4502_CTUpdateArg : public PASN_Sequence
     H4502_CTUpdateArg_argumentExtension m_argumentExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -648,7 +648,7 @@ class H4502_SubaddressTransferArg : public PASN_Sequence
     H4502_SubaddressTransferArg_argumentExtension m_argumentExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -684,7 +684,7 @@ class H4502_CTCompleteArg : public PASN_Sequence
     H4502_CTCompleteArg_argumentExtension m_argumentExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -718,7 +718,7 @@ class H4502_CTActiveArg : public PASN_Sequence
     H4502_CTActiveArg_argumentExtension m_argumentExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;

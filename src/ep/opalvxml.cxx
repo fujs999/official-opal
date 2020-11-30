@@ -43,7 +43,7 @@
 
 #if OPAL_IVR
 
-OpalVXMLSession::OpalVXMLSession(OpalIVRConnection & conn, PTextToSpeech * tts, bool autoDelete)
+OpalVXMLSession::OpalVXMLSession(OpalIVRConnection & conn, PTextToSpeech * tts, PBoolean autoDelete)
   : PVXMLSession(tts, autoDelete),
     m_connection(conn)
 {

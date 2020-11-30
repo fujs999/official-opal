@@ -289,7 +289,7 @@ void OpalCall::OnNewConnection(OpalConnection & connection)
 }
 
 
-bool OpalCall::OnSetUp(OpalConnection & connection)
+PBoolean OpalCall::OnSetUp(OpalConnection & connection)
 {
   PTRACE(3, "OnSetUp " << connection);
 
@@ -333,7 +333,7 @@ void OpalCall::OnAlerting(OpalConnection & connection, bool withMedia)
 }
 
 
-bool OpalCall::OnAlerting(OpalConnection & connection)
+PBoolean OpalCall::OnAlerting(OpalConnection & connection)
 {
   connection.OnAlerting(connection.GetMediaStream(OpalMediaType(), true) != NULL);
   return true;
@@ -348,7 +348,7 @@ OpalConnection::AnswerCallResponse OpalCall::OnAnswerCall(OpalConnection & PTRAC
 }
 
 
-bool OpalCall::OnConnected(OpalConnection & connection)
+PBoolean OpalCall::OnConnected(OpalConnection & connection)
 {
   PTRACE(3, "OnConnected " << connection);
 
@@ -382,7 +382,7 @@ bool OpalCall::OnConnected(OpalConnection & connection)
 }
 
 
-bool OpalCall::OnEstablished(OpalConnection & connection)
+PBoolean OpalCall::OnEstablished(OpalConnection & connection)
 {
   PTRACE(4, "OnEstablished " << connection);
 
@@ -590,7 +590,7 @@ void OpalCall::AdjustMediaFormats(bool local, const OpalConnection & connection,
 }
 
 
-bool OpalCall::OpenSourceMediaStreams(OpalConnection & connection, 
+PBoolean OpalCall::OpenSourceMediaStreams(OpalConnection & connection, 
                                      const OpalMediaType & mediaType,
                                                   unsigned requestedSessionID, 
                                    const OpalMediaFormat & preselectedFormat,

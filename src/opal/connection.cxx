@@ -359,7 +359,7 @@ void OpalConnection::InternalSetAsOriginating()
 }
 
 
-bool OpalConnection::SetUpConnection()
+PBoolean OpalConnection::SetUpConnection()
 {
   // Check if we are A-Party in this call, so need to do things differently
   if (m_ownerCall.GetConnection(0) == this) {
@@ -392,7 +392,7 @@ bool OpalConnection::SetUpConnection()
 }
 
 
-bool OpalConnection::OnSetUpConnection()
+PBoolean OpalConnection::OnSetUpConnection()
 {
   PTRACE(3, "OnSetUpConnection" << *this);
   return m_endpoint.OnSetUpConnection(*this);
@@ -405,7 +405,7 @@ bool OpalConnection::HoldRemote(bool /*placeOnHold*/)
 }
 
 
-bool OpalConnection::IsOnHold(bool /*fromRemote*/) const
+PBoolean OpalConnection::IsOnHold(bool /*fromRemote*/) const
 {
   return false;
 }
@@ -572,7 +572,7 @@ void OpalConnection::OnReleased()
 }
 
 
-bool OpalConnection::OnIncomingConnection(unsigned options, OpalConnection::StringOptions * stringOptions)
+PBoolean OpalConnection::OnIncomingConnection(unsigned options, OpalConnection::StringOptions * stringOptions)
 {
   if (m_endpoint.OnIncomingConnection(*this, options, stringOptions))
     return true;
@@ -598,7 +598,7 @@ PString OpalConnection::GetDestinationAddress()
 }
 
 
-bool OpalConnection::ForwardCall(const PString & /*forwardParty*/)
+PBoolean OpalConnection::ForwardCall(const PString & /*forwardParty*/)
 {
   return false;
 }
@@ -628,7 +628,7 @@ void OpalConnection::OnAlerting()
 }
 
 
-bool OpalConnection::SetAlerting(const PString &, bool)
+PBoolean OpalConnection::SetAlerting(const PString &, PBoolean)
 {
   return true;
 }
@@ -674,7 +674,7 @@ void OpalConnection::AnsweringCall(AnswerCallResponse response)
 }
 
 
-bool OpalConnection::SetConnected()
+PBoolean OpalConnection::SetConnected()
 {
   PTRACE(3, "SetConnected for " << *this);
 
@@ -955,7 +955,7 @@ bool OpalConnection::CloseMediaStream(OpalMediaStreamPtr stream)
 }
 
 
-bool OpalConnection::RemoveMediaStream(OpalMediaStream & stream)
+PBoolean OpalConnection::RemoveMediaStream(OpalMediaStream & stream)
 {
   stream.Close();
   PTRACE(3, "Removed media stream " << stream);
@@ -1017,13 +1017,13 @@ void OpalConnection::OnPauseMediaStream(OpalMediaStream & /*strm*/, bool /*pause
 }
 
 
-OpalMediaStream * OpalConnection::CreateMediaStream(const OpalMediaFormat &, unsigned, bool)
+OpalMediaStream * OpalConnection::CreateMediaStream(const OpalMediaFormat &, unsigned, PBoolean)
 {
   return NULL;
 }
 
 
-bool OpalConnection::OnOpenMediaStream(OpalMediaStream & stream)
+PBoolean OpalConnection::OnOpenMediaStream(OpalMediaStream & stream)
 {
   if (!m_endpoint.OnOpenMediaStream(*this, stream))
     return false;
@@ -1122,7 +1122,7 @@ void OpalConnection::OnStopRecording(OpalMediaPatch * patch)
 
 #endif
 
-void OpalConnection::OnPatchMediaStream(bool isSource, OpalMediaPatch & patch)
+void OpalConnection::OnPatchMediaStream(PBoolean isSource, OpalMediaPatch & patch)
 {
   OpalMediaFormat mediaFormat = isSource ? patch.GetSource().GetMediaFormat() : patch.GetSink()->GetMediaFormat();
 
@@ -1205,19 +1205,19 @@ void OpalConnection::DisableRecording()
 }
 
 
-void OpalConnection::OnRecordAudio(RTP_DataFrame & frame, intptr_t param)
+void OpalConnection::OnRecordAudio(RTP_DataFrame & frame, P_INT_PTR param)
 {
   if (frame.GetPayloadSize() == 0)
     return;
 
   const OpalMediaPatch * patch = (const OpalMediaPatch *)param;
-  GetEndPoint().GetManager().QueueDecoupledEvent(new PSafeWorkArg2<OpalConnection, PString, std::shared_ptr<RTP_DataFrame> >(
-                    this, MakeRecordingKey(*patch), std::make_shared<RTP_DataFrame>(frame.GetPointer(), frame.GetPacketSize()),
-                    &OpalConnection::InternalOnRecordAudio), psprintf("%p", this));
+  PAutoPtr<RTP_DataFrame> copyFrame(new RTP_DataFrame(frame.GetPointer(), frame.GetPacketSize()));
+  GetEndPoint().GetManager().QueueDecoupledEvent(new PSafeWorkArg2<OpalConnection, PString, PAutoPtr<RTP_DataFrame> >(
+                   this, MakeRecordingKey(*patch), copyFrame, &OpalConnection::InternalOnRecordAudio), psprintf("%p", this));
 }
 
 
-void OpalConnection::InternalOnRecordAudio(PString key, std::shared_ptr<RTP_DataFrame> frame)
+void OpalConnection::InternalOnRecordAudio(PString key, PAutoPtr<RTP_DataFrame> frame)
 {
   m_ownerCall.OnRecordAudio(key, *frame);
 }
@@ -1225,16 +1225,16 @@ void OpalConnection::InternalOnRecordAudio(PString key, std::shared_ptr<RTP_Data
 
 #if OPAL_VIDEO
 
-void OpalConnection::OnRecordVideo(RTP_DataFrame & frame, intptr_t param)
+void OpalConnection::OnRecordVideo(RTP_DataFrame & frame, P_INT_PTR param)
 {
   const OpalMediaPatch * patch = (const OpalMediaPatch *)param;
-  GetEndPoint().GetManager().QueueDecoupledEvent(new PSafeWorkArg2<OpalConnection, PString, std::shared_ptr<RTP_DataFrame> >(
-                    this, MakeRecordingKey(*patch), std::make_shared<RTP_DataFrame>(frame.GetPointer(), frame.GetPacketSize()),
-                    &OpalConnection::InternalOnRecordVideo), psprintf("%p", this));
+  PAutoPtr<RTP_DataFrame> copyFrame(new RTP_DataFrame(frame.GetPointer(), frame.GetPacketSize()));
+  GetEndPoint().GetManager().QueueDecoupledEvent(new PSafeWorkArg2<OpalConnection, PString, PAutoPtr<RTP_DataFrame> >(
+                   this, MakeRecordingKey(*patch), copyFrame, &OpalConnection::InternalOnRecordVideo), psprintf("%p", this));
 }
 
 
-void OpalConnection::InternalOnRecordVideo(PString key, std::shared_ptr<RTP_DataFrame> frame)
+void OpalConnection::InternalOnRecordVideo(PString key, PAutoPtr<RTP_DataFrame> frame)
 {
   m_ownerCall.OnRecordVideo(key, *frame);
 }
@@ -1308,12 +1308,12 @@ bool OpalConnection::GetMediaTransportAddresses(OpalConnection & otherConnection
 }
 
 
-bool OpalConnection::SetAudioVolume(bool /*source*/, unsigned /*percentage*/)
+PBoolean OpalConnection::SetAudioVolume(PBoolean /*source*/, unsigned /*percentage*/)
 {
   return false;
 }
 
-bool OpalConnection::GetAudioVolume(bool /*source*/, unsigned & /*percentage*/)
+PBoolean OpalConnection::GetAudioVolume(PBoolean /*source*/, unsigned & /*percentage*/)
 {
   return false;
 }
@@ -1364,8 +1364,8 @@ bool OpalConnection::SetBandwidthAvailable(OpalBandwidth::Direction dir, OpalBan
       break;
 
     default :
-      OpalBandwidth rx = (uint64_t)(unsigned)available*m_rxBandwidthAvailable/(m_rxBandwidthAvailable+m_txBandwidthAvailable);
-      OpalBandwidth tx = (uint64_t)(unsigned)available*m_txBandwidthAvailable/(m_rxBandwidthAvailable+m_txBandwidthAvailable);
+      OpalBandwidth rx = (PUInt64)(unsigned)available*m_rxBandwidthAvailable/(m_rxBandwidthAvailable+m_txBandwidthAvailable);
+      OpalBandwidth tx = (PUInt64)(unsigned)available*m_txBandwidthAvailable/(m_rxBandwidthAvailable+m_txBandwidthAvailable);
       m_rxBandwidthAvailable = rx;
       m_txBandwidthAvailable = tx;
   }
@@ -1442,7 +1442,7 @@ void OpalConnection::SetSendUserInputMode(SendUserInputModes mode)
 }
 
 
-bool OpalConnection::SendUserInputString(const PString & value)
+PBoolean OpalConnection::SendUserInputString(const PString & value)
 {
   for (const char * c = value; *c != '\0'; c++) {
     if (!SendUserInputTone(*c, 0))
@@ -1453,7 +1453,7 @@ bool OpalConnection::SendUserInputString(const PString & value)
 
 
 #if OPAL_PTLIB_DTMF
-bool OpalConnection::SendUserInputTone(char tone, unsigned duration)
+PBoolean OpalConnection::SendUserInputTone(char tone, unsigned duration)
 {
   if (m_dtmfSendFormat.IsEmpty())
     return false;
@@ -1495,7 +1495,7 @@ bool OpalConnection::SendUserInputTone(char tone, unsigned duration)
   return true;
 }
 #else
-bool OpalConnection::SendUserInputTone(char /*tone*/, unsigned /*duration*/)
+PBoolean OpalConnection::SendUserInputTone(char /*tone*/, unsigned /*duration*/)
 {
   return false;
 }
@@ -1544,14 +1544,14 @@ PString OpalConnection::ReadUserInput(const char * terminators,
 }
 
 
-bool OpalConnection::PromptUserInput(bool /*play*/)
+PBoolean OpalConnection::PromptUserInput(PBoolean /*play*/)
 {
   return true;
 }
 
 
 #if OPAL_PTLIB_DTMF
-void OpalConnection::OnDetectInBandDTMF(RTP_DataFrame & frame, intptr_t)
+void OpalConnection::OnDetectInBandDTMF(RTP_DataFrame & frame, P_INT_PTR)
 {
   // This function is set up as an 'audio filter'.
   // This allows us to access the 16 bit PCM audio (at 8Khz sample rate)
@@ -1570,7 +1570,7 @@ void OpalConnection::OnDetectInBandDTMF(RTP_DataFrame & frame, intptr_t)
   }
 }
 
-void OpalConnection::OnSendInBandDTMF(RTP_DataFrame & frame, intptr_t)
+void OpalConnection::OnSendInBandDTMF(RTP_DataFrame & frame, P_INT_PTR)
 {
   if (m_inBandDTMF.IsEmpty())
     return;

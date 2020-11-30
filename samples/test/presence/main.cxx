@@ -213,7 +213,7 @@ void MyManager::AddPresentityCmd(PArgList & args)
 }
 
 
-void MyManager::CmdCreate(PCLI::Arguments & args, intptr_t)
+void MyManager::CmdCreate(PCLI::Arguments & args, P_INT_PTR)
 {
   if (args.GetCount() == 0)
     args.WriteUsage();
@@ -224,7 +224,7 @@ void MyManager::CmdCreate(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyManager::CmdList(PCLI::Arguments & args, intptr_t)
+void MyManager::CmdList(PCLI::Arguments & args, P_INT_PTR)
 {
   for (PDictionary<PString, OpalPresentity>::iterator it = m_presentities.end(); it != m_presentities.end(); ++it) {
     PString key = it->first;
@@ -241,7 +241,7 @@ void MyManager::CmdList(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyManager::CmdSubscribeToPresence(PCLI::Arguments & args, intptr_t)
+void MyManager::CmdSubscribeToPresence(PCLI::Arguments & args, P_INT_PTR)
 {
   if (args.GetCount() < 2)
     args.WriteUsage();
@@ -252,7 +252,7 @@ void MyManager::CmdSubscribeToPresence(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyManager::CmdUnsubscribeToPresence(PCLI::Arguments & args, intptr_t)
+void MyManager::CmdUnsubscribeToPresence(PCLI::Arguments & args, P_INT_PTR)
 {
   if (args.GetCount() < 2)
     args.WriteUsage();
@@ -263,7 +263,7 @@ void MyManager::CmdUnsubscribeToPresence(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyManager::CmdPresenceAuthorisation(PCLI::Arguments & args, intptr_t)
+void MyManager::CmdPresenceAuthorisation(PCLI::Arguments & args, P_INT_PTR)
 {
   OpalPresentity::Authorisation auth = OpalPresentity::AuthorisationPermitted;
   if (args.GetCount() > 2) {
@@ -288,7 +288,7 @@ void MyManager::CmdPresenceAuthorisation(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyManager::CmdSetLocalPresence(PCLI::Arguments & args, intptr_t)
+void MyManager::CmdSetLocalPresence(PCLI::Arguments & args, P_INT_PTR)
 {
   PString note;
   if (args.GetCount() > 2)
@@ -309,7 +309,7 @@ void MyManager::CmdSetLocalPresence(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyManager::CmdBuddyList(PCLI::Arguments & args, intptr_t)
+void MyManager::CmdBuddyList(PCLI::Arguments & args, P_INT_PTR)
 {
   if (args.GetCount() < 1)
     args.WriteUsage();
@@ -329,7 +329,7 @@ void MyManager::CmdBuddyList(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyManager::CmdBuddyAdd(PCLI::Arguments & args, intptr_t)
+void MyManager::CmdBuddyAdd(PCLI::Arguments & args, P_INT_PTR)
 {
   if (args.GetCount() < 2)
     args.WriteUsage();
@@ -345,7 +345,7 @@ void MyManager::CmdBuddyAdd(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyManager::CmdBuddyRemove(PCLI::Arguments & args, intptr_t)
+void MyManager::CmdBuddyRemove(PCLI::Arguments & args, P_INT_PTR)
 {
   if (args.GetCount() < 2)
     args.WriteUsage();
@@ -356,7 +356,7 @@ void MyManager::CmdBuddyRemove(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyManager::CmdBuddySusbcribe(PCLI::Arguments & args, intptr_t)
+void MyManager::CmdBuddySusbcribe(PCLI::Arguments & args, P_INT_PTR)
 {
   if (args.GetCount() < 1)
     args.WriteUsage();
@@ -367,7 +367,7 @@ void MyManager::CmdBuddySusbcribe(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyManager::CmdDelay(PCLI::Arguments & args, intptr_t)
+void MyManager::CmdDelay(PCLI::Arguments & args, P_INT_PTR)
 {
   if (args.GetCount() < 1)
     args.WriteUsage();
@@ -376,7 +376,7 @@ void MyManager::CmdDelay(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyManager::CmdQuit(PCLI::Arguments & args, intptr_t)
+void MyManager::CmdQuit(PCLI::Arguments & args, P_INT_PTR)
 {
   args.GetContext().Stop();
 }
@@ -393,7 +393,7 @@ void MyManager::AuthorisationRequest(OpalPresentity & presentity, OpalPresentity
 }
 
 
-void MyManager::PresenceChange(OpalPresentity & presentity, std::shared_ptr<OpalPresenceInfo> info)
+void MyManager::PresenceChange(OpalPresentity & presentity, PAutoPtr<OpalPresenceInfo> info)
 {
   LockedStream lockedOutput(*this);
   ostream & output = lockedOutput;

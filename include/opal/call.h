@@ -125,7 +125,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
   //@{
     /**Indicate tha all connections in call are connected and media is going.
       */
-    bool IsEstablished() const { return m_isEstablished; }
+    PBoolean IsEstablished() const { return m_isEstablished; }
 
     /**Call back to indicate that the call has been established.
        At this point in time every connection in the call is in the
@@ -196,7 +196,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
        The default behaviour is to call SetUpConnection() on all the other
        connections in the call.
       */
-    virtual bool OnSetUp(
+    virtual PBoolean OnSetUp(
       OpalConnection & connection   ///<  Connection that indicates it is alerting
     );
 
@@ -236,7 +236,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
       OpalConnection & connection,   ///<  Connection that indicates it is alerting
       bool withMedia                 ///<  Indicated media should be started, if possible
     );
-    virtual bool OnAlerting(OpalConnection & connection); // For backward compatibility
+    virtual PBoolean OnAlerting(OpalConnection & connection); // For backward compatibility
 
     /**Call back for answering an incoming call.
        This function is called after the connection has been acknowledged
@@ -270,7 +270,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
        The default behaviour is to call SetConnected() on all other
        connections in the call.
       */
-    virtual bool OnConnected(
+    virtual PBoolean OnConnected(
       OpalConnection & connection   ///<  Connection that indicates it is alerting
     );
 
@@ -288,7 +288,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
        established and if so, marks the call as established and calls
        OnEstablishedCall().
       */
-    virtual bool OnEstablished(
+    virtual PBoolean OnEstablished(
       OpalConnection & connection   ///<  Connection that indicates it is alerting
     );
 

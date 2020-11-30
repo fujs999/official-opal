@@ -122,7 +122,7 @@ H4508_Name::operator const H4508_NamePresentationRestricted &() const
 }
 
 
-bool H4508_Name::CreateObject()
+PBoolean H4508_Name::CreateObject()
 {
   switch (m_tag) {
     case e_namePresentationAllowed :
@@ -215,7 +215,7 @@ H4508_NamePresentationAllowed::operator const H4508_ExtendedName &() const
 }
 
 
-bool H4508_NamePresentationAllowed::CreateObject()
+PBoolean H4508_NamePresentationAllowed::CreateObject()
 {
   switch (m_tag) {
     case e_simpleName :
@@ -306,7 +306,7 @@ H4508_NamePresentationRestricted::operator const H4508_ExtendedName &() const
 }
 
 
-bool H4508_NamePresentationRestricted::CreateObject()
+PBoolean H4508_NamePresentationRestricted::CreateObject()
 {
   switch (m_tag) {
     case e_simpleName :

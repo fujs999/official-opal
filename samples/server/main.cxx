@@ -218,7 +218,7 @@ MyProcess::~MyProcess()
 }
 
 
-bool MyProcess::OnStart()
+PBoolean MyProcess::OnStart()
 {
   // Set log level as early as possible
   Params params(NULL);
@@ -272,7 +272,7 @@ void MyProcess::OnConfigChanged()
 }
 
 
-bool MyProcess::Initialise(const char * initMsg)
+PBoolean MyProcess::Initialise(const char * initMsg)
 {
   PSYSTEMLOG(Warning, "Service " << GetName() << ' ' << initMsg);
 
@@ -525,7 +525,7 @@ SIPConsoleEndPoint * MyManager::CreateSIPEndPoint()
 #endif
 
 
-bool MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
+PBoolean MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
 {
   // Make sure all endpoints created
   for (PINDEX i = 0; i < m_endpointPrefixes.GetSize(); ++i)
@@ -615,7 +615,7 @@ bool MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
         help << ", ";
       help << *it;
     }
-    SetMediaFormatOrder(rsrc->AddStringArrayField(PreferredMediaKey, true, 25, GetMediaFormatOrder(), help.str().c_str()));
+    SetMediaFormatOrder(rsrc->AddStringArrayField(PreferredMediaKey, true, 25, GetMediaFormatOrder(), help));
   }
 
   SetMediaFormatMask(rsrc->AddStringArrayField(RemovedMediaKey, true, 25, GetMediaFormatMask(),

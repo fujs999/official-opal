@@ -207,7 +207,7 @@ class OpalPCSSEndPoint : public OpalLocalEndPoint
 
        @return false is returned the call is aborted with status of EndedByLocalBusy.
       */
-    virtual bool OnShowIncoming(
+    virtual PBoolean OnShowIncoming(
       const OpalPCSSConnection & connection ///<  Connection having event
     );
 
@@ -215,7 +215,7 @@ class OpalPCSSEndPoint : public OpalLocalEndPoint
        Returns false if the connection token does not correspond to a valid
        connection.
       */
-    virtual bool AcceptIncomingConnection(
+    virtual PBoolean AcceptIncomingConnection(
       const PString & connectionToken ///<  Token of connection to accept call
     );
 
@@ -223,7 +223,7 @@ class OpalPCSSEndPoint : public OpalLocalEndPoint
        Returns false if the connection token does not correspond to a valid
        connection.
       */
-    virtual bool RejectIncomingConnection(
+    virtual PBoolean RejectIncomingConnection(
       const PString & connectionToken,       ///<  Token of connection to accept call
       const OpalConnection::CallEndReason & reason = OpalConnection::EndedByAnswerDenied ///<  Reason for rejecting the call
     );
@@ -233,7 +233,7 @@ class OpalPCSSEndPoint : public OpalLocalEndPoint
 
        The default implementation is pure.
       */
-    virtual bool OnShowOutgoing(
+    virtual PBoolean OnShowOutgoing(
       const OpalPCSSConnection & connection ///<  Connection having event
     );
 
@@ -242,7 +242,7 @@ class OpalPCSSEndPoint : public OpalLocalEndPoint
 
        The default implementation does nothing.
       */
-    virtual bool OnShowUserInput(
+    virtual PBoolean OnShowUserInput(
       const OpalPCSSConnection & connection, ///<  Connection having event
       const PString & indication             ///<  Received user input indications
     );
@@ -274,7 +274,7 @@ class OpalPCSSEndPoint : public OpalLocalEndPoint
        This defaults to the value of the PSoundChannel::GetDefaultDevice()
        function.
      */
-    virtual bool SetSoundChannelPlayDevice(const PString & name);
+    virtual PBoolean SetSoundChannelPlayDevice(const PString & name);
 
     /**Get the name for the sound channel to be used for output.
        This defaults to the value of the PSoundChannel::GetDefaultDevice()
@@ -289,7 +289,7 @@ class OpalPCSSEndPoint : public OpalLocalEndPoint
        This defaults to the value of the PSoundChannel::GetDefaultDevice()
        function.
      */
-    virtual bool SetSoundChannelRecordDevice(const PString & name);
+    virtual PBoolean SetSoundChannelRecordDevice(const PString & name);
 
     /**Get the name for the sound channel to be used for input.
        This defaults to the value of the PSoundChannel::GetDefaultDevice()
@@ -411,7 +411,7 @@ class OpalPCSSEndPoint : public OpalLocalEndPoint
 
   private:
     P_REMOVE_VIRTUAL(OpalPCSSConnection *, CreateConnection(OpalCall &, const PString &, const PString &, void *), 0)
-    P_REMOVE_VIRTUAL(PSoundChannel *,CreateSoundChannel(const OpalPCSSConnection&,const OpalMediaFormat&,bool),NULL);
+    P_REMOVE_VIRTUAL(PSoundChannel *,CreateSoundChannel(const OpalPCSSConnection&,const OpalMediaFormat&,PBoolean),NULL);
     P_REMOVE_VIRTUAL(PSoundChannel *,CreateSoundChannel(const OpalPCSSConnection&,const OpalMediaFormat&,const PString&,bool),NULL);
 };
 
@@ -474,9 +474,9 @@ class OpalPCSSConnection : public OpalLocalConnection
 
        The default behaviour does nothing.
       */
-    virtual bool SetAlerting(
+    virtual PBoolean SetAlerting(
       const PString & calleeName,   ///<  Name of endpoint being alerted.
-      bool withMedia            ///<  Open media with alerting
+      PBoolean withMedia            ///<  Open media with alerting
     );
 
     /**Initiate the transfer of an existing call (connection) to a new remote 
@@ -515,7 +515,7 @@ class OpalPCSSConnection : public OpalLocalConnection
     virtual OpalMediaStream * CreateMediaStream(
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
-      bool isSource                        ///<  Is a source stream
+      PBoolean isSource                        ///<  Is a source stream
     );
 
     /**Call back when media stream patch thread starts.
@@ -529,16 +529,16 @@ class OpalPCSSConnection : public OpalLocalConnection
     /**Set  the volume (gain) for the audio media channel.
        The volume range is 0 == muted, 100 == LOUDEST.
       */
-    virtual bool SetAudioVolume(
-      bool source,        ///< true for source (microphone), false for sink (speaker)
+    virtual PBoolean SetAudioVolume(
+      PBoolean source,        ///< true for source (microphone), false for sink (speaker)
       unsigned percentage     ///< Gain, 0=silent, 100=maximun
     );
 
     /**Get  the volume (gain) for the audio media channel.
        The volume range is 0 == muted, 100 == LOUDEST.
       */
-    virtual bool GetAudioVolume(
-      bool source,        ///< true for source (microphone), false for sink (speaker)
+    virtual PBoolean GetAudioVolume(
+      PBoolean source,        ///< true for source (microphone), false for sink (speaker)
       unsigned & percentage   ///< Gain, 0=silent, 100=maximun
     );
 
@@ -691,7 +691,7 @@ class OpalPCSSConnection : public OpalLocalConnection
     bool       m_userInputAutoDelete;
     void UserInputMain();
 
-    P_REMOVE_VIRTUAL(PSoundChannel *,CreateSoundChannel(const OpalMediaFormat&,bool),NULL);
+    P_REMOVE_VIRTUAL(PSoundChannel *,CreateSoundChannel(const OpalMediaFormat&,PBoolean),NULL);
 };
 
 #else

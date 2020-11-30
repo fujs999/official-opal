@@ -293,22 +293,22 @@ class GstConnection : public OpalLocalConnection
     virtual OpalMediaStream * CreateMediaStream(
       const OpalMediaFormat & mediaFormat,
       unsigned sessionID,
-      bool isSource
+      PBoolean isSource
     );
 
     /**Set the volume (gain) for the audio media channel.
        The volume range is 0 == muted, 100 == LOUDEST.
       */
-    virtual bool SetAudioVolume(
-      bool source,        ///< true for source (microphone), false for sink (speaker)
+    virtual PBoolean SetAudioVolume(
+      PBoolean source,        ///< true for source (microphone), false for sink (speaker)
       unsigned percentage     ///< Gain, 0=silent, 100=maximun
     );
 
     /**Get the volume (gain) for the audio media channel.
        The volume range is 0 == muted, 100 == LOUDEST.
       */
-    virtual bool GetAudioVolume(
-      bool source,       ///< true for source (microphone), false for sink (speaker)
+    virtual PBoolean GetAudioVolume(
+      PBoolean source,       ///< true for source (microphone), false for sink (speaker)
       unsigned & percentage  ///< Gain, 0=silent, 100=maximun
     );
 
@@ -371,21 +371,21 @@ class GstMediaStream : public OpalMediaStream
        This calls GstConenction::BuildPipeline() and creates the GStreamer
        pipeline from the resultant desciption string.
       */
-    virtual bool Open();
+    virtual PBoolean Open();
 
     /**Start the media stream.
 
        The default behaviour calls Resume() on the associated OpalMediaPatch
        thread if it was suspended.
       */
-    virtual bool Start();
+    virtual PBoolean Start();
 
     /**Read an RTP frame of data from the source media stream.
        The default behaviour simply calls ReadData() on the data portion of the
        RTP_DataFrame and sets the frames timestamp and marker from the internal
        member variables of the media stream class.
       */
-    virtual bool ReadPacket(
+    virtual PBoolean ReadPacket(
       RTP_DataFrame & packet
     );
 
@@ -394,7 +394,7 @@ class GstMediaStream : public OpalMediaStream
        RTP_DataFrame and and sets the internal timestamp and marker from the
        member variables of the media stream class.
       */
-    virtual bool WritePacket(
+    virtual PBoolean WritePacket(
       RTP_DataFrame & packet
     );
 
@@ -403,7 +403,7 @@ class GstMediaStream : public OpalMediaStream
 
        The default behaviour does nothing.
       */
-    virtual bool SetDataSize(
+    virtual PBoolean SetDataSize(
       PINDEX dataSize,  ///< New data size (in total)
       PINDEX frameTime  ///< Individual frame time (if applicable)
     );
@@ -414,7 +414,7 @@ class GstMediaStream : public OpalMediaStream
        is over a sound card, and 480 bytes of data are to be written it will
        take 30 milliseconds to complete.
       */
-    virtual bool IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const;
 
     /**Indicate if the media stream requires a OpalMediaPatch thread (active patch).
        This is called on the source/sink stream and is passed the sink/source
@@ -423,7 +423,7 @@ class GstMediaStream : public OpalMediaStream
        writing data, or prevent  it from doing so as it can do so in hardware
        in some way.
       */
-    virtual bool RequiresPatchThread(
+    virtual PBoolean RequiresPatchThread(
       OpalMediaStream * stream  ///< Other stream in patch
     ) const;
 

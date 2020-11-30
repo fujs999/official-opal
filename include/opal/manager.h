@@ -45,7 +45,7 @@
 #include <ptclib/pstun.h>
 #include <ptclib/url.h>
 #include <ptclib/pxml.h>
-#include <ptclib/safethreadpool.h>
+#include <ptclib/threadpool.h>
 
 #if OPAL_VIDEO
 // Inside #if so does not force loading of factories when statically linked.
@@ -285,7 +285,7 @@ class OpalManager : public PObject
       unsigned options = 0,         ///<  options passed to connection
       OpalConnection::StringOptions * stringOptions = NULL ///< Options to pass to connection
     );
-    virtual bool SetUpCall(
+    virtual PBoolean SetUpCall(
       const PString & partyA,       ///<  The A party of call
       const PString & partyB,       ///<  The B party of call
       PString & token,              ///<  Token for call
@@ -321,7 +321,7 @@ class OpalManager : public PObject
        that the call could clear any time (even milliseconds) after this
        function returns true.
       */
-    virtual bool HasCall(
+    virtual PBoolean HasCall(
       const PString & token  ///<  Token for identifying call
     ) { return m_activeCalls.Find(token, PSafeReference) != NULL; }
 
@@ -390,7 +390,7 @@ class OpalManager : public PObject
        Note that the call could clear any time (even milliseconds) after this
        function returns true.
       */
-    virtual bool IsCallEstablished(
+    virtual PBoolean IsCallEstablished(
       const PString & token  ///<  Token for identifying call
     );
 
@@ -403,7 +403,7 @@ class OpalManager : public PObject
 
        If \p sync is not NULL then it is signalled when the calls are cleared.
       */
-    virtual bool ClearCall(
+    virtual PBoolean ClearCall(
       const PString & token,    ///<  Token for identifying connection
       OpalConnection::CallEndReason reason = OpalConnection::EndedByLocalUser, ///<  Reason for call clearing
       PSyncPoint * sync = NULL  ///<  Sync point to wait on.
@@ -416,7 +416,7 @@ class OpalManager : public PObject
        been cleared and all responses timeouts etc completed. Care must be
        used as to when it is called as deadlocks may result.
       */
-    virtual bool ClearCallSynchronous(
+    virtual PBoolean ClearCallSynchronous(
       const PString & token,    ///<  Token for identifying connection
       OpalConnection::CallEndReason reason = OpalConnection::EndedByLocalUser ///<  Reason for call clearing
     );
@@ -428,7 +428,7 @@ class OpalManager : public PObject
       */
     virtual void ClearAllCalls(
       OpalConnection::CallEndReason reason = OpalConnection::EndedByLocalUser, ///<  Reason for call clearing
-      bool wait = true   ///<  Flag to wait for calls to e cleared.
+      PBoolean wait = true   ///<  Flag to wait for calls to e cleared.
     );
 
     /**A call back function whenever a call is cleared.
@@ -511,7 +511,7 @@ class OpalManager : public PObject
 
         void CompileRegEx();
     };
-    typedef PArray<RouteEntry> RouteTable;
+    PARRAY(RouteTable, RouteEntry);
 
     /**Add a route entry to the route table.
 
@@ -627,7 +627,7 @@ class OpalManager : public PObject
 
        Returns true if an entry was added.
       */
-    virtual bool AddRouteEntry(
+    virtual PBoolean AddRouteEntry(
       const PString & spec  ///<  Specification string to add
     );
 
@@ -637,7 +637,7 @@ class OpalManager : public PObject
 
        Returns true if at least one entry was added.
       */
-    bool SetRouteTable(
+    PBoolean SetRouteTable(
       const PStringArray & specs  ///<  Array of specification strings.
     );
 
@@ -762,7 +762,7 @@ class OpalManager : public PObject
        and this connection is a third party for a conference call then
        AnswerCallNow is returned as a B party is not required.
      */
-    virtual bool OnIncomingConnection(
+    virtual PBoolean OnIncomingConnection(
       OpalConnection & connection,   ///<  Connection that is calling
       unsigned options,              ///<  options for new connection (can't use default as overrides will fail)
       OpalConnection::StringOptions * stringOptions ///< Options to pass to connection
@@ -908,7 +908,7 @@ class OpalManager : public PObject
 
        The default behaviour does nothing.
       */
-    virtual bool OnForwarded(
+    virtual PBoolean OnForwarded(
       OpalConnection & connection,  ///<  Connection that was held
       const PString & remoteParty         ///<  The new remote party
     );
@@ -1066,7 +1066,7 @@ class OpalManager : public PObject
        CreateMediaPatch() function to create a patch for all of the streams
        and codecs just produced.
       */
-    virtual bool OnOpenMediaStream(
+    virtual PBoolean OnOpenMediaStream(
       OpalConnection & connection,  ///<  Connection that owns the media stream
       OpalMediaStream & stream    ///<  New media stream being opened
     );
@@ -1154,22 +1154,22 @@ class OpalManager : public PObject
 #if OPAL_VIDEO
     /**Create a PVideoInputDevice for a source media stream.
       */
-    virtual bool CreateVideoInputDevice(
+    virtual PBoolean CreateVideoInputDevice(
       const OpalConnection & connection,    ///<  Connection needing created video device
       const OpalMediaFormat & mediaFormat,  ///<  Media format for stream
       PVideoInputDevice * & device,         ///<  Created device
-      bool & autoDelete                     ///<  Flag for auto delete device
+      PBoolean & autoDelete                     ///<  Flag for auto delete device
     );
 
     /**Create an PVideoOutputDevice for a sink media stream or the preview
        display for a source media stream.
       */
-    virtual bool CreateVideoOutputDevice(
+    virtual PBoolean CreateVideoOutputDevice(
       const OpalConnection & connection,    ///<  Connection needing created video device
       const OpalMediaFormat & mediaFormat,  ///<  Media format for stream
-      bool preview,                         ///<  Flag indicating is a preview output
+      PBoolean preview,                         ///<  Flag indicating is a preview output
       PVideoOutputDevice * & device,        ///<  Created device
-      bool & autoDelete                     ///<  Flag for auto delete device
+      PBoolean & autoDelete                     ///<  Flag for auto delete device
     );
 
     /**Create a PVideoInputDevice for a source media stream.
@@ -1178,7 +1178,7 @@ class OpalManager : public PObject
       const OpalConnection & connection,    ///<  Connection needing created video device
       const PVideoDevice::OpenArgs & args,  ///< Device to change to
       PVideoInputDevice * & device,         ///<  Created device
-      bool & autoDelete                     ///<  Flag for auto delete device
+      PBoolean & autoDelete                     ///<  Flag for auto delete device
     );
 
     /**Create an PVideoOutputDevice for a sink media stream or the preview
@@ -1188,7 +1188,7 @@ class OpalManager : public PObject
       const OpalConnection & connection,    ///<  Connection needing created video device
       const PVideoDevice::OpenArgs & args,  ///< Device to change to
       PVideoOutputDevice * & device,        ///<  Created device
-      bool & autoDelete                     ///<  Flag for auto delete device
+      PBoolean & autoDelete                     ///<  Flag for auto delete device
     );
 #endif // OPAL_VIDEO
 
@@ -1201,7 +1201,7 @@ class OpalManager : public PObject
       */
     virtual OpalMediaPatch * CreateMediaPatch(
       OpalMediaStream & source,         ///<  Source media stream
-      bool requiresPatchThread = true  ///< The patch requires a thread
+      PBoolean requiresPatchThread = true  ///< The patch requires a thread
     );
 
     /**Call back for a media patch thread starting.
@@ -1299,7 +1299,7 @@ class OpalManager : public PObject
        Returns true if the call exists and there is no recording in progress
                for the call.
       */
-    virtual bool StartRecording(
+    virtual PBoolean StartRecording(
       const PString & callToken,  ///< Call token for call to record
       const PFilePath & filename, ///< File into which to record
       const OpalRecordManager::Options & options = false ///< Record mixing options
@@ -1342,18 +1342,18 @@ class OpalManager : public PObject
 
        This will fail if an OpalIMEndPoint has not been created.
      */
-    virtual bool Message(
+    virtual PBoolean Message(
       OpalIM & message
     );
 
     ///< Send an Instant Message to a remote party. Backward compatible to old API.
-    virtual bool Message(
+    virtual PBoolean Message(
       const PString & to, 
       const PString & body
     );
 
     ///< Send an Instant Message to a remote party. Backward compatible to old API.
-    virtual bool Message(
+    virtual PBoolean Message(
       const PURL & to, 
       const PString & type,
       const PString & body,
@@ -1528,7 +1528,7 @@ class OpalManager : public PObject
        IP, e.g. 10.x.x.x, 127.x.x.x etc, the "any" or "broadcast" IP, or the IP
        of a local interface.
      */
-    virtual bool IsLocalAddress(
+    virtual PBoolean IsLocalAddress(
       const PIPSocket::Address & remoteAddress
     ) const;
 
@@ -1549,12 +1549,12 @@ class OpalManager : public PObject
        the protocol, eg H.323 SETUP sourceCallSignalAddress or SIP "To" or
        "Contact" fields, and makes a guess that the remote is behind a NAT router.
      */
-    virtual bool IsRTPNATEnabled(
+    virtual PBoolean IsRTPNATEnabled(
       OpalConnection & connection,            ///< Connection being checked
       const PIPSocket::Address & localAddr,   ///< Local physical address of connection
       const PIPSocket::Address & peerAddr,    ///< Remote physical address of connection
       const PIPSocket::Address & signalAddr,  ///< Remotes signaling address as indicated by protocol of connection
-      bool incoming                       ///< Incoming/outgoing connection
+      PBoolean incoming                       ///< Incoming/outgoing connection
     );
 
     /**Provide address translation hook.
@@ -1563,7 +1563,7 @@ class OpalManager : public PObject
        translationAddress (if valid) which would normally be the router
        address of a NAT system.
      */
-    virtual bool TranslateIPAddress(
+    virtual PBoolean TranslateIPAddress(
       PIPSocket::Address & localAddress,
       const PIPSocket::Address & remoteAddress
     );
@@ -1875,7 +1875,7 @@ class OpalManager : public PObject
        This defaults to the value of the PVideoInputDevice::GetOutputDeviceNames()
        function.
      */
-    virtual bool SetVideoPreviewDevice(
+    virtual PBoolean SetVideoPreviewDevice(
       const PVideoDevice::OpenArgs & deviceArgs, ///<  Full description of device
       OpalVideoFormat::ContentRole role = OpalVideoFormat::eNoRole  ///< Role for video stream to set
     );
@@ -1894,7 +1894,7 @@ class OpalManager : public PObject
        This defaults to the value of the PVideoInputDevice::GetOutputDeviceNames()
        function.
      */
-    virtual bool SetVideoOutputDevice(
+    virtual PBoolean SetVideoOutputDevice(
       const PVideoDevice::OpenArgs & deviceArgs, ///<  Full description of device
       OpalVideoFormat::ContentRole role = OpalVideoFormat::eNoRole  ///< Role for video stream to set
     );
@@ -1908,13 +1908,13 @@ class OpalManager : public PObject
 
 #endif
 
-    bool DetectInBandDTMFDisabled() const
+    PBoolean DetectInBandDTMFDisabled() const
       { return m_disableDetectInBandDTMF; }
 
     /**Set the default H.245 tunneling mode.
       */
     void DisableDetectInBandDTMF(
-      bool mode ///<  New default mode
+      PBoolean mode ///<  New default mode
     ) { m_disableDetectInBandDTMF = mode; } 
 
     /**Get the amount of time with no media that will cause a call to clear
@@ -2176,13 +2176,13 @@ class OpalManager : public PObject
 
   private:
     P_REMOVE_VIRTUAL(OpalCall *,CreateCall(), 0);
-    P_REMOVE_VIRTUAL(bool, OnIncomingConnection(OpalConnection &, unsigned), false);
-    P_REMOVE_VIRTUAL(bool, OnIncomingConnection(OpalConnection &), false);
-    P_REMOVE_VIRTUAL(bool, OnStartMediaPatch(const OpalMediaPatch &), false);
+    P_REMOVE_VIRTUAL(PBoolean, OnIncomingConnection(OpalConnection &, unsigned), false);
+    P_REMOVE_VIRTUAL(PBoolean, OnIncomingConnection(OpalConnection &), false);
+    P_REMOVE_VIRTUAL(PBoolean, OnStartMediaPatch(const OpalMediaPatch &), false);
     P_REMOVE_VIRTUAL_VOID(AdjustMediaFormats(const OpalConnection &, OpalMediaFormatList &) const);
     P_REMOVE_VIRTUAL_VOID(OnMessageReceived(const PURL&,const PString&,const PURL&,const PString&,const PString&,const PString&));
     P_REMOVE_VIRTUAL_VOID(OnRTPStatistics(const OpalConnection &, const OpalRTPSession &));
-    P_REMOVE_VIRTUAL(bool, IsMediaBypassPossible(const OpalConnection &,const OpalConnection &,unsigned) const, false);
+    P_REMOVE_VIRTUAL(PBoolean, IsMediaBypassPossible(const OpalConnection &,const OpalConnection &,unsigned) const, false);
 #if OPAL_PTLIB_NAT
     P_REMOVE_VIRTUAL(PNatMethod *, GetNatMethod(const PIPSocket::Address &) const, NULL);
 #endif

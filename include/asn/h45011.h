@@ -108,7 +108,7 @@ class H45011_CIStatusInformation : public PASN_Choice
       e_callIntrusionEnd
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -176,7 +176,7 @@ class H45011_CIRequestArg : public PASN_Sequence
     H45011_ArrayOf_MixedExtension m_argumentExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -206,7 +206,7 @@ class H45011_CIRequestRes : public PASN_Sequence
     H45011_ArrayOf_MixedExtension m_resultExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -235,7 +235,7 @@ class H45011_CIGetCIPLOptArg : public PASN_Sequence
     H45011_ArrayOf_MixedExtension m_argumentExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -267,7 +267,7 @@ class H45011_CIGetCIPLRes : public PASN_Sequence
     H45011_ArrayOf_MixedExtension m_resultExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -296,7 +296,7 @@ class H45011_CIIsOptArg : public PASN_Sequence
     H45011_ArrayOf_MixedExtension m_argumentExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -325,7 +325,7 @@ class H45011_CIIsOptRes : public PASN_Sequence
     H45011_ArrayOf_MixedExtension m_resultExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -355,7 +355,7 @@ class H45011_CIFrcRelArg : public PASN_Sequence
     H45011_ArrayOf_MixedExtension m_argumentExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -384,7 +384,7 @@ class H45011_CIFrcRelOptRes : public PASN_Sequence
     H45011_ArrayOf_MixedExtension m_resultExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -413,7 +413,7 @@ class H45011_CIWobOptArg : public PASN_Sequence
     H45011_ArrayOf_MixedExtension m_argumentExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -442,7 +442,7 @@ class H45011_CIWobOptRes : public PASN_Sequence
     H45011_ArrayOf_MixedExtension m_resultExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -474,7 +474,7 @@ class H45011_CISilentArg : public PASN_Sequence
     H45011_ArrayOf_MixedExtension m_argumentExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -503,7 +503,7 @@ class H45011_CISilentOptRes : public PASN_Sequence
     H45011_ArrayOf_MixedExtension m_resultExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -533,7 +533,7 @@ class H45011_CINotificationArg : public PASN_Sequence
     H45011_ArrayOf_MixedExtension m_argumentExtension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;

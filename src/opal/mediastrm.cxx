@@ -55,7 +55,7 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
-OpalMediaStream::OpalMediaStream(OpalConnection & conn, const OpalMediaFormat & fmt, unsigned _sessionID, bool isSourceStream)
+OpalMediaStream::OpalMediaStream(OpalConnection & conn, const OpalMediaFormat & fmt, unsigned _sessionID, PBoolean isSourceStream)
   : m_connection(conn)
   , m_sessionID(_sessionID)
   , m_sequenceNumber(0)
@@ -206,7 +206,7 @@ bool OpalMediaStream::InternalExecuteCommand(const OpalMediaCommand & command)
 }
 
 
-bool OpalMediaStream::Open()
+PBoolean OpalMediaStream::Open()
 {
   m_isOpen = true;
   return true;
@@ -225,7 +225,7 @@ bool OpalMediaStream::IsEstablished() const
 }
 
 
-bool OpalMediaStream::Start()
+PBoolean OpalMediaStream::Start()
 {
   if (!Open()) {
     PTRACE(4, "Can't start as not open: " << *this);
@@ -251,7 +251,7 @@ bool OpalMediaStream::Start()
 }
 
 
-bool OpalMediaStream::Close()
+PBoolean OpalMediaStream::Close()
 {
   if (!m_isOpen.exchange(false))
     return false;
@@ -275,7 +275,7 @@ bool OpalMediaStream::Close()
 }
 
 
-bool OpalMediaStream::WritePackets(RTP_DataFrameList & packets)
+PBoolean OpalMediaStream::WritePackets(RTP_DataFrameList & packets)
 {
   for (RTP_DataFrameList::iterator packet = packets.begin(); packet != packets.end(); ++packet) {
     if (!WritePacket(*packet))
@@ -286,7 +286,7 @@ bool OpalMediaStream::WritePackets(RTP_DataFrameList & packets)
 }
 
 
-bool OpalMediaStream::ReadPacket(RTP_DataFrame & packet)
+PBoolean OpalMediaStream::ReadPacket(RTP_DataFrame & packet)
 {
   if (!IsOpen())
     return false;
@@ -320,7 +320,7 @@ bool OpalMediaStream::ReadPacket(RTP_DataFrame & packet)
 }
 
 
-bool OpalMediaStream::WritePacket(RTP_DataFrame & packet)
+PBoolean OpalMediaStream::WritePacket(RTP_DataFrame & packet)
 {
   if (!IsOpen())
     return false;
@@ -358,7 +358,7 @@ bool OpalMediaStream::WritePacket(RTP_DataFrame & packet)
 }
 
 
-bool OpalMediaStream::ReadData(BYTE * buffer, PINDEX size, PINDEX & length)
+PBoolean OpalMediaStream::ReadData(BYTE * buffer, PINDEX size, PINDEX & length)
 {
   if (!IsOpen()) {
     length = 0;
@@ -381,7 +381,7 @@ bool OpalMediaStream::ReadData(BYTE * buffer, PINDEX size, PINDEX & length)
 }
 
 
-bool OpalMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDEX & written)
+PBoolean OpalMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDEX & written)
 {
   if (!IsOpen()) {
     written = 0;
@@ -398,7 +398,7 @@ bool OpalMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDEX & wri
 }
 
 
-bool OpalMediaStream::PushPacket(RTP_DataFrame & packet)
+PBoolean OpalMediaStream::PushPacket(RTP_DataFrame & packet)
 {
   // We make referenced copy of pointer so can't be deleted out from under us
   OpalMediaPatchPtr mediaPatch = m_mediaPatch;
@@ -408,7 +408,7 @@ bool OpalMediaStream::PushPacket(RTP_DataFrame & packet)
 }
 
 
-bool OpalMediaStream::SetDataSize(PINDEX dataSize, PINDEX /*frameTime*/)
+PBoolean OpalMediaStream::SetDataSize(PINDEX dataSize, PINDEX /*frameTime*/)
 {
   if (dataSize <= 0) {
     PTRACE(4, "Ignoring set data size of " << dataSize << ", leaving as " << GetDataSize() << " on " << *this);
@@ -422,13 +422,13 @@ bool OpalMediaStream::SetDataSize(PINDEX dataSize, PINDEX /*frameTime*/)
 }
 
 
-bool OpalMediaStream::RequiresPatchThread(OpalMediaStream * /*stream*/) const
+PBoolean OpalMediaStream::RequiresPatchThread(OpalMediaStream * /*stream*/) const
 {
   return RequiresPatchThread();
 }
 
 
-bool OpalMediaStream::RequiresPatchThread() const
+PBoolean OpalMediaStream::RequiresPatchThread() const
 {
   return true;
 }
@@ -521,7 +521,7 @@ void OpalMediaStream::InternalSetPatchPart2(const OpalMediaPatchPtr & oldPatch)
 }
 
 
-bool OpalMediaStream::SetPatch(OpalMediaPatch * patch)
+PBoolean OpalMediaStream::SetPatch(OpalMediaPatch * patch)
 {
   InternalSetPatchPart2(InternalSetPatchPart1(patch));
   return true;
@@ -538,7 +538,7 @@ void OpalMediaStream::AddFilter(const PNotifier & filter, const OpalMediaFormat 
 }
 
 
-bool OpalMediaStream::RemoveFilter(const PNotifier & filter, const OpalMediaFormat & stage) const
+PBoolean OpalMediaStream::RemoveFilter(const PNotifier & filter, const OpalMediaFormat & stage) const
 {
   // We make referenced copy of pointer so can't be deleted out from under us
   OpalMediaPatchPtr mediaPatch = m_mediaPatch;
@@ -723,7 +723,7 @@ OpalNullMediaStream::OpalNullMediaStream(OpalConnection & conn,
 }
 
 
-bool OpalNullMediaStream::ReadData(BYTE * buffer, PINDEX size, PINDEX & length)
+PBoolean OpalNullMediaStream::ReadData(BYTE * buffer, PINDEX size, PINDEX & length)
 {
   if (!IsOpen())
     return false;
@@ -738,7 +738,7 @@ bool OpalNullMediaStream::ReadData(BYTE * buffer, PINDEX size, PINDEX & length)
 }
 
 
-bool OpalNullMediaStream::WriteData(const BYTE * /*buffer*/, PINDEX length, PINDEX & written)
+PBoolean OpalNullMediaStream::WriteData(const BYTE * /*buffer*/, PINDEX length, PINDEX & written)
 {
   if (!IsOpen())
     return false;
@@ -764,13 +764,13 @@ bool OpalNullMediaStream::InternalSetPaused(bool pause, bool fromUser, bool from
 }
 
 
-bool OpalNullMediaStream::RequiresPatchThread() const
+PBoolean OpalNullMediaStream::RequiresPatchThread() const
 {
   return m_requiresPatchThread;
 }
 
 
-bool OpalNullMediaStream::IsSynchronous() const
+PBoolean OpalNullMediaStream::IsSynchronous() const
 {
   return m_isSynchronous;
 }
@@ -788,8 +788,8 @@ bool OpalNullMediaStream::InternalUpdateMediaFormat(const OpalMediaFormat & newM
 OpalRawMediaStream::OpalRawMediaStream(OpalConnection & conn,
                                        const OpalMediaFormat & mediaFormat,
                                        unsigned sessionID,
-                                       bool isSource,
-                                       PChannel * chan, bool autoDelete)
+                                       PBoolean isSource,
+                                       PChannel * chan, PBoolean autoDelete)
   : OpalMediaStream(conn, mediaFormat, sessionID, isSource)
   , m_channel(chan)
   , m_autoDelete(autoDelete)
@@ -808,7 +808,7 @@ OpalRawMediaStream::~OpalRawMediaStream()
 }
 
 
-bool OpalRawMediaStream::ReadData(BYTE * buffer, PINDEX size, PINDEX & length)
+PBoolean OpalRawMediaStream::ReadData(BYTE * buffer, PINDEX size, PINDEX & length)
 {
   if (!IsOpen())
     return false;
@@ -869,7 +869,7 @@ bool OpalRawMediaStream::ReadData(BYTE * buffer, PINDEX size, PINDEX & length)
 }
 
 
-bool OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDEX & written)
+PBoolean OpalRawMediaStream::WriteData(const BYTE * buffer, PINDEX length, PINDEX & written)
 {
   if (!IsOpen()) {
     PTRACE(1, "Tried to write to closed media stream");
@@ -967,9 +967,9 @@ int OpalRawMediaStream::GetAudioLevelDB()
 OpalFileMediaStream::OpalFileMediaStream(OpalConnection & conn,
                                          const OpalMediaFormat & mediaFormat,
                                          unsigned sessionID,
-                                         bool isSource,
+                                         PBoolean isSource,
                                          PFile * file,
-                                         bool autoDel)
+                                         PBoolean autoDel)
   : OpalRawMediaStream(conn, mediaFormat, sessionID, isSource, file, autoDel)
   , OpalMediaStreamPacing(mediaFormat)
 {
@@ -979,7 +979,7 @@ OpalFileMediaStream::OpalFileMediaStream(OpalConnection & conn,
 OpalFileMediaStream::OpalFileMediaStream(OpalConnection & conn,
                                          const OpalMediaFormat & mediaFormat,
                                          unsigned sessionID,
-                                         bool isSource,
+                                         PBoolean isSource,
                                          const PFilePath & path)
   : OpalRawMediaStream(conn, mediaFormat, sessionID, isSource,
                        new PFile(path, isSource ? PFile::ReadOnly : PFile::WriteOnly),
@@ -989,13 +989,13 @@ OpalFileMediaStream::OpalFileMediaStream(OpalConnection & conn,
 }
 
 
-bool OpalFileMediaStream::IsSynchronous() const
+PBoolean OpalFileMediaStream::IsSynchronous() const
 {
   return false;
 }
 
 
-bool OpalFileMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & length)
+PBoolean OpalFileMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & length)
 {
   if (!OpalRawMediaStream::ReadData(data, size, length))
     return false;
@@ -1008,7 +1008,7 @@ bool OpalFileMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & length)
 /**Write raw media data to the sink media stream.
    The default behaviour writes to the PChannel object.
   */
-bool OpalFileMediaStream::WriteData(const BYTE * data, PINDEX length, PINDEX & written)
+PBoolean OpalFileMediaStream::WriteData(const BYTE * data, PINDEX length, PINDEX & written)
 {
   if (!OpalRawMediaStream::WriteData(data, length, written))
     return false;
@@ -1025,11 +1025,11 @@ bool OpalFileMediaStream::WriteData(const BYTE * data, PINDEX length, PINDEX & w
 OpalAudioMediaStream::OpalAudioMediaStream(OpalConnection & conn,
                                            const OpalMediaFormat & mediaFormat,
                                            unsigned sessionID,
-                                           bool isSource,
+                                           PBoolean isSource,
                                            PINDEX buffers,
                                            unsigned bufferTime,
                                            PSoundChannel * channel,
-                                           bool autoDel)
+                                           PBoolean autoDel)
   : OpalRawMediaStream(conn, mediaFormat, sessionID, isSource, channel, autoDel)
   , m_soundChannelBuffers(buffers)
   , m_soundChannelBufferTime(bufferTime)
@@ -1040,7 +1040,7 @@ OpalAudioMediaStream::OpalAudioMediaStream(OpalConnection & conn,
 OpalAudioMediaStream::OpalAudioMediaStream(OpalConnection & conn,
                                            const OpalMediaFormat & mediaFormat,
                                            unsigned sessionID,
-                                           bool isSource,
+                                           PBoolean isSource,
                                            PINDEX buffers,
                                            unsigned bufferTime,
                                            const PString & deviceName)
@@ -1057,7 +1057,7 @@ OpalAudioMediaStream::OpalAudioMediaStream(OpalConnection & conn,
 }
 
 
-bool OpalAudioMediaStream::SetDataSize(PINDEX dataSize, PINDEX frameTime)
+PBoolean OpalAudioMediaStream::SetDataSize(PINDEX dataSize, PINDEX frameTime)
 {
   /* For efficiency reasons we will not accept a packet size that is too small.
       We move it up to the next even multiple of the minimum, which has a danger
@@ -1099,7 +1099,7 @@ bool OpalAudioMediaStream::SetDataSize(PINDEX dataSize, PINDEX frameTime)
 }
 
 
-bool OpalAudioMediaStream::IsSynchronous() const
+PBoolean OpalAudioMediaStream::IsSynchronous() const
 {
   return true;
 }
@@ -1116,8 +1116,8 @@ OpalVideoMediaStream::OpalVideoMediaStream(OpalConnection & conn,
                                            unsigned sessionID,
                                            PVideoInputDevice * in,
                                            PVideoOutputDevice * out,
-                                           bool delIn,
-                                           bool delOut)
+                                           PBoolean delIn,
+                                           PBoolean delOut)
   : OpalMediaStream(conn, mediaFormat, sessionID, in != NULL)
   , m_inputDevice(in)
   , m_watermarkDevice(NULL)
@@ -1143,7 +1143,7 @@ OpalVideoMediaStream::~OpalVideoMediaStream()
 }
 
 
-bool OpalVideoMediaStream::SetDataSize(PINDEX dataSize, PINDEX frameTime)
+PBoolean OpalVideoMediaStream::SetDataSize(PINDEX dataSize, PINDEX frameTime)
 {
   if (m_inputDevice != NULL) {
     PINDEX minDataSize = m_inputDevice->GetMaxFrameBytes();
@@ -1247,7 +1247,7 @@ bool OpalVideoMediaStream::InternalAdjustDevices()
 }
 
 
-bool OpalVideoMediaStream::Open()
+PBoolean OpalVideoMediaStream::Open()
 {
   if (m_isOpen)
     return true;
@@ -1299,7 +1299,7 @@ bool OpalVideoMediaStream::InternalExecuteCommand(const OpalMediaCommand & comma
 }
 
 
-bool OpalVideoMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & length)
+PBoolean OpalVideoMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & length)
 {
   if (!IsOpen())
     return false;
@@ -1366,7 +1366,7 @@ bool OpalVideoMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & length)
 }
 
 
-bool OpalVideoMediaStream::WriteData(const BYTE * data, PINDEX length, PINDEX & written)
+PBoolean OpalVideoMediaStream::WriteData(const BYTE * data, PINDEX length, PINDEX & written)
 {
   if (!IsOpen())
     return false;
@@ -1422,7 +1422,7 @@ bool OpalVideoMediaStream::WriteData(const BYTE * data, PINDEX length, PINDEX & 
 }
 
 
-bool OpalVideoMediaStream::IsSynchronous() const
+PBoolean OpalVideoMediaStream::IsSynchronous() const
 {
   return IsSource();
 }
@@ -1465,7 +1465,7 @@ void OpalVideoMediaStream::ApplyWatermark(unsigned frameWidth, unsigned frameHei
 OpalUDPMediaStream::OpalUDPMediaStream(OpalConnection & conn,
                                       const OpalMediaFormat & mediaFormat,
                                        unsigned sessionID,
-                                       bool isSource,
+                                       PBoolean isSource,
                                        OpalTransportUDP & transport)
   : OpalMediaStream(conn, mediaFormat, sessionID, isSource),
     udpTransport(transport)
@@ -1478,7 +1478,7 @@ OpalUDPMediaStream::~OpalUDPMediaStream()
 }
 
 
-bool OpalUDPMediaStream::ReadPacket(RTP_DataFrame & packet)
+PBoolean OpalUDPMediaStream::ReadPacket(RTP_DataFrame & packet)
 {
   packet.SetPayloadType(m_payloadType);
   packet.SetPayloadSize(0);
@@ -1502,7 +1502,7 @@ bool OpalUDPMediaStream::ReadPacket(RTP_DataFrame & packet)
 }
 
 
-bool OpalUDPMediaStream::WritePacket(RTP_DataFrame & Packet)
+PBoolean OpalUDPMediaStream::WritePacket(RTP_DataFrame & Packet)
 {
   if (IsSource()) {
     PTRACE(1, "Tried to write to source media stream");
@@ -1521,7 +1521,7 @@ bool OpalUDPMediaStream::WritePacket(RTP_DataFrame & Packet)
 }
 
 
-bool OpalUDPMediaStream::IsSynchronous() const
+PBoolean OpalUDPMediaStream::IsSynchronous() const
 {
   return false;
 }

@@ -58,7 +58,7 @@ Opal_G711_PCM::Opal_G711_PCM(const OpalMediaFormat & inputMediaFormat)
 
 
 #if OPAL_G711PLC 
-bool Opal_G711_PCM::Convert(const RTP_DataFrame & input, RTP_DataFrame & output)
+PBoolean Opal_G711_PCM::Convert(const RTP_DataFrame & input, RTP_DataFrame & output)
 {
   PTRACE(7, "G.711\tPLC in_psz=" << input.GetPayloadSize()
          << " sn=" << input.GetSequenceNumber() << ", ts=" << input.GetTimestamp());

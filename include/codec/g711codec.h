@@ -43,7 +43,7 @@ class Opal_G711_PCM : public OpalStreamedTranscoder {
     Opal_G711_PCM(const OpalMediaFormat & inputMediaFormat);
 
 #if OPAL_G711PLC 
-   virtual bool Convert(
+   virtual PBoolean Convert(
       const RTP_DataFrame & input,  ///<  Input data
       RTP_DataFrame & output        ///<  Output data
     );

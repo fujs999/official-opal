@@ -376,7 +376,7 @@ float RTCP_XR_Metrics::GetPonderateId() const
 {
   float   ponderateId = 0;
   float   sumId = 0;
-  uint64_t sumDuration = 0;
+  PUInt64 sumDuration = 0;
   DWORD   count = 0;
 
   /* Account for the current time and Id value */
@@ -430,7 +430,7 @@ float RTCP_XR_Metrics::GetEndOfCallIe() const
 {
   /* Calculate the time since the last burst period */
   PTime now;
-  auto y = (now - m_lastLossInBurstTimestamp).GetMilliSeconds();
+  PInt64 y = (now - m_lastLossInBurstTimestamp).GetMilliSeconds();
 
   /* Compute end of call Ie factor, according to the extended E-Model */
   return GetPonderateIe() + 0.7f * (m_lastIe - GetPonderateIe()) * exp((float)(-y/30000.0));
@@ -441,7 +441,7 @@ float RTCP_XR_Metrics::GetPonderateIe() const
 {
   float   ponderateIe = 0;
   float   sumIe = 0;
-  uint64_t sumDuration = 0;
+  PUInt64 sumDuration = 0;
   DWORD   count = 0;
 
   /* Account for the current time and Ie value */
@@ -499,8 +499,8 @@ RTCP_XR_Metrics::IePeriod RTCP_XR_Metrics::CreateIePeriod(const RTCP_XR_Metrics:
   float I1 = 0;
   float I2 = 0;
   float averageIe = 0;
-  int64_t g = 0;
-  int64_t b = 0;
+  PInt64 g = 0;
+  PInt64 b = 0;
 
   IePeriod newPeriod;
 

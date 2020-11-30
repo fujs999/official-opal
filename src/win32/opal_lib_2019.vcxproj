@@ -164,7 +164,6 @@
       <MinimalRebuild>false</MinimalRebuild>
       <PrecompiledHeaderOutputFile>$(VS_PCH_DIR)$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -185,7 +184,6 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <MinimalRebuild>false</MinimalRebuild>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -213,7 +211,6 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <ProgramDataBaseFileName>$(IntDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <AdditionalOptions>/Zm80 %(AdditionalOptions)</AdditionalOptions>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -239,7 +236,6 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OpenMPSupport>true</OpenMPSupport>
       <ProgramDataBaseFileName>$(IntDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -270,7 +266,6 @@
       <StringPooling>true</StringPooling>
       <ProgramDataBaseFileName>$(IntDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <DebugInformationFormat>None</DebugInformationFormat>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -299,7 +294,6 @@
       <StringPooling>true</StringPooling>
       <ProgramDataBaseFileName>$(IntDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <DebugInformationFormat>None</DebugInformationFormat>
-      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -1765,6 +1759,7 @@
     <ClCompile Include="..\opal\connection.cxx" />
     <ClCompile Include="..\opal\console_mgr.cxx" />
     <ClCompile Include="..\opal\endpoint.cxx" />
+    <ClCompile Include="..\opal\guid.cxx" />
     <ClCompile Include="..\ep\ivr.cxx" />
     <ClCompile Include="..\ep\localep.cxx" />
     <ClCompile Include="..\opal\manager.cxx" />

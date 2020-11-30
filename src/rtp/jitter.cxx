@@ -450,7 +450,7 @@ RTP_Timestamp OpalAudioJitterBuffer::GetPacketTime() const
 }
 
 
-bool OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTimeInterval & tick)
+PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTimeInterval & tick)
 {
   PWaitAndSignal mutex(m_bufferMutex);
 
@@ -605,7 +605,7 @@ bool OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTimeIn
 
 
   // Add to buffer
-  auto result = m_frames.emplace(timestamp, frame);
+  pair<FrameMap::iterator,bool> result = m_frames.insert(FrameMap::value_type(timestamp, frame));
   if (result.second) {
     ANALYSE(In, timestamp, m_synchronisationState != e_SynchronisationDone ? "PreBuf" : "");
     PTRACE_IF(sm_EveryPacketLogLevel, m_maxJitterDelay > 0,
@@ -647,8 +647,8 @@ OpalAudioJitterBuffer::AdjustResult OpalAudioJitterBuffer::AdjustCurrentJitterDe
     return e_Unchanged;
   }
 
-  int minJitterDelay = std::max(m_minJitterDelay, 2*m_packetTime);
-  int maxJitterDelay = std::max(m_minJitterDelay, m_maxJitterDelay);
+  int minJitterDelay = max(m_minJitterDelay, 2*m_packetTime);
+  int maxJitterDelay = max(m_minJitterDelay, m_maxJitterDelay);
 
   if (delta < 0 && m_currentJitterDelay <= minJitterDelay)
     return e_Unchanged;
@@ -670,7 +670,7 @@ OpalAudioJitterBuffer::AdjustResult OpalAudioJitterBuffer::AdjustCurrentJitterDe
 }
 
 
-bool OpalAudioJitterBuffer::ReadData(RTP_DataFrame & frame, const PTimeInterval & PTRACE_PARAM(, const PTimeInterval & tick))
+PBoolean OpalAudioJitterBuffer::ReadData(RTP_DataFrame & frame, const PTimeInterval & PTRACE_PARAM(, const PTimeInterval & tick))
 {
   // Default response is an empty frame, ie silence with possible comfort noise
   frame.SetPayloadType(RTP_DataFrame::CN);

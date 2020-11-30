@@ -52,7 +52,7 @@ static PString BuildIP(const PIPSocket::Address & ip, unsigned port, const char 
     str << OpalTransportAddress::IpPrefix(); // Compatible with both tcp$ and udp$
   else {
     str << proto;
-    if (str.str().find('$') == std::string::npos)
+    if (str.Find('$') == P_MAX_INDEX)
       str << '$';
   }
 
@@ -130,7 +130,7 @@ H323TransportAddress::H323TransportAddress(const H245_TransportAddress & transpo
 }
 
 
-bool H323TransportAddress::SetPDU(H225_TransportAddress & pdu, WORD defPort) const
+PBoolean H323TransportAddress::SetPDU(H225_TransportAddress & pdu, WORD defPort) const
 {
   PIPSocket::Address ip;
   WORD port = defPort;
@@ -160,7 +160,7 @@ bool H323TransportAddress::SetPDU(H225_TransportAddress & pdu, WORD defPort) con
 }
 
 
-bool H323TransportAddress::SetPDU(H245_TransportAddress & pdu, WORD defPort) const
+PBoolean H323TransportAddress::SetPDU(H245_TransportAddress & pdu, WORD defPort) const
 {
   WORD port = defPort;
   if (defPort == 0)
