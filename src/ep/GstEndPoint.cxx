@@ -989,7 +989,7 @@ bool GstEndPoint::ConfigurePipeline(PGstPipeline & pipeline, const GstMediaStrea
   if (channel == NULL)
     return false;
 
-  intptr_t rtpHandle = channel->GetHandle();
+  P_INT_PTR rtpHandle = channel->GetHandle();
   PString media(stream.GetMediaFormat().GetMediaType());
   const char *rtp_suffixes[] = { "TxRTP", "RxRTP", };
   for (i = 0; i < PARRAYSIZE(rtp_suffixes); i++) {
@@ -1000,7 +1000,7 @@ bool GstEndPoint::ConfigurePipeline(PGstPipeline & pipeline, const GstMediaStrea
     }
   }
 
-  intptr_t rtcpHandle = rtpHandle;
+  P_INT_PTR rtcpHandle = rtpHandle;
   if (session->GetLocalDataPort() != session->GetLocalControlPort()) {
     channel = transport->GetChannel(OpalMediaTransport::e_Control);
     if (channel != NULL)
@@ -1039,19 +1039,19 @@ GstConnection::GstConnection(OpalCall & call,
 
 OpalMediaStream* GstConnection::CreateMediaStream(const OpalMediaFormat & mediaFormat,
                                                   unsigned sessionID,
-                                                  bool isSource)
+                                                  PBoolean isSource)
 {
   return new GstMediaStream(*this, mediaFormat, sessionID, isSource);
 }
 
 
-bool GstConnection::SetAudioVolume(bool source, unsigned percentage)
+PBoolean GstConnection::SetAudioVolume(PBoolean source, unsigned percentage)
 {
   PSafePtr<GstMediaStream> stream = PSafePtrCast<OpalMediaStream, GstMediaStream>(GetMediaStream(OpalMediaType::Audio(), source));
   return stream != NULL && stream->SetAudioVolume(percentage);
 }
 
-bool GstConnection::GetAudioVolume(bool source, unsigned & percentage)
+PBoolean GstConnection::GetAudioVolume(PBoolean source, unsigned & percentage)
 {
   PSafePtr<GstMediaStream> stream = PSafePtrCast<OpalMediaStream, GstMediaStream>(GetMediaStream(OpalMediaType::Audio(), source));
   return stream != NULL && stream->GetAudioVolume(percentage);
@@ -1164,7 +1164,7 @@ GstMediaStream::~GstMediaStream()
 }
 
 
-bool GstMediaStream::Open()
+PBoolean GstMediaStream::Open()
 {
   if (m_isOpen)
     return true;
@@ -1236,7 +1236,7 @@ void GstMediaStream::InternalClose()
 }
 
 
-bool GstMediaStream::SetDataSize(PINDEX dataSize, PINDEX frameTime)
+PBoolean GstMediaStream::SetDataSize(PINDEX dataSize, PINDEX frameTime)
 {
   if (IsSink() || m_mediaFormat.GetMediaType() != OpalMediaType::Audio())
     return OpalMediaStream::SetDataSize(dataSize, frameTime);
@@ -1272,13 +1272,13 @@ bool GstMediaStream::InternalSetPaused(bool pause, bool fromUser, bool fromPatch
 }
 
 
-bool GstMediaStream::IsSynchronous() const
+PBoolean GstMediaStream::IsSynchronous() const
 {
   return IsSource();
 }
 
 
-bool GstMediaStream::RequiresPatchThread(OpalMediaStream * /*stream*/) const
+PBoolean GstMediaStream::RequiresPatchThread(OpalMediaStream * /*stream*/) const
 {
   return false;
 }
@@ -1290,7 +1290,7 @@ bool GstMediaStream::RequireMediaTransportThread(OpalMediaStream & /*stream*/) c
 }
 
 
-bool GstMediaStream::ReadPacket(RTP_DataFrame & packet)
+PBoolean GstMediaStream::ReadPacket(RTP_DataFrame & packet)
 {
   if (!IsOpen() || IsSink() || !m_pipeSink.IsValid())
     return false;
@@ -1319,7 +1319,7 @@ bool GstMediaStream::ReadPacket(RTP_DataFrame & packet)
 }
 
 
-bool GstMediaStream::WritePacket(RTP_DataFrame & packet)
+PBoolean GstMediaStream::WritePacket(RTP_DataFrame & packet)
 {
   if (!IsOpen() || IsSource() || !m_pipeSource.IsValid())
     return false;

@@ -161,12 +161,12 @@ class OpalRTPEndPoint : public OpalEndPoint
        the protocol, eg H.323 SETUP sourceCallSignalAddress or SIP "To" or
        "Contact" fields, and makes a guess that the remote is behind a NAT router.
      */
-    virtual bool IsRTPNATEnabled(
+    virtual PBoolean IsRTPNATEnabled(
       OpalConnection & connection,            ///< Connection being checked
       const PIPSocket::Address & localAddr,   ///< Local physical address of connection
       const PIPSocket::Address & peerAddr,    ///< Remote physical address of connection
       const PIPSocket::Address & signalAddr,  ///< Remotes signaling address as indicated by protocol of connection
-      bool incoming                       ///< Incoming/outgoing connection
+      PBoolean incoming                       ///< Incoming/outgoing connection
     );
 
     /**Indicate is a local RTP connection.

@@ -76,18 +76,16 @@ class OpalDTLSContext : public PSSLContext
         cryptoSuitesByStrength[cryptoSuite.GetCipherKeyBits()+cryptoSuite.GetAuthSaltBits()*1000] = cryptoSuite.GetDTLSName();
       }
 
-      std::ostringstream strm;
-      bool needColon = true;
-      for (auto it = cryptoSuitesByStrength.rbegin(); it != cryptoSuitesByStrength.rend(); ++it) {
+      PStringStream ext;
+      for (std::map<unsigned, PString>::reverse_iterator it = cryptoSuitesByStrength.rbegin(); it != cryptoSuitesByStrength.rend(); ++it) {
         if (it->second.IsEmpty())
           continue;
-        if (std::exchange(needColon, false))
-          strm << ':';
-        strm << it->second;
+        if (!ext.IsEmpty())
+          ext << ':';
+        ext << it->second;
       }
 
-      auto ext = strm.str();
-      if (SetExtension(ext.c_str()))
+      if (SetExtension(ext))
         PTRACE(4, "Extension set to \"" << ext << '"');
       else {
         PTRACE(1, "Could not set extension \"" << ext << "\" for SSL context.");
@@ -103,7 +101,7 @@ OpalDTLSMediaTransport::DTLSChannel::DTLSChannel(OpalDTLSMediaTransport & transp
 {
   SetMTU(m_transport.m_MTU);
   SetVerifyMode(PSSLContext::VerifyPeerMandatory,
-                PCREATE_NOTIFIER_EXT(m_transport, OpalDTLSMediaTransport, OnVerify));
+                PCREATE_NOTIFIER2_EXT(m_transport, OpalDTLSMediaTransport, OnVerify, PSSLChannel::VerifyInfo &));
   Open(channel);
 }
 

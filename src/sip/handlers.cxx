@@ -264,7 +264,7 @@ bool SIPHandler::ActivateState(SIPHandler::State newState, bool resetInterface)
 }
 
 
-bool SIPHandler::SendRequest(SIPHandler::State newState)
+PBoolean SIPHandler::SendRequest(SIPHandler::State newState)
 {
   SendStatus(SIP_PDU::Information_Trying, newState);
 
@@ -343,7 +343,7 @@ void SIPHandler::WriteTransaction(OpalTransport & transport, bool & succeeded)
 }
 
 
-bool SIPHandler::OnReceivedNOTIFY(SIP_PDU & /*response*/)
+PBoolean SIPHandler::OnReceivedNOTIFY(SIP_PDU & /*response*/)
 {
   return false;
 }
@@ -907,7 +907,7 @@ void SIPRegisterHandler::OnReceivedOK(SIPTransaction & transaction, SIP_PDU & re
 }
 
 
-bool SIPRegisterHandler::SendRequest(SIPHandler::State s)
+PBoolean SIPRegisterHandler::SendRequest(SIPHandler::State s)
 {
   if (s == Refreshing) {
     PTRACE(5, "Refreshing Registration, resetting SRV index");
@@ -1086,7 +1086,7 @@ void SIPSubscribeHandler::SendStatus(SIP_PDU::StatusCodes code, State state)
       PAssertAlways(PInvalidParameter);
   }
 
-  if (m_parameters.m_onSubcribeStatus) 
+  if (!m_parameters.m_onSubcribeStatus.IsNULL()) 
     m_parameters.m_onSubcribeStatus(*this, status);
 
   GetEndPoint().OnSubscriptionStatus(status);
@@ -1125,7 +1125,7 @@ void SIPSubscribeHandler::OnReceivedOK(SIPTransaction & transaction, SIP_PDU & r
 }
 
 
-bool SIPSubscribeHandler::OnReceivedNOTIFY(SIP_PDU & request)
+PBoolean SIPSubscribeHandler::OnReceivedNOTIFY(SIP_PDU & request)
 {
   if (m_unconfirmed) {
     SendStatus(SIP_PDU::Successful_OK, GetState());
@@ -1192,7 +1192,7 @@ bool SIPSubscribeHandler::OnReceivedNOTIFY(SIP_PDU & request)
   }
 
   // Check if we know how to deal with this event
-  if (m_packageHandler == NULL && !m_parameters.m_onNotify) {
+  if (m_packageHandler == NULL && m_parameters.m_onNotify.IsNULL()) {
     PTRACE(2, "No handler for NOTIFY received for event \"" << requestEvent << '"');
     response->SetStatusCode(SIP_PDU::Failure_InternalServerError);
     return response->Send();
@@ -1311,7 +1311,7 @@ bool SIPSubscribeHandler::DispatchNOTIFY(SIP_PDU & request, SIP_PDU & response)
 {
   SIPSubscribe::NotifyCallbackInfo notifyInfo(*this, GetEndPoint(), request, response);
 
-  if (m_parameters.m_onNotify) {
+  if (!m_parameters.m_onNotify.IsNULL()) {
     PTRACE(4, "Calling NOTIFY callback for " << GetEventPackage() << " of AOR \"" << GetAddressOfRecord() << "\"");
     m_parameters.m_onNotify(*this, notifyInfo);
     return notifyInfo.m_sendResponse;
@@ -1923,7 +1923,7 @@ SIPTransaction * SIPNotifyHandler::CreateTransaction(OpalTransport & transport)
 }
 
 
-bool SIPNotifyHandler::SendRequest(SIPHandler::State state)
+PBoolean SIPNotifyHandler::SendRequest(SIPHandler::State state)
 {
   // If times out, i.e. Refreshing, then this is actually a time out unsubscribe.
   if (state == Refreshing)

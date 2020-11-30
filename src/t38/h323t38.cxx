@@ -108,7 +108,7 @@ H323Channel * H323_T38Capability::CreateChannel(H323Connection & connection,
 }
 
 
-bool H323_T38Capability::OnSendingPDU(H245_DataApplicationCapability & pdu) const
+PBoolean H323_T38Capability::OnSendingPDU(H245_DataApplicationCapability & pdu) const
 {
   PTRACE(3, "H323T38\tOnSendingPDU for capability");
 
@@ -119,7 +119,7 @@ bool H323_T38Capability::OnSendingPDU(H245_DataApplicationCapability & pdu) cons
 }
 
 
-bool H323_T38Capability::OnSendingPDU(H245_DataMode & pdu) const
+PBoolean H323_T38Capability::OnSendingPDU(H245_DataMode & pdu) const
 {
   pdu.m_bitRate = FAX_BIT_RATE;
   pdu.m_application.SetTag(H245_DataMode_application::e_t38fax);
@@ -128,7 +128,7 @@ bool H323_T38Capability::OnSendingPDU(H245_DataMode & pdu) const
 }
 
 
-bool H323_T38Capability::OnSendingPDU(H245_DataProtocolCapability & proto,
+PBoolean H323_T38Capability::OnSendingPDU(H245_DataProtocolCapability & proto,
                                       H245_T38FaxProfile & profile) const
 {
   if (mode == e_UDP) {
@@ -162,7 +162,7 @@ bool H323_T38Capability::OnSendingPDU(H245_DataProtocolCapability & proto,
 }
 
 
-bool H323_T38Capability::OnReceivedPDU(const H245_DataApplicationCapability & cap)
+PBoolean H323_T38Capability::OnReceivedPDU(const H245_DataApplicationCapability & cap)
 {
   PTRACE(3, "H323T38\tOnRecievedPDU for capability");
 

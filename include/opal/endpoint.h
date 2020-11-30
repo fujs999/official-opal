@@ -189,14 +189,14 @@ class OpalEndPoint : public PObject
     /**Stop a listener given the transport address.
        Returns true if a listener was on that interface, and was stopped.
       */
-    bool StopListener(
+    PBoolean StopListener(
         const OpalTransportAddress & iface ///<  Address of interface we may be listening on.
     );
 
     /**Remove a listener from the endoint.
        If the listener parameter is NULL then all listeners are removed.
       */
-    bool RemoveListener(
+    PBoolean RemoveListener(
       OpalListener * listener ///<  Transport dependent listener.
     );
 
@@ -274,7 +274,7 @@ class OpalEndPoint : public PObject
     /**Callback for outgoing connection, it is invoked after OpalLineConnection::SetUpConnection
        This function allows the application to set up some parameters or to log some messages
        */
-    virtual bool OnSetUpConnection(OpalConnection &connection);
+    virtual PBoolean OnSetUpConnection(OpalConnection &connection);
     
     /**Call back for answering an incoming call.
        This function is used for an application to control the answering of
@@ -297,7 +297,7 @@ class OpalEndPoint : public PObject
 
        The default behaviour calls the OpalManager function of the same name.
      */
-    virtual bool OnIncomingConnection(
+    virtual PBoolean OnIncomingConnection(
       OpalConnection & connection,  ///<  Connection that is calling
       unsigned options,             ///<  options for new connection (can't use default value as overrides will fail)
       OpalConnection::StringOptions * stringOptions  ///< Options to pass to connection
@@ -431,7 +431,7 @@ class OpalEndPoint : public PObject
 
        The default behaviour does nothing.
       */
-    virtual bool OnForwarded(
+    virtual PBoolean OnForwarded(
       OpalConnection & connection,  ///<  Connection that was held
       const PString & remoteParty         ///<  The new remote party
     );
@@ -499,7 +499,7 @@ class OpalEndPoint : public PObject
 
        If \p sync is not NULL then it is signalled when the calls are cleared.
       */
-    virtual bool ClearCall(
+    virtual PBoolean ClearCall(
       const PString & token,    ///<  Token for identifying connection
       OpalConnection::CallEndReason reason = OpalConnection::EndedByLocalUser, ///<  Reason for call clearing
       PSyncPoint * sync = NULL  ///<  Sync point to wait on.
@@ -509,7 +509,7 @@ class OpalEndPoint : public PObject
        This hangs up the connection to a remote endpoint. Note that this function
        is always synchronous. If \p sync is NULL then a local PSyncPoint is used.
       */
-    virtual bool ClearCallSynchronous(
+    virtual PBoolean ClearCallSynchronous(
       const PString & token,    ///<  Token for identifying connection
       OpalConnection::CallEndReason reason = OpalConnection::EndedByLocalUser, ///<  Reason for call clearing
       PSyncPoint * sync = NULL  ///<  Sync point to wait on.
@@ -523,7 +523,7 @@ class OpalEndPoint : public PObject
       */
     virtual void ClearAllCalls(
       OpalConnection::CallEndReason reason = OpalConnection::EndedByLocalUser, ///<  Reason for call clearing
-      bool wait = true   ///<  Flag for wait for calls to e cleared.
+      PBoolean wait = true   ///<  Flag for wait for calls to e cleared.
     );
 
     /**Find a connection that uses the specified token.
@@ -580,7 +580,7 @@ class OpalEndPoint : public PObject
 
     /**Determine if a connection is active.
       */
-    virtual bool HasConnection(
+    virtual PBoolean HasConnection(
       const PString & token   ///<  Token for identifying connection
     );
 
@@ -646,7 +646,7 @@ class OpalEndPoint : public PObject
 
        The default behaviour calls the OpalManager function of the same name.
       */
-    virtual bool OnOpenMediaStream(
+    virtual PBoolean OnOpenMediaStream(
       OpalConnection & connection,  ///<  Connection that owns the media stream
       OpalMediaStream & stream      ///<  New media stream being opened
     );
@@ -743,18 +743,18 @@ class OpalEndPoint : public PObject
   //@{
     /**Send text message
      */
-    virtual bool Message(
+    virtual PBoolean Message(
       const PString & to, 
       const PString & body
     );
-    virtual bool Message(
+    virtual PBoolean Message(
       const PURL & to, 
       const PString & type,
       const PString & body,
       PURL & from, 
       PString & conversationId
     );
-    virtual bool Message(
+    virtual PBoolean Message(
       OpalIM & Message
     );
 
@@ -835,7 +835,7 @@ class OpalEndPoint : public PObject
         Returns true if all garbage has been collected.
         Default behaviour deletes the objects in the connectionsActive list.
       */
-    virtual bool GarbageCollection();
+    virtual PBoolean GarbageCollection();
   //@}
 
   /**@name Member variable access */
@@ -984,12 +984,12 @@ class OpalEndPoint : public PObject
     friend void OpalConnection::SetToken(const PString & newToken);
 
   private:
-    P_REMOVE_VIRTUAL(bool, OnIncomingConnection(OpalConnection &, unsigned), false);
-    P_REMOVE_VIRTUAL(bool, OnIncomingConnection(OpalConnection &), false);
+    P_REMOVE_VIRTUAL(PBoolean, OnIncomingConnection(OpalConnection &, unsigned), false);
+    P_REMOVE_VIRTUAL(PBoolean, OnIncomingConnection(OpalConnection &), false);
     P_REMOVE_VIRTUAL_VOID(AdjustMediaFormats(const OpalConnection &, OpalMediaFormatList &) const);
     P_REMOVE_VIRTUAL_VOID(OnMessageReceived(const PURL&,const PString&,const PURL&,const PString&,const PString&,const PString&));
     P_REMOVE_VIRTUAL(OpalMediaSession *, CreateMediaSession(OpalConnection &, unsigned, const OpalMediaType &), NULL);
-    P_REMOVE_VIRTUAL(bool, NewIncomingConnection(OpalTransport *), false);
+    P_REMOVE_VIRTUAL(PBoolean, NewIncomingConnection(OpalTransport *), false);
     P_REMOVE_VIRTUAL(bool, OnTransferNotify(OpalConnection &, const PStringToString &), false);
 #if OPAL_PTLIB_NAT
     P_REMOVE_VIRTUAL(PNatMethod *, GetNatMethod(const PIPSocket::Address &) const, NULL);

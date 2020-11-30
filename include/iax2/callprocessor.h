@@ -97,11 +97,11 @@ class IAX2CallProcessor : public IAX2Processor
      
      The behaviour at the opal level is pure. Here, the method is defined.
   */
-  virtual bool SetUpConnection();
+  virtual PBoolean SetUpConnection();
 
   /**Return true if the remote info in the frame matches the remote info in
      this connection */
-  bool Matches(IAX2Frame *frame) { return remote == (frame->GetRemoteInfo()); }
+  PBoolean Matches(IAX2Frame *frame) { return remote == (frame->GetRemoteInfo()); }
   
   /**A method to cause some of the values in this class to be formatted
      into a printable stream */
@@ -112,7 +112,7 @@ class IAX2CallProcessor : public IAX2Processor
   void ReportStatistics();  
 
   /**Return true if the arg matches the source call number for this connection */
-  bool MatchingLocalCallNumber(PINDEX compare) { return (compare == remote.SourceCallNumber()); }  
+  PBoolean MatchingLocalCallNumber(PINDEX compare) { return (compare == remote.SourceCallNumber()); }  
   
   /**Get the bit pattern of the selected codec */
   unsigned short GetSelectedCodec() { return (unsigned short) selectedCodec; }
@@ -133,9 +133,9 @@ class IAX2CallProcessor : public IAX2Processor
 
      The default behaviour is pure.
   */
-  virtual bool SetAlerting(
+  virtual PBoolean SetAlerting(
          const PString & calleeName,   /// Name of endpoint being alerted.
-         bool withMedia                /// Open media with alerting
+         PBoolean withMedia                /// Open media with alerting
          ) ;
 
   /**Cause this thread to hangup the current call, but not die. Death
@@ -145,7 +145,7 @@ class IAX2CallProcessor : public IAX2Processor
 
   /**Report the status of the flag callEndingNow, which indicates if
      the call is terminating under iax2 control  */
-  bool IsCallTerminating() { return callStatus & callTerminating; }
+  PBoolean IsCallTerminating() { return callStatus & callTerminating; }
   
   /**Put the remote connection on hold*/
   void SendHold();
@@ -196,7 +196,7 @@ class IAX2CallProcessor : public IAX2Processor
 
   @return true if the frame is out of order, which deletes the supplied frame
   @return false, and does not destroy the supplied frame*/
-  virtual bool IncomingMessageOutOfOrder(IAX2FullFrame *ff);
+  virtual PBoolean IncomingMessageOutOfOrder(IAX2FullFrame *ff);
 
   /** Advise the other end that we have picked up the phone. This
       method is public, as it is called by the IAX2Connection class,
@@ -212,7 +212,7 @@ class IAX2CallProcessor : public IAX2Processor
      thread*/
   //@{
   /** Test the value supplied in the format Ie is compatible.*/
-  bool RemoteSelectedCodecOk();
+  PBoolean RemoteSelectedCodecOk();
  
   /** Check to see if there is an outstanding request to send a hangup
       frame. This needs to be done in two places, so we use a routine to see
@@ -256,7 +256,7 @@ class IAX2CallProcessor : public IAX2Processor
   A frame of FullFrameProtocol type is labelled as AST_FRAME_IAX in
   the asterisk souces, It will contain 0, 1, 2 or more Information
   Elements (Ie) in the data section.*/
-  virtual bool ProcessNetworkFrame(IAX2FullFrameProtocol * src);
+  virtual PBoolean ProcessNetworkFrame(IAX2FullFrameProtocol * src);
   
   /**Internal method to process an incoming network frame of type
      IAX2FullFrameText */
@@ -490,10 +490,10 @@ class IAX2CallProcessor : public IAX2Processor
   SafeStrings hangList;
   
   /**Flag to indicate we have to send hold call*/
-  bool holdCall;
+  PBoolean holdCall;
   
   /**Flag to indicate we have to send hold release*/
-  bool holdReleaseCall;
+  PBoolean holdReleaseCall;
   
   /**Array of sound packets read from the audio device, and is about
      to be transmitted to the remote node */
@@ -518,7 +518,7 @@ class IAX2CallProcessor : public IAX2Processor
   PINDEX lastFullFrameTimeStamp;
     
   /**Flag to indicate we are ready for audio to flow */
-  bool audioCanFlow;
+  PBoolean audioCanFlow;
 
   /** Bitmask of FullFrameVoice::AudioSc values to specify which codec is
      used*/
@@ -540,62 +540,62 @@ class IAX2CallProcessor : public IAX2Processor
   unsigned short callStatus;
   
   /** Mark call status as having sent a iaxcmdRinging packet */
-  void SetCallSentRinging(bool newValue = true) 
+  void SetCallSentRinging(PBoolean newValue = true) 
     { if (newValue) callStatus |= callSentRinging; else callStatus &= ~callSentRinging; }
   
   /** Mark call status as having received a new packet */
-  void SetCallNewed(bool newValue = true) 
+  void SetCallNewed(PBoolean newValue = true) 
     { if (newValue) callStatus |= callNewed; else callStatus &= ~callNewed; }
   
   /** Mark call status Registered (argument determines flag status) */
-  void SetCallRegistered(bool newValue = true) 
+  void SetCallRegistered(PBoolean newValue = true) 
     { if (newValue) callStatus |= callRegistered; else callStatus &= ~callRegistered; }
   
   /** Mark call status Authorised (argument determines flag status) */
-  void SetCallAuthorised(bool newValue = true) 
+  void SetCallAuthorised(PBoolean newValue = true) 
     { if (newValue) callStatus |= callAuthorised; else callStatus &= ~callAuthorised; }
   
   /** Mark call status Accepted (argument determines flag status) */
-  void SetCallAccepted(bool newValue = true) 
+  void SetCallAccepted(PBoolean newValue = true) 
     { if (newValue) callStatus |= callAccepted; else callStatus &= ~callAccepted; }
   
   /** Mark call status Ringing (argument determines flag status) */
-  void SetCallRinging(bool newValue = true) 
+  void SetCallRinging(PBoolean newValue = true) 
     { if (newValue) callStatus |= callRinging; else callStatus &= ~callRinging; }
   
   /** Mark call status Answered (argument determines flag status) */
-  void SetCallAnswered(bool newValue = true) 
+  void SetCallAnswered(PBoolean newValue = true) 
     { if (newValue) callStatus |= callAnswered; else callStatus &= ~callAnswered; }
 
   /** Mark call status as terminated (is processing IAX2 hangup packets etc)*/
-  void SetCallTerminating(bool newValue = true) 
+  void SetCallTerminating(PBoolean newValue = true) 
     { if (newValue) callStatus |= callTerminating; else callStatus &= ~callTerminating; }
   
   /** See if any of the flag bits are on, which indicate this call is actually active */
-  bool IsCallHappening() { return callStatus > 0; }
+  PBoolean IsCallHappening() { return callStatus > 0; }
   
   /** Get marker to indicate that some packets have flowed etc for this
      call  */
-  bool IsCallNewed() { return callStatus & callNewed; }
+  PBoolean IsCallNewed() { return callStatus & callNewed; }
   
   /** Get marker to indicate that we are waiting on the ack for the
       iaxcommandringing packet we sent  */
-  bool IsCallSentRinging() { return callStatus & callSentRinging; }
+  PBoolean IsCallSentRinging() { return callStatus & callSentRinging; }
   
   /** Get the current value of the call status flag callRegistered */
-  bool IsCallRegistered() { return callStatus & callRegistered; }
+  PBoolean IsCallRegistered() { return callStatus & callRegistered; }
   
   /** Get the current value of the call status flag callAuthorised */
-  bool IsCallAuthorised() { return callStatus & callAuthorised; }
+  PBoolean IsCallAuthorised() { return callStatus & callAuthorised; }
   
   /** Get the current value of the call status flag callAccepted */
-  bool IsCallAccepted() { return callStatus & callAccepted; }
+  PBoolean IsCallAccepted() { return callStatus & callAccepted; }
   
   /** Get the current value of the call status flag callRinging */
-  bool IsCallRinging() { return callStatus & callRinging; }
+  PBoolean IsCallRinging() { return callStatus & callRinging; }
   
   /** Get the current value of the call status flag callAnswered */
-  bool IsCallAnswered() { return callStatus & callAnswered; }
+  PBoolean IsCallAnswered() { return callStatus & callAnswered; }
        
 #ifdef DOC_PLUS_PLUS
   /**A pwlib callback function to invoke another status check on the
@@ -630,17 +630,17 @@ class IAX2CallProcessor : public IAX2Processor
   /**Flag to indicate if we are waiting on the first full frame of
      media (voice or video). The arrival of this frame causes the
      IAX2Connection::OnEstablished method to be called. */
-  bool firstMediaFrame;
+  PBoolean firstMediaFrame;
 
   /**Flag to indicate we have to answer this call (i.e. send a
      FullFrameSessionControl::answer packet). */
-  bool answerCallNow;
+  PBoolean answerCallNow;
 
   /**Flag to indicate we need to do a status query on the other
      end. this means, send a PING and a LAGRQ packet, which happens
      every 10 seconds. The timer, timeStatusCheck controls when this
      happens */
-  bool statusCheckOtherEnd;
+  PBoolean statusCheckOtherEnd;
 
   /** The timer which is used to do the status check */
   PTimer statusCheckTimer;
@@ -655,7 +655,7 @@ class IAX2CallProcessor : public IAX2Processor
   /**A flag to indicate we have yet to send an audio frame to remote
      endpoint. If this is on, then the first audio frame sent is a
      full one.  */
-  bool audioFramesNotStarted;
+  PBoolean audioFramesNotStarted;
 
   /**If the incoming frame has Information Elements defining remote
      capability, define the list of remote capabilities */
@@ -697,7 +697,7 @@ class IAX2CallProcessor : public IAX2Processor
   PDECLARE_MUTEX(transferMutex);
   
   /**Whether we want a transfer event to occur or not*/
-  bool doTransfer;
+  PBoolean doTransfer;
   
   /**The number to call for a transfer*/
   PString transferCalledNumber;
@@ -709,7 +709,7 @@ class IAX2CallProcessor : public IAX2Processor
      termination.  Normally, when a call ends, we send a hangup
      frame. However, in the case where the remote endpoint rejects our
      call, we are not supposed to send a hangup frame */
-  bool suppressHangupFrame;
+  PBoolean suppressHangupFrame;
 };
 
 /////////////////////////////////////////////////////////////////////////

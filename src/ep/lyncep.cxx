@@ -120,7 +120,7 @@ OpalLyncConnection * OpalLyncEndPoint::CreateConnection(OpalCall & call,
 }
 
 
-bool OpalLyncEndPoint::GarbageCollection()
+PBoolean OpalLyncEndPoint::GarbageCollection()
 {
   return OpalEndPoint::GarbageCollection();
 }
@@ -392,7 +392,7 @@ void OpalLyncConnection::SetUpIncomingLyncCall(const IncomingLyncCallInfo & info
 }
 
 
-bool OpalLyncConnection::SetUpConnection()
+PBoolean OpalLyncConnection::SetUpConnection()
 {
   PTRACE(3, "SetUpConnection call on " << *this << " to \"" << GetRemotePartyURL() << '"');
 
@@ -518,13 +518,13 @@ OpalMediaFormatList OpalLyncConnection::GetMediaFormats() const
 }
 
 
-bool OpalLyncConnection::SetAlerting(const PString & /*calleeName*/, bool /*withMedia*/)
+PBoolean OpalLyncConnection::SetAlerting(const PString & /*calleeName*/, PBoolean /*withMedia*/)
 {
   return true;
 }
 
 
-bool OpalLyncConnection::SetConnected()
+PBoolean OpalLyncConnection::SetConnected()
 {
   if (!PAssert(m_audioVideoCall != nullptr, PLogicError))
     return false;
@@ -540,7 +540,7 @@ bool OpalLyncConnection::SetConnected()
 }
 
 
-bool OpalLyncConnection::ForwardCall(const PString & forwardParty)
+PBoolean OpalLyncConnection::ForwardCall(const PString & forwardParty)
 {
   if (!PAssert(m_audioVideoCall != nullptr, PLogicError))
     return false;
@@ -609,7 +609,7 @@ void OpalLyncConnection::OnLyncCallTransferStateChanged(int PTRACE_PARAM(previou
 
 OpalMediaStream * OpalLyncConnection::CreateMediaStream(const OpalMediaFormat & mediaFormat,
                                                         unsigned sessionID,
-                                                        bool isSource)
+                                                        PBoolean isSource)
 {
   return new OpalLyncMediaStream(*this, mediaFormat, sessionID, isSource);
 }
@@ -651,7 +651,7 @@ void OpalLyncConnection::OnLyncCallIncomingFaxDetected()
 }
 
 
-bool OpalLyncConnection::SendUserInputTone(char tone, unsigned /*duration*/)
+PBoolean OpalLyncConnection::SendUserInputTone(char tone, unsigned /*duration*/)
 {
   if (m_toneController == nullptr) {
     PTRACE(2, "Tone Controller not available yet.");
@@ -693,7 +693,7 @@ OpalLyncMediaStream::~OpalLyncMediaStream()
 }
 
 
-bool OpalLyncMediaStream::Open()
+PBoolean OpalLyncMediaStream::Open()
 {
   if (m_isOpen)
     return true;
@@ -760,7 +760,7 @@ void OpalLyncMediaStream::InternalClose()
 }
 
 
-bool OpalLyncMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & length)
+PBoolean OpalLyncMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & length)
 {
   if (m_closing || m_connection.IsReleased())
     return false;
@@ -783,7 +783,7 @@ bool OpalLyncMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & length)
 }
 
 
-bool OpalLyncMediaStream::WriteData(const BYTE * data, PINDEX length, PINDEX & written)
+PBoolean OpalLyncMediaStream::WriteData(const BYTE * data, PINDEX length, PINDEX & written)
 {
   if (m_closing || m_connection.IsReleased())
     return false;
@@ -816,7 +816,7 @@ bool OpalLyncMediaStream::WriteData(const BYTE * data, PINDEX length, PINDEX & w
 }
 
 
-bool OpalLyncMediaStream::IsSynchronous() const
+PBoolean OpalLyncMediaStream::IsSynchronous() const
 {
   return IsSource();
 }

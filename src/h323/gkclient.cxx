@@ -183,28 +183,28 @@ PString H323Gatekeeper::GetEndpointIdentifier() const
 }
 
 
-bool H323Gatekeeper::DiscoverAny()
+PBoolean H323Gatekeeper::DiscoverAny()
 {
   gatekeeperIdentifier.MakeEmpty();
   return StartGatekeeper(H323TransportAddress());
 }
 
 
-bool H323Gatekeeper::DiscoverByName(const PString & identifier)
+PBoolean H323Gatekeeper::DiscoverByName(const PString & identifier)
 {
   gatekeeperIdentifier = identifier;
   return StartGatekeeper(H323TransportAddress());
 }
 
 
-bool H323Gatekeeper::DiscoverByAddress(const H323TransportAddress & address)
+PBoolean H323Gatekeeper::DiscoverByAddress(const H323TransportAddress & address)
 {
   gatekeeperIdentifier.MakeEmpty();
   return StartGatekeeper(address);
 }
 
 
-bool H323Gatekeeper::DiscoverByNameAndAddress(const PString & identifier,
+PBoolean H323Gatekeeper::DiscoverByNameAndAddress(const PString & identifier,
                                               const H323TransportAddress & address)
 {
   gatekeeperIdentifier = identifier;
@@ -338,9 +338,9 @@ void H323Gatekeeper::StopChannel()
 }
 
 
-bool H323Gatekeeper::WriteTo(H323TransactionPDU & pdu, 
+PBoolean H323Gatekeeper::WriteTo(H323TransactionPDU & pdu, 
                                  const H323TransportAddressArray & addresses, 
-                                 bool callback)
+                                 PBoolean callback)
 {
   PSafeLockReadWrite mutex(*m_transport);
 
@@ -402,7 +402,7 @@ void H323Gatekeeper::OnSendGatekeeperRequest(H225_GatekeeperRequest & grq)
 }
 
 
-bool H323Gatekeeper::OnReceiveGatekeeperConfirm(const H225_GatekeeperConfirm & gcf)
+PBoolean H323Gatekeeper::OnReceiveGatekeeperConfirm(const H225_GatekeeperConfirm & gcf)
 {
   if (!H225_RAS::OnReceiveGatekeeperConfirm(gcf))
     return false;
@@ -461,7 +461,7 @@ bool H323Gatekeeper::OnReceiveGatekeeperConfirm(const H225_GatekeeperConfirm & g
 }
 
 
-bool H323Gatekeeper::OnReceiveGatekeeperReject(const H225_GatekeeperReject & grj)
+PBoolean H323Gatekeeper::OnReceiveGatekeeperReject(const H225_GatekeeperReject & grj)
 {
   if (!H225_RAS::OnReceiveGatekeeperReject(grj))
     return false;
@@ -719,7 +719,7 @@ bool H323Gatekeeper::RegistrationRequest(bool autoReg, bool didGkDiscovery, bool
 }
 
 
-bool H323Gatekeeper::OnReceiveRegistrationConfirm(const H225_RegistrationConfirm & rcf)
+PBoolean H323Gatekeeper::OnReceiveRegistrationConfirm(const H225_RegistrationConfirm & rcf)
 {
   if (!H225_RAS::OnReceiveRegistrationConfirm(rcf))
     return false;
@@ -826,7 +826,7 @@ bool H323Gatekeeper::OnReceiveRegistrationConfirm(const H225_RegistrationConfirm
 }
 
 
-bool H323Gatekeeper::OnReceiveRegistrationReject(const H225_RegistrationReject & rrj)
+PBoolean H323Gatekeeper::OnReceiveRegistrationReject(const H225_RegistrationReject & rrj)
 {
   if (!H225_RAS::OnReceiveRegistrationReject(rrj))
     return false;
@@ -976,7 +976,7 @@ void H323Gatekeeper::ClearAllCalls()
 }
 
 
-bool H323Gatekeeper::UnregistrationRequest(int reason)
+PBoolean H323Gatekeeper::UnregistrationRequest(int reason)
 {
   if (PAssertNULL(m_transport) == NULL)
     return false;
@@ -1063,7 +1063,7 @@ bool H323Gatekeeper::UnregistrationRequest(int reason)
 }
 
 
-bool H323Gatekeeper::OnReceiveUnregistrationConfirm(const H225_UnregistrationConfirm & ucf)
+PBoolean H323Gatekeeper::OnReceiveUnregistrationConfirm(const H225_UnregistrationConfirm & ucf)
 {
   if (!H225_RAS::OnReceiveUnregistrationConfirm(ucf))
     return false;
@@ -1075,7 +1075,7 @@ bool H323Gatekeeper::OnReceiveUnregistrationConfirm(const H225_UnregistrationCon
 }
 
 
-bool H323Gatekeeper::OnReceiveUnregistrationRequest(const H225_UnregistrationRequest & urq)
+PBoolean H323Gatekeeper::OnReceiveUnregistrationRequest(const H225_UnregistrationRequest & urq)
 {
   if (!H225_RAS::OnReceiveUnregistrationRequest(urq))
     return false;
@@ -1103,7 +1103,7 @@ bool H323Gatekeeper::OnReceiveUnregistrationRequest(const H225_UnregistrationReq
 
   H323RasPDU response(m_authenticators);
   response.BuildUnregistrationConfirm(urq.m_requestSeqNum);
-  bool ok = WritePDU(response);
+  PBoolean ok = WritePDU(response);
 
   ClearAllCalls();
 
@@ -1117,7 +1117,7 @@ bool H323Gatekeeper::OnReceiveUnregistrationRequest(const H225_UnregistrationReq
 }
 
 
-bool H323Gatekeeper::OnReceiveUnregistrationReject(const H225_UnregistrationReject & urj)
+PBoolean H323Gatekeeper::OnReceiveUnregistrationReject(const H225_UnregistrationReject & urj)
 {
   if (!H225_RAS::OnReceiveUnregistrationReject(urj))
     return false;
@@ -1131,7 +1131,7 @@ bool H323Gatekeeper::OnReceiveUnregistrationReject(const H225_UnregistrationReje
 }
 
 
-bool H323Gatekeeper::LocationRequest(const PString & alias,
+PBoolean H323Gatekeeper::LocationRequest(const PString & alias,
                                      H323TransportAddress & address)
 {
   PStringList aliases;
@@ -1140,7 +1140,7 @@ bool H323Gatekeeper::LocationRequest(const PString & alias,
 }
 
 
-bool H323Gatekeeper::LocationRequest(const PStringList & aliases,
+PBoolean H323Gatekeeper::LocationRequest(const PStringList & aliases,
                                      H323TransportAddress & address)
 {
   if (PAssertNULL(m_transport) == NULL)
@@ -1195,9 +1195,9 @@ H323Gatekeeper::AdmissionResponse::AdmissionResponse()
 }
 
 
-bool H323Gatekeeper::AdmissionRequest(H323Connection & connection,
+PBoolean H323Gatekeeper::AdmissionRequest(H323Connection & connection,
                                       AdmissionResponse & response,
-                                      bool ignorePreGrantedARQ)
+                                      PBoolean ignorePreGrantedARQ)
 {
   bool answeringCall = connection.HadAnsweredCall();
 
@@ -1395,32 +1395,32 @@ static unsigned GetUUIEsRequested(const H225_UUIEsRequested & pdu)
 {
   unsigned uuiesRequested = 0;
 
-  if ((bool)pdu.m_setup)
+  if ((PBoolean)pdu.m_setup)
     uuiesRequested |= (1<<H225_H323_UU_PDU_h323_message_body::e_setup);
-  if ((bool)pdu.m_callProceeding)
+  if ((PBoolean)pdu.m_callProceeding)
     uuiesRequested |= (1<<H225_H323_UU_PDU_h323_message_body::e_callProceeding);
-  if ((bool)pdu.m_connect)
+  if ((PBoolean)pdu.m_connect)
     uuiesRequested |= (1<<H225_H323_UU_PDU_h323_message_body::e_connect);
-  if ((bool)pdu.m_alerting)
+  if ((PBoolean)pdu.m_alerting)
     uuiesRequested |= (1<<H225_H323_UU_PDU_h323_message_body::e_alerting);
-  if ((bool)pdu.m_information)
+  if ((PBoolean)pdu.m_information)
     uuiesRequested |= (1<<H225_H323_UU_PDU_h323_message_body::e_information);
-  if ((bool)pdu.m_releaseComplete)
+  if ((PBoolean)pdu.m_releaseComplete)
     uuiesRequested |= (1<<H225_H323_UU_PDU_h323_message_body::e_releaseComplete);
-  if ((bool)pdu.m_facility)
+  if ((PBoolean)pdu.m_facility)
     uuiesRequested |= (1<<H225_H323_UU_PDU_h323_message_body::e_facility);
-  if ((bool)pdu.m_progress)
+  if ((PBoolean)pdu.m_progress)
     uuiesRequested |= (1<<H225_H323_UU_PDU_h323_message_body::e_progress);
-  if ((bool)pdu.m_empty)
+  if ((PBoolean)pdu.m_empty)
     uuiesRequested |= (1<<H225_H323_UU_PDU_h323_message_body::e_empty);
 
-  if (pdu.HasOptionalField(H225_UUIEsRequested::e_status) && (bool)pdu.m_status)
+  if (pdu.HasOptionalField(H225_UUIEsRequested::e_status) && (PBoolean)pdu.m_status)
     uuiesRequested |= (1<<H225_H323_UU_PDU_h323_message_body::e_status);
-  if (pdu.HasOptionalField(H225_UUIEsRequested::e_statusInquiry) && (bool)pdu.m_statusInquiry)
+  if (pdu.HasOptionalField(H225_UUIEsRequested::e_statusInquiry) && (PBoolean)pdu.m_statusInquiry)
     uuiesRequested |= (1<<H225_H323_UU_PDU_h323_message_body::e_statusInquiry);
-  if (pdu.HasOptionalField(H225_UUIEsRequested::e_setupAcknowledge) && (bool)pdu.m_setupAcknowledge)
+  if (pdu.HasOptionalField(H225_UUIEsRequested::e_setupAcknowledge) && (PBoolean)pdu.m_setupAcknowledge)
     uuiesRequested |= (1<<H225_H323_UU_PDU_h323_message_body::e_setupAcknowledge);
-  if (pdu.HasOptionalField(H225_UUIEsRequested::e_notify) && (bool)pdu.m_notify)
+  if (pdu.HasOptionalField(H225_UUIEsRequested::e_notify) && (PBoolean)pdu.m_notify)
     uuiesRequested |= (1<<H225_H323_UU_PDU_h323_message_body::e_notify);
 
   return uuiesRequested;
@@ -1448,7 +1448,7 @@ static void ExtractToken(const AdmissionRequestResponseInfo & info,
 }
 
 
-bool H323Gatekeeper::OnReceiveAdmissionConfirm(const H225_AdmissionConfirm & acf)
+PBoolean H323Gatekeeper::OnReceiveAdmissionConfirm(const H225_AdmissionConfirm & acf)
 {
   if (!H225_RAS::OnReceiveAdmissionConfirm(acf))
     return false;
@@ -1503,7 +1503,7 @@ bool H323Gatekeeper::OnReceiveAdmissionConfirm(const H225_AdmissionConfirm & acf
 }
 
 
-bool H323Gatekeeper::OnReceiveAdmissionReject(const H225_AdmissionReject & arj)
+PBoolean H323Gatekeeper::OnReceiveAdmissionReject(const H225_AdmissionReject & arj)
 {
   if (!H225_RAS::OnReceiveAdmissionReject(arj))
     return false;
@@ -1541,7 +1541,7 @@ static void SetRasUsageInformation(const H323Connection & connection,
 }
 
 
-bool H323Gatekeeper::DisengageRequest(H323Connection & connection, unsigned reason)
+PBoolean H323Gatekeeper::DisengageRequest(H323Connection & connection, unsigned reason)
 {
   H323RasPDU pdu;
   H225_DisengageRequest & drq = pdu.BuildDisengageRequest(GetNextSequenceNumber());
@@ -1581,7 +1581,7 @@ bool H323Gatekeeper::DisengageRequest(H323Connection & connection, unsigned reas
 }
 
 
-bool H323Gatekeeper::OnReceiveDisengageReject(const H323RasPDU &pdu, const H225_DisengageReject & drj)
+PBoolean H323Gatekeeper::OnReceiveDisengageReject(const H323RasPDU &pdu, const H225_DisengageReject & drj)
 {
   if (!H225_RAS::OnReceiveDisengageReject(pdu, drj))
     return false;
@@ -1593,7 +1593,7 @@ bool H323Gatekeeper::OnReceiveDisengageReject(const H323RasPDU &pdu, const H225_
 }
 
 
-bool H323Gatekeeper::OnReceiveDisengageRequest(const H225_DisengageRequest & drq)
+PBoolean H323Gatekeeper::OnReceiveDisengageRequest(const H225_DisengageRequest & drq)
 {
   if (!H225_RAS::OnReceiveDisengageRequest(drq))
     return false;
@@ -1625,7 +1625,7 @@ bool H323Gatekeeper::OnReceiveDisengageRequest(const H225_DisengageRequest & drq
 }
 
 
-bool H323Gatekeeper::BandwidthRequest(H323Connection & connection, OpalBandwidth requestedBandwidth)
+PBoolean H323Gatekeeper::BandwidthRequest(H323Connection & connection, OpalBandwidth requestedBandwidth)
 {
   H323RasPDU pdu;
   H225_BandwidthRequest & brq = pdu.BuildBandwidthRequest(GetNextSequenceNumber());
@@ -1651,7 +1651,7 @@ bool H323Gatekeeper::BandwidthRequest(H323Connection & connection, OpalBandwidth
 }
 
 
-bool H323Gatekeeper::OnReceiveBandwidthConfirm(const H225_BandwidthConfirm & bcf)
+PBoolean H323Gatekeeper::OnReceiveBandwidthConfirm(const H225_BandwidthConfirm & bcf)
 {
   if (!H225_RAS::OnReceiveBandwidthConfirm(bcf))
     return false;
@@ -1663,7 +1663,7 @@ bool H323Gatekeeper::OnReceiveBandwidthConfirm(const H225_BandwidthConfirm & bcf
 }
 
 
-bool H323Gatekeeper::OnReceiveBandwidthRequest(const H225_BandwidthRequest & brq)
+PBoolean H323Gatekeeper::OnReceiveBandwidthRequest(const H225_BandwidthRequest & brq)
 {
   if (!H225_RAS::OnReceiveBandwidthRequest(brq))
     return false;
@@ -1731,7 +1731,7 @@ H225_InfoRequestResponse & H323Gatekeeper::BuildInfoRequestResponse(H323RasPDU &
 }
 
 
-bool H323Gatekeeper::SendUnsolicitedIRR(H225_InfoRequestResponse & irr,
+PBoolean H323Gatekeeper::SendUnsolicitedIRR(H225_InfoRequestResponse & irr,
                                         H323RasPDU & response)
 {
   irr.m_unsolicited = true;
@@ -1801,11 +1801,11 @@ static void AddInfoRequestResponseCall(H225_InfoRequestResponse & irr,
 }
 
 
-static bool AddAllInfoRequestResponseCall(H225_InfoRequestResponse & irr,
+static PBoolean AddAllInfoRequestResponseCall(H225_InfoRequestResponse & irr,
                                           H323EndPoint & endpoint,
                                           const PStringList & tokens)
 {
-  bool addedOne = false;
+  PBoolean addedOne = false;
 
   for (PStringList::const_iterator token = tokens.begin(); token != tokens.end(); ++token) {
     PSafePtr<H323Connection> connection = endpoint.FindConnectionWithLock(*token);
@@ -1846,7 +1846,7 @@ void H323Gatekeeper::InfoRequestResponse(const H323Connection & connection)
 
 void H323Gatekeeper::InfoRequestResponse(const H323Connection & connection,
                                          const H225_H323_UU_PDU & pdu,
-                                         bool sent)
+                                         PBoolean sent)
 {
   // Are unknown Q.931 PDU
   if (pdu.m_h323_message_body.GetTag() > H225_H323_UU_PDU_h323_message_body::e_notify)
@@ -1873,7 +1873,7 @@ void H323Gatekeeper::InfoRequestResponse(const H323Connection & connection,
 }
 
 
-bool H323Gatekeeper::OnReceiveInfoRequest(const H225_InfoRequest & irq)
+PBoolean H323Gatekeeper::OnReceiveInfoRequest(const H225_InfoRequest & irq)
 {
   if (!H225_RAS::OnReceiveInfoRequest(irq))
     return false;
@@ -1925,7 +1925,7 @@ bool H323Gatekeeper::OnReceiveInfoRequest(const H225_InfoRequest & irq)
 }
 
 
-bool H323Gatekeeper::OnReceiveInfoRequestResponse(const H225_InfoRequestResponse & irr)
+PBoolean H323Gatekeeper::OnReceiveInfoRequestResponse(const H225_InfoRequestResponse & irr)
 {
   if (!H225_RAS::OnReceiveInfoRequestResponse(irr))
     return false;
@@ -1937,7 +1937,7 @@ bool H323Gatekeeper::OnReceiveInfoRequestResponse(const H225_InfoRequestResponse
 }
 
 
-bool H323Gatekeeper::OnReceiveServiceControlIndication(const H225_ServiceControlIndication & sci)
+PBoolean H323Gatekeeper::OnReceiveServiceControlIndication(const H225_ServiceControlIndication & sci)
 {
   if (!H225_RAS::OnReceiveServiceControlIndication(sci))
     return false;
@@ -2016,7 +2016,7 @@ bool H323Gatekeeper::SendNonStandardMessage(const PString & identifer, const PBY
 }
 
 
-bool H323Gatekeeper::OnReceiveNonStandardMessage(const H225_NonStandardMessage & nsm)
+PBoolean H323Gatekeeper::OnReceiveNonStandardMessage(const H225_NonStandardMessage & nsm)
 {
   if (!H225_RAS::OnReceiveNonStandardMessage(nsm))
     return false;
@@ -2101,7 +2101,7 @@ void H323Gatekeeper::SetAlternates(const H225_ArrayOf_AlternateGK & alts, bool p
 }
 
 
-bool H323Gatekeeper::MakeRequestWithReregister(Request & request, unsigned unregisteredTag)
+PBoolean H323Gatekeeper::MakeRequestWithReregister(Request & request, unsigned unregisteredTag)
 {
   if (MakeRequest(request))
     return true;
@@ -2150,7 +2150,7 @@ void H323Gatekeeper::Connect(const H323TransportAddress & address,
 }
 
 
-bool H323Gatekeeper::MakeRequest(Request & request)
+PBoolean H323Gatekeeper::MakeRequest(Request & request)
 {
   if (PAssertNULL(m_transport) == NULL)
     return false;
@@ -2223,7 +2223,7 @@ bool H323Gatekeeper::MakeRequest(Request & request)
 }
 
 
-H323Transport * H323Gatekeeper::CreateTransport(PIPSocket::Address binding, WORD port, bool reuseAddr)
+H323Transport * H323Gatekeeper::CreateTransport(PIPSocket::Address binding, WORD port, PBoolean reuseAddr)
 {
   return new H323TransportUDP(m_endpoint, binding, port, reuseAddr);
 }
@@ -2298,7 +2298,7 @@ void H323Gatekeeper::OnLowPriorityInterfaceChange(PInterfaceMonitor & monitor, P
 
 
 #if OPAL_H460
-bool H323Gatekeeper::OnSendFeatureSet(H460_MessageType pduType, H225_FeatureSet & message) const
+PBoolean H323Gatekeeper::OnSendFeatureSet(H460_MessageType pduType, H225_FeatureSet & message) const
 {
   return m_features != NULL && m_features->OnSendPDU(pduType, message);
 }

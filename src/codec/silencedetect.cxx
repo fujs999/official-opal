@@ -410,7 +410,7 @@ OpalSilenceDetector::Result OpalSilenceDetector::GetResult(ResultInfo * info) co
 }
 
 
-void OpalSilenceDetector::ReceivedPacket(RTP_DataFrame & frame, intptr_t)
+void OpalSilenceDetector::ReceivedPacket(RTP_DataFrame & frame, P_INT_PTR)
 {
   switch (Detect(frame)) {
     case VoiceDeactivated :

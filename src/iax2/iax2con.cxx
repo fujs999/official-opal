@@ -157,7 +157,7 @@ void IAX2Connection::AnsweringCall(AnswerCallResponse response)
 }
 
 
-bool IAX2Connection::SetConnected()
+PBoolean IAX2Connection::SetConnected()
 {
   PTRACE(3, "IAX2Con\t SET CONNECTED " 
 	 << PString(IsOriginating() ? " Originating" : "Receiving"));
@@ -179,7 +179,7 @@ bool IAX2Connection::SetConnected()
   return OpalConnection::SetConnected();
 }
 
-bool IAX2Connection::SetAlerting(const PString & PTRACE_PARAM(calleeName), bool /*withMedia*/) 
+PBoolean IAX2Connection::SetAlerting(const PString & PTRACE_PARAM(calleeName), PBoolean /*withMedia*/) 
 { 
   {
     PSafeLockReadWrite safeLock(*this);
@@ -224,7 +224,7 @@ void IAX2Connection::SendDtmf(const PString & dtmf)
   iax2Processor.SendDtmf(dtmf); 
 }
 
-bool IAX2Connection::SendUserInputString(const PString & value) 
+PBoolean IAX2Connection::SendUserInputString(const PString & value) 
 { 
   SendUserInputModes mode = GetRealSendUserInputMode();
 
@@ -239,7 +239,7 @@ bool IAX2Connection::SendUserInputString(const PString & value)
 }
 
   
-bool IAX2Connection::SendUserInputTone(char tone, unsigned /*duration*/ ) 
+PBoolean IAX2Connection::SendUserInputTone(char tone, unsigned /*duration*/ ) 
 { 
   iax2Processor.SendDtmf(tone); 
   return true;
@@ -256,7 +256,7 @@ void IAX2Connection::OnEstablished()
 
 OpalMediaStream * IAX2Connection::CreateMediaStream(const OpalMediaFormat & mediaFormat,
                                                    unsigned sessionID,
-                                                   bool isDataSource)
+                                                   PBoolean isDataSource)
 {
   PTRACE(4, "IAX2con\tCreate an OpalIAX2MediaStream");
   return new OpalIAX2MediaStream(*this, mediaFormat, sessionID, isDataSource);
@@ -267,7 +267,7 @@ void IAX2Connection::PutSoundPacketToNetwork(PBYTEArray *sound)
   iax2Processor.PutSoundPacketToNetwork(sound);
 } 
 
-bool IAX2Connection::SetUpConnection() 
+PBoolean IAX2Connection::SetUpConnection() 
 {
   PTRACE(3, "IAX2Con\tSetUpConnection() (Initiate call to remote box)");
   
@@ -376,7 +376,7 @@ unsigned int IAX2Connection::ChooseCodec()
   return 0;
 }
 
-bool IAX2Connection::IsOnHold(bool fromRemote) const
+PBoolean IAX2Connection::IsOnHold(bool fromRemote) const
 {
   return fromRemote ? remote_hold : local_hold;
 }
@@ -435,7 +435,7 @@ bool IAX2Connection::TransferConnection(const PString & remoteParty)
 }
 
 
-bool IAX2Connection::ForwardCall(const PString & PTRACE_PARAM(forwardParty))
+PBoolean IAX2Connection::ForwardCall(const PString & PTRACE_PARAM(forwardParty))
 {
   PTRACE(3, "Forward call to " + forwardParty);
   //we can not currently forward calls that have not been accepted.
@@ -465,7 +465,7 @@ void IAX2Connection::ReceivedSoundPacketFromNetwork(IAX2Frame *soundFrame)
     delete soundFrame;
 }
 
-bool IAX2Connection::ReadSoundPacket(RTP_DataFrame & packet)
+PBoolean IAX2Connection::ReadSoundPacket(RTP_DataFrame & packet)
 { 
   if (IsReleased()) /*We are hanging up. */
     return false;   /* Sending sound now is meaningless */

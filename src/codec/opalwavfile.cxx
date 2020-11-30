@@ -76,7 +76,7 @@ class PWAVFileConverterXLaw : public PWAVFileConverter
       return pos * 2;
     }
 
-    bool SetPosition(PWAVFile & file, off_t pos, PFile::FilePositionOrigin origin)
+    PBoolean SetPosition(PWAVFile & file, off_t pos, PFile::FilePositionOrigin origin)
     {
       pos /= 2;
       return file.RawSetPosition(pos, origin);
@@ -92,7 +92,7 @@ class PWAVFileConverterXLaw : public PWAVFileConverter
       return file.RawGetDataLength() * 2;
     }
 
-    bool Read(PWAVFile & file, void * buf, PINDEX len)
+    PBoolean Read(PWAVFile & file, void * buf, PINDEX len)
     {
       // read the xLaw data
       PINDEX samples = (len / 2);
@@ -113,7 +113,7 @@ class PWAVFileConverterXLaw : public PWAVFileConverter
       return true;
     }
 
-    bool Write(PWAVFile & file, const void * buf, PINDEX len)
+    PBoolean Write(PWAVFile & file, const void * buf, PINDEX len)
     {
       PINDEX samples = (len / 2);
       BYTE * xlaw = (BYTE *)alloca(samples);
@@ -221,7 +221,7 @@ class PWAVFileConverterPlugin : public PWAVFileConverter
       return file.RawGetPosition()*m_mediaFormat.GetFrameTime()/m_mediaFormat.GetFrameSize();
     }
 
-    bool SetPosition(PWAVFile & file, off_t pos, PFile::FilePositionOrigin origin)
+    PBoolean SetPosition(PWAVFile & file, off_t pos, PFile::FilePositionOrigin origin)
     {
       return file.RawSetPosition(pos*m_mediaFormat.GetFrameSize()/m_mediaFormat.GetFrameTime(), origin);
     }
@@ -236,7 +236,7 @@ class PWAVFileConverterPlugin : public PWAVFileConverter
       return file.RawGetDataLength()*m_mediaFormat.GetFrameTime()/m_mediaFormat.GetFrameSize();
     }
 
-    bool Read(PWAVFile & file, void * buf, PINDEX len)
+    PBoolean Read(PWAVFile & file, void * buf, PINDEX len)
     {
       if (m_decoder == NULL && (m_decoder = OpalTranscoder::Create(m_mediaFormat, OpalPCM16)) == NULL)
         return false;
@@ -261,7 +261,7 @@ class PWAVFileConverterPlugin : public PWAVFileConverter
       return true;
     }
 
-    bool Write(PWAVFile & file, const void * buf, PINDEX len)
+    PBoolean Write(PWAVFile & file, const void * buf, PINDEX len)
     {
       if (m_encoder == NULL && (m_encoder = OpalTranscoder::Create(OpalPCM16, m_mediaFormat)) == NULL)
         return false;

@@ -253,9 +253,9 @@ class OpalRTPSession : public OpalMediaSession
       RTP_DataFrame     m_frame;
       SendReceiveStatus m_status;
     };
-    using DataNotifier = PNotifierTemplate<Data &, OpalRTPSession>;
-    #define PDECLARE_RTPDataNotifier(cls, fn) PDECLARE_NOTIFIER_FUNCTION(cls, fn, OpalRTPSession, OpalRTPSession::Data &)
-    #define PCREATE_RTPDataNotifier(fn) PCREATE_NOTIFIER(fn)
+    typedef PNotifierTemplate<Data &> DataNotifier;
+    #define PDECLARE_RTPDataNotifier(cls, fn) PDECLARE_NOTIFIER2(OpalRTPSession, cls, fn, OpalRTPSession::Data &)
+    #define PCREATE_RTPDataNotifier(fn)       PCREATE_NOTIFIER2(fn, OpalRTPSession::Data &)
 
     /** Set the notifier for received RTP data.
         Note an SSRC of zero usually means first SSRC, in this case it measn all SSRC's

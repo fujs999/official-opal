@@ -542,6 +542,7 @@ OpalMediaOptionString::OpalMediaOptionString(const char * name, bool readOnly, c
 PObject * OpalMediaOptionString::Clone() const
 {
   OpalMediaOptionString * newObj = new OpalMediaOptionString(*this);
+  newObj->m_value.MakeUnique();
   return newObj;
 }
 
@@ -565,10 +566,10 @@ void OpalMediaOptionString::ReadFrom(istream & strm)
 
     char c = ' ';
     PINDEX count = 0;
-    PString str;
+    PStringStream str;
     while (strm.peek() != EOF) {
       strm.get(c);
-      str += c;
+      str << c;
 
       // Keep reading till get a '"' that is not preceded by a '\' that is not itself preceded by a '\'
       if (c == '"' && count > 0 && (str[count] != '\\' || !(count > 1 && str[count-1] == '\\')))
@@ -580,7 +581,7 @@ void OpalMediaOptionString::ReadFrom(istream & strm)
     if (c != '"') {
       // No closing quote, add one and set fail bit.
       strm.setstate(ios::failbit);
-      str += '"';
+      str << '"';
     }
 
     m_value = PString(PString::Literal, (const char *)str);
@@ -632,14 +633,17 @@ PObject::Comparison OpalMediaOptionString::CompareValue(const OpalMediaOption & 
 void OpalMediaOptionString::Assign(const OpalMediaOption & option)
 {
   const OpalMediaOptionString * otherOption = PDownCast(const OpalMediaOptionString, &option);
-  if (otherOption != NULL)
+  if (otherOption != NULL) {
     m_value = otherOption->m_value;
+    m_value.MakeUnique();
+  }
 }
 
 
 void OpalMediaOptionString::SetValue(const PString & value)
 {
   m_value = value;
+  m_value.MakeUnique();
 }
 
 
@@ -681,13 +685,13 @@ void OpalMediaOptionOctets::PrintOn(ostream & strm) const
   if (m_base64)
     strm << PBase64::Encode(m_value);
   else {
-    std::streamsize width = strm.width();
+    streamsize width = strm.width();
     ios::fmtflags flags = strm.flags();
     char fill = strm.fill();
 
-    std::streamsize fillLength = width - m_value.GetSize()*2;
-    if (fillLength > 0 && (flags&ios::adjustfield) == ios::right) {
-      for (std::streamsize i = 0; i < fillLength; i++)
+    streamsize fillLength = width - m_value.GetSize()*2;
+    if (fillLength > 0 && (flags&ios_base::adjustfield) == ios::right) {
+      for (streamsize i = 0; i < fillLength; i++)
         strm << fill;
     }
 
@@ -695,7 +699,7 @@ void OpalMediaOptionOctets::PrintOn(ostream & strm) const
     for (PINDEX i = 0; i < m_value.GetSize(); i++)
       strm << setw(2) << (unsigned)m_value[i];
 
-    if (fillLength > 0 && (flags&ios::adjustfield) == ios::left) {
+    if (fillLength > 0 && (flags&ios_base::adjustfield) == ios::left) {
       strm << setw(1);
       for (std::streamsize i = 0; i < fillLength; i++)
         strm << fill;
@@ -841,7 +845,7 @@ OpalMediaFormat::OpalMediaFormat(const char * fullName,
                                  const OpalMediaType & mediaType,
                                  RTP_DataFrame::PayloadTypes pt,
                                  const char * en,
-                                 bool     nj,
+                                 PBoolean     nj,
                                  OpalBandwidth bw,
                                  PINDEX   fs,
                                  unsigned ft,
@@ -942,7 +946,7 @@ OpalMediaFormat & OpalMediaFormat::operator=(const PString & wildcard)
 }
 
 
-bool OpalMediaFormat::MakeUnique()
+PBoolean OpalMediaFormat::MakeUnique()
 {
   PWaitAndSignal m1(m_mutex);
   if (m_info == NULL)
@@ -1668,7 +1672,7 @@ bool OpalMediaFormatInternal::SetOptionOctets(const PString & name, const BYTE *
 }
 
 
-bool OpalMediaFormatInternal::AddOption(OpalMediaOption * option, bool overwrite)
+bool OpalMediaFormatInternal::AddOption(OpalMediaOption * option, PBoolean overwrite)
 {
   PWaitAndSignal m(m_mutex);
   if (PAssertNULL(option) == NULL)

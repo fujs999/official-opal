@@ -58,12 +58,12 @@ class OpalZrtp_UDP : public SecureRTP_UDP
       const PString & encoding,       ///<  identifies initial RTP encoding (RTP/AVP, UDPTL etc)
       bool audio,                     ///<  is audio RTP data
       unsigned id,                    ///<  Session ID for RTP channel
-      bool remoteIsNAT            ///<  TRUE is remote is behind NAT
+      PBoolean remoteIsNAT            ///<  TRUE is remote is behind NAT
     );
 
     virtual ~OpalZrtp_UDP();
 
-    virtual bool WriteZrtpData(RTP_DataFrame & frame);
+    virtual PBoolean WriteZrtpData(RTP_DataFrame & frame);
 
     virtual SendReceiveStatus OnSendData(RTP_DataFrame & frame);
     virtual SendReceiveStatus OnReceiveData(RTP_DataFrame & frame);
@@ -93,7 +93,7 @@ class LibZrtpSecurityMode_Base : public OpalZrtpSecurityMode
       const OpalRTPSession::Params & options ///< Parameters to construct with session.
     );
 
-    bool Open();
+    PBoolean Open();
 
     zrtp_profile_t * GetZrtpProfile();
 
@@ -175,7 +175,7 @@ OpalZrtp_UDP::~OpalZrtp_UDP() {
 // this method is used for zrtp protocol packets sending in zrtp_send_rtp function, 
 //	as we dont want to process them by lib once more time in OnSendData
 // (by the way they will have incorrect CRC after setting new packets length in OnSendData)
-bool OpalZrtp_UDP::WriteZrtpData(RTP_DataFrame & frame) {
+PBoolean OpalZrtp_UDP::WriteZrtpData(RTP_DataFrame & frame) {
 	if (shutdownWrite) {
 		shutdownWrite = FALSE;
 		return false;
@@ -370,7 +370,7 @@ OpalMediaSession * LibZrtpSecurityMode_Base::CreateMediaSession(OpalRTPConnectio
   return session;
 }
  
-bool LibZrtpSecurityMode_Base::Open() 
+PBoolean LibZrtpSecurityMode_Base::Open() 
 {
 	return true;
 }

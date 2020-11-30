@@ -133,10 +133,10 @@ public:
   MyCall(MyManager & manager);
 
   // Callbacks from OPAL
-  virtual bool OnSetUp(OpalConnection & connection);
+  virtual PBoolean OnSetUp(OpalConnection & connection);
   virtual void OnProceeding(OpalConnection & connection);
-  virtual bool OnAlerting(OpalConnection & connection);
-  virtual bool OnConnected(OpalConnection & connection);
+  virtual PBoolean OnAlerting(OpalConnection & connection);
+  virtual PBoolean OnConnected(OpalConnection & connection);
   virtual void OnEstablishedCall();
   virtual void OnCleared();
 
@@ -171,7 +171,7 @@ class MyGatekeeperCall : public H323GatekeeperCall
     );
 
 #ifdef H323_TRANSNEXUS_OSP
-    bool AuthoriseOSPCall(H323GatekeeperARQ & info);
+    PBoolean AuthoriseOSPCall(H323GatekeeperARQ & info);
     OpalOSP::Transaction * ospTransaction;
 #endif
 };
@@ -190,11 +190,11 @@ class MyGatekeeperServer : public H323GatekeeperServer
       const OpalGloballyUniqueID & callIdentifier,
       H323GatekeeperCall::Direction direction
     );
-    virtual bool TranslateAliasAddress(
+    virtual PBoolean TranslateAliasAddress(
       const H225_AliasAddress & alias,
       H225_ArrayOf_AliasAddress & aliases,
       H323TransportAddress & address,
-      bool & isGkRouted,
+      PBoolean & isGkRouted,
       H323GatekeeperCall * call
     );
 
@@ -370,7 +370,7 @@ class BaseStatusPage : public PServiceHTTPString
       PHTTPRequest & request    // Information on this request.
       );
 
-    virtual bool Post(
+    virtual PBoolean Post(
       PHTTPRequest & request,
       const PStringToString &,
       PHTML & msg
@@ -654,11 +654,11 @@ class MyProcess : public MyProcessAncestor
   public:
     MyProcess();
     ~MyProcess();
-    virtual bool OnStart();
+    virtual PBoolean OnStart();
     virtual void OnStop();
     virtual void OnControl();
     virtual void OnConfigChanged();
-    virtual bool Initialise(const char * initMsg);
+    virtual PBoolean Initialise(const char * initMsg);
 
   protected:
     MyManager * m_manager;

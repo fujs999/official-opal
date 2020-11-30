@@ -153,7 +153,7 @@ class SIPURL : public PURL
 
     /** Returns display name only
       */
-    PString GetDisplayName(bool useDefault = true) const;
+    PString GetDisplayName(PBoolean useDefault = true) const;
     
     void SetDisplayName(const PString & str) 
     {
@@ -224,7 +224,7 @@ class SIPURL : public PURL
       const char * scheme);
 
     // Override from PURL()
-    virtual bool InternalParse(
+    virtual PBoolean InternalParse(
       const char * cstr,
       const char * defaultScheme
     ) { return ReallyInternalParse(false, cstr, defaultScheme); }
@@ -364,7 +364,7 @@ class SIPMIMEInfo : public PMIMEInfo
 
     PINDEX  GetContentLength() const;
     void SetContentLength(PINDEX v);
-    bool IsContentLengthPresent() const;
+    PBoolean IsContentLengthPresent() const;
 
     PString GetCSeq() const;
     void SetCSeq(const PString & v);
@@ -742,6 +742,9 @@ class SIP_PDU : public PSafeObject
 };
 
 
+PQUEUE(SIP_PDU_Queue, SIP_PDU);
+
+
 #if PTRACING
 ostream & operator<<(ostream & strm, SIP_PDU::Methods method);
 #endif
@@ -1075,11 +1078,11 @@ class SIPTransaction : public SIPTransactionBase
     bool IsTerminated() const { return GetState() >= Terminated_Success; }
 
     void WaitForCompletion();
-    bool Cancel();
+    PBoolean Cancel();
     void Abort();
 
-    virtual bool OnReceivedResponse(SIP_PDU & response);
-    virtual bool OnCompleted(SIP_PDU & response);
+    virtual PBoolean OnReceivedResponse(SIP_PDU & response);
+    virtual PBoolean OnCompleted(SIP_PDU & response);
     virtual bool ReSend(const SIP_PDU & /*cmd*/) { return false;  }
 
     SIPEndPoint & GetEndPoint() const { return m_owner->GetEndPoint(); }
@@ -1178,7 +1181,7 @@ class SIPInvite : public SIPTransaction
 
     virtual SIPTransaction * CreateDuplicate() const;
 
-    virtual bool OnReceivedResponse(SIP_PDU & response);
+    virtual PBoolean OnReceivedResponse(SIP_PDU & response);
 
     mutable OpalRTPConnection::SessionMap m_sessions;
 };

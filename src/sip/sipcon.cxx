@@ -586,7 +586,7 @@ bool SIPConnection::ConsultationTransfer(SIPConnection & referee, SIPRefer::Refe
 }
 
 
-bool SIPConnection::SetAlerting(const PString & /*calleeName*/, bool withMedia)
+PBoolean SIPConnection::SetAlerting(const PString & /*calleeName*/, PBoolean withMedia)
 {
   PSafeLockReadWrite safeLock(*this);
   if (!safeLock.IsLocked())
@@ -627,7 +627,7 @@ bool SIPConnection::SetAlerting(const PString & /*calleeName*/, bool withMedia)
 }
 
 
-bool SIPConnection::SetConnected()
+PBoolean SIPConnection::SetConnected()
 {
   return InternalSetConnected(false);
 }
@@ -747,7 +747,7 @@ OpalMediaFormatList SIPConnection::GetMediaFormats() const
      after OnIncomingConnection() will fill m_remoteFormatList appropriately
      adjusted by AdjustMediaFormats() */
   if (formats.IsEmpty() && m_lastReceivedINVITE != NULL && m_lastReceivedINVITE->IsContentSDP()) {
-    std::unique_ptr<SDPSessionDescription> sdp(GetEndPoint().CreateSDP(0, 0, OpalTransportAddress()));
+    PAutoPtr<SDPSessionDescription> sdp(GetEndPoint().CreateSDP(0, 0, OpalTransportAddress()));
     sdp->SetStringOptions(m_stringOptions);
     if (sdp->Decode(m_lastReceivedINVITE->GetEntityBody(), OpalMediaFormat::GetAllRegisteredMediaFormats()))
       formats = sdp->GetMediaFormats();
@@ -826,7 +826,7 @@ bool SIPConnection::SwitchFaxMediaStreams(bool toT38)
 
 OpalMediaStream * SIPConnection::CreateMediaStream(const OpalMediaFormat & mediaFormat,
                                                    unsigned sessionID,
-                                                   bool isSource)
+                                                   PBoolean isSource)
 {
   OpalMediaType mediaType = mediaFormat.GetMediaType();
 
@@ -935,7 +935,7 @@ OpalMediaStreamPtr SIPConnection::OpenMediaStream(const OpalMediaFormat & mediaF
 }
 
 
-void SIPConnection::OnPatchMediaStream(bool isSource, OpalMediaPatch & patch)
+void SIPConnection::OnPatchMediaStream(PBoolean isSource, OpalMediaPatch & patch)
 {
   if (!SendDelayedACK(false))
     m_delayedAckTimer = m_delayedAckTimeout2;
@@ -1260,7 +1260,7 @@ void SIPConnection::OnCreatingINVITE(SIPInvite & request)
 }
 
 
-bool SIPConnection::SetUpConnection()
+PBoolean SIPConnection::SetUpConnection()
 {
   PTRACE(3, "SetUpConnection: " << m_dialog.GetRequestURI());
 
@@ -2968,7 +2968,7 @@ void SIPConnection::OnReceivedRedirection(SIP_PDU & response)
 }
 
 
-bool SIPConnection::OnReceivedAuthenticationRequired(SIPTransaction & transaction, SIP_PDU & response)
+PBoolean SIPConnection::OnReceivedAuthenticationRequired(SIPTransaction & transaction, SIP_PDU & response)
 {
   // No IsReleased() to allow for BYE authentication
   if (GetPhase() == ReleasedPhase) {
@@ -3114,7 +3114,7 @@ bool SIPConnection::OnSendAnswer(SIP_PDU::StatusCodes response, bool transfer)
   if (sdp == NULL && !m_lastReceivedINVITE->GetEntityBody().IsEmpty())
     return false;
 
-  std::unique_ptr<SDPSessionDescription> sdpOut(GetEndPoint().CreateSDP(m_sdpSessionId, ++m_sdpVersion, GetDefaultSDPConnectAddress()));
+  PAutoPtr<SDPSessionDescription> sdpOut(GetEndPoint().CreateSDP(m_sdpSessionId, ++m_sdpVersion, GetDefaultSDPConnectAddress()));
   bool ok;
 
   if (sdp == NULL || sdp->GetMediaDescriptions().IsEmpty()) {
@@ -3184,7 +3184,7 @@ OpalTransportAddress SIPConnection::GetRemoteMediaAddress()
 }
 
 
-bool SIPConnection::ForwardCall (const PString & fwdParty)
+PBoolean SIPConnection::ForwardCall (const PString & fwdParty)
 {
   if (fwdParty.IsEmpty ())
     return false;
@@ -3198,7 +3198,7 @@ bool SIPConnection::ForwardCall (const PString & fwdParty)
 }
 
 
-bool SIPConnection::SendInviteResponse(SIP_PDU::StatusCodes code,
+PBoolean SIPConnection::SendInviteResponse(SIP_PDU::StatusCodes code,
                                            const SDPSessionDescription * sdp)
 {
   if (m_lastReceivedINVITE == NULL)
@@ -3549,7 +3549,7 @@ OpalConnection::SendUserInputModes SIPConnection::GetRealSendUserInputMode() con
 }
 
 
-bool SIPConnection::SendUserInputString(const PString & value)
+PBoolean SIPConnection::SendUserInputString(const PString & value)
 {
   if (GetRealSendUserInputMode() == SendUserInputAsString) {
     SIPInfo::Params params;
@@ -3562,7 +3562,7 @@ bool SIPConnection::SendUserInputString(const PString & value)
 }
 
 
-bool SIPConnection::SendUserInputTone(char tone, unsigned duration)
+PBoolean SIPConnection::SendUserInputTone(char tone, unsigned duration)
 {
   if (m_holdFromRemote || m_holdToRemote >= eHoldOn)
     return false;
@@ -3688,7 +3688,7 @@ bool SIPConnection::OnMediaCommand(OpalMediaStream & stream, const OpalMediaComm
 
 #if OPAL_VIDEO
 
-bool SIPConnection::OnMediaControlXML(SIP_PDU & request)
+PBoolean SIPConnection::OnMediaControlXML(SIP_PDU & request)
 {
   // Must always send OK, even if not OK
   request.SendResponse(SIP_PDU::Successful_OK);

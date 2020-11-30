@@ -193,7 +193,7 @@ class OpalMediaStream : public PSafeObject
 
        The default behaviour simply sets the isOpen variable to true.
       */
-    virtual bool Open();
+    virtual PBoolean Open();
 
     /**Returns true if the media stream is open.
       */
@@ -208,14 +208,14 @@ class OpalMediaStream : public PSafeObject
        The default behaviour calls Resume() on the associated OpalMediaPatch
        thread if it was suspended.
       */
-    virtual bool Start();
+    virtual PBoolean Start();
 
     /**Close the media stream.
 
        The default marks the stream as closed and calls
        OpalConnection::OnClosedMediaStream().
       */
-    virtual bool Close();
+    virtual PBoolean Close();
 
     /**Callback that is called on the source stream once the media patch has started.
        The default behaviour calls OpalConnection::OnMediaPatchStart()
@@ -241,7 +241,7 @@ class OpalMediaStream : public PSafeObject
        The default behaviour simply calls WritePacket() on each of the
        elements in the list.
       */
-    virtual bool WritePackets(
+    virtual PBoolean WritePackets(
       RTP_DataFrameList & packets
     );
 
@@ -250,7 +250,7 @@ class OpalMediaStream : public PSafeObject
        RTP_DataFrame and sets the frames timestamp and marker from the internal
        member variables of the media stream class.
       */
-    virtual bool ReadPacket(
+    virtual PBoolean ReadPacket(
       RTP_DataFrame & packet
     );
 
@@ -259,7 +259,7 @@ class OpalMediaStream : public PSafeObject
        RTP_DataFrame and and sets the internal timestamp and marker from the
        member variables of the media stream class.
       */
-    virtual bool WritePacket(
+    virtual PBoolean WritePacket(
       RTP_DataFrame & packet
     );
 
@@ -268,7 +268,7 @@ class OpalMediaStream : public PSafeObject
        RTP_DataFrame and sets the frames timestamp and marker from the internal
        member variables of the media stream class.
       */
-    virtual bool ReadData(
+    virtual PBoolean ReadData(
       BYTE * data,      ///<  Data buffer to read to
       PINDEX size,      ///<  Size of buffer
       PINDEX & length   ///<  Length of data actually read
@@ -279,7 +279,7 @@ class OpalMediaStream : public PSafeObject
        RTP_DataFrame and and sets the internal timestamp and marker from the
        member variables of the media stream class.
       */
-    virtual bool WriteData(
+    virtual PBoolean WriteData(
       const BYTE * data,   ///<  Data to write
       PINDEX length,       ///<  Length of data to read.
       PINDEX & written     ///<  Length of data actually written
@@ -296,7 +296,7 @@ class OpalMediaStream : public PSafeObject
 
        The default behaviour does nothing.
       */
-    virtual bool SetDataSize(
+    virtual PBoolean SetDataSize(
       PINDEX dataSize,  ///< New data size (in total)
       PINDEX frameTime  ///< Individual frame time (if applicable)
     );
@@ -312,7 +312,7 @@ class OpalMediaStream : public PSafeObject
        is over a sound card, and 480 bytes of data are to be written it will
        take 30 milliseconds to complete.
       */
-    virtual bool IsSynchronous() const = 0;
+    virtual PBoolean IsSynchronous() const = 0;
 
     /**Indicate if the media stream requires a OpalMediaPatch thread (active patch).
        This is called on the source/sink stream and is passed the sink/source
@@ -323,10 +323,10 @@ class OpalMediaStream : public PSafeObject
 
        The default behaviour simply returns true.
       */
-    virtual bool RequiresPatchThread(
+    virtual PBoolean RequiresPatchThread(
       OpalMediaStream * stream  ///< Other stream in patch
     ) const;
-    virtual bool RequiresPatchThread() const; // For backward compatibility
+    virtual PBoolean RequiresPatchThread() const; // For backward compatibility
 
     /**Indicate media transport is required.
        One of the two streams in the patch can indicate that media transport is
@@ -402,7 +402,7 @@ class OpalMediaStream : public PSafeObject
     
     /**Set the patch thread that is using this stream.
       */
-    virtual bool SetPatch(
+    virtual PBoolean SetPatch(
       OpalMediaPatch * patch  ///<  Media patch thread
     );
 
@@ -557,7 +557,7 @@ class OpalNullMediaStream : public OpalMediaStream, public OpalMediaStreamPacing
     /**Read raw media data from the source media stream.
        The default behaviour does nothing and returns false.
       */
-    virtual bool ReadData(
+    virtual PBoolean ReadData(
       BYTE * data,      ///<  Data buffer to read to
       PINDEX size,      ///<  Size of buffer
       PINDEX & length   ///<  Length of data actually read
@@ -566,7 +566,7 @@ class OpalNullMediaStream : public OpalMediaStream, public OpalMediaStreamPacing
     /**Write raw media data to the sink media stream.
        The default behaviour does nothing and returns false.
       */
-    virtual bool WriteData(
+    virtual PBoolean WriteData(
       const BYTE * data,   ///<  Data to write
       PINDEX length,       ///<  Length of data to read.
       PINDEX & written     ///<  Length of data actually written
@@ -575,12 +575,12 @@ class OpalNullMediaStream : public OpalMediaStream, public OpalMediaStreamPacing
     /**Indicate if the media stream requires a OpalMediaPatch thread (active patch).
        The default behaviour returns the value of m_isSynchronous.
       */
-    virtual bool RequiresPatchThread() const;
+    virtual PBoolean RequiresPatchThread() const;
 
     /**Indicate if the media stream is synchronous.
        Returns m_isSynchronous.
       */
-    virtual bool IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const;
   //@}
 
   protected:
@@ -623,7 +623,7 @@ class OpalRawMediaStream : public OpalMediaStream
     /**Read raw media data from the source media stream.
        The default behaviour reads from the PChannel object.
       */
-    virtual bool ReadData(
+    virtual PBoolean ReadData(
       BYTE * data,      ///<  Data buffer to read to
       PINDEX size,      ///<  Size of buffer
       PINDEX & length   ///<  Length of data actually read
@@ -632,7 +632,7 @@ class OpalRawMediaStream : public OpalMediaStream
     /**Write raw media data to the sink media stream.
        The default behaviour writes to the PChannel object.
       */
-    virtual bool WriteData(
+    virtual PBoolean WriteData(
       const BYTE * data,   ///<  Data to write
       PINDEX length,       ///<  Length of data to read.
       PINDEX & written     ///<  Length of data actually written
@@ -705,9 +705,9 @@ class OpalFileMediaStream : public OpalRawMediaStream, public OpalMediaStreamPac
     /**Indicate if the media stream is synchronous.
        Returns true for LID streams.
       */
-    virtual bool IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const;
 
-    virtual bool ReadData(
+    virtual PBoolean ReadData(
       BYTE * data,      ///<  Data buffer to read to
       PINDEX size,      ///<  Size of buffer
       PINDEX & length   ///<  Length of data actually read
@@ -716,7 +716,7 @@ class OpalFileMediaStream : public OpalRawMediaStream, public OpalMediaStreamPac
     /**Write raw media data to the sink media stream.
        The default behaviour writes to the PChannel object.
       */
-    virtual bool WriteData(
+    virtual PBoolean WriteData(
       const BYTE * data,   ///<  Data to write
       PINDEX length,       ///<  Length of data to read.
       PINDEX & written     ///<  Length of data actually written
@@ -774,7 +774,7 @@ class OpalAudioMediaStream : public OpalRawMediaStream
 
        The defafault simply sets teh member variable defaultDataSize.
       */
-    virtual bool SetDataSize(
+    virtual PBoolean SetDataSize(
       PINDEX dataSize,  ///< New data size (in total)
       PINDEX frameTime  ///< Individual frame time (if applicable)
     );
@@ -782,7 +782,7 @@ class OpalAudioMediaStream : public OpalRawMediaStream
     /**Indicate if the media stream is synchronous.
        Returns true for LID streams.
       */
-    virtual bool IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const;
   //@}
 
   protected:
@@ -830,14 +830,14 @@ class OpalVideoMediaStream : public OpalMediaStream
        The default behaviour sets the OpalLineInterfaceDevice format and
        calls Resume() on the associated OpalMediaPatch thread.
       */
-    virtual bool Open();
+    virtual PBoolean Open();
 
     /**Read raw media data from the source media stream.
        The default behaviour simply calls ReadPacket() on the data portion of the
        RTP_DataFrame and sets the frames timestamp and marker from the internal
        member variables of the media stream class.
       */
-    virtual bool ReadData(
+    virtual PBoolean ReadData(
       BYTE * data,      ///<  Data buffer to read to
       PINDEX size,      ///<  Size of buffer
       PINDEX & length   ///<  Length of data actually read
@@ -848,7 +848,7 @@ class OpalVideoMediaStream : public OpalMediaStream
        RTP_DataFrame and and sets the internal timestamp and marker from the
        member variables of the media stream class.
       */
-    virtual bool WriteData(
+    virtual PBoolean WriteData(
       const BYTE * data,   ///<  Data to write
       PINDEX length,       ///<  Length of data to read.
       PINDEX & written     ///<  Length of data actually written
@@ -857,11 +857,11 @@ class OpalVideoMediaStream : public OpalMediaStream
     /**Indicate if the media stream is synchronous.
        Returns true for LID streams.
       */
-    virtual bool IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const;
 
     /** Override size of frame header is included
       */
-    virtual bool SetDataSize(
+    virtual PBoolean SetDataSize(
       PINDEX dataSize,  ///< New data size (in total)
       PINDEX frameTime  ///< Individual frame time (if applicable)
     );
@@ -959,21 +959,21 @@ class OpalUDPMediaStream : public OpalMediaStream
     /**Read an RTP frame of data from the source media stream.
        The new behaviour simply calls OpalTransportUDP::ReadPDU().
       */
-    virtual bool ReadPacket(
+    virtual PBoolean ReadPacket(
       RTP_DataFrame & packet
     );
 
     /**Write an RTP frame of data to the sink media stream.
        The new behaviour simply calls OpalTransportUDP::Write().
       */
-    virtual bool WritePacket(
+    virtual PBoolean WritePacket(
       RTP_DataFrame & packet
     );
 
     /**Indicate if the media stream is synchronous.
        Returns false.
       */
-    virtual bool IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const;
   //@}
 
   private:

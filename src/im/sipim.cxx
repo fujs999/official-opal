@@ -623,7 +623,7 @@ OpalIMContext::MessageDisposition OpalSIPIMContext::OnMessageReceived(const Opal
 }
 
 
-void OpalSIPIMContext::OnRxCompositionIdleTimer(PTimer &, intptr_t)
+void OpalSIPIMContext::OnRxCompositionIdleTimer(PTimer &, P_INT_PTR)
 {
   OnCompositionIndication(CompositionInfo(GetID(), m_rxCompositionState = CompositionIndicationIdle()));
 }
@@ -670,7 +670,7 @@ bool OpalSIPIMContext::SendCompositionIndication(const CompositionInfo & info)
 }
 
 
-void OpalSIPIMContext::OnTxCompositionIdleTimer(PTimer &, intptr_t)
+void OpalSIPIMContext::OnTxCompositionIdleTimer(PTimer &, P_INT_PTR)
 {
   SendCompositionIndication(CompositionInfo(GetID(), CompositionIndicationIdle()));
 }

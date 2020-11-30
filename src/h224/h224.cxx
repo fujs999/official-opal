@@ -1043,13 +1043,13 @@ void OpalH224MediaStream::InternalClose()
 }
 
 
-bool OpalH224MediaStream::ReadPacket(RTP_DataFrame & /*packet*/)
+PBoolean OpalH224MediaStream::ReadPacket(RTP_DataFrame & /*packet*/)
 {
   return false;
 }
 
 
-bool OpalH224MediaStream::WritePacket(RTP_DataFrame & packet)
+PBoolean OpalH224MediaStream::WritePacket(RTP_DataFrame & packet)
 {
   PTRACE(4, "Received frame: " << packet);
 

@@ -149,6 +149,7 @@ H323Connection::H323Connection(OpalCall & call,
   m_UserInputIndicationTimer.SetNotifier(PCREATE_NOTIFIER(UserInputIndicationTimeout), "UII");
 
   m_localAliasNames.MakeUnique();
+  m_gkAccessTokenOID.MakeUnique();
 
   m_remotePartyURL = GetPrefixName() + ':';
   m_remotePartyName = address.GetHostName(true);
@@ -418,7 +419,7 @@ PString H323Connection::GetSupportedFeatures() const
 
 void H323Connection::AttachSignalChannel(const PString & token,
                                          H323Transport * channel,
-                                         bool answeringCall)
+                                         PBoolean answeringCall)
 {
   if (!answeringCall)
     InternalSetAsOriginating();
@@ -444,7 +445,7 @@ void H323Connection::AttachSignalChannel(const PString & token,
 }
 
 
-bool H323Connection::WriteSignalPDU(H323SignalPDU & pdu)
+PBoolean H323Connection::WriteSignalPDU(H323SignalPDU & pdu)
 {
   PAssert(m_signallingChannel != NULL, PLogicError);
 
@@ -527,7 +528,7 @@ void H323Connection::HandleSignallingChannel()
 }
 
 
-bool H323Connection::HandleSignalPDU(H323SignalPDU & pdu)
+PBoolean H323Connection::HandleSignalPDU(H323SignalPDU & pdu)
 {
   // Process the PDU.
   const Q931 & q931 = pdu.GetQ931();
@@ -605,7 +606,7 @@ bool H323Connection::HandleSignalPDU(H323SignalPDU & pdu)
 
   pdu.GetQ931().GetProgressIndicator(m_progressIndicator);
 
-  bool ok;
+  PBoolean ok;
   switch (q931.GetMessageType()) {
     case Q931::SetupMsg :
       ok = OnReceivedSignalSetup(pdu);
@@ -877,7 +878,7 @@ void H323Connection::SetRemoteVersions(const H225_ProtocolIdentifier & protocolI
 }
 
 
-bool H323Connection::OnReceivedSignalSetup(const H323SignalPDU & originalSetupPDU)
+PBoolean H323Connection::OnReceivedSignalSetup(const H323SignalPDU & originalSetupPDU)
 {
   if (originalSetupPDU.m_h323_uu_pdu.m_h323_message_body.GetTag() != H225_H323_UU_PDU_h323_message_body::e_setup)
     return false;
@@ -1262,14 +1263,14 @@ void H323Connection::SetRemoteApplication(const H225_EndpointType & pdu)
 }
 
 
-bool H323Connection::OnReceivedSignalSetupAck(const H323SignalPDU & /*setupackPDU*/)
+PBoolean H323Connection::OnReceivedSignalSetupAck(const H323SignalPDU & /*setupackPDU*/)
 {
   OnInsufficientDigits();
   return true;
 }
 
 
-bool H323Connection::OnReceivedSignalInformation(const H323SignalPDU & infoPDU)
+PBoolean H323Connection::OnReceivedSignalInformation(const H323SignalPDU & infoPDU)
 {
   for (PINDEX i = 0; i < infoPDU.m_h323_uu_pdu.m_nonStandardControl.GetSize(); ++i) {
     const H225_NonStandardParameter & param = infoPDU.m_h323_uu_pdu.m_nonStandardControl[i];
@@ -1349,7 +1350,7 @@ bool H323Connection::OnReceivedSignalInformation(const H323SignalPDU & infoPDU)
 }
 
 
-bool H323Connection::OnReceivedCallProceeding(const H323SignalPDU & pdu)
+PBoolean H323Connection::OnReceivedCallProceeding(const H323SignalPDU & pdu)
 {
   if (pdu.m_h323_uu_pdu.m_h323_message_body.GetTag() != H225_H323_UU_PDU_h323_message_body::e_callProceeding)
     return false;
@@ -1388,7 +1389,7 @@ bool H323Connection::OnReceivedCallProceeding(const H323SignalPDU & pdu)
 }
 
 
-bool H323Connection::OnReceivedProgress(const H323SignalPDU & pdu)
+PBoolean H323Connection::OnReceivedProgress(const H323SignalPDU & pdu)
 {
   if (pdu.m_h323_uu_pdu.m_h323_message_body.GetTag() != H225_H323_UU_PDU_h323_message_body::e_progress)
     return false;
@@ -1413,7 +1414,7 @@ bool H323Connection::OnReceivedProgress(const H323SignalPDU & pdu)
 }
 
 
-bool H323Connection::OnReceivedAlerting(const H323SignalPDU & pdu)
+PBoolean H323Connection::OnReceivedAlerting(const H323SignalPDU & pdu)
 {
   if (pdu.m_h323_uu_pdu.m_h323_message_body.GetTag() != H225_H323_UU_PDU_h323_message_body::e_alerting)
     return false;
@@ -1452,7 +1453,7 @@ bool H323Connection::OnReceivedAlerting(const H323SignalPDU & pdu)
 }
 
 
-bool H323Connection::OnReceivedSignalConnect(const H323SignalPDU & pdu)
+PBoolean H323Connection::OnReceivedSignalConnect(const H323SignalPDU & pdu)
 {
   if (GetPhase() < AlertingPhase) {
     // Never actually got the ALERTING, fake it as some things get upset
@@ -1561,7 +1562,7 @@ bool H323Connection::OnReceivedSignalConnect(const H323SignalPDU & pdu)
 }
 
 
-bool H323Connection::OnReceivedFacility(const H323SignalPDU & pdu)
+PBoolean H323Connection::OnReceivedFacility(const H323SignalPDU & pdu)
 {
   if (pdu.m_h323_uu_pdu.m_h323_message_body.GetTag() == H225_H323_UU_PDU_h323_message_body::e_empty)
     return true;
@@ -1673,7 +1674,7 @@ bool H323Connection::OnReceivedFacility(const H323SignalPDU & pdu)
 }
 
 
-bool H323Connection::OnReceivedSignalNotify(const H323SignalPDU & pdu)
+PBoolean H323Connection::OnReceivedSignalNotify(const H323SignalPDU & pdu)
 {
   if (pdu.m_h323_uu_pdu.m_h323_message_body.GetTag() == H225_H323_UU_PDU_h323_message_body::e_notify) {
     const H225_Notify_UUIE & notify = pdu.m_h323_uu_pdu.m_h323_message_body;
@@ -1686,7 +1687,7 @@ bool H323Connection::OnReceivedSignalNotify(const H323SignalPDU & pdu)
 }
 
 
-bool H323Connection::OnReceivedSignalStatus(const H323SignalPDU & pdu)
+PBoolean H323Connection::OnReceivedSignalStatus(const H323SignalPDU & pdu)
 {
   if (pdu.m_h323_uu_pdu.m_h323_message_body.GetTag() == H225_H323_UU_PDU_h323_message_body::e_status) {
     const H225_Status_UUIE & status = pdu.m_h323_uu_pdu.m_h323_message_body;
@@ -1699,7 +1700,7 @@ bool H323Connection::OnReceivedSignalStatus(const H323SignalPDU & pdu)
 }
 
 
-bool H323Connection::OnReceivedStatusEnquiry(const H323SignalPDU & pdu)
+PBoolean H323Connection::OnReceivedStatusEnquiry(const H323SignalPDU & pdu)
 {
   if (pdu.m_h323_uu_pdu.m_h323_message_body.GetTag() == H225_H323_UU_PDU_h323_message_body::e_statusInquiry) {
     const H225_StatusInquiry_UUIE & status = pdu.m_h323_uu_pdu.m_h323_message_body;
@@ -1758,14 +1759,14 @@ void H323Connection::OnReceivedReleaseComplete(const H323SignalPDU & pdu)
 }
 
 
-bool H323Connection::OnIncomingCall(const H323SignalPDU & setupPDU,
+PBoolean H323Connection::OnIncomingCall(const H323SignalPDU & setupPDU,
                                     H323SignalPDU & alertingPDU)
 {
   return m_endpoint.OnIncomingCall(*this, setupPDU, alertingPDU);
 }
 
 
-bool H323Connection::ForwardCall(const PString & forwardParty)
+PBoolean H323Connection::ForwardCall(const PString & forwardParty)
 {
   if (forwardParty.IsEmpty())
     return false;
@@ -1847,7 +1848,7 @@ static void StartHandleSignallingChannel(PSafePtr<H323Connection> h323)
 }
 
 
-bool H323Connection::SetUpConnection()
+PBoolean H323Connection::SetUpConnection()
 {
   InternalSetAsOriginating();
 
@@ -1924,7 +1925,7 @@ OpalConnection::CallEndReason H323Connection::SendSignalSetup(const PString & al
       response.accessTokenData = &m_gkAccessTokenData;
     for (;;) {
       safeLock.Unlock();
-      bool ok = gatekeeper->AdmissionRequest(*this, response, alias.IsEmpty());
+      PBoolean ok = gatekeeper->AdmissionRequest(*this, response, alias.IsEmpty());
       if (!safeLock.Lock() ||IsReleased())
         return EndedByCallerAbort;
 
@@ -2117,14 +2118,14 @@ OpalConnection::CallEndReason H323Connection::SendSignalSetup(const PString & al
   setupPDU.GetQ931().GetCalledPartyNumber(m_remotePartyNumber);
 
   m_fastStartState = FastStartDisabled;
-  bool set_lastPDUWasH245inSETUP = false;
+  PBoolean set_lastPDUWasH245inSETUP = false;
 
   if (m_h245Tunneling && m_doH245inSETUP && !m_endpoint.IsH245Disabled()) {
     m_h245TunnelTxPDU = &setupPDU;
 
     // Try and start the master/slave and capability exchange through the tunnel
     // Note: this used to be disallowed but is now allowed as of H323v4
-    bool ok = StartControlNegotiations();
+    PBoolean ok = StartControlNegotiations();
 
     m_h245TunnelTxPDU = NULL;
 
@@ -2224,13 +2225,13 @@ void H323Connection::SetIncomingBearerCapabilities(const H323SignalPDU & pdu)
 }
 
 
-bool H323Connection::OnSendSignalSetup(H323SignalPDU & pdu)
+PBoolean H323Connection::OnSendSignalSetup(H323SignalPDU & pdu)
 {
   return m_endpoint.OnSendSignalSetup(*this, pdu);
 }
 
 
-bool H323Connection::OnSendCallProceeding(H323SignalPDU & callProceedingPDU)
+PBoolean H323Connection::OnSendCallProceeding(H323SignalPDU & callProceedingPDU)
 {
   return m_endpoint.OnSendCallProceeding(*this, callProceedingPDU);
 }
@@ -2252,20 +2253,20 @@ void H323Connection::DetermineRTPNAT(const OpalTransport & transport, const Opal
 }
 
 
-bool H323Connection::OnSendReleaseComplete(H323SignalPDU & /*releaseCompletePDU*/)
+PBoolean H323Connection::OnSendReleaseComplete(H323SignalPDU & /*releaseCompletePDU*/)
 {
   return true;
 }
 
 
-bool H323Connection::OnAlerting(const H323SignalPDU & alertingPDU,
+PBoolean H323Connection::OnAlerting(const H323SignalPDU & alertingPDU,
                                 const PString & username)
 {
   return m_endpoint.OnAlerting(*this, alertingPDU, username);
 }
 
 
-bool H323Connection::SetAlerting(const PString & calleeName, bool withMedia)
+PBoolean H323Connection::SetAlerting(const PString & calleeName, PBoolean withMedia)
 {
   PSafeLockReadWrite safeLock(*this);
   if (!safeLock.IsLocked())
@@ -2335,7 +2336,7 @@ bool H323Connection::SetAlerting(const PString & calleeName, bool withMedia)
 }
 
 
-bool H323Connection::SetConnected()
+PBoolean H323Connection::SetConnected()
 {
   PSafeLockReadWrite safeLock(*this);
   if (!safeLock.IsLocked())
@@ -2408,7 +2409,7 @@ bool H323Connection::SetConnected()
       // If no channels selected (or never provided) do traditional H245 start
       if (m_fastStartState == FastStartDisabled) {
         m_h245TunnelTxPDU = m_connectPDU; // Piggy back H245 on this reply
-        bool ok = StartControlNegotiations();
+        PBoolean ok = StartControlNegotiations();
         m_h245TunnelTxPDU = NULL;
         if (!ok)
           return false;
@@ -2434,7 +2435,7 @@ bool H323Connection::SetConnected()
   return true;
 }
 
-bool H323Connection::SetProgressed()
+PBoolean H323Connection::SetProgressed()
 {
   PSafeLockReadWrite safeLock(*this);
   if (!safeLock.IsLocked())
@@ -2467,7 +2468,7 @@ bool H323Connection::SetProgressed()
       // If no channels selected (or never provided) do traditional H245 start
       if (m_fastStartState == FastStartDisabled) {
         m_h245TunnelTxPDU = m_progressPDU; // Piggy back H245 on this reply
-        bool ok = StartControlNegotiations();
+        PBoolean ok = StartControlNegotiations();
         m_h245TunnelTxPDU = NULL;
         if (!ok)
           return false;
@@ -2489,7 +2490,7 @@ bool H323Connection::SetProgressed()
 }
 
 
-bool H323Connection::OnInsufficientDigits()
+PBoolean H323Connection::OnInsufficientDigits()
 {
   return false;
 }
@@ -2511,13 +2512,13 @@ void H323Connection::SendMoreDigits(const PString & digits)
 }
 
 
-bool H323Connection::OnOutgoingCall(const H323SignalPDU & connectPDU)
+PBoolean H323Connection::OnOutgoingCall(const H323SignalPDU & connectPDU)
 {
   return m_endpoint.OnOutgoingCall(*this, connectPDU);
 }
 
 
-bool H323Connection::SendFastStartAcknowledge(H225_ArrayOf_PASN_OctetString & fastStartReply)
+PBoolean H323Connection::SendFastStartAcknowledge(H225_ArrayOf_PASN_OctetString & fastStartReply)
 {
   // See if we have already added the fast start OLC's
   if (fastStartReply.GetSize() > 0) {
@@ -2584,7 +2585,7 @@ bool H323Connection::SendFastStartAcknowledge(H225_ArrayOf_PASN_OctetString & fa
 }
 
 
-bool H323Connection::HandleFastStartAcknowledge(const H225_ArrayOf_PASN_OctetString & array)
+PBoolean H323Connection::HandleFastStartAcknowledge(const H225_ArrayOf_PASN_OctetString & array)
 {
   if (m_connectionState < EstablishedConnection) {
     if (m_fastStartState == FastStartAcknowledged)
@@ -2762,14 +2763,14 @@ bool H323Connection::HandleFastStartAcknowledge(const H225_ArrayOf_PASN_OctetStr
 }
 
 
-bool H323Connection::OnUnknownSignalPDU(const H323SignalPDU & PTRACE_PARAM(pdu))
+PBoolean H323Connection::OnUnknownSignalPDU(const H323SignalPDU & PTRACE_PARAM(pdu))
 {
   PTRACE(2, "H225\tUnknown signalling PDU: " << pdu);
   return true;
 }
 
 
-bool H323Connection::CreateOutgoingControlChannel(const PASN_Sequence & enclosingPDU,
+PBoolean H323Connection::CreateOutgoingControlChannel(const PASN_Sequence & enclosingPDU,
                                                       const H225_TransportAddress & h245Address,
                                                       unsigned h245AddressField,
 #if OPAL_PTLIB_SSL
@@ -2846,7 +2847,7 @@ bool H323Connection::CreateOutgoingControlChannel(const PASN_Sequence & enclosin
 }
 
 
-void H323Connection::NewOutgoingControlChannel(PThread &, intptr_t)
+void H323Connection::NewOutgoingControlChannel(PThread &, P_INT_PTR)
 {
   if (PAssertNULL(m_controlChannel) == NULL)
     return;
@@ -2859,7 +2860,7 @@ void H323Connection::NewOutgoingControlChannel(PThread &, intptr_t)
 }
 
 
-bool H323Connection::CreateIncomingControlChannel(PASN_Sequence & enclosingPDU,
+PBoolean H323Connection::CreateIncomingControlChannel(PASN_Sequence & enclosingPDU,
                                                       H225_TransportAddress & h245Address,
                                                       unsigned h245AddressField,
 #if OPAL_PTLIB_SSL
@@ -2936,7 +2937,7 @@ void H323Connection::NewIncomingControlChannel(OpalListener & listener, const Op
 }
 
 
-bool H323Connection::WriteControlPDU(const H323ControlPDU & pdu)
+PBoolean H323Connection::WriteControlPDU(const H323ControlPDU & pdu)
 {
   PPER_Stream strm;
   pdu.Encode(strm);
@@ -2979,7 +2980,7 @@ bool H323Connection::WriteControlPDU(const H323ControlPDU & pdu)
 }
 
 
-bool H323Connection::StartControlNegotiations()
+PBoolean H323Connection::StartControlNegotiations()
 {
   PTRACE(3, "H245\tStarted control channel");
 
@@ -3018,7 +3019,7 @@ bool H323Connection::StartControlNegotiations()
   return true;
 }
 
-bool H323Connection::OnStartHandleControlChannel()
+PBoolean H323Connection::OnStartHandleControlChannel()
 {
   PSafeLockReadWrite mutex(*this);
 
@@ -3040,7 +3041,7 @@ bool H323Connection::OnStartHandleControlChannel()
 }
 
 
-bool H323Connection::HandleReceivedControlPDU(bool readStatus, PPER_Stream & strm)
+PBoolean H323Connection::HandleReceivedControlPDU(PBoolean readStatus, PPER_Stream & strm)
 {
   if (readStatus) {
     // Lock while checking for shutting down.
@@ -3075,7 +3076,7 @@ bool H323Connection::HandleReceivedControlPDU(bool readStatus, PPER_Stream & str
 }
 
 
-bool H323Connection::StartHandleControlChannel()
+PBoolean H323Connection::StartHandleControlChannel()
 {
   // Start the TCS and MSD operations on new H.245 channel.
   if (!StartControlNegotiations())
@@ -3116,7 +3117,7 @@ void H323Connection::HandleControlChannel()
   if (!OnStartHandleControlChannel())
     return;
 
-  bool ok = TRUE;
+  PBoolean ok = TRUE;
   while (ok) {
     MonitorCallStatus();
     PPER_Stream strm;
@@ -3154,7 +3155,7 @@ bool H323Connection::InternalEndSessionCheck(PPER_Stream & strm)
 }
 
 
-bool H323Connection::HandleControlData(PPER_Stream & strm)
+PBoolean H323Connection::HandleControlData(PPER_Stream & strm)
 {
   while (!strm.IsAtEnd()) {
     H323ControlPDU pdu;
@@ -3181,7 +3182,7 @@ bool H323Connection::HandleControlData(PPER_Stream & strm)
 }
 
 
-bool H323Connection::HandleControlPDU(const H323ControlPDU & pdu)
+PBoolean H323Connection::HandleControlPDU(const H323ControlPDU & pdu)
 {
   switch (pdu.GetTag()) {
     case H245_MultimediaSystemControlMessage::e_request :
@@ -3201,7 +3202,7 @@ bool H323Connection::HandleControlPDU(const H323ControlPDU & pdu)
 }
 
 
-bool H323Connection::OnUnknownControlPDU(const H323ControlPDU & pdu)
+PBoolean H323Connection::OnUnknownControlPDU(const H323ControlPDU & pdu)
 {
   PTRACE(2, "H245\tUnknown Control PDU: " << pdu);
 
@@ -3211,7 +3212,7 @@ bool H323Connection::OnUnknownControlPDU(const H323ControlPDU & pdu)
 }
 
 
-bool H323Connection::OnH245Request(const H323ControlPDU & pdu)
+PBoolean H323Connection::OnH245Request(const H323ControlPDU & pdu)
 {
   const H245_RequestMessage & request = pdu;
 
@@ -3259,7 +3260,7 @@ bool H323Connection::OnH245Request(const H323ControlPDU & pdu)
 }
 
 
-bool H323Connection::OnH245Response(const H323ControlPDU & pdu)
+PBoolean H323Connection::OnH245Response(const H323ControlPDU & pdu)
 {
   const H245_ResponseMessage & response = pdu;
 
@@ -3314,7 +3315,7 @@ bool H323Connection::OnH245Response(const H323ControlPDU & pdu)
 }
 
 
-bool H323Connection::OnH245Command(const H323ControlPDU & pdu)
+PBoolean H323Connection::OnH245Command(const H323ControlPDU & pdu)
 {
   const H245_CommandMessage & command = pdu;
 
@@ -3358,7 +3359,7 @@ bool H323Connection::OnH245Command(const H323ControlPDU & pdu)
 }
 
 
-bool H323Connection::OnH245Indication(const H323ControlPDU & pdu)
+PBoolean H323Connection::OnH245Indication(const H323ControlPDU & pdu)
 {
   const H245_IndicationMessage & indication = pdu;
 
@@ -3402,7 +3403,7 @@ bool H323Connection::OnH245Indication(const H323ControlPDU & pdu)
 }
 
 
-bool H323Connection::OnH245_SendTerminalCapabilitySet(
+PBoolean H323Connection::OnH245_SendTerminalCapabilitySet(
                  const H245_SendTerminalCapabilitySet & pdu)
 {
   if (pdu.GetTag() == H245_SendTerminalCapabilitySet::e_genericRequest)
@@ -3413,7 +3414,7 @@ bool H323Connection::OnH245_SendTerminalCapabilitySet(
 }
 
 
-bool H323Connection::OnH245_FlowControlCommand(
+PBoolean H323Connection::OnH245_FlowControlCommand(
                  const H245_FlowControlCommand & pdu)
 {
   PTRACE(3, "H245\tFlowControlCommand: scope=" << pdu.m_scope.GetTagName());
@@ -3441,7 +3442,7 @@ bool H323Connection::OnH245_FlowControlCommand(
 }
 
 
-bool H323Connection::OnH245_MiscellaneousCommand(
+PBoolean H323Connection::OnH245_MiscellaneousCommand(
                  const H245_MiscellaneousCommand & pdu)
 {
   H323Channel * chan = m_logicalChannels->FindChannel((unsigned)pdu.m_logicalChannelNumber, false);
@@ -3455,7 +3456,7 @@ bool H323Connection::OnH245_MiscellaneousCommand(
 }
 
 
-bool H323Connection::OnH245_MiscellaneousIndication(
+PBoolean H323Connection::OnH245_MiscellaneousIndication(
                  const H245_MiscellaneousIndication & pdu)
 {
   H323Channel * chan = m_logicalChannels->FindChannel((unsigned)pdu.m_logicalChannelNumber, true);
@@ -3469,7 +3470,7 @@ bool H323Connection::OnH245_MiscellaneousIndication(
 }
 
 
-bool H323Connection::OnH245_JitterIndication(
+PBoolean H323Connection::OnH245_JitterIndication(
                  const H245_JitterIndication & pdu)
 {
   PTRACE(3, "H245\tJitterIndication: scope=" << pdu.m_scope.GetTagName());
@@ -3719,7 +3720,7 @@ bool H323Connection::HasPresentationRole() const
 #endif // OPAL_H239
 
 
-H323Channel * H323Connection::GetLogicalChannel(unsigned number, bool fromRemote) const
+H323Channel * H323Connection::GetLogicalChannel(unsigned number, PBoolean fromRemote) const
 {
   PSafeLockReadWrite mutex(*this);
   return m_logicalChannels->FindChannel(number, fromRemote);
@@ -3755,7 +3756,7 @@ bool H323Connection::HoldRemote(bool placeOnHold)
 }
 
 
-bool H323Connection::IsOnHold(bool fromRemote) const
+PBoolean H323Connection::IsOnHold(bool fromRemote) const
 {
 #if OPAL_H450
   // Yes this looks around the wrong way, it isn't!
@@ -3817,7 +3818,7 @@ void H323Connection::HandleConsultationTransfer(const PString & callIdentity,
   m_h4502handler->HandleConsultationTransfer(callIdentity, incoming);
 }
 
-bool H323Connection::IsTransferringCall() const
+PBoolean H323Connection::IsTransferringCall() const
 {
   switch (m_h4502handler->GetState()) {
     case H4502Handler::e_ctAwaitIdentifyResponse :
@@ -3831,7 +3832,7 @@ bool H323Connection::IsTransferringCall() const
 }
 
 
-bool H323Connection::IsTransferredCall() const
+PBoolean H323Connection::IsTransferredCall() const
 {
    return (m_h4502handler->GetInvokeId() != 0 &&
            m_h4502handler->GetState() == H4502Handler::e_ctIdle) ||
@@ -3884,7 +3885,7 @@ void H323Connection::HandleIntrudeCall(const PString & token,
 }
 
 
-bool H323Connection::GetRemoteCallIntrusionProtectionLevel(const PString & intrusionCallToken,
+PBoolean H323Connection::GetRemoteCallIntrusionProtectionLevel(const PString & intrusionCallToken,
                                                            unsigned intrusionCICL)
 {
   return m_h45011handler->GetRemoteCallIntrusionProtectionLevel(intrusionCallToken, intrusionCICL);
@@ -3917,7 +3918,7 @@ void H323Connection::SendCallWaitingIndication(const unsigned nbOfAddWaitingCall
 
 #endif
 
-bool H323Connection::OnControlProtocolError(ControlProtocolErrors /*errorSource*/,
+PBoolean H323Connection::OnControlProtocolError(ControlProtocolErrors /*errorSource*/,
                                             const void * /*errorData*/)
 {
   return true;
@@ -3928,7 +3929,7 @@ void H323Connection::OnSendCapabilitySet(H245_TerminalCapabilitySet & /*pdu*/)
 }
 
 
-bool H323Connection::OnReceivedCapabilitySet(const H323Capabilities & remoteCaps,
+PBoolean H323Connection::OnReceivedCapabilitySet(const H323Capabilities & remoteCaps,
                                              const H245_MultiplexCapability * muxCap,
                                              H245_TerminalCapabilitySetReject & /*rejectPDU*/)
 {
@@ -4019,7 +4020,7 @@ bool H323Connection::OnReceivedCapabilitySet(const H323Capabilities & remoteCaps
   return true;
 }
 
-bool H323Connection::SendCapabilitySet(bool empty)
+bool H323Connection::SendCapabilitySet(PBoolean empty)
 {
   PSafeLockReadWrite mutex(*this);
   if (!m_capabilityExchangeProcedure->Start(true, empty))
@@ -4212,7 +4213,7 @@ void H323Connection::OnSetLocalCapabilities()
 }
 
 
-bool H323Connection::IsH245Master() const
+PBoolean H323Connection::IsH245Master() const
 {
   return m_masterSlaveDeterminationProcedure->IsMaster();
 }
@@ -4778,8 +4779,8 @@ void H323Connection::SelectDefaultLogicalChannel(const OpalMediaType & mediaType
 
 
 void H323Connection::SelectFastStartChannels(unsigned sessionID,
-                                             bool transmitter,
-                                             bool receiver)
+                                             PBoolean transmitter,
+                                             PBoolean receiver)
 {
   // Select all of the fast start channels to offer to the remote when initiating a call.
   for (PINDEX i = 0; i < m_localCapabilities.GetSize(); i++) {
@@ -4807,7 +4808,7 @@ void H323Connection::SendFlowControlCommand(unsigned channelNumber, unsigned new
 }
 
 
-bool H323Connection::OpenLogicalChannel(const H323Capability & capability,
+PBoolean H323Connection::OpenLogicalChannel(const H323Capability & capability,
                                         unsigned sessionID,
                                         H323Channel::Directions dir)
 {
@@ -4848,7 +4849,7 @@ bool H323Connection::OpenLogicalChannel(const H323Capability & capability,
 }
 
 
-bool H323Connection::OnOpenLogicalChannel(const H245_OpenLogicalChannel & openPDU,
+PBoolean H323Connection::OnOpenLogicalChannel(const H245_OpenLogicalChannel & openPDU,
                                           H245_OpenLogicalChannelAck & ackPDU,
                                           unsigned & errorCode,
                                           H323Channel & channel)
@@ -4960,7 +4961,7 @@ bool H323Connection::OnSendingOLCGenericInformation(unsigned sessionID,
 }
 
 
-bool H323Connection::OnConflictingLogicalChannel(H323Channel & conflictingChannel)
+PBoolean H323Connection::OnConflictingLogicalChannel(H323Channel & conflictingChannel)
 {
   unsigned sessionID = conflictingChannel.GetSessionID();
   PTRACE(2, "H323\tLogical channel " << conflictingChannel
@@ -5047,7 +5048,7 @@ bool H323Connection::OnConflictingLogicalChannel(H323Channel & conflictingChanne
 
 
 H323Channel * H323Connection::CreateLogicalChannel(const H245_OpenLogicalChannel & open,
-                                                   bool startingFast,
+                                                   PBoolean startingFast,
                                                    unsigned & errorCode)
 {
   const H245_H2250LogicalChannelParameters * param;
@@ -5208,7 +5209,7 @@ H323_RTPChannel * H323Connection::CreateRTPChannel(const H323Capability & capabi
 }
 
 
-bool H323Connection::OnCreateLogicalChannel(const H323Capability & capability,
+PBoolean H323Connection::OnCreateLogicalChannel(const H323Capability & capability,
                                             H323Channel::Directions dir,
                                             unsigned & errorCode)
 {
@@ -5266,7 +5267,7 @@ bool H323Connection::OnCreateLogicalChannel(const H323Capability & capability,
 }
 
 
-bool H323Connection::OnStartLogicalChannel(H323Channel & channel)
+PBoolean H323Connection::OnStartLogicalChannel(H323Channel & channel)
 {
 #if OPAL_T38_CAPABILITY
   if (m_ownerCall.IsSwitchingT38()) {
@@ -5295,7 +5296,7 @@ bool H323Connection::OnStartLogicalChannel(H323Channel & channel)
 }
 
 
-void H323Connection::CloseLogicalChannel(unsigned number, bool fromRemote)
+void H323Connection::CloseLogicalChannel(unsigned number, PBoolean fromRemote)
 {
   PSafeLockReadWrite mutex(*this);
   if (m_connectionState != ShuttingDownConnection)
@@ -5309,7 +5310,7 @@ void H323Connection::CloseLogicalChannelNumber(const H323ChannelNumber & number)
 }
 
 
-void H323Connection::CloseAllLogicalChannels(bool fromRemote)
+void H323Connection::CloseAllLogicalChannels(PBoolean fromRemote)
 {
   PSafeLockReadWrite mutex(*this);
   for (H245LogicalChannelDict::iterator it  = m_logicalChannels->GetChannels().begin();
@@ -5322,7 +5323,7 @@ void H323Connection::CloseAllLogicalChannels(bool fromRemote)
 }
 
 
-bool H323Connection::OnClosingLogicalChannel(H323Channel & /*channel*/)
+PBoolean H323Connection::OnClosingLogicalChannel(H323Channel & /*channel*/)
 {
   return true;
 }
@@ -5385,7 +5386,7 @@ OpalBandwidth H323Connection::GetBandwidthUsed(OpalBandwidth::Direction dir) con
 }
 
 
-static bool CheckSendUserInputMode(const H323Capabilities & caps,
+static PBoolean CheckSendUserInputMode(const H323Capabilities & caps,
                                    OpalConnection::SendUserInputModes mode)
 {
   // If have remote capabilities, then verify we can send selected mode,
@@ -5431,7 +5432,7 @@ OpalConnection::SendUserInputModes H323Connection::GetRealSendUserInputMode() co
 }
 
 
-bool H323Connection::SendUserInputString(const PString & value)
+PBoolean H323Connection::SendUserInputString(const PString & value)
 {
   SendUserInputModes mode = GetRealSendUserInputMode();
 
@@ -5444,7 +5445,7 @@ bool H323Connection::SendUserInputString(const PString & value)
 }
 
 
-bool H323Connection::SendUserInputTone(char tone, unsigned duration)
+PBoolean H323Connection::SendUserInputTone(char tone, unsigned duration)
 {
   SendUserInputModes mode = GetRealSendUserInputMode();
 
@@ -5469,7 +5470,7 @@ bool H323Connection::SendUserInputTone(char tone, unsigned duration)
 }
 
 
-bool H323Connection::SendUserInputIndicationQ931(const PString & value)
+PBoolean H323Connection::SendUserInputIndicationQ931(const PString & value)
 {
   PTRACE(3, "H323\tSendUserInputIndicationQ931(\"" << value << "\")");
 
@@ -5484,7 +5485,7 @@ bool H323Connection::SendUserInputIndicationQ931(const PString & value)
 }
 
 
-bool H323Connection::SendUserInputIndicationString(const PString & value)
+PBoolean H323Connection::SendUserInputIndicationString(const PString & value)
 {
   PTRACE(3, "H323\tSendUserInputIndicationString(\"" << value << "\")");
 
@@ -5498,7 +5499,7 @@ bool H323Connection::SendUserInputIndicationString(const PString & value)
 }
 
 
-bool H323Connection::SendUserInputIndicationTone(char tone,
+PBoolean H323Connection::SendUserInputIndicationTone(char tone,
                                                  unsigned duration,
                                                  unsigned logicalChannel,
                                                  unsigned rtpTimestamp)
@@ -5518,7 +5519,7 @@ bool H323Connection::SendUserInputIndicationTone(char tone,
 }
 
 
-bool H323Connection::SendUserInputIndication(const H245_UserInputIndication & indication)
+PBoolean H323Connection::SendUserInputIndication(const H245_UserInputIndication & indication)
 {
   H323ControlPDU pdu;
   H245_UserInputIndication & ind = pdu.Build(H245_IndicationMessage::e_userInput);
@@ -5554,7 +5555,7 @@ void H323Connection::OnUserInputIndication(const H245_UserInputIndication & ind)
 }
 
 
-void H323Connection::UserInputIndicationTimeout(PTimer&, intptr_t)
+void H323Connection::UserInputIndicationTimeout(PTimer&, P_INT_PTR)
 {
   GetEndPoint().GetManager().QueueDecoupledEvent(
             new PSafeWorkArg2<OpalConnection, char, unsigned>(this, m_lastUserInputIndication,
@@ -5578,7 +5579,7 @@ static void AddSessionCodecName(PStringStream & name, H323Channel * channel)
 
   if (name.IsEmpty())
     name << mediaFormat;
-  else if (name.str() != mediaFormat)
+  else if (name != mediaFormat)
     name << " / " << mediaFormat;
 }
 
@@ -5594,21 +5595,21 @@ PString H323Connection::GetSessionCodecNames(unsigned sessionID) const
 }
 
 
-bool H323Connection::RequestModeChange(const PString & newModes)
+PBoolean H323Connection::RequestModeChange(const PString & newModes)
 {
   PSafeLockReadWrite mutex(*this);
   return m_requestModeProcedure->StartRequest(newModes);
 }
 
 
-bool H323Connection::RequestModeChange(const H245_ArrayOf_ModeDescription & newModes)
+PBoolean H323Connection::RequestModeChange(const H245_ArrayOf_ModeDescription & newModes)
 {
   PSafeLockReadWrite mutex(*this);
   return m_requestModeProcedure->StartRequest(newModes);
 }
 
 
-bool H323Connection::OnRequestModeChange(const H245_RequestMode & pdu,
+PBoolean H323Connection::OnRequestModeChange(const H245_RequestMode & pdu,
                                          H245_RequestModeAck & /*ack*/,
                                          H245_RequestModeReject & /*reject*/,
                                          PINDEX & selectedMode)
@@ -5768,7 +5769,7 @@ void H323Connection::OnRefusedModeChange(const H245_RequestModeReject * /*pdu*/)
 }
 
 
-bool H323Connection::RequestModeChangeT38(const char * capabilityNames)
+PBoolean H323Connection::RequestModeChangeT38(const char * capabilityNames)
 {
   m_t38ModeChangeCapabilities = capabilityNames;
   if (RequestModeChange(m_t38ModeChangeCapabilities))
@@ -5779,7 +5780,7 @@ bool H323Connection::RequestModeChangeT38(const char * capabilityNames)
 }
 
 
-bool H323Connection::GetAdmissionRequestAuthentication(const H225_AdmissionRequest & /*arq*/,
+PBoolean H323Connection::GetAdmissionRequestAuthentication(const H225_AdmissionRequest & /*arq*/,
                                                        H235Authenticators & /*authenticators*/)
 {
   return false;
@@ -5835,8 +5836,8 @@ void H323Connection::MonitorCallStatus()
 
 /*
   if (endpoint.GetNoMediaTimeout() > 0) {
-    bool oneRunning = false;
-    bool allSilent = true;
+    PBoolean oneRunning = false;
+    PBoolean allSilent = true;
     for (PINDEX i = 0; i < logicalChannels->GetSize(); i++) {
       H323Channel * channel = logicalChannels->GetChannelAt(i);
       if (channel != NULL && channel->IsDescendant(H323_RTPChannel::Class())) {

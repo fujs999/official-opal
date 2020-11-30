@@ -146,7 +146,7 @@ class OpalLineEndPoint : public OpalEndPoint
 
        Returns true if the lines device was open and the line was added.
       */
-    bool AddLine(
+    PBoolean AddLine(
       OpalLine * line
     );
 
@@ -186,7 +186,7 @@ class OpalLineEndPoint : public OpalEndPoint
 
        Returns true if at least one line was added.
       */
-    virtual bool AddLinesFromDevice(
+    virtual PBoolean AddLinesFromDevice(
       OpalLineInterfaceDevice & device  ///<  Device to add lines
     );
 
@@ -202,7 +202,7 @@ class OpalLineEndPoint : public OpalEndPoint
 
        Returns true if at least one line from one device was added.
       */
-    bool AddDeviceNames(
+    PBoolean AddDeviceNames(
       const PStringArray & descriptors  ///<  Device descritptions to add
     );
 
@@ -215,7 +215,7 @@ class OpalLineEndPoint : public OpalEndPoint
        Returns true if at least one line was added or the descriptor was
        already present.
       */
-    bool AddDeviceName(
+    PBoolean AddDeviceName(
       const PString & descriptor  ///<  Device descritption to add
     );
 
@@ -236,7 +236,7 @@ class OpalLineEndPoint : public OpalEndPoint
 
        Returns true if at least one line was added.
       */
-    virtual bool AddDevice(
+    virtual PBoolean AddDevice(
       OpalLineInterfaceDevice * device    ///<  Device to add
     );
 
@@ -342,7 +342,7 @@ class OpalLineConnection : public OpalConnection
 
        The default behaviour does.
       */
-    virtual bool SetUpConnection();
+    virtual PBoolean SetUpConnection();
 
     /**Indicate to remote endpoint an alert is in progress.
        If this is an incoming connection and the AnswerCallResponse is in a
@@ -354,16 +354,16 @@ class OpalLineConnection : public OpalConnection
 
        The default behaviour starts the ring back tone.
       */
-    virtual bool SetAlerting(
+    virtual PBoolean SetAlerting(
       const PString & calleeName,   ///<  Name of endpoint being alerted.
-      bool withMedia                ///<  Open media with alerting
+      PBoolean withMedia                ///<  Open media with alerting
     );
 
     /**Indicate to remote endpoint we are connected.
 
        The default behaviour stops the ring back tone.
       */
-    virtual bool SetConnected();
+    virtual PBoolean SetConnected();
 
     /**Clean up the termination of the connection.
        This function can do any internal cleaning up and waiting on background
@@ -418,7 +418,7 @@ class OpalLineConnection : public OpalConnection
     virtual OpalMediaStream * CreateMediaStream(
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
-      bool isSource                        ///<  Is a source stream
+      PBoolean isSource                        ///<  Is a source stream
     );
 
     /**Call back when opening a media stream.
@@ -433,7 +433,7 @@ class OpalLineConnection : public OpalConnection
        The default behaviour calls the ancestor and adds a LID silence
        detector filter.
       */
-    virtual bool OnOpenMediaStream(
+    virtual PBoolean OnOpenMediaStream(
       OpalMediaStream & stream    ///<  New media stream being opened
     );
 
@@ -450,8 +450,8 @@ class OpalLineConnection : public OpalConnection
 
     /**Set  the volume (gain) for the audio media channel to the specified percentage.
       */
-    virtual bool SetAudioVolume(
-      bool source,                  ///< true for source (microphone), false for sink (speaker)
+    virtual PBoolean SetAudioVolume(
+      PBoolean source,                  ///< true for source (microphone), false for sink (speaker)
       unsigned percentage           ///< Gain, 0=silent, 100=maximun
     );
 
@@ -469,7 +469,7 @@ class OpalLineConnection : public OpalConnection
 
        The default behaviour plays the DTMF tones on the line.
       */
-    virtual bool SendUserInputString(
+    virtual PBoolean SendUserInputString(
       const PString & value                   ///<  String value of indication
     );
 
@@ -479,7 +479,7 @@ class OpalLineConnection : public OpalConnection
 
        The default behaviour plays the DTMF tone on the line.
       */
-    virtual bool SendUserInputTone(
+    virtual PBoolean SendUserInputTone(
       char tone,    ///<  DTMF tone code
       int duration  ///<  Duration of tone in milliseconds
     );
@@ -490,8 +490,8 @@ class OpalLineConnection : public OpalConnection
 
        The default behaviour does nothing.
       */
-    virtual bool PromptUserInput(
-      bool play   ///<  Flag to start or stop playing the prompt
+    virtual PBoolean PromptUserInput(
+      PBoolean play   ///<  Flag to start or stop playing the prompt
     );
   //@}
 
@@ -563,7 +563,7 @@ class OpalLineMediaStream : public OpalMediaStream
       OpalLineConnection & conn,            ///< Owner connection
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
-      bool isSource,                       ///<  Is a source stream
+      PBoolean isSource,                       ///<  Is a source stream
       OpalLine & line                      ///<  LID line to stream to/from
     );
   //@}
@@ -578,14 +578,14 @@ class OpalLineMediaStream : public OpalMediaStream
        The default behaviour sets the OpalLineInterfaceDevice format and
        calls Resume() on the associated OpalMediaPatch thread.
       */
-    virtual bool Open();
+    virtual PBoolean Open();
 
     /**Read an RTP frame of data from the source media stream.
        The default behaviour simply calls ReadData() on the data portion of the
        RTP_DataFrame and sets the frames timestamp and marker from the internal
        member variables of the media stream class.
       */
-    virtual bool ReadPacket(
+    virtual PBoolean ReadPacket(
       RTP_DataFrame & packet
     );
 
@@ -594,14 +594,14 @@ class OpalLineMediaStream : public OpalMediaStream
        RTP_DataFrame and and sets the internal timestamp and marker from the
        member variables of the media stream class.
       */
-    virtual bool WritePacket(
+    virtual PBoolean WritePacket(
       RTP_DataFrame & packet
     );
 
     /**Read raw media data from the source media stream.
        The default behaviour reads from the OpalLine object.
       */
-    virtual bool ReadData(
+    virtual PBoolean ReadData(
       BYTE * data,      ///<  Data buffer to read to
       PINDEX size,      ///<  Size of buffer
       PINDEX & length   ///<  Length of data actually read
@@ -610,7 +610,7 @@ class OpalLineMediaStream : public OpalMediaStream
     /**Write raw media data to the sink media stream.
        The default behaviour writes to the OpalLine object.
       */
-    virtual bool WriteData(
+    virtual PBoolean WriteData(
       const BYTE * data,   ///<  Data to write
       PINDEX length,       ///<  Length of data to read.
       PINDEX & written     ///<  Length of data actually written
@@ -621,7 +621,7 @@ class OpalLineMediaStream : public OpalMediaStream
 
        The default behaviour does nothing.
       */
-    virtual bool SetDataSize(
+    virtual PBoolean SetDataSize(
       PINDEX dataSize,  ///< New data size (in total)
       PINDEX frameTime  ///< Individual frame time (if applicable)
     );
@@ -629,7 +629,7 @@ class OpalLineMediaStream : public OpalMediaStream
     /**Indicate if the media stream is synchronous.
        Returns true for LID streams.
       */
-    virtual bool IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const;
 
     /**Indicate if the media stream requires a OpalMediaPatch thread (active patch).
        This is called on the source/sink stream and is passed the sink/source
@@ -641,7 +641,7 @@ class OpalLineMediaStream : public OpalMediaStream
        The default behaviour here determines if both streams are on the same
        OpalLineInterfaceDevice and returns false if so.
       */
-    virtual bool RequiresPatchThread(
+    virtual PBoolean RequiresPatchThread(
       OpalMediaStream * stream  ///< Other stream in patch
     ) const;
   //@}

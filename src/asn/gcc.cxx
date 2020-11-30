@@ -423,7 +423,7 @@ GCC_Key::operator const GCC_H221NonStandardIdentifier &() const
 }
 
 
-bool GCC_Key::CreateObject()
+PBoolean GCC_Key::CreateObject()
 {
   switch (tag) {
     case e_object :
@@ -497,7 +497,7 @@ PINDEX GCC_NonStandardParameter::GetDataLength() const
 }
 
 
-bool GCC_NonStandardParameter::Decode(PASN_Stream & strm)
+PBoolean GCC_NonStandardParameter::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -864,7 +864,7 @@ PINDEX GCC_Password::GetDataLength() const
 }
 
 
-bool GCC_Password::Decode(PASN_Stream & strm)
+PBoolean GCC_Password::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -964,7 +964,7 @@ GCC_PasswordSelector::operator const GCC_SimpleTextString &() const
 }
 
 
-bool GCC_PasswordSelector::CreateObject()
+PBoolean GCC_PasswordSelector::CreateObject()
 {
   switch (tag) {
     case e_numeric :
@@ -1054,7 +1054,7 @@ GCC_ChallengeResponseItem::operator const GCC_UserData &() const
 }
 
 
-bool GCC_ChallengeResponseItem::CreateObject()
+PBoolean GCC_ChallengeResponseItem::CreateObject()
 {
   switch (tag) {
     case e_passwordString :
@@ -1122,7 +1122,7 @@ GCC_ChallengeResponseAlgorithm::operator const GCC_NonStandardParameter &() cons
 }
 
 
-bool GCC_ChallengeResponseAlgorithm::CreateObject()
+PBoolean GCC_ChallengeResponseAlgorithm::CreateObject()
 {
   switch (tag) {
     case e_passwordInTheClear :
@@ -1196,7 +1196,7 @@ PINDEX GCC_ChallengeItem::GetDataLength() const
 }
 
 
-bool GCC_ChallengeItem::Decode(PASN_Stream & strm)
+PBoolean GCC_ChallengeItem::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1283,7 +1283,7 @@ PINDEX GCC_ChallengeResponse::GetDataLength() const
 }
 
 
-bool GCC_ChallengeResponse::Decode(PASN_Stream & strm)
+PBoolean GCC_ChallengeResponse::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1385,7 +1385,7 @@ GCC_PasswordChallengeRequestResponse::operator const GCC_PasswordChallengeReques
 }
 
 
-bool GCC_PasswordChallengeRequestResponse::CreateObject()
+PBoolean GCC_PasswordChallengeRequestResponse::CreateObject()
 {
   switch (tag) {
     case e_passwordInTheClear :
@@ -1461,7 +1461,7 @@ PINDEX GCC_ConferenceName::GetDataLength() const
 }
 
 
-bool GCC_ConferenceName::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceName::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1561,7 +1561,7 @@ GCC_ConferenceNameSelector::operator const GCC_SimpleTextString &() const
 }
 
 
-bool GCC_ConferenceNameSelector::CreateObject()
+PBoolean GCC_ConferenceNameSelector::CreateObject()
 {
   switch (tag) {
     case e_numeric :
@@ -1736,7 +1736,7 @@ GCC_ConferencePriorityScheme::operator const GCC_NonStandardParameter &() const
 }
 
 
-bool GCC_ConferencePriorityScheme::CreateObject()
+PBoolean GCC_ConferencePriorityScheme::CreateObject()
 {
   switch (tag) {
     case e_nonStandardScheme :
@@ -1808,7 +1808,7 @@ PINDEX GCC_ConferencePriority::GetDataLength() const
 }
 
 
-bool GCC_ConferencePriority::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferencePriority::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1960,7 +1960,7 @@ PINDEX GCC_NodeProperties::GetDataLength() const
 }
 
 
-bool GCC_NodeProperties::Decode(PASN_Stream & strm)
+PBoolean GCC_NodeProperties::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2016,7 +2016,7 @@ GCC_AsymmetryIndicator::GCC_AsymmetryIndicator(unsigned tag, PASN_Object::TagCla
 }
 
 
-bool GCC_AsymmetryIndicator::CreateObject()
+PBoolean GCC_AsymmetryIndicator::CreateObject()
 {
   switch (tag) {
     case e_callingNode :
@@ -2063,7 +2063,7 @@ GCC_AlternativeNodeID::GCC_AlternativeNodeID(unsigned tag, PASN_Object::TagClass
 }
 
 
-bool GCC_AlternativeNodeID::CreateObject()
+PBoolean GCC_AlternativeNodeID::CreateObject()
 {
   switch (tag) {
     case e_h243NodeID :
@@ -2160,7 +2160,7 @@ PINDEX GCC_ConferenceDescriptor::GetDataLength() const
 }
 
 
-bool GCC_ConferenceDescriptor::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceDescriptor::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2263,7 +2263,7 @@ PINDEX GCC_SessionKey::GetDataLength() const
 }
 
 
-bool GCC_SessionKey::Decode(PASN_Stream & strm)
+PBoolean GCC_SessionKey::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2379,7 +2379,7 @@ GCC_CapabilityID::operator const GCC_Key &() const
 }
 
 
-bool GCC_CapabilityID::CreateObject()
+PBoolean GCC_CapabilityID::CreateObject()
 {
   switch (tag) {
     case e_standard :
@@ -2427,7 +2427,7 @@ GCC_CapabilityClass::GCC_CapabilityClass(unsigned tag, PASN_Object::TagClass tag
 }
 
 
-bool GCC_CapabilityClass::CreateObject()
+PBoolean GCC_CapabilityClass::CreateObject()
 {
   switch (tag) {
     case e_logical :
@@ -2541,7 +2541,7 @@ PINDEX GCC_RegistryKey::GetDataLength() const
 }
 
 
-bool GCC_RegistryKey::Decode(PASN_Stream & strm)
+PBoolean GCC_RegistryKey::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2642,7 +2642,7 @@ GCC_RegistryItem::operator const GCC_DynamicTokenID &() const
 }
 
 
-bool GCC_RegistryItem::CreateObject()
+PBoolean GCC_RegistryItem::CreateObject()
 {
   switch (tag) {
     case e_channelID :
@@ -2717,7 +2717,7 @@ GCC_RegistryEntryOwner::operator const GCC_RegistryEntryOwner_owned &() const
 }
 
 
-bool GCC_RegistryEntryOwner::CreateObject()
+PBoolean GCC_RegistryEntryOwner::CreateObject()
 {
   switch (tag) {
     case e_owned :
@@ -2824,7 +2824,7 @@ PINDEX GCC_UserIDIndication::GetDataLength() const
 }
 
 
-bool GCC_UserIDIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_UserIDIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -2912,7 +2912,7 @@ PINDEX GCC_ConferenceQueryRequest::GetDataLength() const
 }
 
 
-bool GCC_ConferenceQueryRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceQueryRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3034,7 +3034,7 @@ PINDEX GCC_ConferenceJoinRequest::GetDataLength() const
 }
 
 
-bool GCC_ConferenceJoinRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceJoinRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3155,7 +3155,7 @@ PINDEX GCC_ConferenceAddRequest::GetDataLength() const
 }
 
 
-bool GCC_ConferenceAddRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceAddRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3227,7 +3227,7 @@ PINDEX GCC_ConferenceLockRequest::GetDataLength() const
 }
 
 
-bool GCC_ConferenceLockRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceLockRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3282,7 +3282,7 @@ PINDEX GCC_ConferenceLockIndication::GetDataLength() const
 }
 
 
-bool GCC_ConferenceLockIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceLockIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3337,7 +3337,7 @@ PINDEX GCC_ConferenceUnlockRequest::GetDataLength() const
 }
 
 
-bool GCC_ConferenceUnlockRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceUnlockRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3392,7 +3392,7 @@ PINDEX GCC_ConferenceUnlockIndication::GetDataLength() const
 }
 
 
-bool GCC_ConferenceUnlockIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceUnlockIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3473,7 +3473,7 @@ PINDEX GCC_RegistryRegisterChannelRequest::GetDataLength() const
 }
 
 
-bool GCC_RegistryRegisterChannelRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_RegistryRegisterChannelRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3559,7 +3559,7 @@ PINDEX GCC_RegistryAssignTokenRequest::GetDataLength() const
 }
 
 
-bool GCC_RegistryAssignTokenRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_RegistryAssignTokenRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3653,7 +3653,7 @@ PINDEX GCC_RegistrySetParameterRequest::GetDataLength() const
 }
 
 
-bool GCC_RegistrySetParameterRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_RegistrySetParameterRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3743,7 +3743,7 @@ PINDEX GCC_RegistryRetrieveEntryRequest::GetDataLength() const
 }
 
 
-bool GCC_RegistryRetrieveEntryRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_RegistryRetrieveEntryRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3826,7 +3826,7 @@ PINDEX GCC_RegistryDeleteEntryRequest::GetDataLength() const
 }
 
 
-bool GCC_RegistryDeleteEntryRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_RegistryDeleteEntryRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -3909,7 +3909,7 @@ PINDEX GCC_RegistryMonitorEntryRequest::GetDataLength() const
 }
 
 
-bool GCC_RegistryMonitorEntryRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_RegistryMonitorEntryRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -4002,7 +4002,7 @@ PINDEX GCC_RegistryMonitorEntryIndication::GetDataLength() const
 }
 
 
-bool GCC_RegistryMonitorEntryIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_RegistryMonitorEntryIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -4093,7 +4093,7 @@ PINDEX GCC_RegistryAllocateHandleRequest::GetDataLength() const
 }
 
 
-bool GCC_RegistryAllocateHandleRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_RegistryAllocateHandleRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -4172,7 +4172,7 @@ PINDEX GCC_ConductorAssignIndication::GetDataLength() const
 }
 
 
-bool GCC_ConductorAssignIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_ConductorAssignIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -4230,7 +4230,7 @@ PINDEX GCC_ConductorReleaseIndication::GetDataLength() const
 }
 
 
-bool GCC_ConductorReleaseIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_ConductorReleaseIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -4303,7 +4303,7 @@ PINDEX GCC_ConductorPermissionAskIndication::GetDataLength() const
 }
 
 
-bool GCC_ConductorPermissionAskIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_ConductorPermissionAskIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -4385,7 +4385,7 @@ PINDEX GCC_ConferenceTimeRemainingIndication::GetDataLength() const
 }
 
 
-bool GCC_ConferenceTimeRemainingIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceTimeRemainingIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -4465,7 +4465,7 @@ PINDEX GCC_ConferenceTimeInquireIndication::GetDataLength() const
 }
 
 
-bool GCC_ConferenceTimeInquireIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceTimeInquireIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -4545,7 +4545,7 @@ PINDEX GCC_ConferenceTimeExtendIndication::GetDataLength() const
 }
 
 
-bool GCC_ConferenceTimeExtendIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceTimeExtendIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -4626,7 +4626,7 @@ PINDEX GCC_ConferenceAssistanceIndication::GetDataLength() const
 }
 
 
-bool GCC_ConferenceAssistanceIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceAssistanceIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -4703,7 +4703,7 @@ PINDEX GCC_TextMessageIndication::GetDataLength() const
 }
 
 
-bool GCC_TextMessageIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_TextMessageIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -4779,7 +4779,7 @@ PINDEX GCC_NonStandardPDU::GetDataLength() const
 }
 
 
-bool GCC_NonStandardPDU::Decode(PASN_Stream & strm)
+PBoolean GCC_NonStandardPDU::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -4859,7 +4859,7 @@ PINDEX GCC_ConnectData::GetDataLength() const
 }
 
 
-bool GCC_ConnectData::Decode(PASN_Stream & strm)
+PBoolean GCC_ConnectData::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -5096,7 +5096,7 @@ GCC_ConnectGCCPDU::operator const GCC_ConferenceInviteResponse &() const
 }
 
 
-bool GCC_ConnectGCCPDU::CreateObject()
+PBoolean GCC_ConnectGCCPDU::CreateObject()
 {
   switch (tag) {
     case e_conferenceCreateRequest :
@@ -5227,7 +5227,7 @@ GCC_GCCPDU::operator const GCC_IndicationPDU &() const
 }
 
 
-bool GCC_GCCPDU::CreateObject()
+PBoolean GCC_GCCPDU::CreateObject()
 {
   switch (tag) {
     case e_request :
@@ -5619,7 +5619,7 @@ GCC_RequestPDU::operator const GCC_NonStandardPDU &() const
 }
 
 
-bool GCC_RequestPDU::CreateObject()
+PBoolean GCC_RequestPDU::CreateObject()
 {
   switch (tag) {
     case e_conferenceJoinRequest :
@@ -5955,7 +5955,7 @@ GCC_ResponsePDU::operator const GCC_NonStandardPDU &() const
 }
 
 
-bool GCC_ResponsePDU::CreateObject()
+PBoolean GCC_ResponsePDU::CreateObject()
 {
   switch (tag) {
     case e_conferenceJoinResponse :
@@ -6463,7 +6463,7 @@ GCC_IndicationPDU::operator const GCC_NonStandardPDU &() const
 }
 
 
-bool GCC_IndicationPDU::CreateObject()
+PBoolean GCC_IndicationPDU::CreateObject()
 {
   switch (tag) {
     case e_userIDIndication :
@@ -6590,7 +6590,7 @@ PINDEX GCC_UserData_subtype::GetDataLength() const
 }
 
 
-bool GCC_UserData_subtype::Decode(PASN_Stream & strm)
+PBoolean GCC_UserData_subtype::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -6744,7 +6744,7 @@ GCC_NetworkAddress_subtype::operator const GCC_NonStandardParameter &() const
 }
 
 
-bool GCC_NetworkAddress_subtype::CreateObject()
+PBoolean GCC_NetworkAddress_subtype::CreateObject()
 {
   switch (tag) {
     case e_aggregatedChannel :
@@ -6914,7 +6914,7 @@ PINDEX GCC_RegistryEntryOwner_owned::GetDataLength() const
 }
 
 
-bool GCC_RegistryEntryOwner_owned::Decode(PASN_Stream & strm)
+PBoolean GCC_RegistryEntryOwner_owned::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -7794,7 +7794,7 @@ PINDEX GCC_NetworkAddress_subtype_transportConnection::GetDataLength() const
 }
 
 
-bool GCC_NetworkAddress_subtype_transportConnection::Decode(PASN_Stream & strm)
+PBoolean GCC_NetworkAddress_subtype_transportConnection::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -7880,7 +7880,7 @@ PINDEX GCC_ApplicationRecord_nonCollapsingCapabilities_subtype::GetDataLength() 
 }
 
 
-bool GCC_ApplicationRecord_nonCollapsingCapabilities_subtype::Decode(PASN_Stream & strm)
+PBoolean GCC_ApplicationRecord_nonCollapsingCapabilities_subtype::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -7964,7 +7964,7 @@ PINDEX GCC_ApplicationInvokeSpecifier_expectedCapabilitySet_subtype::GetDataLeng
 }
 
 
-bool GCC_ApplicationInvokeSpecifier_expectedCapabilitySet_subtype::Decode(PASN_Stream & strm)
+PBoolean GCC_ApplicationInvokeSpecifier_expectedCapabilitySet_subtype::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -8064,7 +8064,7 @@ GCC_RosterUpdateIndication_nodeInformation_nodeRecordList::operator const GCC_Ro
 }
 
 
-bool GCC_RosterUpdateIndication_nodeInformation_nodeRecordList::CreateObject()
+PBoolean GCC_RosterUpdateIndication_nodeInformation_nodeRecordList::CreateObject()
 {
   switch (tag) {
     case e_noChange :
@@ -8205,7 +8205,7 @@ PINDEX GCC_NetworkAddress_subtype_aggregatedChannel_transferModes::GetDataLength
 }
 
 
-bool GCC_NetworkAddress_subtype_aggregatedChannel_transferModes::Decode(PASN_Stream & strm)
+PBoolean GCC_NetworkAddress_subtype_aggregatedChannel_transferModes::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -8356,7 +8356,7 @@ PINDEX GCC_NetworkAddress_subtype_aggregatedChannel_highLayerCompatibility::GetD
 }
 
 
-bool GCC_NetworkAddress_subtype_aggregatedChannel_highLayerCompatibility::Decode(PASN_Stream & strm)
+PBoolean GCC_NetworkAddress_subtype_aggregatedChannel_highLayerCompatibility::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -8535,7 +8535,7 @@ GCC_RosterUpdateIndication_applicationInformation_subtype_applicationRecordList:
 }
 
 
-bool GCC_RosterUpdateIndication_applicationInformation_subtype_applicationRecordList::CreateObject()
+PBoolean GCC_RosterUpdateIndication_applicationInformation_subtype_applicationRecordList::CreateObject()
 {
   switch (tag) {
     case e_noChange :
@@ -8606,7 +8606,7 @@ GCC_RosterUpdateIndication_applicationInformation_subtype_applicationCapabilitie
 }
 
 
-bool GCC_RosterUpdateIndication_applicationInformation_subtype_applicationCapabilitiesList::CreateObject()
+PBoolean GCC_RosterUpdateIndication_applicationInformation_subtype_applicationCapabilitiesList::CreateObject()
 {
   switch (tag) {
     case e_noChange :
@@ -8770,7 +8770,7 @@ GCC_RosterUpdateIndication_nodeInformation_nodeRecordList_update_subtype_nodeUpd
 }
 
 
-bool GCC_RosterUpdateIndication_nodeInformation_nodeRecordList_update_subtype_nodeUpdate::CreateObject()
+PBoolean GCC_RosterUpdateIndication_nodeInformation_nodeRecordList_update_subtype_nodeUpdate::CreateObject()
 {
   switch (tag) {
     case e_addRecord :
@@ -8850,7 +8850,7 @@ PINDEX GCC_RosterUpdateIndication_applicationInformation_subtype_applicationCapa
 }
 
 
-bool GCC_RosterUpdateIndication_applicationInformation_subtype_applicationCapabilitiesList_refresh_subtype::Decode(PASN_Stream & strm)
+PBoolean GCC_RosterUpdateIndication_applicationInformation_subtype_applicationCapabilitiesList_refresh_subtype::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -8931,7 +8931,7 @@ GCC_RosterUpdateIndication_applicationInformation_subtype_applicationRecordList_
 }
 
 
-bool GCC_RosterUpdateIndication_applicationInformation_subtype_applicationRecordList_update_subtype_applicationUpdate::CreateObject()
+PBoolean GCC_RosterUpdateIndication_applicationInformation_subtype_applicationRecordList_update_subtype_applicationUpdate::CreateObject()
 {
   switch (tag) {
     case e_addRecord :
@@ -9006,7 +9006,7 @@ PINDEX GCC_ChallengeRequest::GetDataLength() const
 }
 
 
-bool GCC_ChallengeRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_ChallengeRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -9131,7 +9131,7 @@ PINDEX GCC_NodeRecord::GetDataLength() const
 }
 
 
-bool GCC_NodeRecord::Decode(PASN_Stream & strm)
+PBoolean GCC_NodeRecord::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -9260,7 +9260,7 @@ PINDEX GCC_ApplicationRecord::GetDataLength() const
 }
 
 
-bool GCC_ApplicationRecord::Decode(PASN_Stream & strm)
+PBoolean GCC_ApplicationRecord::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -9367,7 +9367,7 @@ PINDEX GCC_ApplicationInvokeSpecifier::GetDataLength() const
 }
 
 
-bool GCC_ApplicationInvokeSpecifier::Decode(PASN_Stream & strm)
+PBoolean GCC_ApplicationInvokeSpecifier::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -9520,7 +9520,7 @@ PINDEX GCC_ConferenceCreateRequest::GetDataLength() const
 }
 
 
-bool GCC_ConferenceCreateRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceCreateRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -9657,7 +9657,7 @@ PINDEX GCC_ConferenceCreateResponse::GetDataLength() const
 }
 
 
-bool GCC_ConferenceCreateResponse::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceCreateResponse::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -9767,7 +9767,7 @@ PINDEX GCC_ConferenceQueryResponse::GetDataLength() const
 }
 
 
-bool GCC_ConferenceQueryResponse::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceQueryResponse::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -9939,7 +9939,7 @@ PINDEX GCC_ConferenceJoinResponse::GetDataLength() const
 }
 
 
-bool GCC_ConferenceJoinResponse::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceJoinResponse::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -10138,7 +10138,7 @@ PINDEX GCC_ConferenceInviteRequest::GetDataLength() const
 }
 
 
-bool GCC_ConferenceInviteRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceInviteRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -10271,7 +10271,7 @@ PINDEX GCC_ConferenceInviteResponse::GetDataLength() const
 }
 
 
-bool GCC_ConferenceInviteResponse::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceInviteResponse::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -10361,7 +10361,7 @@ PINDEX GCC_ConferenceAddResponse::GetDataLength() const
 }
 
 
-bool GCC_ConferenceAddResponse::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceAddResponse::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -10444,7 +10444,7 @@ PINDEX GCC_ConferenceLockResponse::GetDataLength() const
 }
 
 
-bool GCC_ConferenceLockResponse::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceLockResponse::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -10520,7 +10520,7 @@ PINDEX GCC_ConferenceUnlockResponse::GetDataLength() const
 }
 
 
-bool GCC_ConferenceUnlockResponse::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceUnlockResponse::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -10596,7 +10596,7 @@ PINDEX GCC_ConferenceTerminateRequest::GetDataLength() const
 }
 
 
-bool GCC_ConferenceTerminateRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceTerminateRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -10672,7 +10672,7 @@ PINDEX GCC_ConferenceTerminateResponse::GetDataLength() const
 }
 
 
-bool GCC_ConferenceTerminateResponse::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceTerminateResponse::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -10748,7 +10748,7 @@ PINDEX GCC_ConferenceTerminateIndication::GetDataLength() const
 }
 
 
-bool GCC_ConferenceTerminateIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceTerminateIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -10828,7 +10828,7 @@ PINDEX GCC_ConferenceEjectUserRequest::GetDataLength() const
 }
 
 
-bool GCC_ConferenceEjectUserRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceEjectUserRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -10911,7 +10911,7 @@ PINDEX GCC_ConferenceEjectUserResponse::GetDataLength() const
 }
 
 
-bool GCC_ConferenceEjectUserResponse::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceEjectUserResponse::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -10994,7 +10994,7 @@ PINDEX GCC_ConferenceEjectUserIndication::GetDataLength() const
 }
 
 
-bool GCC_ConferenceEjectUserIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceEjectUserIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -11098,7 +11098,7 @@ PINDEX GCC_ConferenceTransferRequest::GetDataLength() const
 }
 
 
-bool GCC_ConferenceTransferRequest::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceTransferRequest::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -11207,7 +11207,7 @@ PINDEX GCC_ConferenceTransferResponse::GetDataLength() const
 }
 
 
-bool GCC_ConferenceTransferResponse::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceTransferResponse::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -11319,7 +11319,7 @@ PINDEX GCC_ConferenceTransferIndication::GetDataLength() const
 }
 
 
-bool GCC_ConferenceTransferIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_ConferenceTransferIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -11419,7 +11419,7 @@ PINDEX GCC_ApplicationInvokeIndication::GetDataLength() const
 }
 
 
-bool GCC_ApplicationInvokeIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_ApplicationInvokeIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -11512,7 +11512,7 @@ PINDEX GCC_RegistryAllocateHandleResponse::GetDataLength() const
 }
 
 
-bool GCC_RegistryAllocateHandleResponse::Decode(PASN_Stream & strm)
+PBoolean GCC_RegistryAllocateHandleResponse::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -11623,7 +11623,7 @@ PINDEX GCC_RegistryResponse::GetDataLength() const
 }
 
 
-bool GCC_RegistryResponse::Decode(PASN_Stream & strm)
+PBoolean GCC_RegistryResponse::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -11726,7 +11726,7 @@ PINDEX GCC_ConductorPermissionGrantIndication::GetDataLength() const
 }
 
 
-bool GCC_ConductorPermissionGrantIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_ConductorPermissionGrantIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -11806,7 +11806,7 @@ PINDEX GCC_FunctionNotSupportedResponse::GetDataLength() const
 }
 
 
-bool GCC_FunctionNotSupportedResponse::Decode(PASN_Stream & strm)
+PBoolean GCC_FunctionNotSupportedResponse::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -11890,7 +11890,7 @@ PINDEX GCC_PasswordChallengeRequestResponse_challengeRequestResponse::GetDataLen
 }
 
 
-bool GCC_PasswordChallengeRequestResponse_challengeRequestResponse::Decode(PASN_Stream & strm)
+PBoolean GCC_PasswordChallengeRequestResponse_challengeRequestResponse::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -11984,7 +11984,7 @@ PINDEX GCC_RosterUpdateIndication_nodeInformation::GetDataLength() const
 }
 
 
-bool GCC_RosterUpdateIndication_nodeInformation::Decode(PASN_Stream & strm)
+PBoolean GCC_RosterUpdateIndication_nodeInformation::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -12091,7 +12091,7 @@ PINDEX GCC_NetworkAddress_subtype_aggregatedChannel::GetDataLength() const
 }
 
 
-bool GCC_NetworkAddress_subtype_aggregatedChannel::Decode(PASN_Stream & strm)
+PBoolean GCC_NetworkAddress_subtype_aggregatedChannel::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -12203,7 +12203,7 @@ PINDEX GCC_RosterUpdateIndication_applicationInformation_subtype::GetDataLength(
 }
 
 
-bool GCC_RosterUpdateIndication_applicationInformation_subtype::Decode(PASN_Stream & strm)
+PBoolean GCC_RosterUpdateIndication_applicationInformation_subtype::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -12298,7 +12298,7 @@ PINDEX GCC_RosterUpdateIndication_nodeInformation_nodeRecordList_refresh_subtype
 }
 
 
-bool GCC_RosterUpdateIndication_nodeInformation_nodeRecordList_refresh_subtype::Decode(PASN_Stream & strm)
+PBoolean GCC_RosterUpdateIndication_nodeInformation_nodeRecordList_refresh_subtype::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -12381,7 +12381,7 @@ PINDEX GCC_RosterUpdateIndication_nodeInformation_nodeRecordList_update_subtype:
 }
 
 
-bool GCC_RosterUpdateIndication_nodeInformation_nodeRecordList_update_subtype::Decode(PASN_Stream & strm)
+PBoolean GCC_RosterUpdateIndication_nodeInformation_nodeRecordList_update_subtype::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -12468,7 +12468,7 @@ PINDEX GCC_RosterUpdateIndication_applicationInformation_subtype_applicationReco
 }
 
 
-bool GCC_RosterUpdateIndication_applicationInformation_subtype_applicationRecordList_refresh_subtype::Decode(PASN_Stream & strm)
+PBoolean GCC_RosterUpdateIndication_applicationInformation_subtype_applicationRecordList_refresh_subtype::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -12558,7 +12558,7 @@ PINDEX GCC_RosterUpdateIndication_applicationInformation_subtype_applicationReco
 }
 
 
-bool GCC_RosterUpdateIndication_applicationInformation_subtype_applicationRecordList_update_subtype::Decode(PASN_Stream & strm)
+PBoolean GCC_RosterUpdateIndication_applicationInformation_subtype_applicationRecordList_update_subtype::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -12648,7 +12648,7 @@ PINDEX GCC_RosterUpdateIndication::GetDataLength() const
 }
 
 
-bool GCC_RosterUpdateIndication::Decode(PASN_Stream & strm)
+PBoolean GCC_RosterUpdateIndication::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;

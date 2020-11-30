@@ -679,7 +679,7 @@ OpalMediaTransport::CongestionControl * OpalMediaTransport::SetCongestionControl
 }
 
 
-void OpalMediaTransport::ProcessCongestionControl(PTimer&, intptr_t)
+void OpalMediaTransport::ProcessCongestionControl(PTimer&, P_INT_PTR)
 {
   PTRACE_CONTEXT_ID_PUSH_THREAD(*this);
   CongestionControl * cc = GetCongestionControl();
@@ -731,8 +731,10 @@ OpalTransportAddress OpalMediaTransport::GetLocalAddress(SubChannels subchannel)
   OpalTransportAddress addr;
 
   P_INSTRUMENTED_LOCK_READ_ONLY();
-  if (lock.IsLocked() && (size_t)subchannel < m_subchannels.size())
+  if (lock.IsLocked() && (size_t)subchannel < m_subchannels.size()) {
     addr = m_subchannels[subchannel].m_localAddress;
+    addr.MakeUnique();
+  }
 
   return addr;
 }
@@ -743,8 +745,10 @@ OpalTransportAddress OpalMediaTransport::GetRemoteAddress(SubChannels subchannel
   OpalTransportAddress addr;
 
   P_INSTRUMENTED_LOCK_READ_ONLY();
-  if (lock.IsLocked() && (size_t)subchannel < m_subchannels.size())
+  if (lock.IsLocked() && (size_t)subchannel < m_subchannels.size()) {
     addr = m_subchannels[subchannel].m_remoteAddress;
+    addr.MakeUnique();
+  }
 
   return addr;
 }
@@ -1014,9 +1018,10 @@ void OpalMediaTransport::Start()
   PTRACE(4, *this << "starting read theads, " << m_subchannels.size() << " sub-channels");
   for (ChannelArray::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it) {
     if (it->m_channel != NULL && it->m_thread == NULL) {
-      PString threadName = m_name;
+      PStringStream threadName;
+      threadName << m_name;
       if (m_subchannels.size() > 1)
-        threadName += PSTRSTRM('-' << it->m_subchannel);
+        threadName << '-' << it->m_subchannel;
       threadName.Replace(" Session ", "-");
       threadName.Replace(" bundle", "-B");
       it->m_thread = new PThreadObj<ChannelInfo>(*it, &ChannelInfo::ThreadMain, false, threadName, PThread::HighPriority);

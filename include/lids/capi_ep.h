@@ -219,7 +219,7 @@ class OpalCapiConnection : public OpalConnection
 
        The default behaviour does.
       */
-    virtual bool SetUpConnection();
+    virtual PBoolean SetUpConnection();
 
     /**Indicate to remote endpoint an alert is in progress.
        If this is an incoming connection and the AnswerCallResponse is in a
@@ -231,16 +231,16 @@ class OpalCapiConnection : public OpalConnection
 
        The default behaviour starts the ring back tone.
       */
-    virtual bool SetAlerting(
+    virtual PBoolean SetAlerting(
       const PString & calleeName,   ///<  Name of endpoint being alerted.
-      bool withMedia                ///<  Open media with alerting
+      PBoolean withMedia                ///<  Open media with alerting
     );
 
     /**Indicate to remote endpoint we are connected.
 
        The default behaviour stops the ring back tone.
       */
-    virtual bool SetConnected();
+    virtual PBoolean SetConnected();
 
     /**Clean up the termination of the connection.
        This function can do any internal cleaning up and waiting on background
@@ -295,7 +295,7 @@ class OpalCapiConnection : public OpalConnection
     virtual OpalMediaStream * CreateMediaStream(
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
-      bool isSource                        ///<  Is a source stream
+      PBoolean isSource                        ///<  Is a source stream
     );
 
     /**Send a user input indication to the remote endpoint.
@@ -304,7 +304,7 @@ class OpalCapiConnection : public OpalConnection
 
        The default behaviour plays the DTMF tone on the line.
       */
-    virtual bool SendUserInputTone(
+    virtual PBoolean SendUserInputTone(
       char tone,    ///<  DTMF tone code
       int duration  ///<  Duration of tone in milliseconds
     );
@@ -352,7 +352,7 @@ class OpalCapiMediaStream : public OpalMediaStream
       OpalCapiConnection & conn,            ///< Owner connection
       const OpalMediaFormat & mediaFormat,  ///<  Media format for stream
       unsigned sessionID,                   ///<  Session number for stream
-      bool isSource                     ///<  Is a source stream
+      PBoolean isSource                     ///<  Is a source stream
     );
   //@}
 
@@ -362,7 +362,7 @@ class OpalCapiMediaStream : public OpalMediaStream
     /**Read raw media data from the source media stream.
        The default behaviour reads from the OpalLine object.
       */
-    virtual bool ReadData(
+    virtual PBoolean ReadData(
       BYTE * data,      ///<  Data buffer to read to
       PINDEX size,      ///<  Size of buffer
       PINDEX & length   ///<  Length of data actually read
@@ -371,7 +371,7 @@ class OpalCapiMediaStream : public OpalMediaStream
     /**Write raw media data to the sink media stream.
        The default behaviour writes to the OpalLine object.
       */
-    virtual bool WriteData(
+    virtual PBoolean WriteData(
       const BYTE * data,   ///<  Data to write
       PINDEX length,       ///<  Length of data to read.
       PINDEX & written     ///<  Length of data actually written
@@ -380,7 +380,7 @@ class OpalCapiMediaStream : public OpalMediaStream
     /**Indicate if the media stream is synchronous.
        Returns true for LID streams.
       */
-    virtual bool IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const;
   //@}
 
   /**@name Member variable access */

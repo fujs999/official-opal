@@ -303,7 +303,7 @@ PINDEX H4505_CpRequestArg::GetDataLength() const
 }
 
 
-bool H4505_CpRequestArg::Decode(PASN_Stream & strm)
+PBoolean H4505_CpRequestArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -410,7 +410,7 @@ PINDEX H4505_CpRequestRes::GetDataLength() const
 }
 
 
-bool H4505_CpRequestRes::Decode(PASN_Stream & strm)
+PBoolean H4505_CpRequestRes::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -518,7 +518,7 @@ PINDEX H4505_CpSetupArg::GetDataLength() const
 }
 
 
-bool H4505_CpSetupArg::Decode(PASN_Stream & strm)
+PBoolean H4505_CpSetupArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -625,7 +625,7 @@ PINDEX H4505_CpSetupRes::GetDataLength() const
 }
 
 
-bool H4505_CpSetupRes::Decode(PASN_Stream & strm)
+PBoolean H4505_CpSetupRes::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -741,7 +741,7 @@ PINDEX H4505_GroupIndicationOnArg::GetDataLength() const
 }
 
 
-bool H4505_GroupIndicationOnArg::Decode(PASN_Stream & strm)
+PBoolean H4505_GroupIndicationOnArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -840,7 +840,7 @@ PINDEX H4505_GroupIndicationOnRes::GetDataLength() const
 }
 
 
-bool H4505_GroupIndicationOnRes::Decode(PASN_Stream & strm)
+PBoolean H4505_GroupIndicationOnRes::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -928,7 +928,7 @@ PINDEX H4505_GroupIndicationOffArg::GetDataLength() const
 }
 
 
-bool H4505_GroupIndicationOffArg::Decode(PASN_Stream & strm)
+PBoolean H4505_GroupIndicationOffArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1014,7 +1014,7 @@ PINDEX H4505_GroupIndicationOffRes::GetDataLength() const
 }
 
 
-bool H4505_GroupIndicationOffRes::Decode(PASN_Stream & strm)
+PBoolean H4505_GroupIndicationOffRes::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1120,7 +1120,7 @@ PINDEX H4505_PickrequArg::GetDataLength() const
 }
 
 
-bool H4505_PickrequArg::Decode(PASN_Stream & strm)
+PBoolean H4505_PickrequArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1222,7 +1222,7 @@ PINDEX H4505_PickrequRes::GetDataLength() const
 }
 
 
-bool H4505_PickrequRes::Decode(PASN_Stream & strm)
+PBoolean H4505_PickrequRes::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1313,7 +1313,7 @@ PINDEX H4505_PickupArg::GetDataLength() const
 }
 
 
-bool H4505_PickupArg::Decode(PASN_Stream & strm)
+PBoolean H4505_PickupArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1399,7 +1399,7 @@ PINDEX H4505_PickupRes::GetDataLength() const
 }
 
 
-bool H4505_PickupRes::Decode(PASN_Stream & strm)
+PBoolean H4505_PickupRes::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1491,7 +1491,7 @@ PINDEX H4505_PickExeArg::GetDataLength() const
 }
 
 
-bool H4505_PickExeArg::Decode(PASN_Stream & strm)
+PBoolean H4505_PickExeArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1580,7 +1580,7 @@ PINDEX H4505_PickExeRes::GetDataLength() const
 }
 
 
-bool H4505_PickExeRes::Decode(PASN_Stream & strm)
+PBoolean H4505_PickExeRes::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1666,7 +1666,7 @@ PINDEX H4505_CpNotifyArg::GetDataLength() const
 }
 
 
-bool H4505_CpNotifyArg::Decode(PASN_Stream & strm)
+PBoolean H4505_CpNotifyArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;
@@ -1756,7 +1756,7 @@ PINDEX H4505_CpickupNotifyArg::GetDataLength() const
 }
 
 
-bool H4505_CpickupNotifyArg::Decode(PASN_Stream & strm)
+PBoolean H4505_CpickupNotifyArg::Decode(PASN_Stream & strm)
 {
   if (!PreambleDecode(strm))
     return false;

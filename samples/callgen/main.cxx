@@ -236,13 +236,13 @@ void MyManager::Run()
 ///////////////////////////////////////////////////////////////////////////////
 
 CallThread::CallThread(unsigned index, const PStringArray & destinations, const CallParams & params)
-  : PThread(NoAutoDeleteThread, NormalPriority, psprintf("CallGen %u", index))
+  : PThread(1000, NoAutoDeleteThread, NormalPriority, psprintf("CallGen %u", index))
   , m_destinations(destinations)
   , m_index(index)
   , m_params(params)
   , m_running(true)
 {
-  Start();
+  Resume();
 }
 
 
@@ -368,7 +368,7 @@ OpalCall * MyManager:: CreateCall(void * userData)
 }
 
 
-bool MyManager::OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream)
+PBoolean MyManager::OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream)
 {
   dynamic_cast<MyCall &>(connection.GetCall()).OnOpenMediaStream(stream);
   return OpalManager::OnOpenMediaStream(connection, stream);
@@ -524,7 +524,7 @@ bool MyLocalEndPoint::Initialise(PArgList & args)
     cout << "Not using outgoing audio file." << endl;
   else {
     m_audioFilePath = args.GetOptionString('A');
-    std::unique_ptr<PFile> file(OpenAudioFile());
+    PAutoPtr<PFile> file(OpenAudioFile());
     if (file.get() == NULL) {
       cout << "Outgoing audio file  \"" << m_audioFilePath << "\" does not exist!" << endl;
       return false;
@@ -551,7 +551,7 @@ bool MyLocalEndPoint::Initialise(PArgList & args)
     cout << "Not using outgoing video file." << endl;
   else {
     m_videoFilePath = args.GetOptionString('Y');
-    std::unique_ptr<PFile> file(OpenVideoFile());
+    PAutoPtr<PFile> file(OpenVideoFile());
     if (file.get() == NULL) {
       cout << "Outgoing video file  \"" << m_audioFilePath << "\" does not exist!" << endl;
       return false;

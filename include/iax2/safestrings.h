@@ -65,23 +65,23 @@ class SafeStrings :  public PObject
   
   /**Add a new string to the list, in a thread safe fashion. */
   void AppendString(const PString & newString,        /*!<String to add to the list.    */
-		    bool splitString = false   /*!<If True, the string is added to the list, character by character.    */
+		    PBoolean splitString = false   /*!<If True, the string is added to the list, character by character.    */
 		    );
   
   /**Add a new string to the list, in a thread safe fashion. */
   void AppendString(const char *newString,     /*!<String to add to the list.    */
-		    bool splitString = false   /*!<If True, the string is added to the list, character by character.    */
+		    PBoolean splitString = false   /*!<If True, the string is added to the list, character by character.    */
 		    ) { PString s(newString); AppendString(s, splitString); }
   
   /**Remove the last string from this list, in a thread safe fashion. Return true if succesfull*/
-  bool GetNextString(PString & nextString /*!< resultant string.    */
+  PBoolean GetNextString(PString & nextString /*!< resultant string.    */
 		     );
   
   /** Return True if this list is empty */
-  bool IsEmpty();
+  PBoolean IsEmpty();
 
   /** Return True if there is data ready to be read from the list */
-  bool StringsAvailable() { return !IsEmpty(); }
+  PBoolean StringsAvailable() { return !IsEmpty(); }
   
   /** Return the first string on list, and then delete all elements on the list */
   PString GetFirstDeleteAll();
@@ -129,7 +129,7 @@ class SafeString : public PObject
   PString GetAndDelete();
 
   /** Return True if this list is empty */
-  bool IsEmpty() const;
+  PBoolean IsEmpty() const;
 
 
  protected:

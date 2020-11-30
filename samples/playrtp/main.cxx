@@ -662,12 +662,12 @@ void PlayRTP::Play(OpalPCAPFile & pcap)
                                           0, 0, 0);
 
             char text[60];
-            snprintf(text, sizeof(text), "Seq:%08u  Ts:%08u",
+            sprintf(text, "Seq:%08u  Ts:%08u",
                            rtp.GetSequenceNumber(),
                            rtp.GetTimestamp());
             DrawText(4, 4, extendedFrame->width, extendedFrame->height, OpalVideoFrameDataPtr(extendedFrame), text);
 
-            snprintf(text, sizeof(text), "TC:%06u  %c %c %c", 
+            sprintf(text, "TC:%06u  %c %c %c", 
                            m_videoFrames, 
                            m_vfu ? 'V' : ' ', 
                            video->WasLastFrameIFrame() ? 'I' : ' ', 
@@ -800,7 +800,7 @@ void PlayRTP::Play(OpalPCAPFile & pcap)
 }
 
 
-void PlayRTP::OnTranscoderCommand(OpalMediaCommand & command, intptr_t /*extra*/)
+void PlayRTP::OnTranscoderCommand(OpalMediaCommand & command, P_INT_PTR /*extra*/)
 {
 #if OPAL_VIDEO
   if (PIsDescendant(&command, OpalVideoUpdatePicture)) {

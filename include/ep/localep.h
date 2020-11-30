@@ -35,7 +35,6 @@
 #include <opal_config.h>
 
 #include <opal/endpoint.h>
-#include <h224/h281handler.h>
 
 
 class OpalLocalConnection;
@@ -442,16 +441,16 @@ class OpalLocalEndPoint : public OpalEndPoint
 
 #if OPAL_HAS_H281
     /// Set a callback for when the far end camera control capabilities change.
-    void SetFarEndCameraCapabilityChangedNotifier(const OpalH281Client::CapabilityChangeNotifier & notifier) { m_farEndCameraCapabilityChangedNotifier = notifier; }
+    void SetFarEndCameraCapabilityChangedNotifier(const PNotifier & notifier) { m_farEndCameraCapabilityChangedNotifier = notifier; }
 
     /// Get a callback for when the far end camera control capabilities change.
-    const OpalH281Client::CapabilityChangeNotifier & GetFarEndCameraCapabilityChangedNotifier() const { return m_farEndCameraCapabilityChangedNotifier; }
+    const PNotifier & GetFarEndCameraCapabilityChangedNotifier() const { return m_farEndCameraCapabilityChangedNotifier; }
 
     /// Set a callback for when a far end camera control action comes from remote.
-    void SetFarEndCameraActionNotifier(const OpalH281Client::ActionNotifier & notifier) { m_farEndCameraActionNotifier = notifier; }
+    void SetFarEndCameraActionNotifier(const PNotifier & notifier) { m_farEndCameraActionNotifier = notifier; }
 
     /// Get a callback for when a far end camera control action comes from remote.
-    const OpalH281Client::ActionNotifier & GetFarEndCameraActionNotifier() const { return m_farEndCameraActionNotifier; }
+    const PNotifier & GetFarEndCameraActionNotifier() const { return m_farEndCameraActionNotifier; }
 #endif // OPAL_HAS_H281
   //@}
 
@@ -470,8 +469,8 @@ class OpalLocalEndPoint : public OpalEndPoint
     SynchronicityMap m_defaultSynchronicity;
 
 #if OPAL_HAS_H281
-    OpalH281Client::CapabilityChangeNotifier m_farEndCameraCapabilityChangedNotifier;
-    OpalH281Client::ActionNotifier           m_farEndCameraActionNotifier;
+    PNotifier m_farEndCameraCapabilityChangedNotifier;
+    PNotifier m_farEndCameraActionNotifier;
 #endif // OPAL_HAS_H281
 
   private:
@@ -533,7 +532,7 @@ class OpalLocalConnection : public OpalConnection
        descendant classes to implement it. This will only affect code that implements new
        descendants of OpalConnection - code that uses existing descendants will be unaffected
      */
-    virtual bool OnIncomingConnection(unsigned int options, OpalConnection::StringOptions * stringOptions);
+    virtual PBoolean OnIncomingConnection(unsigned int options, OpalConnection::StringOptions * stringOptions);
 
     /**Get indication of connection being to a "network".
        This indicates the if the connection may be regarded as a "network"
@@ -543,7 +542,7 @@ class OpalLocalConnection : public OpalConnection
        "remote". While pc, pots and ivr are not as the entity being connected
        to is intrinsically local.
       */
-    virtual bool IsNetworkConnection() const { return false; }
+    virtual PBoolean IsNetworkConnection() const { return false; }
 
     /// Call back for connection to act on changed string options
     virtual void OnApplyStringOptions();
@@ -557,7 +556,7 @@ class OpalLocalConnection : public OpalConnection
        of the conenction, including calling OnOutgoing() or OnIncoming() as
        appropriate.
       */
-    virtual bool SetUpConnection();
+    virtual PBoolean SetUpConnection();
 
     /**Indicate to remote endpoint an alert is in progress.
        If this is an incoming connection and the AnswerCallResponse is in a
@@ -569,9 +568,9 @@ class OpalLocalConnection : public OpalConnection
 
        The default behaviour does nothing.
       */
-    virtual bool SetAlerting(
+    virtual PBoolean SetAlerting(
       const PString & calleeName,   ///<  Name of endpoint being alerted.
-      bool withMedia            ///<  Open media with alerting
+      PBoolean withMedia            ///<  Open media with alerting
     );
 
     /**Indicate to remote endpoint we are connected.
@@ -584,7 +583,7 @@ class OpalLocalConnection : public OpalConnection
        In other words, this method is used to handle incoming calls,
        and is an indication that we have accepted the incoming call.
       */
-    virtual bool SetConnected();
+    virtual PBoolean SetConnected();
 
     /**Put the current connection on hold, suspending media streams.
        The streams from the remote are always paused. The streams from the
@@ -621,7 +620,7 @@ class OpalLocalConnection : public OpalConnection
     virtual OpalMediaStream * CreateMediaStream(
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
-      bool isSource                    ///<  Is a source stream
+      PBoolean isSource                    ///<  Is a source stream
     );
 
     /**Call back for closed a media stream.
@@ -639,7 +638,7 @@ class OpalLocalConnection : public OpalConnection
 
        The default behaviour plays the DTMF tones on the line.
       */
-    virtual bool SendUserInputString(
+    virtual PBoolean SendUserInputString(
       const PString & value                   ///<  String value of indication
     );
   //@}
@@ -825,10 +824,10 @@ class OpalLocalConnection : public OpalConnection
     );
 
     /// Set a callback for when the far end camera control capabilities change.
-    void SetFarEndCameraCapabilityChangedNotifier(const OpalH281Client::CapabilityChangeNotifier & notifier);
+    void SetFarEndCameraCapabilityChangedNotifier(const PNotifier & notifier);
 
     /// Set a callback for when a far end camera control action comes from remote.
-    void SetFarEndCameraActionNotifier(const OpalH281Client::ActionNotifier & notifier);
+    void SetFarEndCameraActionNotifier(const PNotifier & notifier);
 #endif // OPAL_HAS_H281
   //@}
 
@@ -885,7 +884,7 @@ class OpalLocalMediaStream : public OpalMediaStream, public OpalMediaStreamPacin
        RTP_DataFrame and sets the frames timestamp and marker from the internal
        member variables of the media stream class.
       */
-    virtual bool ReadPacket(
+    virtual PBoolean ReadPacket(
       RTP_DataFrame & packet
     );
 
@@ -894,14 +893,14 @@ class OpalLocalMediaStream : public OpalMediaStream, public OpalMediaStreamPacin
        RTP_DataFrame and and sets the internal timestamp and marker from the
        member variables of the media stream class.
       */
-    virtual bool WritePacket(
+    virtual PBoolean WritePacket(
       RTP_DataFrame & packet
     );
 
     /**Read raw media data from the source media stream.
        The default behaviour reads from the OpalLine object.
       */
-    virtual bool ReadData(
+    virtual PBoolean ReadData(
       BYTE * data,      ///<  Data buffer to read to
       PINDEX size,      ///<  Size of buffer
       PINDEX & length   ///<  Length of data actually read
@@ -910,7 +909,7 @@ class OpalLocalMediaStream : public OpalMediaStream, public OpalMediaStreamPacin
     /**Write raw media data to the sink media stream.
        The default behaviour writes to the OpalLine object.
       */
-    virtual bool WriteData(
+    virtual PBoolean WriteData(
       const BYTE * data,   ///<  Data to write
       PINDEX length,       ///<  Length of data to read.
       PINDEX & written     ///<  Length of data actually written
@@ -919,7 +918,7 @@ class OpalLocalMediaStream : public OpalMediaStream, public OpalMediaStreamPacin
     /**Indicate if the media stream is synchronous.
        Returns true for LID streams.
       */
-    virtual bool IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const;
 
     /**Indicate if the media stream requires a OpalMediaPatch thread (active patch).
     This is called on the source/sink stream and is passed the sink/source
@@ -930,7 +929,7 @@ class OpalLocalMediaStream : public OpalMediaStream, public OpalMediaStreamPacin
 
     The default behaviour simply returns true.
     */
-    virtual bool RequiresPatchThread(
+    virtual PBoolean RequiresPatchThread(
       OpalMediaStream * stream  ///< Other stream in patch
     ) const;
     //@}

@@ -83,7 +83,7 @@ class H45010_CoReqOptArg : public PASN_Sequence
     H45010_ArrayOf_MixedExtension m_extension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -112,7 +112,7 @@ class H45010_RUAlertOptArg : public PASN_Sequence
     H45010_ArrayOf_MixedExtension m_extension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -141,7 +141,7 @@ class H45010_CfbOvrOptArg : public PASN_Sequence
     H45010_ArrayOf_MixedExtension m_extension;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;

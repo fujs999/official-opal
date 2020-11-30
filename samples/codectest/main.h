@@ -34,7 +34,7 @@ class TranscoderThread : public PThread
 {
   public:
     TranscoderThread(unsigned num, const char * name)
-      : PThread(NoAutoDeleteThread, NormalPriority, name)
+      : PThread(5000, NoAutoDeleteThread, NormalPriority, name)
       , m_running(false)
       , m_encoder(NULL)
       , m_decoder(NULL)
@@ -57,6 +57,11 @@ class TranscoderThread : public PThread
 
     virtual bool Read(RTP_DataFrame & frame) = 0;
     virtual bool Write(const RTP_DataFrame & frame) = 0;
+    void Start()
+    {
+      if (m_running)
+        Resume();
+    }
     virtual void Stop() = 0;
 
     virtual void UpdateStats(const RTP_DataFrame &) { }
@@ -167,7 +172,7 @@ class VideoThread : public TranscoderThread
 
     PString   m_frameFilename;
     PTextFile m_frameStatFile;
-    int64_t    m_frameCount;
+    PInt64    m_frameCount;
     DWORD     m_frameStartTimestamp;
     std::queue<const RTP_DataFrame *> m_snrSourceFrames;
 
@@ -175,7 +180,7 @@ class VideoThread : public TranscoderThread
     double   m_sumYSNR;
     double   m_sumCbSNR;
     double   m_sumCrSNR;
-    int64_t   m_snrCount;
+    PInt64   m_snrCount;
 };
 #endif
 

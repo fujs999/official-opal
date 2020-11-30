@@ -790,7 +790,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
        descendant classes to implement it. This will only affect code that implements new
        descendants of OpalConnection - code that uses existing descendants will be unaffected
      */
-    virtual bool OnIncomingConnection(unsigned int options, OpalConnection::StringOptions * stringOptions);
+    virtual PBoolean OnIncomingConnection(unsigned int options, OpalConnection::StringOptions * stringOptions);
 
     /**Start an outgoing connection.
        This function will initiate the connection to the remote entity, for
@@ -799,12 +799,12 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
        The default behaviour calls OnIncomingConnection() and OpalCall::OnSetUp()
        if it is first conenction in the call.
       */
-    virtual bool SetUpConnection();
+    virtual PBoolean SetUpConnection();
 
     /**Callback for outgoing connection, it is invoked after SetUpConnection
        This function allows the application to set up some parameters or to log some messages
      */
-    virtual bool OnSetUpConnection();
+    virtual PBoolean OnSetUpConnection();
 
     
     /**Call back for remote party is now responsible for completing the call.
@@ -848,9 +848,9 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
 
        The default behaviour simply returns true.
       */
-    virtual bool SetAlerting(
+    virtual PBoolean SetAlerting(
       const PString & calleeName,   ///<  Name of endpoint being alerted.
-      bool withMedia                ///<  Open media with alerting
+      PBoolean withMedia                ///<  Open media with alerting
     );
 
     /**Call back for answering an incoming call.
@@ -913,7 +913,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
        In other words, this method is used to handle incoming calls,
        and is an indication that we have accepted the incoming call.
       */
-    virtual bool SetConnected();
+    virtual PBoolean SetConnected();
 
     /**A call back function whenever a connection is established.
        This indicates that a connection to an endpoint was established. This
@@ -1035,7 +1035,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
        otherwise. Note that if the call is forwarded the current connection is
        cleared with teh ended call code of EndedByCallForwarded.
       */
-    virtual bool ForwardCall(
+    virtual PBoolean ForwardCall(
       const PString & forwardParty   ///<  Party to forward call to.
     );
 
@@ -1219,7 +1219,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     virtual OpalMediaStream * CreateMediaStream(
       const OpalMediaFormat & mediaFormat, ///<  Media format for stream
       unsigned sessionID,                  ///<  Session number for stream
-      bool isSource                        ///<  Is a source stream
+      PBoolean isSource                        ///<  Is a source stream
     );
 
     /**Get a media stream.
@@ -1279,7 +1279,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
 
        The default behaviour calls the OpalEndPoint function of the same name.
       */
-    virtual bool OnOpenMediaStream(
+    virtual PBoolean OnOpenMediaStream(
       OpalMediaStream & stream    ///<  New media stream being opened
     );
 
@@ -1309,7 +1309,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
        called before that thread has started.
       */
     virtual void OnPatchMediaStream(
-      bool isSource,        ///< Is source/sink call
+      PBoolean isSource,        ///< Is source/sink call
       OpalMediaPatch & patch    ///<  New patch
     );
 
@@ -1392,16 +1392,16 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     /**Set the volume (gain) for the audio media channel.
        The volume range is 0 == muted, 100 == LOUDEST.
       */
-    virtual bool SetAudioVolume(
-      bool source,        ///< true for source (microphone), false for sink (speaker)
+    virtual PBoolean SetAudioVolume(
+      PBoolean source,        ///< true for source (microphone), false for sink (speaker)
       unsigned percentage     ///< Gain, 0=silent, 100=maximun
     );
 
     /**Get the volume (gain) for the audio media channel.
        The volume range is 0 == muted, 100 == LOUDEST.
       */
-    virtual bool GetAudioVolume(
-      bool source,       ///< true for source (microphone), false for sink (speaker)
+    virtual PBoolean GetAudioVolume(
+      PBoolean source,       ///< true for source (microphone), false for sink (speaker)
       unsigned & percentage  ///< Gain, 0=silent, 100=maximun
     );
 
@@ -1506,7 +1506,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
        The default behaviour is to call SendUserInputTone() for each character
        in the string.
       */
-    virtual bool SendUserInputString(
+    virtual PBoolean SendUserInputString(
       const PString & value                   ///<  String value of indication
     );
 
@@ -1523,7 +1523,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
 
        The default behaviour sends the tone using RFC2833.
       */
-    virtual bool SendUserInputTone(
+    virtual PBoolean SendUserInputTone(
       char tone,              ///<  DTMF tone code
       unsigned duration = 0   ///<  Duration of tone in milliseconds
     );
@@ -1593,8 +1593,8 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
 
        The default behaviour does nothing.
       */
-    virtual bool PromptUserInput(
-      bool play   ///<  Flag to start or stop playing the prompt
+    virtual PBoolean PromptUserInput(
+      PBoolean play   ///<  Flag to start or stop playing the prompt
     );
   //@}
 
@@ -1680,7 +1680,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
 
     /**Get the call direction for this connection.
      */
-    bool IsOriginating() const { return m_originating; }
+    PBoolean IsOriginating() const { return m_originating; }
 
     /**Get the time at which the phase of the call was entered.
       */
@@ -1968,10 +1968,10 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     virtual void DisableRecording();
 
     PDECLARE_NOTIFIER(RTP_DataFrame, OpalConnection, OnRecordAudio);
-    void InternalOnRecordAudio(PString key, std::shared_ptr<RTP_DataFrame> frame);
+    void InternalOnRecordAudio(PString key, PAutoPtr<RTP_DataFrame> frame);
 #if OPAL_VIDEO
     PDECLARE_NOTIFIER(RTP_DataFrame, OpalConnection, OnRecordVideo);
-    void InternalOnRecordVideo(PString key, std::shared_ptr<RTP_DataFrame> frame);
+    void InternalOnRecordVideo(PString key, PAutoPtr<RTP_DataFrame> frame);
 #endif
 
     virtual void OnStartRecording(OpalMediaPatch * patch);
@@ -2076,9 +2076,9 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
 
 
   private:
-    P_REMOVE_VIRTUAL(bool, OnIncomingConnection(unsigned int), false);
-    P_REMOVE_VIRTUAL(bool, OnIncomingConnection(), false);
-    P_REMOVE_VIRTUAL(bool, IsConnectionOnHold(), false);
+    P_REMOVE_VIRTUAL(PBoolean, OnIncomingConnection(unsigned int), false);
+    P_REMOVE_VIRTUAL(PBoolean, OnIncomingConnection(), false);
+    P_REMOVE_VIRTUAL(PBoolean, IsConnectionOnHold(), false);
     P_REMOVE_VIRTUAL_VOID(OnMediaPatchStart(unsigned, bool));
     P_REMOVE_VIRTUAL_VOID(OnMediaPatchStop(unsigned, bool));
     P_REMOVE_VIRTUAL_VOID(AdjustMediaFormats(OpalMediaFormatList &) const);
@@ -2089,12 +2089,12 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     P_REMOVE_VIRTUAL(bool, RetrieveConnection(), false);
     P_REMOVE_VIRTUAL(bool, IsConnectionOnHold(bool), false);
     P_REMOVE_VIRTUAL_VOID(ApplyStringOptions(OpalConnection::StringOptions &));
-    P_REMOVE_VIRTUAL(bool, IsMediaBypassPossible(unsigned) const, false);
+    P_REMOVE_VIRTUAL(PBoolean, IsMediaBypassPossible(unsigned) const, false);
     P_REMOVE_VIRTUAL(bool, OnTransferNotify(const PStringToString &), false);
     P_REMOVE_VIRTUAL(OpalMediaSession *, CreateMediaSession(unsigned, const OpalMediaType &), NULL);
-    P_REMOVE_VIRTUAL(bool, SetBandwidthAvailable(unsigned, bool), false);
+    P_REMOVE_VIRTUAL(PBoolean, SetBandwidthAvailable(unsigned, PBoolean), false);
     P_REMOVE_VIRTUAL(unsigned, GetBandwidthUsed() const, 0);
-    P_REMOVE_VIRTUAL(bool, SetBandwidthUsed(unsigned, unsigned), false);
+    P_REMOVE_VIRTUAL(PBoolean, SetBandwidthUsed(unsigned, unsigned), false);
     P_REMOVE_VIRTUAL_VOID(OnSwitchedFaxMediaStreams(bool));
     P_REMOVE_VIRTUAL(bool, CloseMediaStream(OpalMediaStream &),false);
     P_REMOVE_VIRTUAL(bool,GetMediaTransportAddresses(const OpalMediaType&,OpalTransportAddressArray&) const,false);

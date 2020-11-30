@@ -146,9 +146,9 @@ struct OpalCapiMessage
       WORD    m_Length;
       WORD    m_Handle;
       WORD    m_Flags;
-      uint64_t m_Data64;
+      PUInt64 m_Data64;
 #if P_64BIT
-      void SetPtr(const void * ptr) { m_Data64 = (uint64_t)ptr; }
+      void SetPtr(const void * ptr) { m_Data64 = (PUInt64)ptr; }
 #else
       void SetPtr(const void * ptr) { m_Data = (DWORD)ptr; }
 #endif
@@ -166,7 +166,7 @@ struct OpalCapiMessage
       WORD    m_Length;
       WORD    m_Handle;
       WORD    m_Flags;
-      uint64_t m_Data64;
+      PUInt64 m_Data64;
 #if P_64BIT
       void * GetPtr() const { return (void *)m_Data64; }
 #else
@@ -762,7 +762,7 @@ bool OpalCapiEndPoint::Controller::GetFreeLine(unsigned & bearer)
 }
 
 
-void OpalCapiEndPoint::ProcessMessages(PThread &, intptr_t)
+void OpalCapiEndPoint::ProcessMessages(PThread &, P_INT_PTR)
 {
   PTRACE(4, "CAPI\tStarted message thread.");
 
@@ -934,7 +934,7 @@ void OpalCapiConnection::OnApplyStringOptions()
 }
 
 
-bool OpalCapiConnection::SetUpConnection()
+PBoolean OpalCapiConnection::SetUpConnection()
 {
   InternalSetAsOriginating();
 
@@ -961,7 +961,7 @@ bool OpalCapiConnection::SetUpConnection()
 }
 
 
-bool OpalCapiConnection::SetAlerting(const PString & /*calleeName*/, bool /*withMedia*/)
+PBoolean OpalCapiConnection::SetAlerting(const PString & /*calleeName*/, PBoolean /*withMedia*/)
 {
   SetPhase(AlertingPhase);
 
@@ -978,7 +978,7 @@ bool OpalCapiConnection::SetAlerting(const PString & /*calleeName*/, bool /*with
 }
 
 
-bool OpalCapiConnection::SetConnected()
+PBoolean OpalCapiConnection::SetConnected()
 {
   SetPhase(ConnectedPhase);
 
@@ -1033,13 +1033,13 @@ OpalMediaFormatList OpalCapiConnection::GetMediaFormats() const
 
 OpalMediaStream * OpalCapiConnection::CreateMediaStream(const OpalMediaFormat & mediaFormat,
                                                         unsigned sessionID,
-                                                        bool isSource)
+                                                        PBoolean isSource)
 {
   return new OpalCapiMediaStream(*this, mediaFormat, sessionID, isSource);
 }
 
 
-bool OpalCapiConnection::SendUserInputTone(char tone, int duration)
+PBoolean OpalCapiConnection::SendUserInputTone(char tone, int duration)
 {
   return OpalConnection::SendUserInputTone(tone, duration);
 }
@@ -1278,7 +1278,7 @@ bool OpalCapiConnection::PutMessage(OpalCapiMessage & message)
 OpalCapiMediaStream::OpalCapiMediaStream(OpalCapiConnection & conn,
                                       const OpalMediaFormat & mediaFormat,
                                                    unsigned   sessionID,
-                                                   bool   isSource)
+                                                   PBoolean   isSource)
   : OpalMediaStream(conn, mediaFormat, sessionID, isSource)
   , m_connection(conn)
   , m_queue(8000) // One seconds worth of audio
@@ -1293,7 +1293,7 @@ void OpalCapiMediaStream::InternalClose()
 }
 
 
-bool OpalCapiMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & length)
+PBoolean OpalCapiMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & length)
 {
   if (IsSink() || !m_queue.Read(data, size))
     return false;
@@ -1307,7 +1307,7 @@ bool OpalCapiMediaStream::ReadData(BYTE * data, PINDEX size, PINDEX & length)
 }
 
 
-bool OpalCapiMediaStream::WriteData(const BYTE * data, PINDEX length, PINDEX & written)
+PBoolean OpalCapiMediaStream::WriteData(const BYTE * data, PINDEX length, PINDEX & written)
 {
   if (IsSource() || !IsOpen() || !PAssert(length < 65535, PInvalidParameter))
     return false;
@@ -1336,7 +1336,7 @@ bool OpalCapiMediaStream::WriteData(const BYTE * data, PINDEX length, PINDEX & w
 }
 
 
-bool OpalCapiMediaStream::IsSynchronous() const
+PBoolean OpalCapiMediaStream::IsSynchronous() const
 {
   return true;
 }

@@ -38,7 +38,7 @@ class H4501_EntityType : public PASN_Choice
       e_anyEntity
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -77,7 +77,7 @@ class H4501_InterpretationApdu : public PASN_Choice
       e_rejectAnyUnrecognizedInvokePdu
     };
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -107,7 +107,7 @@ class H4501_ServiceApdus : public PASN_Choice
     operator const H4501_ArrayOf_ROS &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -176,7 +176,7 @@ class H4501_PresentedAddressScreened : public PASN_Choice
     operator const H4501_AddressScreened &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -209,7 +209,7 @@ class H4501_PresentedAddressUnscreened : public PASN_Choice
     operator const H4501_Address &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -242,7 +242,7 @@ class H4501_PresentedNumberScreened : public PASN_Choice
     operator const H4501_NumberScreened &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -275,7 +275,7 @@ class H4501_PresentedNumberUnscreened : public PASN_Choice
     operator const H225_PartyNumber &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -313,7 +313,7 @@ class H4501_PartySubaddress : public PASN_Choice
     operator const H4501_NSAPSubaddress &() const;
 #endif
 
-    bool CreateObject();
+    PBoolean CreateObject();
     PObject * Clone() const;
 };
 
@@ -400,7 +400,7 @@ class H4501_PresentationAllowedIndicator : public PASN_Boolean
   public:
     H4501_PresentationAllowedIndicator(unsigned tag = UniversalBoolean, TagClass tagClass = UniversalTagClass);
 
-    H4501_PresentationAllowedIndicator & operator=(bool v);
+    H4501_PresentationAllowedIndicator & operator=(PBoolean v);
     PObject * Clone() const;
 };
 
@@ -477,7 +477,7 @@ class H4501_Extension : public PASN_Sequence
     PASN_OctetString m_extensionArgument;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -550,7 +550,7 @@ class H4501_NetworkFacilityExtension : public PASN_Sequence
     H4501_AddressInformation m_destinationEntityAddress;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -581,7 +581,7 @@ class H4501_AddressScreened : public PASN_Sequence
     H4501_PartySubaddress m_partySubaddress;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -607,7 +607,7 @@ class H4501_NumberScreened : public PASN_Sequence
     H4501_ScreeningIndicator m_screeningIndicator;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -637,7 +637,7 @@ class H4501_Address : public PASN_Sequence
     H4501_PartySubaddress m_partySubaddress;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -667,7 +667,7 @@ class H4501_EndpointAddress : public PASN_Sequence
     H225_AliasAddress m_remoteExtensionAddress;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -697,7 +697,7 @@ class H4501_UserSpecifiedSubaddress : public PASN_Sequence
     PASN_Boolean m_oddCountIndicator;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;
@@ -729,7 +729,7 @@ class H4501_SupplementaryService : public PASN_Sequence
     H4501_ServiceApdus m_serviceApdu;
 
     PINDEX GetDataLength() const;
-    bool Decode(PASN_Stream & strm);
+    PBoolean Decode(PASN_Stream & strm);
     void Encode(PASN_Stream & strm) const;
 #ifndef PASN_NOPRINTON
     void PrintOn(ostream & strm) const;

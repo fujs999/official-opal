@@ -72,7 +72,7 @@ class OpalRTPMediaStream : public OpalMediaStream
 
        The default behaviour simply sets the isOpen variable to true.
       */
-    virtual bool Open();
+    virtual PBoolean Open();
 
     /**Returns true if the media stream is open.
       */
@@ -87,7 +87,7 @@ class OpalRTPMediaStream : public OpalMediaStream
        The default behaviour calls Resume() on the associated OpalMediaPatch
        thread if it was suspended.
       */
-    virtual bool Start();
+    virtual PBoolean Start();
 
     /**Callback that is called on the source stream once the media patch has started.
        The default behaviour calls OpalConnection::OnMediaPatchStart()
@@ -105,20 +105,20 @@ class OpalRTPMediaStream : public OpalMediaStream
     /**Read an RTP frame of data from the source media stream.
        The new behaviour simply calls OpalRTPSession::ReadData().
       */
-    virtual bool ReadPacket(
+    virtual PBoolean ReadPacket(
       RTP_DataFrame & packet
     );
 
     /**Write an RTP frame of data to the sink media stream.
        The new behaviour simply calls OpalRTPSession::WriteData().
       */
-    virtual bool WritePacket(
+    virtual PBoolean WritePacket(
       RTP_DataFrame & packet
     );
 
     /**Set the data size in bytes that is expected to be used.
       */
-    virtual bool SetDataSize(
+    virtual PBoolean SetDataSize(
       PINDEX dataSize,  ///< New data size (in total)
       PINDEX frameTime  ///< Individual frame time (if applicable)
     );
@@ -126,7 +126,7 @@ class OpalRTPMediaStream : public OpalMediaStream
     /**Indicate if the media stream is synchronous.
        Returns false for RTP streams.
       */
-    virtual bool IsSynchronous() const;
+    virtual PBoolean IsSynchronous() const;
 
     /**Indicate if the media stream requires a OpalMediaPatch thread (active patch).
        The default behaviour dermines if the media will be flowing between two
@@ -135,11 +135,11 @@ class OpalRTPMediaStream : public OpalMediaStream
        indicating local handling then this function returns faklse to disable
        the patch thread.
       */
-    virtual bool RequiresPatchThread() const;
+    virtual PBoolean RequiresPatchThread() const;
 
     /**Set the patch thread that is using this stream.
       */
-    virtual bool SetPatch(
+    virtual PBoolean SetPatch(
       OpalMediaPatch * patch  ///<  Media patch thread
     );
 

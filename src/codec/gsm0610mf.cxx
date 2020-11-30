@@ -63,7 +63,7 @@ class H323_GSM0610Capability : public H323AudioCapability
       H323AudioCapability::SetTxFramesInPacket(frames > 7 ? 7 : frames);
     }
 
-    virtual bool OnSendingPDU(H245_AudioCapability & pdu, unsigned packetSize) const
+    virtual PBoolean OnSendingPDU(H245_AudioCapability & pdu, unsigned packetSize) const
     {
       pdu.SetTag(H245_AudioCapability::e_gsmFullRate);
 
@@ -72,7 +72,7 @@ class H323_GSM0610Capability : public H323AudioCapability
       return true;
     }
 
-    virtual bool OnReceivedPDU(const H245_AudioCapability & pdu, unsigned & packetSize)
+    virtual PBoolean OnReceivedPDU(const H245_AudioCapability & pdu, unsigned & packetSize)
     {
       if (pdu.GetTag() != H245_AudioCapability::e_gsmFullRate)
         return false;

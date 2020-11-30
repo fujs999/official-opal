@@ -73,7 +73,7 @@ void IAX2WaitingForAck::ZeroValues()
   //     response = sendNothing;
 }
 
-bool IAX2WaitingForAck::MatchingAckPacket(IAX2FullFrame *f)
+PBoolean IAX2WaitingForAck::MatchingAckPacket(IAX2FullFrame *f)
 {
   PTRACE(4, "MatchingAck\tCompare " << timeStamp << " and " << seqNo);
   if (f->GetTimeStamp() != timeStamp) {
@@ -110,7 +110,7 @@ PString IAX2WaitingForAck::GetResponseAsString() const
 ////////////////////////////////////////////////////////////////////////////////
 
 IAX2Processor::IAX2Processor(IAX2EndPoint &ep)
-  : PThread(NoAutoDeleteThread, NormalPriority, "IAX2 Processor")
+  : PThread(1000, NoAutoDeleteThread, NormalPriority, "IAX2 Processor")
   , endpoint(ep)
   , controlFramesSent(0)
   , controlFramesRcvd(0)
@@ -170,7 +170,7 @@ void IAX2Processor::Main()
   PTRACE(3, "End of iax connection processing");
 }
 
-bool IAX2Processor::IsStatusQueryEthernetFrame(IAX2Frame *frame)
+PBoolean IAX2Processor::IsStatusQueryEthernetFrame(IAX2Frame *frame)
 {
   if (!PIsDescendant(frame, IAX2FullFrame))
     return false;
@@ -218,7 +218,7 @@ void IAX2Processor::StartNoResponseTimer(PINDEX msToWait)
   noResponseTimer = PTimeInterval(msToWait); 
 }
 
-void IAX2Processor::OnNoResponseTimeoutStart(PTimer &, intptr_t)
+void IAX2Processor::OnNoResponseTimeoutStart(PTimer &, P_INT_PTR)
 {
   //call sub class to alert that there was a timeout for a response from the server
   OnNoResponseTimeout();
@@ -232,6 +232,8 @@ void IAX2Processor::Activate()
 void IAX2Processor::Terminate()
 {
   endThread = true;
+  if (IsSuspended())
+    Resume();
 
   PTRACE(4, "Processor\tProcessor has been directed to end. " 
 	 << (IsTerminated() ? "Has already ended" : "So end now."));
@@ -239,7 +241,7 @@ void IAX2Processor::Terminate()
   Activate();
 }
 
-bool IAX2Processor::ProcessOneIncomingEthernetFrame()
+PBoolean IAX2Processor::ProcessOneIncomingEthernetFrame()
 {  
   IAX2Frame *frame = frameList.GetLastFrame();
   if (frame == NULL) {
@@ -336,9 +338,9 @@ void IAX2Processor::TransmitFrameToRemoteEndpoint(IAX2FullFrame *src,
   TransmitFrameNow(src);
 }
 
-bool IAX2Processor::Authenticate(IAX2FullFrameProtocol *reply, PString & password)
+PBoolean IAX2Processor::Authenticate(IAX2FullFrameProtocol *reply, PString & password)
 {
-  bool processed = false;
+  PBoolean processed = false;
   IAX2IeAuthMethods ie(ieData.authMethods);
   
   if (ie.IsMd5Authentication()) {
@@ -409,7 +411,7 @@ void IAX2Processor::SendUnsupportedFrame(IAX2FullFrame *inReplyTo)
   delete inReplyTo;
 }
 
-bool IAX2Processor::ProcessNetworkFrame(IAX2FullFrameProtocol * src)
+PBoolean IAX2Processor::ProcessNetworkFrame(IAX2FullFrameProtocol * src)
 {
   switch(src->GetSubClass()) {
   case IAX2FullFrameProtocol::cmdLagRq:

@@ -72,7 +72,7 @@ class OpalT140RTPFrame : public RTP_DataFrame
     OpalT140RTPFrame();
     OpalT140RTPFrame(const PString & contentType);
     OpalT140RTPFrame(const PString & contentType, const T140String & content);
-    OpalT140RTPFrame(const BYTE * data, PINDEX len, bool dynamic = true);
+    OpalT140RTPFrame(const BYTE * data, PINDEX len, PBoolean dynamic = true);
     OpalT140RTPFrame(const RTP_DataFrame & frame);
 
     void SetContentType(const PString & contentType);

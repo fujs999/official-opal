@@ -56,8 +56,11 @@ class PSoundChannel;
    
    The IAX2SoundList is a thread safe storage of PBYTEArray structures.
 */
-class IAX2SoundList : public PList<PBYTEArray *>
+PDECLARE_LIST(IAX2SoundList, PBYTEArray *)
+#ifdef DOC_PLUS_PLUS                           //This makes emacs bracket matching code happy.
+class IAX2SoundList : public PBYTEArray *
 {
+#endif
  public:
   /**Destructor, which deletes all sound packets on this list*/
   ~IAX2SoundList();

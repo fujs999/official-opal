@@ -244,7 +244,7 @@ void OpalIVRConnection::SetVXML(const PString & vxml)
 }
 
 
-bool OpalIVRConnection::StartVXML()
+PBoolean OpalIVRConnection::StartVXML()
 {
   if (m_vxmlScript.IsEmpty())
     return false;
@@ -387,7 +387,7 @@ OpalMediaFormatList OpalIVRConnection::GetMediaFormats() const
 
 OpalMediaStream * OpalIVRConnection::CreateMediaStream(const OpalMediaFormat & mediaFormat,
                                                        unsigned sessionID,
-                                                       bool isSource)
+                                                       PBoolean isSource)
 {
   if (mediaFormat.GetMediaType() == OpalMediaType::Audio())
     return new OpalIVRMediaStream(*this, mediaFormat, sessionID, isSource, m_vxmlSession);
@@ -405,7 +405,7 @@ OpalMediaStream * OpalIVRConnection::CreateMediaStream(const OpalMediaFormat & m
 }
 
 
-bool OpalIVRConnection::SendUserInputString(const PString & value)
+PBoolean OpalIVRConnection::SendUserInputString(const PString & value)
 {
   PTRACE(3, "SendUserInputString(" << value << ')');
 
@@ -421,7 +421,7 @@ bool OpalIVRConnection::SendUserInputString(const PString & value)
 OpalIVRMediaStream::OpalIVRMediaStream(OpalIVRConnection & conn,
                                        const OpalMediaFormat & mediaFormat,
                                        unsigned sessionID,
-                                       bool isSourceStream,
+                                       PBoolean isSourceStream,
                                        PVXMLSession & vxml)
   : OpalRawMediaStream(conn, mediaFormat, sessionID, isSourceStream, &vxml, FALSE)
   , m_vxmlSession(vxml)
@@ -430,7 +430,7 @@ OpalIVRMediaStream::OpalIVRMediaStream(OpalIVRConnection & conn,
 }
 
 
-bool OpalIVRMediaStream::Open()
+PBoolean OpalIVRMediaStream::Open()
 {
   if (m_isOpen)
     return true;
@@ -482,7 +482,7 @@ void OpalIVRMediaStream::InternalClose()
 }
 
 
-bool OpalIVRMediaStream::IsSynchronous() const
+PBoolean OpalIVRMediaStream::IsSynchronous() const
 {
   return true;
 }

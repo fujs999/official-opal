@@ -90,7 +90,7 @@ class IAX2WaitingForAck : public PObject
   void Assign(IAX2FullFrame *f, ResponseToAck _response);
   
   /**Return true if the supplied ack frame matches the internal coordinates */
-  bool MatchingAckPacket(IAX2FullFrame *f);
+  PBoolean MatchingAckPacket(IAX2FullFrame *f);
   
   /**Report the response to carry out */
   ResponseToAck GetResponse() { return response; }
@@ -183,11 +183,11 @@ class IAX2Processor : public PThread
   
   /**Test to see if it is a status query type IAX2 frame (eg lagrq) and handle it. If the frame
      is a status query, and it is handled, return true */
-  bool IsStatusQueryEthernetFrame(IAX2Frame *frame);
+  PBoolean IsStatusQueryEthernetFrame(IAX2Frame *frame);
   
   /**Set the flag to indicate if we are handling specialPackets (those
      packets which are not sent to any particular call) */
-  void SetSpecialPackets(bool newValue) { specialPackets = newValue; }
+  void SetSpecialPackets(PBoolean newValue) { specialPackets = newValue; }
   
   /**Cause this thread to die immediately */
   void Terminate();
@@ -204,7 +204,7 @@ class IAX2Processor : public PThread
 
   @return true if the frame is out of order, which deletes the supplied frame
   @return false, and does not destroy the supplied frame*/
-  virtual bool IncomingMessageOutOfOrder(IAX2FullFrame *ff)= 0;
+  virtual PBoolean IncomingMessageOutOfOrder(IAX2FullFrame *ff)= 0;
 
   /** Report on the contents of the lists waiting for processing */
   void ReportLists(PString & answer);
@@ -243,7 +243,7 @@ class IAX2Processor : public PThread
   PSyncPoint activate;
   
   /**Flag to indicate, end this thread */
-  bool endThread;
+  PBoolean endThread;
   
   /**Status of encryption for this processor - by default, no encryption */
   IAX2Encryption encryption;
@@ -270,11 +270,11 @@ class IAX2Processor : public PThread
   /**return the flag to indicate if we are handling special packets,
      which are those packets sent to the endpoint (and not related to
      any particular call). */
-  bool      IsHandlingSpecialPackets() { return specialPackets; };
+  PBoolean      IsHandlingSpecialPackets() { return specialPackets; };
 
   /**Flag to indicate we are handing the special packets, which are
      sent to the endpoint,and not related to any particular call. */
-  bool       specialPackets;
+  PBoolean       specialPackets;
   
   /**Go through the three lists for incoming data (ethernet/sound/UI
      commands.  */
@@ -307,7 +307,7 @@ class IAX2Processor : public PThread
   /**remove one frame on the incoming ethernet frame list. If there
      may be more to process, return true. If there are no more to
      process, return false. */
-  bool ProcessOneIncomingEthernetFrame();
+  PBoolean ProcessOneIncomingEthernetFrame();
   
   /**Count of the number of control frames sent */
   atomic<uint32_t> controlFramesSent;
@@ -332,7 +332,7 @@ class IAX2Processor : public PThread
 
   This method will eat/delete the supplied frame. Return true on success,
   false on failure.*/
-  virtual bool ProcessNetworkFrame(IAX2FullFrameProtocol * src);
+  virtual PBoolean ProcessNetworkFrame(IAX2FullFrameProtocol * src);
   
   /**Transmit IAX2Frame to remote endpoint, and then increment send
      count. This calls a method in the Transmitter class. .It is only called
@@ -358,7 +358,7 @@ class IAX2Processor : public PThread
   
   /** Do the md5/rsa authentication. Return True if successful. Has the side
       effect of appending the appropriate Ie class to the "reply" parameter.*/
-  bool Authenticate(IAX2FullFrameProtocol *reply, /*!< this frame contains the result of authenticating the internal data*/
+  PBoolean Authenticate(IAX2FullFrameProtocol *reply, /*!< this frame contains the result of authenticating the internal data*/
                     PString & password /*!< the password to authenticate with */
         );
         

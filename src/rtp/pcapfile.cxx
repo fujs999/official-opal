@@ -547,7 +547,7 @@ bool OpalPCAPFile::DiscoverRTP(DiscoveredRTP & discoveredRTP, const ProgressNoti
     ++progress.m_packets;
     progress.m_filePosition = GetPosition();
 
-    if (progressNotifier)
+    if (!progressNotifier.IsNULL())
       progressNotifier(*this, progress);
     if (progress.m_abort)
       return false;
@@ -565,7 +565,7 @@ bool OpalPCAPFile::DiscoverRTP(DiscoveredRTP & discoveredRTP, const ProgressNoti
     if ((it = discoveryMap.find(key)) != discoveryMap.end())
       it->second.ProcessPacket(rtp);
     else {
-      discoveryMap.emplace(key, rtp);
+      discoveryMap.insert(make_pair(key, rtp));
       PTRACE(4, "Adding RTP discovery possibility: " << key);
     }
   }

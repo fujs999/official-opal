@@ -205,7 +205,7 @@ OpalMixerNode * MyMixerEndPoint::CreateNode(OpalMixerNodeInfo * info)
 }
 
 
-void MyMixerEndPoint::CmdConfAdd(PCLI::Arguments & args, intptr_t)
+void MyMixerEndPoint::CmdConfAdd(PCLI::Arguments & args, P_INT_PTR)
 {
   args.Parse("s-size:V-no-video.-m-moderator:");
   if (args.GetCount() == 0) {
@@ -244,7 +244,7 @@ void MyMixerEndPoint::CmdConfAdd(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyMixerEndPoint::CmdConfList(PCLI::Arguments & args, intptr_t)
+void MyMixerEndPoint::CmdConfList(PCLI::Arguments & args, P_INT_PTR)
 {
   ostream & out = args.GetContext();
   for (PSafePtr<OpalMixerNode> node = GetFirstNode(PSafeReadOnly); node != NULL; ++node)
@@ -270,7 +270,7 @@ bool MyMixerEndPoint::CmdConfXXX(PCLI::Arguments & args, PSafePtr<OpalMixerNode>
 }
 
 
-void MyMixerEndPoint::CmdConfRemove(PCLI::Arguments & args, intptr_t)
+void MyMixerEndPoint::CmdConfRemove(PCLI::Arguments & args, P_INT_PTR)
 {
   PSafePtr<OpalMixerNode> node;
   if (!CmdConfXXX(args, node, 1))
@@ -281,7 +281,7 @@ void MyMixerEndPoint::CmdConfRemove(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyMixerEndPoint::CmdConfListen(PCLI::Arguments & args, intptr_t)
+void MyMixerEndPoint::CmdConfListen(PCLI::Arguments & args, P_INT_PTR)
 {
   PSafePtr<OpalMixerNode> node;
   if (!CmdConfXXX(args, node, 1))
@@ -304,7 +304,7 @@ void MyMixerEndPoint::CmdConfListen(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyMixerEndPoint::CmdConfRecord(PCLI::Arguments & args, intptr_t)
+void MyMixerEndPoint::CmdConfRecord(PCLI::Arguments & args, P_INT_PTR)
 {
   PSafePtr<OpalMixerNode> node;
   if (!CmdConfXXX(args, node, 2))
@@ -348,7 +348,7 @@ void MyMixerEndPoint::CmdConfRecord(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyMixerEndPoint::CmdConfPlay(PCLI::Arguments & args, intptr_t)
+void MyMixerEndPoint::CmdConfPlay(PCLI::Arguments & args, P_INT_PTR)
 {
   PSafePtr<OpalMixerNode> node;
   if (!CmdConfXXX(args, node, 2))
@@ -375,7 +375,7 @@ void MyMixerEndPoint::CmdConfPlay(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyMixerEndPoint::CmdMemberAdd(PCLI::Arguments & args, intptr_t)
+void MyMixerEndPoint::CmdMemberAdd(PCLI::Arguments & args, P_INT_PTR)
 {
   PSafePtr<OpalMixerNode> node;
   if (!CmdConfXXX(args, node, 2))
@@ -390,7 +390,7 @@ void MyMixerEndPoint::CmdMemberAdd(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyMixerEndPoint::CmdMemberList(PCLI::Arguments & args, intptr_t)
+void MyMixerEndPoint::CmdMemberList(PCLI::Arguments & args, P_INT_PTR)
 {
   PSafePtr<OpalMixerNode> node;
   if (!CmdConfXXX(args, node, 1))
@@ -405,7 +405,7 @@ void MyMixerEndPoint::CmdMemberList(PCLI::Arguments & args, intptr_t)
 }
 
 
-void MyMixerEndPoint::CmdMemberRemove(PCLI::Arguments & args, intptr_t)
+void MyMixerEndPoint::CmdMemberRemove(PCLI::Arguments & args, P_INT_PTR)
 {
   if (args.GetCount() == 1) {
     if (ClearCall(args[0]))

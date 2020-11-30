@@ -74,7 +74,7 @@ class OpalIMEndPoint : public OpalEndPoint
         Generally only used internally.
         This will call notifiers indicating converstaion end.
       */
-    virtual bool GarbageCollection();
+    virtual PBoolean GarbageCollection();
 
     /**Shut down all conversations.
       */
@@ -156,7 +156,7 @@ class OpalIMEndPoint : public OpalEndPoint
     #define PDECLARE_ASYNC_ConversationNotifier(cls, fn) PDECLARE_ASYNC_NOTIFIER2(OpalIMContext, cls, fn, OpalIMContext::ConversationInfo)
 
     /// Macro to create correctly typed converstaion notifier
-    #define PCREATE_ConversationNotifier(fn) PCREATE_NOTIFIER(fn)
+    #define PCREATE_ConversationNotifier(fn) PCREATE_NOTIFIER2(fn, OpalIMContext::ConversationInfo)
 
     /** Set the notifier for the OnConversation() function.
         The notifier can be called only for when a specific scheme is being
@@ -241,12 +241,12 @@ class OpalIMConnection : public OpalConnection
        "remote". While pc, pots and ivr are not as the entity being connected
        to is intrinsically local.
       */
-    virtual bool IsNetworkConnection() const { return false; }
+    virtual PBoolean IsNetworkConnection() const { return false; }
 
     /**Callback for outgoing connection, it is invoked after SetUpConnection
        This function allows the application to set up some parameters or to log some messages
      */
-    virtual bool OnSetUpConnection();
+    virtual PBoolean OnSetUpConnection();
 
     /**A call back function whenever a connection is established.
        This indicates that a connection to an endpoint was established. This

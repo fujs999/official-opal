@@ -49,7 +49,7 @@ SafeStrings::~SafeStrings()
 }
 
 
-void SafeStrings::AppendString(const PString & newString, bool splitString)
+void SafeStrings::AppendString(const PString & newString, PBoolean splitString)
 {
   PWaitAndSignal m(accessMutex);
   
@@ -58,20 +58,20 @@ void SafeStrings::AppendString(const PString & newString, bool splitString)
     return;
   }
   
-  for(PINDEX i = 0; i < newString.size(); i++)
+  for(PINDEX i = 0; i < newString.GetSize(); i++)
     data.AppendString(PString(newString[i]));
   
   return;
 }
 
-bool SafeStrings::IsEmpty()
+PBoolean SafeStrings::IsEmpty()
 {
   PWaitAndSignal m(accessMutex);
   
   return data.GetSize() == 0;
 }
 
-bool SafeStrings::GetNextString(PString & nextString)
+PBoolean SafeStrings::GetNextString(PString & nextString)
 {
   PWaitAndSignal m(accessMutex);
   
@@ -137,7 +137,7 @@ void SafeString::operator +=(PString toBeAdded)
   internal += toBeAdded;
 }
 
-bool SafeString::IsEmpty() const
+PBoolean SafeString::IsEmpty() const
 {
   PWaitAndSignal m(mutex);
 

@@ -112,7 +112,7 @@ class OpalMediaPatch : public PSafeObject
        The stream must not be a ReadOnly media stream for the patch to be
        able to write to it.
       */
-    bool AddSink(
+    PBoolean AddSink(
       const OpalMediaStreamPtr & stream            ///< Media stream to add.
     );
 
@@ -194,7 +194,7 @@ class OpalMediaPatch : public PSafeObject
 
     /**Push a frame out to all the sink streams, transcoding as necessary.
       */
-    virtual bool PushFrame(
+    virtual PBoolean PushFrame(
       RTP_DataFrame & frame   ///< Frame to push
     );
 

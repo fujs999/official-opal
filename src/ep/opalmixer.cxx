@@ -910,7 +910,7 @@ bool OpalMixerEndPoint::GetConferenceStates(OpalConferenceStates & states, const
 }
 
 
-bool OpalMixerEndPoint::GarbageCollection()
+PBoolean OpalMixerEndPoint::GarbageCollection()
 {
   // Use bitwise | not boolean || so both get executed
   return OpalMixerNodeManager::GarbageCollection() | OpalEndPoint::GarbageCollection();
@@ -1048,7 +1048,7 @@ OpalMediaFormatList OpalMixerConnection::GetMediaFormats() const
 
 OpalMediaStream * OpalMixerConnection::CreateMediaStream(const OpalMediaFormat & mediaFormat,
                                                          unsigned sessionID,
-                                                         bool isSource)
+                                                         PBoolean isSource)
 {
   return new OpalMixerMediaStream(*this, mediaFormat, sessionID, isSource, m_node, m_listenOnly);
 }
@@ -1077,7 +1077,7 @@ bool OpalMixerConnection::SendUserInputString(const PString & value)
 }
 
 
-bool OpalMixerConnection::SendUserInputTone(char tone, unsigned /*duration*/)
+PBoolean OpalMixerConnection::SendUserInputTone(char tone, unsigned /*duration*/)
 {
   m_node->BroadcastUserInput(this, tone);
   return true;
@@ -1155,7 +1155,7 @@ OpalMixerMediaStream::~OpalMixerMediaStream()
 }
 
 
-bool OpalMixerMediaStream::Open()
+PBoolean OpalMixerMediaStream::Open()
 {
   if (m_isOpen)
     return true;
@@ -1186,19 +1186,19 @@ void OpalMixerMediaStream::InternalClose()
 }
 
 
-bool OpalMixerMediaStream::WritePacket(RTP_DataFrame & packet)
+PBoolean OpalMixerMediaStream::WritePacket(RTP_DataFrame & packet)
 {
   return IsOpen() && m_node->WritePacket(*this, packet);
 }
 
 
-bool OpalMixerMediaStream::IsSynchronous() const
+PBoolean OpalMixerMediaStream::IsSynchronous() const
 {
   return false;
 }
 
 
-bool OpalMixerMediaStream::RequiresPatchThread() const
+PBoolean OpalMixerMediaStream::RequiresPatchThread() const
 {
   return IsSink();
 }
@@ -1246,6 +1246,9 @@ OpalMixerNode::~OpalMixerNode()
 {
   ShutDown(); // Fail safe
 
+  delete m_audioMixer;
+  delete m_info;
+
   PTRACE(4, "Destroyed " << *this);
 }
 
@@ -1268,6 +1271,8 @@ void OpalMixerNode::ShutDown()
   if (LockReadWrite()) {
     m_audioMixer->RemoveAllStreams();
 #if OPAL_VIDEO
+    for (VideoMixerMap::iterator it = m_videoMixers.begin(); it != m_videoMixers.end(); ++it)
+      delete it->second;
     m_videoMixers.clear();
 #endif
     m_manager.RemoveNodeNames(GetNames());
@@ -1374,12 +1379,12 @@ bool OpalMixerNode::AttachStream(OpalMixerMediaStream * stream)
 #if OPAL_VIDEO
   if (stream->GetMediaFormat().GetMediaType() == OpalMediaType::Video()) {
     OpalVideoFormat::ContentRole role = stream->GetMediaFormat().GetOptionEnum(OpalVideoFormat::ContentRoleOption(), OpalVideoFormat::eNoRole);
-    std::shared_ptr<OpalVideoStreamMixer> videoMixer;
+    OpalVideoStreamMixer * videoMixer;
     VideoMixerMap::iterator it = m_videoMixers.find(role);
     if (it != m_videoMixers.end())
       videoMixer = it->second;
     else {
-      videoMixer.reset(m_manager.CreateVideoMixer(*m_info));
+      videoMixer = m_manager.CreateVideoMixer(*m_info);
       m_videoMixers[role] = videoMixer;
     }
 
@@ -2032,7 +2037,7 @@ void OpalMixerNodeManager::ShutDown()
 }
 
 
-bool OpalMixerNodeManager::GarbageCollection()
+PBoolean OpalMixerNodeManager::GarbageCollection()
 {
   return m_nodesByUID.DeleteObjectsToBeRemoved();
 }

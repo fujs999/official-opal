@@ -306,7 +306,7 @@ void SIPURL::ParseAsAddress(const PString & name,
 }
 
 
-bool SIPURL::ReallyInternalParse(bool fromHeader, const char * cstr, const char * p_defaultScheme)
+PBoolean SIPURL::ReallyInternalParse(bool fromHeader, const char * cstr, const char * p_defaultScheme)
 {
   /* This will try to parse an SIP URI according to the RFC3261 EBNF
 
@@ -486,7 +486,7 @@ PString SIPURL::AsQuotedString() const
 }
 
 
-PString SIPURL::GetDisplayName(bool useDefault) const
+PString SIPURL::GetDisplayName(PBoolean useDefault) const
 {
   if (m_displayName.IsEmpty() && useDefault)
     return AsString();
@@ -843,7 +843,7 @@ ostream & operator<<(ostream & strm, const SIPURLList & urls)
 
 /////////////////////////////////////////////////////////////////////////////
 
-SIPMIMEInfo::SIPMIMEInfo(bool _compactForm)
+SIPMIMEInfo::SIPMIMEInfo(PBoolean _compactForm)
   : compactForm(_compactForm)
 {
   SetContentLength(0);
@@ -902,7 +902,7 @@ PINDEX SIPMIMEInfo::GetContentLength() const
   return len.AsInteger();
 }
 
-bool SIPMIMEInfo::IsContentLengthPresent() const
+PBoolean SIPMIMEInfo::IsContentLengthPresent() const
 {
   return Contains("Content-Length");
 }
@@ -1776,12 +1776,12 @@ class SIPNTLMAuthentication : public PHTTPClientAuthentication
       const PObject & other
     ) const;
 
-    bool Parse(
+    PBoolean Parse(
       const PString & auth,
-      bool proxy
+      PBoolean proxy
     );
 
-    bool Authorise(
+    PBoolean Authorise(
       SIP_PDU & pdu
     ) const;
 
@@ -1835,12 +1835,12 @@ PObject::Comparison SIPNTLMAuthentication::Compare(const PObject & other) const
   return PHTTPClientAuthentication::Compare(other);
 }
 
-bool SIPNTLMAuthentication::Parse(const PString & /*auth*/, bool /*proxy*/)
+PBoolean SIPNTLMAuthentication::Parse(const PString & /*auth*/, PBoolean /*proxy*/)
 {
   return false;
 }
 
-bool SIPNTLMAuthentication::Authorise(SIP_PDU & pdu) const
+PBoolean SIPNTLMAuthentication::Authorise(SIP_PDU & pdu) const
 {
   PBYTEArray type1;
   ConstructType1Message(type1);
@@ -2428,7 +2428,7 @@ SIP_PDU::StatusCodes SIP_PDU::Parse(istream & stream, bool truncated)
       contentLength = 0;
       int c;
       while ((c = stream.get()) != EOF) {
-        m_entityBody.reserve((++contentLength/1000+1)*1000);
+        m_entityBody.SetMinSize((++contentLength/1000+1)*1000);
         m_entityBody += (char)c;
       }
     }
@@ -3448,7 +3448,7 @@ void SIPTransaction::WaitForCompletion()
 }
 
 
-bool SIPTransaction::Cancel()
+PBoolean SIPTransaction::Cancel()
 {
   P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
@@ -3495,7 +3495,7 @@ bool SIPTransaction::ResendCANCEL()
 }
 
 
-bool SIPTransaction::OnReceivedResponse(SIP_PDU & response)
+PBoolean SIPTransaction::OnReceivedResponse(SIP_PDU & response)
 {
   m_retryTimer.Stop();
 
@@ -3580,7 +3580,7 @@ bool SIPTransaction::OnReceivedResponse(SIP_PDU & response)
 }
 
 
-bool SIPTransaction::OnCompleted(SIP_PDU & /*response*/)
+PBoolean SIPTransaction::OnCompleted(SIP_PDU & /*response*/)
 {
   return true;
 }
@@ -3977,7 +3977,7 @@ SIPTransaction * SIPInvite::CreateDuplicate() const
 }
 
 
-bool SIPInvite::OnReceivedResponse(SIP_PDU & response)
+PBoolean SIPInvite::OnReceivedResponse(SIP_PDU & response)
 {
   if (IsTerminated())
     return false;

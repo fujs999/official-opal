@@ -56,7 +56,7 @@ RTP_DataFrame::MetaData::MetaData()
 
 
 RTP_DataFrame::RTP_DataFrame(PINDEX payloadSz, PINDEX bufferSz)
-  : PBYTEArray(std::max(bufferSz, MinHeaderSize+payloadSz))
+  : PBYTEArray(max(bufferSz, MinHeaderSize+payloadSz))
   , m_headerSize(MinHeaderSize)
   , m_payloadSize(payloadSz)
   , m_paddingSize(0)
@@ -1490,7 +1490,7 @@ bool RTP_ControlFrame::ParseTWCC(RTP_SyncSourceId & senderSSRC, RTP_TransportWid
     }
 
     referenceTime += PTimeInterval::MicroSeconds(quarterMilliseconds * 250U);
-    info.m_packets.emplace(baseSN + index, referenceTime);
+    info.m_packets.insert(make_pair(baseSN + index, referenceTime));
   }
 
   return !info.m_packets.empty();
@@ -1628,7 +1628,7 @@ RTP_ControlFrame::ApplDefinedInfo::ApplDefinedInfo(const char * type,
 {
   memset(m_type, 0, sizeof(m_type));
   if (type != NULL)
-    strncpy_s(m_type, type, sizeof(m_type)-1);
+    strncpy(m_type, type, sizeof(m_type)-1);
 }
 
 

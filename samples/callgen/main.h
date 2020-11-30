@@ -65,7 +65,7 @@ class CallThread : public PThread
     PSyncPoint   m_exit;
 };
 
-typedef PList<CallThread> CallThreadList;
+PLIST(CallThreadList, CallThread);
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -163,7 +163,7 @@ class MyManager : public OpalManagerConsole
 
     virtual OpalCall * CreateCall(void * userData);
 
-    virtual bool OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream);
+    virtual PBoolean OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream);
 
     PINDEX GetActiveCalls() const { return m_activeCalls.GetSize(); }
 

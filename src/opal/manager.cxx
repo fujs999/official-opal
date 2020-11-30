@@ -574,7 +574,7 @@ OpalEndPoint * OpalManager::FindEndPoint(const PString & prefix) const
 }
 
 
-bool OpalManager::SetUpCall(const PString & partyA,
+PBoolean OpalManager::SetUpCall(const PString & partyA,
                                 const PString & partyB,
                                       PString & token,
                                          void * userData,
@@ -745,7 +745,7 @@ void OpalManager::OnEstablishedCall(OpalCall & /*call*/)
 #endif
 
 
-bool OpalManager::IsCallEstablished(const PString & token)
+PBoolean OpalManager::IsCallEstablished(const PString & token)
 {
   PSafePtr<OpalCall> call = m_activeCalls.Find(token, PSafeReadOnly);
   if (call == NULL)
@@ -755,7 +755,7 @@ bool OpalManager::IsCallEstablished(const PString & token)
 }
 
 
-bool OpalManager::ClearCall(const PString & token,
+PBoolean OpalManager::ClearCall(const PString & token,
                             OpalConnection::CallEndReason reason,
                             PSyncPoint * sync)
 {
@@ -779,7 +779,7 @@ bool OpalManager::ClearCall(const PString & token,
 }
 
 
-bool OpalManager::ClearCallSynchronous(const PString & token,
+PBoolean OpalManager::ClearCallSynchronous(const PString & token,
                                        OpalConnection::CallEndReason reason)
 {
   PSyncPoint wait;
@@ -791,7 +791,7 @@ bool OpalManager::ClearCallSynchronous(const PString & token,
 }
 
 
-void OpalManager::ClearAllCalls(OpalConnection::CallEndReason reason, bool wait)
+void OpalManager::ClearAllCalls(OpalConnection::CallEndReason reason, PBoolean wait)
 {
   InternalClearAllCalls(reason, wait, m_clearingAllCallsCount++ == 0);
   --m_clearingAllCallsCount;
@@ -882,7 +882,7 @@ PSafePtr<OpalConnection> OpalManager::MakeConnection(OpalCall & call,
 }
 
 
-bool OpalManager::OnIncomingConnection(OpalConnection & connection, unsigned options, OpalConnection::StringOptions * stringOptions)
+PBoolean OpalManager::OnIncomingConnection(OpalConnection & connection, unsigned options, OpalConnection::StringOptions * stringOptions)
 {
   PTRACE(3, "OnIncoming connection " << connection);
 
@@ -1104,7 +1104,7 @@ void OpalManager::OnHold(OpalConnection & /*connection*/)
 }
 
 
-bool OpalManager::OnForwarded(OpalConnection & PTRACE_PARAM(connection),
+PBoolean OpalManager::OnForwarded(OpalConnection & PTRACE_PARAM(connection),
 			      const PString & /*forwardParty*/)
 {
   PTRACE(4, "OnForwarded " << connection);
@@ -1219,7 +1219,7 @@ bool OpalManager::GetMediaTransportAddresses(const OpalConnection & provider,
 }
 
 
-bool OpalManager::OnOpenMediaStream(OpalConnection & PTRACE_PARAM(connection),
+PBoolean OpalManager::OnOpenMediaStream(OpalConnection & PTRACE_PARAM(connection),
                                         OpalMediaStream & PTRACE_PARAM(stream))
 {
   PTRACE(3, "OnOpenMediaStream " << connection << ',' << stream);
@@ -1333,10 +1333,10 @@ void OpalManager::OnFailedMediaStream(OpalConnection & PTRACE_PARAM(connection),
 
 #if OPAL_VIDEO
 
-bool OpalManager::CreateVideoInputDevice(const OpalConnection & connection,
+PBoolean OpalManager::CreateVideoInputDevice(const OpalConnection & connection,
                                          const OpalMediaFormat & mediaFormat,
                                          PVideoInputDevice * & device,
-                                         bool & autoDelete)
+                                         PBoolean & autoDelete)
 {
   // Make copy so we can adjust the size
   OpalVideoFormat::ContentRole role = mediaFormat.GetOptionEnum(OpalVideoFormat::ContentRoleOption(), OpalVideoFormat::eNoRole);
@@ -1347,10 +1347,10 @@ bool OpalManager::CreateVideoInputDevice(const OpalConnection & connection,
 }
 
 
-bool OpalManager::CreateVideoInputDevice(const OpalConnection & /*connection*/,
+PBoolean OpalManager::CreateVideoInputDevice(const OpalConnection & /*connection*/,
                                          const PVideoDevice::OpenArgs & args,
                                          PVideoInputDevice * & device,
-                                         bool & autoDelete)
+                                         PBoolean & autoDelete)
 {
   autoDelete = true;
   device = PVideoInputDevice::CreateOpenedDevice(args, false);
@@ -1359,11 +1359,11 @@ bool OpalManager::CreateVideoInputDevice(const OpalConnection & /*connection*/,
 }
 
 
-bool OpalManager::CreateVideoOutputDevice(const OpalConnection & connection,
+PBoolean OpalManager::CreateVideoOutputDevice(const OpalConnection & connection,
                                           const OpalMediaFormat & mediaFormat,
-                                          bool preview,
+                                          PBoolean preview,
                                           PVideoOutputDevice * & device,
-                                          bool & autoDelete)
+                                          PBoolean & autoDelete)
 {
   // Make copy so we can adjust the size
   OpalVideoFormat::ContentRole role = mediaFormat.GetOptionEnum(OpalVideoFormat::ContentRoleOption(), OpalVideoFormat::eNoRole);
@@ -1400,7 +1400,7 @@ bool OpalManager::CreateVideoOutputDevice(const OpalConnection & connection,
 bool OpalManager::CreateVideoOutputDevice(const OpalConnection & /*connection*/,
                                           const PVideoDevice::OpenArgs & args,
                                           PVideoOutputDevice * & device,
-                                          bool & autoDelete)
+                                          PBoolean & autoDelete)
 {
   autoDelete = true;
   device = PVideoOutputDevice::CreateOpenedDevice(args, false);
@@ -1412,7 +1412,7 @@ bool OpalManager::CreateVideoOutputDevice(const OpalConnection & /*connection*/,
 
 
 OpalMediaPatch * OpalManager::CreateMediaPatch(OpalMediaStream & source,
-                                               bool requiresPatchThread)
+                                               PBoolean requiresPatchThread)
 {
   if (requiresPatchThread)
     return new OpalMediaPatch(source);
@@ -1662,7 +1662,7 @@ bool OpalManager::RouteEntry::IsMatch(const PString & search) const
 }
 
 
-bool OpalManager::AddRouteEntry(const PString & spec)
+PBoolean OpalManager::AddRouteEntry(const PString & spec)
 {
   if (spec[0] == '#') // Comment
     return false;
@@ -1674,7 +1674,7 @@ bool OpalManager::AddRouteEntry(const PString & spec)
       return false;
     }
     PTRACE(4, "Adding routes from file \"" << file.GetFilePath() << '"');
-    bool ok = false;
+    PBoolean ok = false;
     PString line;
     while (file.good()) {
       file >> line;
@@ -1699,9 +1699,9 @@ bool OpalManager::AddRouteEntry(const PString & spec)
 }
 
 
-bool OpalManager::SetRouteTable(const PStringArray & specs)
+PBoolean OpalManager::SetRouteTable(const PStringArray & specs)
 {
-  bool ok = false;
+  PBoolean ok = false;
 
   m_routeMutex.Wait();
   m_routeTable.RemoveAll();
@@ -1935,7 +1935,7 @@ bool OpalManager::ApplySSLCredentials(const OpalEndPoint & /*ep*/,
 #endif
 
 
-bool OpalManager::IsLocalAddress(const PIPSocket::Address & ip) const
+PBoolean OpalManager::IsLocalAddress(const PIPSocket::Address & ip) const
 {
 #if OPAL_PTLIB_NAT
   return m_natMethods->IsLocalAddress(ip);
@@ -1946,11 +1946,11 @@ bool OpalManager::IsLocalAddress(const PIPSocket::Address & ip) const
 }
 
 
-bool OpalManager::IsRTPNATEnabled(OpalConnection & /*conn*/,
+PBoolean OpalManager::IsRTPNATEnabled(OpalConnection & /*conn*/,
                                       const PIPSocket::Address & localAddr,
                                       const PIPSocket::Address & peerAddr,
                                       const PIPSocket::Address & sigAddr,
-                                      bool PTRACE_PARAM(incoming))
+                                      PBoolean PTRACE_PARAM(incoming))
 {
   PTRACE(4, "Checking " << (incoming ? "incoming" : "outgoing") << " call for NAT: local=" << localAddr << ", peer=" << peerAddr << ", sig=" << sigAddr);
 
@@ -2033,7 +2033,7 @@ bool OpalManager::IsRTPNATEnabled(OpalConnection & /*conn*/,
 }
 
 
-bool OpalManager::TranslateIPAddress(PIPSocket::Address & localAddress,
+PBoolean OpalManager::TranslateIPAddress(PIPSocket::Address & localAddress,
                                      const PIPSocket::Address & remoteAddress)
 {
   if (!IsLocalAddress(localAddress))
@@ -2221,13 +2221,13 @@ bool OpalManager::SetVideoInputDevice(const PVideoDevice::OpenArgs & args, OpalV
 }
 
 
-bool OpalManager::SetVideoPreviewDevice(const PVideoDevice::OpenArgs & args, OpalVideoFormat::ContentRole role)
+PBoolean OpalManager::SetVideoPreviewDevice(const PVideoDevice::OpenArgs & args, OpalVideoFormat::ContentRole role)
 {
   return args.Validate<PVideoOutputDevice>(m_videoPreviewDevice[role]);
 }
 
 
-bool OpalManager::SetVideoOutputDevice(const PVideoDevice::OpenArgs & args, OpalVideoFormat::ContentRole role)
+PBoolean OpalManager::SetVideoOutputDevice(const PVideoDevice::OpenArgs & args, OpalVideoFormat::ContentRole role)
 {
   return args.Validate<PVideoOutputDevice>(m_videoOutputDevice[role]);
 }
@@ -2266,7 +2266,7 @@ void OpalManager::CallDict::DeleteObject(PObject * object) const
 }
 
 
-void OpalManager::GarbageMain(PThread &, intptr_t)
+void OpalManager::GarbageMain(PThread &, P_INT_PTR)
 {
   while (!m_garbageCollectExit.Wait(1000))
     GarbageCollection();
@@ -2373,7 +2373,7 @@ void OpalManager::OnConversation(const OpalIMContext::ConversationInfo &)
 }
 
 
-bool OpalManager::Message(const PString & to, const PString & body)
+PBoolean OpalManager::Message(const PString & to, const PString & body)
 {
   OpalIM message;
   message.m_to   = to;
@@ -2382,7 +2382,7 @@ bool OpalManager::Message(const PString & to, const PString & body)
 }
 
 
-bool OpalManager::Message(const PURL & to, const PString & type, const PString & body, PURL & from, PString & conversationId)
+PBoolean OpalManager::Message(const PURL & to, const PString & type, const PString & body, PURL & from, PString & conversationId)
 {
   OpalIM message;
   message.m_to             = to;
