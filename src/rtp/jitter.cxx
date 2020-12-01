@@ -912,14 +912,17 @@ void OpalNonJitterBuffer::Restart()
 
 bool OpalNonJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTimeInterval &)
 {
-  return m_queue.Enqueue(frame);
+  // A different thread will read the frame later, so ensure it is given a unique copy
+  RTP_DataFrame newFrame = frame;
+  newFrame.MakeUnique();
+  return m_queue.Enqueue(newFrame);
 }
 
 
 bool OpalNonJitterBuffer::ReadData(RTP_DataFrame & frame, const PTimeInterval & timeout PTRACE_PARAM(, const PTimeInterval &))
 {
   if (!m_queue.Dequeue(frame, timeout))
-      frame.SetPayloadSize(0);
+    frame.SetPayloadSize(0);
   return m_queue.IsOpen();
 }
 
