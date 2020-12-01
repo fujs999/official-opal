@@ -607,6 +607,8 @@ PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTi
   // Add to buffer
   pair<FrameMap::iterator,bool> result = m_frames.insert(FrameMap::value_type(timestamp, frame));
   if (result.second) {
+    // A different thread will read the frame later, so ensure it is given a unique copy
+    result.first->second.MakeUnique();
     ANALYSE(In, timestamp, m_synchronisationState != e_SynchronisationDone ? "PreBuf" : "");
     PTRACE_IF(sm_EveryPacketLogLevel, m_maxJitterDelay > 0,
               "Inserted packet :"
