@@ -158,7 +158,7 @@ static OpalMediaType GetMediaTypeFromSDP(const PCaselessString & sdpMediaType,
 
 /////////////////////////////////////////////////////////
 
-static OpalTransportAddress ParseConnectAddress(const PStringArray & tokens, PINDEX offset, WORD port = 0)
+static OpalTransportAddress ParseConnectAddress(const PStringArray & tokens, PINDEX offset, WORD port PTRACE_PARAM(, const char * location))
 {
   if (tokens.GetSize() == offset+3) {
     if (tokens[offset] *= "IN") {
@@ -169,39 +169,39 @@ static OpalTransportAddress ParseConnectAddress(const PStringArray & tokens, PIN
 #endif
         ) {
         if (tokens[offset+2] == "255.255.255.255") {
-          PTRACE(2, "Invalid connection address 255.255.255.255 used, treating like HOLD request.");
+          PTRACE(2, location << " address of 255.255.255.255 used, treating like HOLD request.");
         }
         else if (tokens[offset+2] == "0.0.0.0") {
-          PTRACE(3, "Connection address of 0.0.0.0 specified for HOLD request.");
+          PTRACE(3, location << " address of 0.0.0.0 used, possible HOLD request.");
         }
         else {
           PIPSocket::Address ip;
           if (PIPSocket::GetHostAddress(tokens[offset+2], ip))
             return OpalTransportAddress(ip, port, OpalTransportAddress::UdpPrefix());
-          PTRACE(1, "Connect address has invalid IP address \"" << tokens[offset+2] << '"');
+          PTRACE(1, location << " address has invalid host/IP \"" << tokens[offset+2] << '"');
         }
       }
       else
       {
-        PTRACE(1, "Connect address has invalid address type \"" << tokens[offset+1] << '"');
+        PTRACE(1, location << " address has invalid address type \"" << tokens[offset+1] << '"');
       }
     }
     else {
-      PTRACE(1, "Connect address has invalid network \"" << tokens[offset] << '"');
+      PTRACE(1, location << " address has invalid network \"" << tokens[offset] << '"');
     }
   }
   else {
-    PTRACE(1, "Connect address has invalid (" << tokens.GetSize() << ") elements");
+    PTRACE(1, location << " address has invalid (" << tokens.GetSize() << ") elements");
   }
 
   return OpalTransportAddress();
 }
 
 
-static OpalTransportAddress ParseConnectAddress(const PString & str, WORD port = 0)
+static OpalTransportAddress ParseConnectAddress(const PString & str, WORD port PTRACE_PARAM(, const char * location))
 {
   PStringArray tokens = str.Tokenise(WhiteSpace, false); // Spec says space only, but lets be forgiving
-  return ParseConnectAddress(tokens, 0, port);
+  return ParseConnectAddress(tokens, 0, port PTRACE_PARAM(, location));
 }
 
 
@@ -928,7 +928,7 @@ bool SDPMediaDescription::Decode(char key, const PString & value)
 
     case 'c' : // connection information - optional if included at session-level
       if (m_port != 0) {
-        m_mediaAddress = ParseConnectAddress(value, m_port);
+        m_mediaAddress = ParseConnectAddress(value, m_port PTRACE_PARAM(, "Media connect"));
         PTRACE_IF(4, !m_mediaAddress.IsEmpty(), "Parsed media connection address " << m_mediaAddress);
       }
       break;
@@ -1027,9 +1027,9 @@ void SDPMediaDescription::SetAttribute(const PString & attr, const PString & val
     candidate.m_protocol = words[2];
     candidate.m_priority = words[3].AsUnsigned();
 
-    PIPSocket::Address ip(words[4]);
-    if (!ip.IsValid()) {
-      PTRACE(2, "Illegal IP address in candidate: \"" << words[4] << '"');
+    PIPSocket::Address ip;
+    if (!PIPSocket::GetHostAddress(words[4], ip)) {
+      PTRACE(2, "Illegal host or IP address in candidate: \"" << words[4] << '"');
       return;
     }
 
@@ -1949,7 +1949,7 @@ void SDPRTPAVPMediaDescription::SetAttribute(const PString & attr, const PString
   }
 
   if (attr *= "rtcp") {
-    m_controlAddress = ParseConnectAddress(value.Mid(value.Find(' ')+1), (WORD)value.AsUnsigned());
+    m_controlAddress = ParseConnectAddress(value.Mid(value.Find(' ')+1), (WORD)value.AsUnsigned() PTRACE_PARAM(, "RTCP connect"));
     PTRACE_IF(4, !m_controlAddress.IsEmpty(), "Parsed rtcp connection address " << m_controlAddress);
     return;
   }
@@ -2921,7 +2921,7 @@ bool SDPSessionDescription::Decode(const PStringArray & lines, const OpalMediaFo
 
         case 'c' : // connection information - not required if included in all media
           defaultConnectAddressPresent= true;
-          defaultConnectAddress = ParseConnectAddress(value);
+          defaultConnectAddress = ParseConnectAddress(value, 0 PTRACE_PARAM(, "Default connect"));
           PTRACE_IF(4, !defaultConnectAddress.IsEmpty(), "Parsed default connection address " << defaultConnectAddress);
           break;
 
@@ -3140,7 +3140,7 @@ void SDPSessionDescription::ParseOwner(const PString & str)
     ownerUsername    = tokens[0];
     ownerSessionId   = tokens[1].AsUnsigned();
     ownerVersion     = tokens[2].AsUnsigned();
-    ownerAddress = defaultConnectAddress = ParseConnectAddress(tokens, 3);
+    ownerAddress = defaultConnectAddress = ParseConnectAddress(tokens, 3, 0 PTRACE_PARAM(, "Owner"));
     PTRACE_IF(4, !ownerAddress.IsEmpty(), "Parsed owner connection address " << ownerAddress);
   }
 }
