@@ -946,7 +946,7 @@ class OpalRTPSession : public OpalMediaSession
     typedef std::map<RTP_SyncSourceId, SyncSource *> SyncSourceMap;
     SyncSourceMap    m_SSRC;
     SyncSource       m_dummySyncSource;
-    std::atomic<RTP_SyncSourceId>       m_defaultSSRC[2]; // For e_Sender and e_Receiver
+    std::atomic<RTP_SyncSourceId> m_defaultSSRC[2]; // For e_Sender and e_Receiver
     std::map<PString, RTP_SyncSourceId> m_rtpStreamIdToSendSSRC;
 
     const SyncSource & GetSyncSource(RTP_SyncSourceId ssrc, Direction dir) const;
