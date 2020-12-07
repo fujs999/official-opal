@@ -240,7 +240,7 @@ bool OpalMediaFileRecordManager::OpenFile(const PFilePath & fn)
   if (!OpalRecordManager::OpenFile(fn))
     return false;
 
-  m_file.reset(PMediaFile::Create(fn));
+  m_file = PMediaFile::Create(fn);
   if (!m_file) {
     PTRACE(2, "Cannot use media file type of " << fn);
     return false;

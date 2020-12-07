@@ -108,7 +108,7 @@ class MyLocalEndPoint : public OpalLocalEndPoint
 
       virtual bool OnMixed(RTP_DataFrame * & output);
 
-      PSmartPtr<PMediaFile> m_mediaFile;
+      std::shared_ptr<PMediaFile> m_mediaFile;
     } m_mixer;
 };
 
