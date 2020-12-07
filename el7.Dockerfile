@@ -24,6 +24,10 @@ RUN /tmp/install_openh264.sh /usr/local/lib64
 #COPY build-deps /tmp/build-deps/
 #RUN yum install -y /tmp/build-deps/*.rpm && yum clean all
 
+# Temporary fix for broken centos repo
+RUN sed --in-place 's/centos\/7\//centos\/7.8.2003\//'            /etc/yum.repos.d/CentOS-SCLo-scl-rh.repo && \
+    sed --in-place 's/centos\/\$releasever\//centos\/7.8.2003\//' /etc/yum.repos.d/CentOS-Sources.repo
+
 # Install dependencies referenced by the spec file, but cache the installed RPMs so they can be fingerprinted later
 ARG SPECFILE
 COPY ${SPECFILE} .
