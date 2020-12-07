@@ -85,8 +85,6 @@ RTP_DataFrame::RTP_DataFrame(const PBYTEArray & data)
 
 bool RTP_DataFrame::SetPacketSize(PINDEX sz)
 {
-  m_metaData.m_discontinuity = 0;
-
   if (sz < RTP_DataFrame::MinHeaderSize) {
     PTRACE(2, "RTP\tInvalid RTP packet, "
               "smaller than minimum header size, " << sz << " < " << RTP_DataFrame::MinHeaderSize);
