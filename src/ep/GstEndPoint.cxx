@@ -1115,7 +1115,7 @@ bool GstConnection::OpenPipeline(PGstPipeline & pipeline, const GstMediaStream &
     }
   }
 
-  if (!pipeline.Parse(description)) {
+  if (!pipeline.Parse(description.str().c_str())) {
     PTRACE(2, "Failed to parse gstreamer pipeline: \"" << description << '"');
     return false;
   }

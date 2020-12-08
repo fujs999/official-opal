@@ -1460,21 +1460,21 @@ OpalJitterBuffer * OpalRTPSession::SyncSource::GetJitterBuffer() const
 PString OpalRTPSession::GetLabel() const
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
-  return m_label.GetPointer();
+  return m_label;
 }
 
 
 void OpalRTPSession::SetLabel(const PString & name)
 {
   P_INSTRUMENTED_LOCK_READ_WRITE(return);
-  m_label = name.GetPointer();
+  m_label = name;
 }
 
 
 PString OpalRTPSession::GetCanonicalName(RTP_SyncSourceId ssrc, Direction dir) const
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
-  return GetSyncSource(ssrc, dir).m_canonicalName.GetPointer();
+  return GetSyncSource(ssrc, dir).m_canonicalName;
 }
 
 
@@ -1491,7 +1491,7 @@ void OpalRTPSession::SetCanonicalName(const PString & name, RTP_SyncSourceId ssr
 PString OpalRTPSession::GetBundleMediaId(RTP_SyncSourceId ssrc, Direction dir) const
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
-  return GetSyncSource(ssrc, dir).m_bundleMediaId.GetPointer();
+  return GetSyncSource(ssrc, dir).m_bundleMediaId;
 }
 
 
@@ -1500,7 +1500,7 @@ void OpalRTPSession::SetBundleMediaId(const PString & id, RTP_SyncSourceId ssrc,
   P_INSTRUMENTED_LOCK_READ_WRITE(return);
   SyncSource * info;
   if (GetSyncSource(ssrc, dir, info)) {
-    info->m_bundleMediaId = id.c_str();
+    info->m_bundleMediaId = id;
     PTRACE(4, *this << "set BUNDLE mid for " << dir <<
            " SSRC=" << RTP_TRACE_SRC(info->m_sourceIdentifier) << " to \"" << id << '"');
   }
@@ -1510,7 +1510,7 @@ void OpalRTPSession::SetBundleMediaId(const PString & id, RTP_SyncSourceId ssrc,
 PString OpalRTPSession::GetRtpStreamId(RTP_SyncSourceId ssrc, Direction dir) const
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
-  return GetSyncSource(ssrc, dir).m_rtpStreamId.GetPointer();
+  return GetSyncSource(ssrc, dir).m_rtpStreamId;
 }
 
 
@@ -1519,7 +1519,7 @@ void OpalRTPSession::SetRtpStreamId(const PString & id, RTP_SyncSourceId ssrc, D
   P_INSTRUMENTED_LOCK_READ_WRITE(return);
   SyncSource * info;
   if (GetSyncSource(ssrc, dir, info)) {
-    info->m_rtpStreamId = id.c_str();
+    info->m_rtpStreamId = id;
     if (dir == e_Sender)
       m_rtpStreamIdToSendSSRC[info->m_rtpStreamId] = info->m_sourceIdentifier;
     PTRACE(4, *this << "set RtpStreamId for " << dir <<
@@ -1555,7 +1555,7 @@ void OpalRTPSession::SetMediaStreamId(const PString & id, RTP_SyncSourceId ssrc,
 PString OpalRTPSession::GetMediaTrackId(RTP_SyncSourceId ssrc, Direction dir) const
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
-  return GetSyncSource(ssrc, dir).m_mediaTrackId.GetPointer();
+  return GetSyncSource(ssrc, dir).m_mediaTrackId;
 }
 
 

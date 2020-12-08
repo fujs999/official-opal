@@ -1640,7 +1640,6 @@ bool OpalMediaSession::AddGroup(const PString & groupId, unsigned index, const P
     PTRACE(4, *this << "media id \"" << itIndex->second << "\" already at index " << index << " in group \"" << groupId << '"');
     return false;
   }
-
   GroupMediaByIdent::const_iterator itIdent = media.m_byIdent.find(mediaId);
   if (itIdent != media.m_byIdent.end()) {
     if (itIdent->second == index)
