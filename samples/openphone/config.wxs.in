@@ -31,7 +31,7 @@
     <?define SWSCALEVer = "5" ?>
 
     <?define WxDir = "$(env.WXDIR)" ?>
-    <?define WxVer = "$(env.WXVER)3" ?>
+    <?define WxVer = "$(env.WXVER)4" ?>
     <?define WxCustom = "no" ?>
 
     <?define PTLibDir = "$(var.ProjectDir)..\..\..\ptlib" ?>
