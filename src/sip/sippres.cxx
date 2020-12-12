@@ -208,8 +208,6 @@ bool SIP_Presentity::Open()
   m_watcherSubscriptionAOR.MakeEmpty();
   m_watcherInfoVersion = -1;
 
-  StartThread();
-
   // subscribe to presence watcher infoformation
   SendCommand(CreateCommand<SIPWatcherInfoCommand>());
 
@@ -221,8 +219,6 @@ bool SIP_Presentity::Close()
 {
   if (!OpalPresentityWithCommandThread::Close())
     return false;
-
-  StopThread();
 
   if (!m_publishedTupleId.IsEmpty()) {
     SIP_Presentity_OpalSetLocalPresenceCommand cmd;
