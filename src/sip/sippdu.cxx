@@ -939,6 +939,12 @@ SIPURL SIPMIMEInfo::GetFrom() const
 }
 
 
+PString SIPMIMEInfo::GetFromTag() const
+{
+  return GetFieldParameter("From", TagStr);
+}
+
+
 void SIPMIMEInfo::SetFrom(const SIPURL & uri)
 {
   SetAt("From", uri.AsQuotedString());
@@ -1025,6 +1031,12 @@ void SIPMIMEInfo::SetSubject(const PString & v)
 SIPURL SIPMIMEInfo::GetTo() const
 {
   return SIPURL(*this, "To");
+}
+
+
+PString SIPMIMEInfo::GetToTag() const
+{
+  return GetFieldParameter("To", TagStr);
 }
 
 
@@ -2841,7 +2853,7 @@ void SIPDialogContext::SetLocalURI(const SIPURL & url)
 {
   m_localURI = url;
   m_localURI.Sanitise(SIPURL::FromURI);
-  m_localTag = m_localURI.SetTag(m_localTag);
+  m_localTag = m_localURI.SetTag(m_localTag.IsEmpty() ? SIPURL::GenerateTag() : m_localTag);
   PTRACE(4, "Set dialog local URI to " << m_localURI.AsQuotedString());
 }
 
