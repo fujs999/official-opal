@@ -2286,9 +2286,14 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
   if (LocateFieldParameter(via, "maddr", start, pos, end))
     m_responseAddresses.AppendAddress(OpalTransportAddress(via(pos, end), port, proto), true);
 
-  // From here it's RFC3263 section 5, starts with, if UDP, send to where packet came from
-  if (proto == "udp")
-    m_responseAddresses.AppendAddress(m_transport->GetLastReceivedAddress());
+  // From here it's RFC3263 section 5.
+
+  // First, if UDP, send to ip address the packet came from and port from Via
+  if (proto == "udp") {
+    PIPAddress ip;
+    if (m_transport->GetLastReceivedAddress().GetIpAddress(ip))
+      m_responseAddresses.AppendAddress(OpalTransportAddress(ip, port, proto));
+  }
 
   // If above fails, we try some other options.
 
