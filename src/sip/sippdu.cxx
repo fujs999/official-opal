@@ -2275,7 +2275,7 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
   else
     colon = sent_by.Find(':');
   if (colon != P_MAX_INDEX)
-    port = (WORD)sent_by.Mid(colon).AsUnsigned();
+    port = (WORD)sent_by.Mid(colon+1).AsUnsigned();
 
   // RFC3261 18.2.2 First possibility is if has received address, NAT!
   PINDEX start, end;
