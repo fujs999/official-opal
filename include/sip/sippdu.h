@@ -725,6 +725,7 @@ class SIP_PDU : public PSafeObject
   protected:
     void CalculateVia();
     StatusCodes InternalSend(bool canDoTCP);
+    void InternalSetResponseAddresses(const PString & via);
 
     Methods     m_method;                 // Request type, ==NumMethods for Response
     StatusCodes m_statusCode;
