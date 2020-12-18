@@ -2234,35 +2234,29 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
   datagram = PString(pdu);
   status = Parse(datagram, truncated);
 
-  #if PTRACING
+#if PTRACING
   if (status == Local_TransportLost && PTrace::CanTrace(2)) {
     if (m_transport->GetLastReceivedAddress() == m_transport->GetRemoteAddress() &&
-        pdu.GetSize() <= 4 && memcmp(pdu.GetPointer(), "\0\0\0", std::min((PINDEX)4, pdu.GetSize())) == 0)
+                    pdu.GetSize() <= 4 && memcmp(pdu.GetPointer(), "\0\0\0", std::min((PINDEX)4, pdu.GetSize())) == 0)
       PTRACE(4, "Probable keep-alive on " << *m_transport);
     else
       PTRACE(2, "Invalid datagram from " << m_transport->GetLastReceivedAddress() << " on " << *m_transport <<
-             " - " << pdu.GetSize() << " bytes:\n" << hex << setprecision(2) << pdu << dec);
+                " - " << pdu.GetSize() << " bytes:\n" << hex << setprecision(2) << pdu << dec);
   }
-  #endif
+#endif
 
   if (m_method == NumMethods)
     return status;
 
-  InternalSetResponseAddresses(m_mime.GetFirstVia());
-  return status;
-}
-
-
-void SIP_PDU::InternalSetResponseAddresses(const PString & via)
-{
   // Follow rules from RFC3261 18.2.2 and RFC3263 section 5
   // Note that the below only applies to unreliable (UDP) transport, or if
   // the reliable transport fails.
 
   // Set the default return address for the response, must send back to Via address
+  PString via = m_mime.GetFirstVia();
   PINDEX space = via.Find(' ');
   if (via.IsEmpty() || space == P_MAX_INDEX)
-    return; // Illegal via, only hope is IP sender
+    return status; // Illegal via, only hope is IP sender
 
   // get the protocol type from Via header
   PINDEX pos;
@@ -2307,7 +2301,7 @@ void SIP_PDU::InternalSetResponseAddresses(const PString & via)
   PIPAddress ip(sent_by.Left(pos));
   if (ip.IsValid()) {
     m_responseAddresses.AppendAddress(OpalTransportAddress(ip, port, proto), true);
-    return;
+    return status;
   }
 
   // We have a DNS name, get all possible IP's
@@ -2317,7 +2311,7 @@ void SIP_PDU::InternalSetResponseAddresses(const PString & via)
     if (PDNS::LookupSRV(sent_by, "_sip._" + proto, port, addrs)) {
       for (size_t i = 0; i < addrs.size(); ++i)
         m_responseAddresses.AppendAddress(OpalTransportAddress(addrs[i], proto), true);
-      return;
+      return status;
     }
   }
 
@@ -2327,6 +2321,8 @@ void SIP_PDU::InternalSetResponseAddresses(const PString & via)
     if (ip.FromString(aliases[i]))
       m_responseAddresses.AppendAddress(OpalTransportAddress(ip, port, proto), true);
   }
+
+  return status;
 }
 
 
@@ -3924,14 +3920,12 @@ class SIPTransactionOwnerDummy : public PSafeObject, public SIPTransactionOwner
 
 SIPResponse::SIPResponse(SIPEndPoint & endpoint, const SIP_PDU & request, StatusCodes code)
   : SIPTransaction(NumMethods,
-                   new SIPTransactionOwnerDummy(endpoint, request.GetURI()),
-                   request.GetTransport(),
+                   new SIPTransactionOwnerDummy(endpoint, request.GetURI()), request.GetTransport(),
                    true,
                    request.GetTransactionID())
 {
   m_statusCode = code;
   InitialiseHeaders(request);
-  InternalSetResponseAddresses(request.GetMIME().GetFirstVia());
 }
 
 
