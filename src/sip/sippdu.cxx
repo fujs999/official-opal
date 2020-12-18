@@ -2525,8 +2525,10 @@ bool SIP_PDU::Send()
   P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   // Just send for a command
-  if (m_method != NumMethods || m_responseAddresses.IsEmpty())
+  if (m_method != NumMethods || m_responseAddresses.IsEmpty()) {
+    PTRACE_IF(4, m_method == NumMethods, "No response addresses, using transport default.");
     return InternalSend(false) == Successful_OK;
+  }
 
   // Sending responses is a bit more complex
   bool canDoReliable = false;
@@ -2538,6 +2540,9 @@ bool SIP_PDU::Send()
   bool requireReliable = false;
   for (PINDEX index = 0; index < m_responseAddresses.GetSize(); ++index) {
     OpalTransportAddress addr = m_responseAddresses[index];
+    PTRACE(4, "Trying response address #" << index << ' ' << addr << ","
+              " canDoReliable=" << boolalpha << canDoReliable << ","
+              " requireReliable=" << requireReliable);
 
     if (requireReliable && addr.GetProto() != OpalTransportAddress::UdpPrefix())
       continue;
@@ -3920,12 +3925,14 @@ class SIPTransactionOwnerDummy : public PSafeObject, public SIPTransactionOwner
 
 SIPResponse::SIPResponse(SIPEndPoint & endpoint, const SIP_PDU & request, StatusCodes code)
   : SIPTransaction(NumMethods,
-                   new SIPTransactionOwnerDummy(endpoint, request.GetURI()), request.GetTransport(),
+                   new SIPTransactionOwnerDummy(endpoint, request.GetURI()),
+                   request.GetTransport(),
                    true,
                    request.GetTransactionID())
 {
   m_statusCode = code;
   InitialiseHeaders(request);
+  m_responseAddresses = request.GetResponseAddresses();
 }
 
 
