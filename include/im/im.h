@@ -385,9 +385,9 @@ class OpalIMContext : public PSafeObject
     MessageReceivedNotifier       m_messageReceivedNotifier;
     CompositionIndicationNotifier m_compositionIndicationNotifier;
 
-    PDECLARE_MUTEX(m_outgoingMessagesMutex);
-    OpalIM       * m_currentOutgoingMessage;
-    PQueue<OpalIM> m_outgoingMessages;
+    PDECLARE_MUTEX(      m_outgoingMessagesMutex);
+    OpalIM             * m_currentOutgoingMessage;
+    std::queue<OpalIM *> m_outgoingMessages;
 
     PDECLARE_MUTEX(m_lastUsedMutex);
     PTime  m_lastUsed;

@@ -144,7 +144,7 @@ OpalIMContext::MessageDisposition OpalIMContext::Send(OpalIM * message)
   // if outgoing message still pending, queue this message
   m_outgoingMessagesMutex.Wait();
   if (m_currentOutgoingMessage != NULL) {
-    m_outgoingMessages.Enqueue(message);
+    m_outgoingMessages.push(message);
     m_outgoingMessagesMutex.Signal();
     return DispositionPending;
   }
@@ -208,10 +208,12 @@ void OpalIMContext::InternalOnMessageSent(const DispositionInfo & info)
   OpalIM * message = m_currentOutgoingMessage;
 
   // if there are more messages to send, get one started
-  if (m_outgoingMessages.IsEmpty())
+  if (m_outgoingMessages.empty())
     m_currentOutgoingMessage = NULL;
-  else
-    m_currentOutgoingMessage = m_outgoingMessages.Dequeue();
+  else {
+    m_currentOutgoingMessage = m_outgoingMessages.front();
+    m_outgoingMessages.pop();
+  }
   
   // unlock the queue
   m_outgoingMessagesMutex.Signal();
