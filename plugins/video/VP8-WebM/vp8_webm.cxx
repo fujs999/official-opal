@@ -450,6 +450,7 @@ class VP8Encoder : public PluginVideoEncoder<VP8_CODEC>
       m_config.rc_end_usage = VPX_CBR;
       m_config.g_timebase.num = 1;
       m_config.g_timebase.den = PLUGINCODEC_VIDEO_CLOCK;
+      m_config.rc_undershoot_pct = 95;
 
       if (!OnChangedOptions())
         return false;
@@ -491,12 +492,18 @@ class VP8Encoder : public PluginVideoEncoder<VP8_CODEC>
 
       m_config.rc_target_bitrate = m_maxBitRate/1000;
       m_config.rc_buf_sz = m_rateControlPeriod;
+      m_config.rc_buf_initial_sz = m_rateControlPeriod*3/5;
       m_config.rc_buf_optimal_sz = m_rateControlPeriod*4/5;
 
       // Take simple temporal/spatial trade off and set multiple variables
-      m_config.rc_resize_allowed = m_tsto > 29;
       if (m_tsto < 31) {
-        m_config.rc_dropframe_thresh = 60 + m_tsto;     // Range from 60% to 90%
+        // From the docs on rc_dropframe_thresh:
+        // > This threshold is described as a percentage of the target data buffer. When the data
+        // > buffer falls below this percentage of fullness, a dropped frame is indicated. Set the
+        // > threshold to zero (0) to disable this feature.
+        // Note that the buffer being considered is the decoder's buffer; a higher percentage is
+        // likely to cause more dropped frames.
+        m_config.rc_dropframe_thresh = 60 - m_tsto;     // Range from 60% to 30%
         m_config.rc_max_quantizer = m_maxQ*m_tsto/31;
       }
       else {
@@ -509,10 +516,15 @@ class VP8Encoder : public PluginVideoEncoder<VP8_CODEC>
                               " kf_dist=" << m_config.kf_min_dist << '-' << m_config.kf_max_dist << ","
                               " rc_dropframe_thresh=" << m_config.rc_dropframe_thresh << ","
                               " rc_resize_allowed=" << m_config.rc_resize_allowed << ","
+                              " rc_resize_up_thresh=" << m_config.rc_resize_up_thresh << ","
+                              " rc_resize_down_thresh=" << m_config.rc_resize_down_thresh << ","
+                              " rc_min_quantizer=" << m_config.rc_min_quantizer << ","
                               " rc_max_quantizer=" << m_config.rc_max_quantizer << ","
                               " rc_buf_sz=" << m_config.rc_buf_sz << ","
+                              " rc_buf_initial_sz=" << m_config.rc_buf_initial_sz << ","
                               " rc_buf_optimal_sz=" << m_config.rc_buf_optimal_sz << ","
-                              " rc_undershoot_pct=" << m_config.rc_undershoot_pct);
+                              " rc_undershoot_pct=" << m_config.rc_undershoot_pct << ","
+                              " rc_overshoot_pct=" << m_config.rc_overshoot_pct);
 
       if (m_config.g_w == m_width && m_config.g_h == m_height)
         return !IS_ERROR(vpx_codec_enc_config_set, (&m_codec, &m_config));

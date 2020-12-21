@@ -782,8 +782,8 @@ bool SIPEndPoint::OnReceivedPDU(SIP_PDU * pdu)
      sounds due to allowing for talking to ones self, always thought madness
      generally lies that way ... */
 
-  PString fromToken = mime.GetFieldParameter("from", "tag");
-  PString toToken = mime.GetFieldParameter("to", "tag");
+  PString fromToken = mime.GetFromTag();
+  PString toToken = mime.GetToTag();
   bool hasFromConnection = HasConnection(fromToken);
   bool hasToConnection = HasConnection(toToken);
 

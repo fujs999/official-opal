@@ -817,13 +817,13 @@ PBoolean OpalFaxConnection::SendUserInputTone(char tone, unsigned duration)
 void OpalFaxConnection::OnUserInputTone(char tone, unsigned /*duration*/)
 {
   // Not yet switched and got a CNG/CED from the remote system, start switch
-  if (m_disableT38 || IsReleased())
+  if (IsReleased())
     return;
 
   if (m_receiving ? (tone == 'X')
                   : (tone == 'Y' && m_stringOptions.GetBoolean(OPAL_SWITCH_ON_CED))) {
     PTRACE(3, "Requesting mode change in response to " << (tone == 'X' ? "CNG" : "CED"));
-    SwitchFaxMediaStreams(true);
+    SwitchFaxMediaStreams(!m_disableT38);
   }
 }
 
