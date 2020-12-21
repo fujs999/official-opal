@@ -17,17 +17,7 @@ else
   mkdir $RESULT_DIR || exit $?
 fi
 
-if [ `uname` = Darwin ]; then
-  IFACE=`netstat -rnf inet | sed -nE 's/default +[^ ]+ +[^ ]+ +[^ ]+ +[^ ]+ +//p'`
-else
-  IFACE=`ip route | sed -n 's/default.*dev //p'`
-fi
-if [ -n "$IFACE" ]; then
-  HOST=`/sbin/ifconfig $IFACE 2>/dev/null | grep 'inet ' | sed -E 's/.*inet[^0-9]*([0-9\.]+).*/\1/'`
-fi
-if [ -z "$HOST" ]; then
-  HOST=`hostname`
-fi
+HOST=127.0.0.1
 
 function test_fax()
 {
