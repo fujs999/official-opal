@@ -926,7 +926,11 @@ OpalMediaStreamPtr SIPConnection::OpenMediaStream(const OpalMediaFormat & mediaF
     }
   }
 
-  if (!m_ownerCall.IsSwitchingT38() && newStream == oldStream && GetMediaStream(sessionID, !isSource) == otherStream)
+  if (newStream == oldStream && 
+#if OPAL_T38_CAPABILITY
+      !m_ownerCall.IsSwitchingT38() &&
+#endif
+      GetMediaStream(sessionID, !isSource) == otherStream)
     PTRACE(4, "No re-INVITE to open channel as no change to streams");
   else
     SendReINVITE(PTRACE_PARAM("open channel", ) 2);
