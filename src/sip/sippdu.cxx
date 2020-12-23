@@ -939,6 +939,12 @@ SIPURL SIPMIMEInfo::GetFrom() const
 }
 
 
+PString SIPMIMEInfo::GetFromTag() const
+{
+  return GetFieldParameter("From", TagStr);
+}
+
+
 void SIPMIMEInfo::SetFrom(const SIPURL & uri)
 {
   SetAt("From", uri.AsQuotedString());
@@ -1025,6 +1031,12 @@ void SIPMIMEInfo::SetSubject(const PString & v)
 SIPURL SIPMIMEInfo::GetTo() const
 {
   return SIPURL(*this, "To");
+}
+
+
+PString SIPMIMEInfo::GetToTag() const
+{
+  return GetFieldParameter("To", TagStr);
 }
 
 
@@ -2263,7 +2275,7 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
   else
     colon = sent_by.Find(':');
   if (colon != P_MAX_INDEX)
-    port = (WORD)sent_by.Mid(colon).AsUnsigned();
+    port = (WORD)sent_by.Mid(colon+1).AsUnsigned();
 
   // RFC3261 18.2.2 First possibility is if has received address, NAT!
   PINDEX start, end;
@@ -2274,9 +2286,14 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
   if (LocateFieldParameter(via, "maddr", start, pos, end))
     m_responseAddresses.AppendAddress(OpalTransportAddress(via(pos, end), port, proto), true);
 
-  // From here it's RFC3263 section 5, starts with, if UDP, send to where packet came from
-  if (proto == "udp")
-    m_responseAddresses.AppendAddress(m_transport->GetLastReceivedAddress());
+  // From here it's RFC3263 section 5.
+
+  // First, if UDP, send to ip address the packet came from and port from Via
+  if (proto == "udp") {
+    PIPAddress ip;
+    if (m_transport->GetLastReceivedAddress().GetIpAddress(ip))
+      m_responseAddresses.AppendAddress(OpalTransportAddress(ip, port, proto));
+  }
 
   // If above fails, we try some other options.
 
@@ -2508,8 +2525,10 @@ bool SIP_PDU::Send()
   P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   // Just send for a command
-  if (m_method != NumMethods || m_responseAddresses.IsEmpty())
+  if (m_method != NumMethods || m_responseAddresses.IsEmpty()) {
+    PTRACE_IF(4, m_method == NumMethods, "No response addresses, using transport default.");
     return InternalSend(false) == Successful_OK;
+  }
 
   // Sending responses is a bit more complex
   bool canDoReliable = false;
@@ -2521,6 +2540,9 @@ bool SIP_PDU::Send()
   bool requireReliable = false;
   for (PINDEX index = 0; index < m_responseAddresses.GetSize(); ++index) {
     OpalTransportAddress addr = m_responseAddresses[index];
+    PTRACE(4, "Trying response address #" << index << ' ' << addr << ","
+              " canDoReliable=" << boolalpha << canDoReliable << ","
+              " requireReliable=" << requireReliable);
 
     if (requireReliable && addr.GetProto() != OpalTransportAddress::UdpPrefix())
       continue;
@@ -2841,7 +2863,7 @@ void SIPDialogContext::SetLocalURI(const SIPURL & url)
 {
   m_localURI = url;
   m_localURI.Sanitise(SIPURL::FromURI);
-  m_localTag = m_localURI.SetTag(m_localTag);
+  m_localTag = m_localURI.SetTag(m_localTag.IsEmpty() ? SIPURL::GenerateTag() : m_localTag);
   PTRACE(4, "Set dialog local URI to " << m_localURI.AsQuotedString());
 }
 
@@ -3903,12 +3925,14 @@ class SIPTransactionOwnerDummy : public PSafeObject, public SIPTransactionOwner
 
 SIPResponse::SIPResponse(SIPEndPoint & endpoint, const SIP_PDU & request, StatusCodes code)
   : SIPTransaction(NumMethods,
-                   new SIPTransactionOwnerDummy(endpoint, request.GetURI()), request.GetTransport(),
+                   new SIPTransactionOwnerDummy(endpoint, request.GetURI()),
+                   request.GetTransport(),
                    true,
                    request.GetTransactionID())
 {
   m_statusCode = code;
   InitialiseHeaders(request);
+  m_responseAddresses = request.GetResponseAddresses();
 }
 
 

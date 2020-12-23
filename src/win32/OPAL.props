@@ -15,8 +15,7 @@
     <PTLIBDIR Condition="'$(PTLIBDIR)' == ''">$(ProjectDir)..\..\..\PTLib</PTLIBDIR>
     <WXDIR Condition="'$(WXDIR)' == ''">$(ProjectDir)..\..\..\external\wxWidgets</WXDIR>
     <WXVER Condition="'$(WXVER)' == ''">31</WXVER>
-    <WXPLATFORM Condition="'$(WXPLATFORM)' == ''">14x</WXPLATFORM>
-    <LocalDebuggerEnvironment>PATH=$(PATH);$(ProjectDir)..\..\Lib;$(PTLIBDIR)\Lib;$(FFMPEG64DIR)\bin;$(LUA64DIR);$(OPENSSL64DIR)\bin;$(WXDIR)\lib\vc$(WXPLATFORM)_$(Platform)_dll
+    <LocalDebuggerEnvironment>PATH=$(PATH);$(FFMPEG64DIR)\bin;$(LUA64DIR);$(OPENSSL64DIR)\bin;$(ProjectDir)..\..\Lib;$(PTLIBDIR)\Lib;$(wxLibOrDllDir)
 PTLIBPLUGINDIR=$(ProjectDir)..\..\bin\plugins\x64\Debug</LocalDebuggerEnvironment>
   </PropertyGroup>
   <PropertyGroup />

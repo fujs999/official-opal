@@ -926,7 +926,11 @@ OpalMediaStreamPtr SIPConnection::OpenMediaStream(const OpalMediaFormat & mediaF
     }
   }
 
-  if (newStream == oldStream && GetMediaStream(sessionID, !isSource) == otherStream)
+  if (newStream == oldStream && 
+#if OPAL_T38_CAPABILITY
+      !m_ownerCall.IsSwitchingT38() &&
+#endif
+      GetMediaStream(sessionID, !isSource) == otherStream)
     PTRACE(4, "No re-INVITE to open channel as no change to streams");
   else
     SendReINVITE(PTRACE_PARAM("open channel", ) 2);
@@ -2221,8 +2225,8 @@ SIPConnection::TypeOfINVITE SIPConnection::CheckINVITE(const SIP_PDU & request) 
   }
 
   const SIPMIMEInfo & requestMIME = request.GetMIME();
-  PString requestFromTag = requestMIME.GetFieldParameter("From", "tag");
-  PString requestToTag   = requestMIME.GetFieldParameter("To",   "tag");
+  PString requestFromTag = requestMIME.GetFromTag();
+  PString requestToTag   = requestMIME.GetToTag();
 
   // Criteria for our existing dialog.
   if (!requestToTag.IsEmpty() &&
@@ -2529,10 +2533,10 @@ void SIPConnection::OnReceivedACK(SIP_PDU & ack)
   }
 
   // Forked request
-  PString origFromTag = m_lastReceivedINVITE->GetMIME().GetFieldParameter("From", "tag");
-  PString origToTag   = m_lastReceivedINVITE->GetMIME().GetFieldParameter("To",   "tag");
-  PString fromTag     = ack.GetMIME().GetFieldParameter("From", "tag");
-  PString toTag       = ack.GetMIME().GetFieldParameter("To",   "tag");
+  PString origFromTag = m_lastReceivedINVITE->GetMIME().GetFromTag();
+  PString origToTag   = m_lastReceivedINVITE->GetMIME().GetToTag();
+  PString fromTag     = ack.GetMIME().GetFromTag();
+  PString toTag       = ack.GetMIME().GetToTag();
   if (fromTag != origFromTag || (!toTag.IsEmpty() && (toTag != origToTag))) {
     PTRACE(3, "ACK received for forked INVITE from " << ack.GetURI());
     return;
