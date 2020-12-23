@@ -537,10 +537,7 @@ OPAL_PRESENTITY_COMMAND(OpalSendMessageToCommand, OpalPresentity, Internal_SendM
 /////////////////////////////////////////////////////////////////////////////
 
 OpalPresentityWithCommandThread::OpalPresentityWithCommandThread()
-  : m_commandSequence(0)
-  , m_threadRunning(false)
-  , m_queueRunning(false)
-  , m_thread(NULL)
+  : m_threadPool(4, 0, "Presence")
 {
 }
 
@@ -548,98 +545,50 @@ OpalPresentityWithCommandThread::OpalPresentityWithCommandThread()
 OpalPresentityWithCommandThread::OpalPresentityWithCommandThread(
                            const OpalPresentityWithCommandThread & other)
   : OpalPresentity(other)
-  , m_commandSequence(0)
-  , m_threadRunning(false)
-  , m_queueRunning(false)
-  , m_thread(NULL)
+  , m_threadPool()
 {
 }
 
 
 OpalPresentityWithCommandThread::~OpalPresentityWithCommandThread()
 {
-  StopThread();
-
-  while (!m_commandQueue.empty()) {
-    delete m_commandQueue.front();
-    m_commandQueue.pop();
-  }
+  Close();
 }
 
 
-void OpalPresentityWithCommandThread::StartThread(bool startQueue)
+bool OpalPresentityWithCommandThread::Close()
 {
-  if (m_threadRunning)
-    return;
-
-  // start handler thread
-  m_threadRunning = true;
-  m_queueRunning  = startQueue;
-  m_thread = new PThreadObj<OpalPresentityWithCommandThread>(*this, &OpalPresentityWithCommandThread::ThreadMain, false, "Presence");
-}
-
-void OpalPresentityWithCommandThread::StartQueue(bool startQueue)
-{
-  if (m_threadRunning) {
-    m_queueRunning = startQueue;
-    m_commandQueueSync.Signal();
-  }
-}
-
-void OpalPresentityWithCommandThread::StopThread()
-{
-  m_threadRunning = false;
-  m_commandQueueSync.Signal();
-  PThread::WaitAndDelete(m_thread);
+  m_threadPool.Shutdown();
+  return OpalPresentity::Close();
 }
 
 
 bool OpalPresentityWithCommandThread::SendCommand(OpalPresentityCommand * cmd)
 {
-  if (!m_threadRunning) {
-    delete cmd;
-    return false;
-  }
+  WorkItem * item = new WorkItem(*this, cmd);
+  if (m_threadPool.AddWork(item))
+    return true;
 
-  {
-    PWaitAndSignal m(m_commandQueueMutex);
-    cmd->m_sequence = ++m_commandSequence;
-    m_commandQueue.push(cmd);
-  }
-
-  m_commandQueueSync.Signal();
-
-  return true;
+  delete item;
+  return false;
 }
 
 
-
-void OpalPresentityWithCommandThread::ThreadMain()
+OpalPresentityWithCommandThread::WorkItem::WorkItem(OpalPresentityWithCommandThread & owner, OpalPresentityCommand * command)
+  : m_owner(owner)
+  , m_command(command)
 {
-  PTRACE(4, "Command thread started");
+}
 
-  while (m_threadRunning) {
-    if (m_queueRunning) {
-      OpalPresentityCommand * cmd = NULL;
 
-      {
-        PWaitAndSignal mutex(m_commandQueueMutex);
-        if (!m_commandQueue.empty()) {
-          cmd = m_commandQueue.front();
-          m_commandQueue.pop();
-        }
-      }
-  
-      if (cmd != NULL) {
-        cmd->Process(*this);
-        delete cmd;
-      }
-    }
+OpalPresentityWithCommandThread::WorkItem::~WorkItem()
+{
+  delete m_command;
+}
 
-    m_commandQueueSync.Wait(1000);
-  }
 
-  PTRACE(4, "Command thread ended");
+void OpalPresentityWithCommandThread::WorkItem::Work() {
+  m_command->Process(m_owner);
 }
 
 #endif // OPAL_HAS_PRESENCE

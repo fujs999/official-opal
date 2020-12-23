@@ -26,11 +26,10 @@
     <?else?>
         <?if $(var.Architecture) = "x86" ?>
             <?define WxPlatform  = "14x" ?>
-            <?define WxDllDir = "$(var.WxDir)\lib\vc$(var.MSVCRT_VER)_dll" ?>
         <?else?>
             <?define WxPlatform  = "14x_$(var.Architecture)" ?>
-            <?define WxDllDir = "$(var.WxDir)\lib\vc$(var.MSVCRT_VER)_$(var.Architecture)_dll" ?>
         <?endif?>
+        <?define WxDllDir = "$(var.WxDir)\lib\vc$(var.WxPlatform)_dll" ?>
     <?endif?>
 <?endif?>
 
