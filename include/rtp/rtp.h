@@ -112,12 +112,12 @@ class RTP_ControlFrame : public PBYTEArray
 
     bool IsValid() const;
 
-    unsigned GetVersion() const { return (BYTE)theArray[m_compoundOffset]>>6; }
+    unsigned GetVersion() const { return GetAt(m_compoundOffset)>>6; }
 
-    unsigned GetCount() const { return (BYTE)theArray[m_compoundOffset]&0x1f; }
+    unsigned GetCount() const { return GetAt(m_compoundOffset)&0x1f; }
     void     SetCount(unsigned count);
 
-    RTP_SyncSourceId GetSenderSyncSource() const { return *(PUInt32b *)(theArray + 4); } // Always first DWORD in the first payload
+    RTP_SyncSourceId GetSenderSyncSource() const { return GetAs<PUInt32b>(4); } // Always first DWORD in the first payload
 
     enum PayloadTypes {
       e_FirstValidPayloadType   = 192, // RFC5761
@@ -133,10 +133,10 @@ class RTP_ControlFrame : public PBYTEArray
       e_LastValidPayloadType    = 223  // RFC5761
     };
 
-    PayloadTypes GetPayloadType() const { return (PayloadTypes)(BYTE)theArray[m_compoundOffset+1]; }
+    PayloadTypes GetPayloadType() const { return (PayloadTypes)GetAt(m_compoundOffset+1); }
     void         SetPayloadType(PayloadTypes pt);
 
-    PINDEX GetPayloadSize() const { return 4*(*(PUInt16b *)&theArray[m_compoundOffset+2]); }
+    PINDEX GetPayloadSize() const { return 4*GetAs<PUInt16b>(m_compoundOffset+2); }
     bool   SetPayloadSize(PINDEX sz);
 
     BYTE * GetPayloadPtr() const;
@@ -329,7 +329,7 @@ class RTP_ControlFrame : public PBYTEArray
       PUInt32b mediaSSRC;   /* data source of media */
     };
 
-    unsigned GetFbType() const { return (BYTE)theArray[m_compoundOffset]&0x1f; }
+    unsigned GetFbType() const { return GetAt(m_compoundOffset)&0x1f; }
 
     FbHeader * AddFeedback(PayloadTypes pt, unsigned type, PINDEX fciSize);
     template <typename FB> void AddFeedback(PayloadTypes pt, unsigned type, FB * & data) { data = (FB *)AddFeedback(pt, type, sizeof(FB)); }
@@ -605,34 +605,34 @@ class RTP_DataFrame : public PBYTEArray
       IllegalPayloadType
     };
 
-    unsigned GetVersion() const { return (theArray[0]>>6)&3; }
+    unsigned GetVersion() const { return (GetAt(0)>>6)&3; }
 
-    bool GetExtension() const   { return (theArray[0]&0x10) != 0; }
+    bool GetExtension() const   { return (GetAt(0)&0x10) != 0; }
     void SetExtension(bool ext);
 
-    bool GetMarker() const { return (theArray[1]&0x80) != 0; }
+    bool GetMarker() const { return (GetAt(1)&0x80) != 0; }
     void SetMarker(bool m);
 
-    bool GetPadding() const { return (theArray[0]&0x20) != 0; }
-    void SetPadding(bool v)  { if (v) theArray[0] |= 0x20; else theArray[0] &= 0xdf; }
-    BYTE * GetPaddingPtr() const { return (BYTE *)(theArray+m_headerSize+m_payloadSize); }
+    bool GetPadding() const { return (GetAt(0)&0x20) != 0; }
+    void SetPadding(bool v)  { if (v) (*this)[0] |= 0x20; else (*this)[0] &= 0xdf; }
+    BYTE * GetPaddingPtr() const { return const_cast<BYTE *>(GetPointer()+m_headerSize+m_payloadSize); }
 
     PINDEX GetPaddingSize() const { return m_paddingSize > 0 ? m_paddingSize-1 : 0; }
     bool   SetPaddingSize(PINDEX sz);
 
-    PayloadTypes GetPayloadType() const { return (PayloadTypes)(theArray[1]&0x7f); }
+    PayloadTypes GetPayloadType() const { return (PayloadTypes)(GetAt(1)&0x7f); }
     void         SetPayloadType(PayloadTypes t);
 
-    RTP_SequenceNumber GetSequenceNumber() const { return *(PUInt16b *)&theArray[2]; }
-    void SetSequenceNumber(RTP_SequenceNumber n) { *(PUInt16b *)&theArray[2] = n; }
+    RTP_SequenceNumber GetSequenceNumber() const { return GetAs<PUInt16b>(2); }
+    void SetSequenceNumber(RTP_SequenceNumber n) { SetAs<PUInt16b>(2, n); }
 
-    RTP_Timestamp GetTimestamp() const  { return *(PUInt32b *)&theArray[4]; }
-    void  SetTimestamp(RTP_Timestamp t) { *(PUInt32b *)&theArray[4] = t; }
+    RTP_Timestamp GetTimestamp() const  { return GetAs<PUInt32b>(4); }
+    void  SetTimestamp(RTP_Timestamp t) { SetAs<PUInt32b>(4, t); }
 
-    RTP_SyncSourceId GetSyncSource() const  { return *(PUInt32b *)&theArray[8]; }
-    void  SetSyncSource(RTP_SyncSourceId s) { *(PUInt32b *)&theArray[8] = s; }
+    RTP_SyncSourceId GetSyncSource() const  { return GetAs<PUInt32b>(8); }
+    void  SetSyncSource(RTP_SyncSourceId s) { SetAs<PUInt32b>(8, s); }
 
-    PINDEX GetContribSrcCount() const { return theArray[0]&0xf; }
+    PINDEX GetContribSrcCount() const { return GetAt(0)&0xf; }
     RTP_SyncSourceId  GetContribSource(PINDEX idx) const;
     void   SetContribSource(PINDEX idx, RTP_SyncSourceId src);
 
@@ -694,7 +694,7 @@ class RTP_DataFrame : public PBYTEArray
     PINDEX GetPayloadSize() const { return m_payloadSize; }
     bool   SetPayloadSize(PINDEX sz);
     bool   SetPayload(const BYTE * data, PINDEX sz);
-    BYTE * GetPayloadPtr()     const { return (BYTE *)(theArray+m_headerSize); }
+    BYTE * GetPayloadPtr() const { return const_cast<BYTE *>(GetPointer()+m_headerSize); }
 
     virtual PObject * Clone() const { return new RTP_DataFrame(*this); }
 #if PTRACING

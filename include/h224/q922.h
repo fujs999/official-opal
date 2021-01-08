@@ -45,15 +45,15 @@ public:
   Q922_Frame(PINDEX informationFieldSize = 260);
   ~Q922_Frame();
 
-  BYTE GetHighOrderAddressOctet() const { return theArray[0]; }
-  BYTE GetLowOrderAddressOctet() const { return theArray[1]; }
-  void SetHighOrderAddressOctet(BYTE octet) { theArray[0] = octet; }
-  void SetLowOrderAddressOctet(BYTE octet) { theArray[1] = octet; }
+  BYTE GetHighOrderAddressOctet() const { return GetAt(0); }
+  BYTE GetLowOrderAddressOctet() const { return GetAt(1); }
+  void SetHighOrderAddressOctet(BYTE octet) { SetAt(0, octet); }
+  void SetLowOrderAddressOctet(BYTE octet) { SetAt(1, octet); }
 
-  BYTE GetControlFieldOctet() const { return theArray[2]; }
-  void SetControlFieldOctet(BYTE octet) { theArray[2] = octet; }
+  BYTE GetControlFieldOctet() const { return GetAt(2); }
+  void SetControlFieldOctet(BYTE octet) { SetAt(2, octet); }
 
-  BYTE *GetInformationFieldPtr() const { return (BYTE *)(theArray + Q922_HEADER_SIZE); }
+  BYTE *GetInformationFieldPtr() const { return (BYTE *)(GetPointer() + Q922_HEADER_SIZE); }
 
   PINDEX GetInformationFieldSize() const { return m_informationFieldSize; }
   void SetInformationFieldSize(PINDEX size);

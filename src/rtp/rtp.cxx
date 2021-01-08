@@ -61,8 +61,8 @@ RTP_DataFrame::RTP_DataFrame(PINDEX payloadSz, PINDEX bufferSz)
   , m_payloadSize(payloadSz)
   , m_paddingSize(0)
 {
-  theArray[0] = '\x80'; // Default to version 2
-  theArray[1] = '\x7f'; // Default to MaxPayloadType
+  SetAt(0, BYTE('\x80')); // Default to version 2
+  SetAt(1, BYTE('\x7f')); // Default to MaxPayloadType
 }
 
 
@@ -117,7 +117,7 @@ bool RTP_DataFrame::SetPacketSize(PINDEX sz)
      the indicating padding size is not larger than the payload itself. Not
      100% accurate, but you do whatever you can.
    */
-  m_paddingSize = theArray[sz-1] & 0xff;
+  m_paddingSize = GetAt(sz-1) & 0xff;
   if (m_headerSize + m_paddingSize > sz) {
     PTRACE(2, "RTP\tInvalid RTP packet, padding indicated but not enough data, "
               "size=" << sz << ", pad=" << m_paddingSize << ", header=" << m_headerSize << ": "
@@ -138,6 +138,7 @@ PINDEX RTP_DataFrame::GetPacketSize() const
 
 void RTP_DataFrame::SetMarker(bool m)
 {
+  BYTE* theArray = GetPointer(MinHeaderSize);
   if (m)
     theArray[1] |= 0x80;
   else
@@ -149,6 +150,7 @@ void RTP_DataFrame::SetPayloadType(PayloadTypes t)
 {
   PAssert(t <= 0x7f, PInvalidParameter);
 
+  BYTE* theArray = GetPointer(MinHeaderSize);
   theArray[1] &= 0x80;
   theArray[1] |= t;
 }
@@ -157,7 +159,7 @@ void RTP_DataFrame::SetPayloadType(PayloadTypes t)
 RTP_SyncSourceId RTP_DataFrame::GetContribSource(PINDEX idx) const
 {
   PAssert(idx < GetContribSrcCount(), PInvalidParameter);
-  return ((PUInt32b *)&theArray[MinHeaderSize])[idx];
+  return GetAs<PUInt32b>(MinHeaderSize + idx*4);
 }
 
 
@@ -170,7 +172,8 @@ bool RTP_DataFrame::AdjustHeaderSize(PINDEX newHeaderSize)
   m_headerSize = newHeaderSize;
 
   PINDEX packetSize = GetPacketSize(); // New packet size
-  if (!SetMinSize(packetSize))
+  BYTE* theArray = GetPointer(packetSize);
+  if (theArray == NULL)
     return false;
 
   if (packetSize > m_headerSize)
@@ -184,20 +187,21 @@ void RTP_DataFrame::SetContribSource(PINDEX idx, RTP_SyncSourceId src)
   PAssert(idx <= 15, PInvalidParameter);
 
   if (idx >= GetContribSrcCount()) {
-    theArray[0] &= 0xf0;
-    theArray[0] |= idx+1;
     if (!AdjustHeaderSize(m_headerSize + 4))
       return;
+    BYTE* theArray = GetPointer();
+    theArray [0] &= 0xf0;
+    theArray [0] |= idx+1;
   }
 
-  ((PUInt32b *)&theArray[MinHeaderSize])[idx] = src;
+  SetAs<PUInt32b>(MinHeaderSize, src);
 }
 
 
 void RTP_DataFrame::CopyHeader(const RTP_DataFrame & other)
 {
   if (AdjustHeaderSize(other.m_headerSize))
-    memcpy(theArray, other.theArray, m_headerSize);
+    memcpy(GetPointer(), other.GetPointer(), m_headerSize);
   m_metaData = other.m_metaData;
 }
 
@@ -205,8 +209,9 @@ void RTP_DataFrame::CopyHeader(const RTP_DataFrame & other)
 void RTP_DataFrame::Copy(const RTP_DataFrame & other)
 {
   PINDEX size = other.GetPacketSize();
-  if (SetMinSize(size)) {
-    memcpy(theArray, other.theArray, size);
+  BYTE* theArray = GetPointer(size);
+  if (theArray != NULL) {
+    memcpy(theArray, other.GetPointer(), size);
     m_headerSize = other.m_headerSize;
     m_payloadSize = other.m_payloadSize;
     m_paddingSize = other.m_paddingSize;
@@ -220,9 +225,10 @@ void RTP_DataFrame::SetExtension(bool ext)
   bool oldState = GetExtension();
   if (ext) {
     if (!oldState && SetExtensionSizeDWORDs(0))
-      *(PUInt16b *)&theArray[MinHeaderSize + 4*GetContribSrcCount()] = 0;
+      SetAs<PUInt16b>(MinHeaderSize + 4*GetContribSrcCount(), 0);
   }
   else {
+    BYTE* theArray = GetPointer();
     theArray[0] &= 0xef;
     if (oldState) {
       PINDEX baseHeader = MinHeaderSize + 4*GetContribSrcCount();
@@ -237,7 +243,7 @@ void RTP_DataFrame::SetExtension(bool ext)
 PINDEX RTP_DataFrame::GetExtensionSizeDWORDs() const
 {
   if (GetExtension())
-    return *(PUInt16b *)&theArray[MinHeaderSize + 4*GetContribSrcCount() + 2];
+    return GetAs<PUInt16b>(MinHeaderSize + 4*GetContribSrcCount() + 2);
 
   return 0;
 }
@@ -249,8 +255,8 @@ bool RTP_DataFrame::SetExtensionSizeDWORDs(PINDEX sz)
   if (!AdjustHeaderSize(extHdrOffset + (sz+1)*4))
     return false;
 
-  theArray[0] |= 0x10;
-  *(PUInt16b *)&theArray[extHdrOffset + 2] = (uint16_t)sz;
+  (*this)[0] |= 0x10;
+  SetAs<PUInt16b>(extHdrOffset + 2, sz);
   return true;
 }
 
@@ -260,7 +266,7 @@ BYTE * RTP_DataFrame::GetHeaderExtension(unsigned & id, PINDEX & length, int idx
   if (!GetExtension())
     return NULL;
 
-  BYTE * ptr = (BYTE *)&theArray[MinHeaderSize + 4*GetContribSrcCount()];
+  BYTE * ptr = const_cast<BYTE *>(GetPointer() + MinHeaderSize + 4*GetContribSrcCount());
   id = *(PUInt16b *)ptr;
   int extensionSize = *(PUInt16b *)(ptr += 2) * 4;
   ptr += 2;
@@ -333,7 +339,7 @@ BYTE * RTP_DataFrame::GetHeaderExtension(HeaderExtensionType type, unsigned idTo
     type = RFC5285_TwoByte;
   }
 
-  BYTE * ptr = (BYTE *)&theArray[MinHeaderSize + 4*GetContribSrcCount()];
+  BYTE * ptr = const_cast<BYTE *>(GetPointer() + MinHeaderSize + 4*GetContribSrcCount());
   unsigned idPresent = *(PUInt16b *)ptr;
   PINDEX extensionSize = *(PUInt16b *)(ptr += 2) * 4;
   ptr += 2;
@@ -437,8 +443,8 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
         return false;
 
       // Primitive, and there can be only one.
-      *(PUInt16b *)(theArray + baseHeaderSize) = (uint16_t)id;
-      memcpy(theArray + baseHeaderSize + 4, data, length);
+      SetAs<PUInt16b>(baseHeaderSize, (uint16_t)id);
+      memcpy(GetPointer() + baseHeaderSize + 4, data, length);
       return true;
 
     case RFC5285_OneByte :
@@ -453,14 +459,14 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
         if (!SetExtensionSizeDWORDs((length + 1 + 3) / 4))
           return false;
 
-        *(PUInt16b *)(theArray + baseHeaderSize) = 0xbede;
-        theArray[baseHeaderSize + 4] = (BYTE)((id << 4)|(length-1));
-        memcpy(theArray + baseHeaderSize + 5, data, length);
+        SetAs<PUInt16b>(baseHeaderSize, 0xbede);
+        SetAt(baseHeaderSize + 4, (id << 4)|(length-1));
+        memcpy(GetPointer() + baseHeaderSize + 5, data, length);
         return true;
       }
 
       // Search for the end of the existing headers, checking if id already there
-      currentExtension = (BYTE *)theArray + baseHeaderSize + 4;
+      currentExtension = GetPointer() + baseHeaderSize + 4;
       for (;;) {
         unsigned currentId = *currentExtension >> 4;
         PINDEX currentLen = (*currentExtension & 0xf)+1;
@@ -498,15 +504,15 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
         if (!SetExtensionSizeDWORDs((length + 2 + 3) / 4))
           return false;
 
-        *(PUInt16b *)(theArray + baseHeaderSize) = 0x1000;
-        theArray[baseHeaderSize + 4] = (BYTE)id;
-        theArray[baseHeaderSize + 5] = (BYTE)length;
-        memcpy(theArray + baseHeaderSize + 6, data, length);
+        SetAs<PUInt16b>(baseHeaderSize, 0x1000);
+        SetAt(baseHeaderSize + 4, (BYTE)id);
+        SetAt(baseHeaderSize + 5, length);
+        memcpy(GetPointer() + baseHeaderSize + 6, data, length);
         return true;
       }
 
       // Search for the end of the existing headers, checking if id already there
-      currentExtension = (BYTE *)theArray + baseHeaderSize + 4;
+      currentExtension = GetPointer() + baseHeaderSize + 4;
       for (;;) {
         unsigned currentId = *currentExtension++;
         --extensionSize;
@@ -540,7 +546,7 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
   }
 
   // Calculate new RFC3550 header extension size, as we append new one to the end
-  PINDEX previousHeadersSize = PAssertNULL(currentExtension) - (BYTE *)&theArray[baseHeaderSize + 2];
+  PINDEX previousHeadersSize = PAssertNULL(currentExtension) - (GetPointer() + baseHeaderSize + 2);
   PINDEX newHeadersSize = previousHeadersSize + (type == RFC5285_OneByte ? 1 : 2) + length; // New appended header size
   if (!SetExtensionSizeDWORDs((newHeadersSize + 3)/4)) // Converted to whole DWORDs
     return false;
@@ -593,7 +599,7 @@ bool RTP_DataFrame::SetPaddingSize(PINDEX paddingSize)
   if (!SetMinSize(packetSize))
     return false;
 
-  theArray[packetSize-1] = (BYTE)m_paddingSize;
+  SetAt(packetSize-1, m_paddingSize);
   return true;
 }
 
@@ -810,6 +816,7 @@ bool RTP_ControlFrame::SetPacketSize(PINDEX size)
 void RTP_ControlFrame::SetCount(unsigned count)
 {
   PAssert(count < 32, PInvalidParameter);
+  BYTE* theArray = GetPointer();
   theArray[m_compoundOffset] &= 0xe0;
   theArray[m_compoundOffset] |= count;
 }
@@ -821,6 +828,7 @@ RTP_ControlFrame::FbHeader * RTP_ControlFrame::AddFeedback(PayloadTypes pt, unsi
 
   StartNewPacket(pt);
   SetPayloadSize(fciSize);
+  BYTE* theArray = GetPointer();
   theArray[m_compoundOffset] &= 0xe0;
   theArray[m_compoundOffset] |= type;
   return (FbHeader *)(theArray + m_compoundOffset + 4); 
@@ -830,7 +838,7 @@ RTP_ControlFrame::FbHeader * RTP_ControlFrame::AddFeedback(PayloadTypes pt, unsi
 void RTP_ControlFrame::SetPayloadType(PayloadTypes pt)
 {
   PAssert(pt >= e_FirstValidPayloadType && pt <= e_LastValidPayloadType, PInvalidParameter);
-  theArray[m_compoundOffset+1] = (BYTE)pt;
+  SetAt(m_compoundOffset+1, (BYTE)pt);
 }
 
 
@@ -851,7 +859,7 @@ bool RTP_ControlFrame::SetPayloadSize(PINDEX sz)
     return false;
 
   // put the new compound size into the packet (always at offset 2)
-  *(PUInt16b *)&theArray[m_compoundOffset+2] = (uint16_t)compoundDWORDs;
+  SetAs<PUInt16b>(m_compoundOffset+2, (uint16_t)compoundDWORDs);
   return true;
 }
 
@@ -861,7 +869,7 @@ BYTE * RTP_ControlFrame::GetPayloadPtr() const
   // payload for current packet is always one DWORD after the current compound start
   if ((GetPayloadSize() == 0) || ((m_compoundOffset + 4) >= m_packetSize))
     return NULL;
-  return (BYTE *)(theArray + m_compoundOffset + 4); 
+  return const_cast<BYTE *>(GetPointer() + m_compoundOffset + 4); 
 }
 
 
@@ -887,16 +895,16 @@ bool RTP_ControlFrame::StartNewPacket(PayloadTypes pt)
   if (!SetMinSize(m_compoundOffset + 4))
     return false;
 
-  theArray[m_compoundOffset] = '\x80';      // Set version 2
-  theArray[m_compoundOffset+1] = (BYTE)pt;  // Payload type
-  return SetPayloadSize(0);                 // payload is zero bytes
+  SetAt(m_compoundOffset, BYTE('\x80'));  // Set version 2
+  SetAt(m_compoundOffset+1, (BYTE)pt);    // Payload type
+  return SetPayloadSize(0);         // payload is zero bytes
 }
 
 void RTP_ControlFrame::EndPacket()
 {
   // all packets must align to DWORD boundaries
   while ((m_payloadSize & 3) != 0) {
-    theArray[m_compoundOffset + 4 + m_payloadSize] = 0;
+    SetAt(m_compoundOffset + 4 + m_payloadSize, 0);
     ++m_payloadSize;
   }
 

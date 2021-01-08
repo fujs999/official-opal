@@ -105,8 +105,9 @@ bool Q922_Frame::DecodeAnnexQ(const BYTE *data, PINDEX size)
   if (size >= 260+Q922_HEADER_SIZE || size <= Q922_HEADER_SIZE)
     return false;
 
-  SetMinSize(size);
-  memcpy(theArray, data, size);
+  BYTE * theArray = GetPointer(size);
+  if (theArray)
+    memcpy(theArray, data, size);
 
   SetInformationFieldSize(size - Q922_HEADER_SIZE);
 
@@ -124,14 +125,16 @@ PINDEX Q922_Frame::GetAnnexQEncodedSize() const
 bool Q922_Frame::EncodeAnnexQ(BYTE *data, PINDEX & size) const
 {
   size = GetAnnexQEncodedSize();
-  memcpy(data, theArray, size);
+  memcpy(data, GetPointer(), size);
   return true;
 }
 
 
 bool Q922_Frame::DecodeHDLC(const BYTE *data, PINDEX size)
 {
-  SetMinSize(size);
+  BYTE * theArray = GetPointer(size);
+  if (theArray == NULL)
+    return false;
 
   // a valid frame must contain at least 2xFLAG, 3 octets Q922 header,
   // 2 octets FCS and at least 1 octet information
@@ -250,12 +253,12 @@ bool Q922_Frame::EncodeHDLC(BYTE *buffer, PINDEX & size, PINDEX & theBitIndex) c
 
   // calculating the FCS
   PINDEX dataSize = GetInformationFieldSize() + Q922_HEADER_SIZE;
-  WORD fcs = CalculateFCS((const BYTE *)theArray, dataSize);
+  WORD fcs = CalculateFCS(GetPointer(), dataSize);
 
   // Encoding the data byte-by-byte
   PINDEX count = Q922_HEADER_SIZE + m_informationFieldSize;
   for (PINDEX i = 0; i < count; i++) {
-    EncodeOctet(theArray[i], buffer, octetIndex, bitIndex, onesCounter);
+    EncodeOctet(GetAt(i), buffer, octetIndex, bitIndex, onesCounter);
   }
 
   // Encoding the FCS
