@@ -1028,7 +1028,10 @@ void SDPMediaDescription::SetAttribute(const PString & attr, const PString & val
     candidate.m_priority = words[3].AsUnsigned();
 
     PIPSocket::Address ip;
-    if (!PIPSocket::GetHostAddress(words[4], ip)) {
+    static const PConstCaselessString local(".local");
+    if (local == words[4].Right(local.length()) && m_stringOptions.GetBoolean(OPAL_OPT_ICE_DISABLE_mDNS))
+      ip = PIPAddress(169,254,0,0); // Use "any" link-local address
+    else if (!PIPSocket::GetHostAddress(words[4], ip)) {
       PTRACE(2, "Illegal host or IP address in candidate: \"" << words[4] << '"');
       return;
     }

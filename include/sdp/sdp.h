@@ -97,6 +97,11 @@
 */
 #define OPAL_OPT_OFFER_ICE "Offer-ICE"
 
+/**Disable ICE candidate mDNS support in SDP.
+   Defaults to false.
+*/
+#define OPAL_OPT_ICE_DISABLE_mDNS "ICE-Disable-mDNS"
+
 /**Enable detection of music on hold in SDP.
    Defaults to true.
 */
