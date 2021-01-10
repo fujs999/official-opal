@@ -217,8 +217,8 @@ bool SIP_Presentity::Open()
 
 bool SIP_Presentity::Close()
 {
-  if (!OpalPresentityWithCommandThread::Close())
-    return false;
+  if (!m_open.exchange(false))
+    return false; // Aleady closed
 
   if (!m_publishedTupleId.IsEmpty()) {
     SIP_Presentity_OpalSetLocalPresenceCommand cmd;
@@ -257,6 +257,7 @@ bool SIP_Presentity::Close()
       PThread::Sleep(100);
   }
 
+  OpalPresentityWithCommandThread::Close();
   m_endpoint = NULL;
   PTRACE(3, "SIPPres\t'" << m_aor << "' closed.");
   return true;
