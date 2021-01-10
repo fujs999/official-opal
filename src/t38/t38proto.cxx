@@ -677,14 +677,13 @@ void OpalFaxConnection::AdjustMediaFormats(bool   local,
   // Remove everything but G.711 or fax stuff
   OpalMediaFormatList::iterator it = mediaFormats.begin();
   while (it != mediaFormats.end()) {
-    if ((!m_ownerCall.IsSwitchingToT38() && it->GetMediaType() == OpalMediaType::Audio()) || it->GetMediaType() == "userinput")
-      ++it;
-    else if (*it == OpalG711_ULAW_64K || *it == OpalG711_ALAW_64K) {
+    if (*it == OpalG711_ULAW_64K || *it == OpalG711_ALAW_64K) {
       // If we are using G.711 pass thru fax, then we also include silenceSupp:off SDP parameter.
-      if (m_ownerCall.IsSwitchingToT38())
-        it->SetOptionString(OpalAudioFormat::SilenceSuppressionOption(), "off - - - -");
+      it->SetOptionString(OpalAudioFormat::SilenceSuppressionOption(), "off - - - -");
       ++it;
     }
+    else if ((!m_ownerCall.IsSwitchingToT38() && it->GetMediaType() == OpalMediaType::Audio()) || it->GetMediaType() == "userinput")
+      ++it;
     else if (it->GetMediaType() != OpalMediaType::Fax() || (m_disableT38 && *it == OpalT38))
       mediaFormats -= *it++;
     else
