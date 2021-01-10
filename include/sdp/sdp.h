@@ -541,6 +541,7 @@ class SDPAudioMediaDescription : public SDPRTPAVPMediaDescription
   protected:
     unsigned m_PTime;
     unsigned m_maxPTime;
+    PString  m_silenceSupp;
 };
 
 
