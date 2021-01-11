@@ -724,7 +724,10 @@ void OpalMediaPatch::Main()
   PTRACE(4, "Thread started for " << *this);
 	
 #if OPAL_STATISTICS
-  m_patchThreadId = PThread::GetCurrentThreadId();
+  {
+    P_INSTRUMENTED_LOCK_READ_WRITE(return);
+    m_patchThreadId = PThread::GetCurrentThreadId();
+  }
 #endif
 
   bool asynchronous = OnStartMediaPatch();
