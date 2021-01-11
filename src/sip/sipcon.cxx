@@ -3358,7 +3358,9 @@ void SIPConnection::OnReceivedPRACK(SIP_PDU & request)
     m_responseRetryCount = 0;
     m_responseRetryTimer = GetEndPoint().GetRetryTimeoutMin();
     m_responseFailTimer = GetEndPoint().GetAckTimeout();
-    m_responsePackets.front().Send();
+    // 200 and up has alread been sent, is in queue for timeout retry reasons only.
+    if (m_responsePackets.front().GetStatusCode() < 200)
+      m_responsePackets.front().Send();
   }
 
   if (request.DecodeSDP(*this, m_multiPartMIME))
