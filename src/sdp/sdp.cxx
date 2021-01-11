@@ -2786,6 +2786,7 @@ void SDPAudioMediaDescription::OutputAttributes(ostream & strm) const
   unsigned largestFrameTime = 0;
   unsigned minptimeMax = 0;
   unsigned maxptimeMin = UINT_MAX;
+  PString silenceSupp;
 
   // output attributes for each payload type
   for (SDPMediaFormatList::const_iterator format = m_formats.begin(); format != m_formats.end(); ++format) {
@@ -2805,6 +2806,9 @@ void SDPAudioMediaDescription::OutputAttributes(ostream & strm) const
       if (minptime > 0 && minptime > minptimeMax)
         minptimeMax = minptime;
     }
+
+    if (silenceSupp.empty())
+      silenceSupp = mediaFormat.GetOptionString(OpalAudioFormat::SilenceSuppressionOption());
   }
 
   if (minptimeMax > 0)
@@ -2812,6 +2816,9 @@ void SDPAudioMediaDescription::OutputAttributes(ostream & strm) const
 
   if (maxptimeMin < UINT_MAX)
     strm << "a=maxptime:" << std::max(std::max(minptimeMax,maxptimeMin),largestFrameTime) << CRLF;
+
+  if (!silenceSupp.empty())
+    strm << "a=silenceSupp:" << silenceSupp << CRLF;
 }
 
 
@@ -2841,6 +2848,11 @@ void SDPAudioMediaDescription::SetAttribute(const PString & attr, const PString 
     return;
   }
 
+  if (attr *= "silenceSupp") {
+    m_silenceSupp = value;
+    return;
+  }
+
   return SDPRTPAVPMediaDescription::SetAttribute(attr, value);
 }
 
@@ -2867,6 +2879,9 @@ bool SDPAudioMediaDescription::PostDecode(Direction defaultDirection, const Opal
         frames = 1;
       mediaFormat.SetOptionInteger(OpalAudioFormat::RxFramesPerPacketOption(), frames);
     }
+
+    if (!m_silenceSupp.IsEmpty())
+      mediaFormat.SetOptionString(OpalAudioFormat::SilenceSuppressionOption(), m_silenceSupp);
   }
 
   return true;
