@@ -243,20 +243,20 @@ bool SIP_Presentity::Close()
 
   if (!watcherSubscriptionAOR.IsEmpty()) {
     PTRACE(3, m_aor << " sending final unsubscribe for own presence watcher");
-    m_endpoint->Unsubscribe(SIPSubscribe::Presence | SIPSubscribe::Watcher, watcherSubscriptionAOR, true);
+    m_endpoint->Unsubscribe(SIPEventPackage(SIPSubscribe::Presence | SIPSubscribe::Watcher), watcherSubscriptionAOR, true);
   }
 
   for (StringMap::iterator subs = presenceIdByAor.begin(); subs != presenceIdByAor.end(); ++subs) {
     PTRACE(3, m_aor << " sending final unsubscribe to " << subs->first);
-    m_endpoint->Unsubscribe(SIPSubscribe::Presence, subs->second, true);
+    m_endpoint->Unsubscribe(SIPEventPackage(SIPSubscribe::Presence), subs->second, true);
   }
 
   PTRACE(4, m_aor << " awaiting watcher unsubscription to complete.");
-  while (m_endpoint->IsSubscribed(SIPSubscribe::Presence | SIPSubscribe::Watcher, watcherSubscriptionAOR, true))
+  while (m_endpoint->IsSubscribed(SIPEventPackage(SIPSubscribe::Presence | SIPSubscribe::Watcher), watcherSubscriptionAOR, true))
     PThread::Sleep(100);
   for (StringMap::iterator subs = presenceIdByAor.begin(); subs != presenceIdByAor.end(); ++subs) {
     PTRACE(4, m_aor << " awaiting unsubscription for " << subs->second << " to complete.");
-    while (m_endpoint->IsSubscribed(SIPSubscribe::Presence, subs->second, true))
+    while (m_endpoint->IsSubscribed(SIPEventPackage(SIPSubscribe::Presence), subs->second, true))
       PThread::Sleep(100);
   }
 
