@@ -96,6 +96,8 @@ static const char * const AuthNames[OpalPresentity::NumAuthorisations] = { "allo
 
 static atomic<unsigned> NextRuleId(PRandom::Number());
 
+#define PTraceModule() "SIPPres"
+
 
 //////////////////////////////////////////////////////////////////////////////////////
 
@@ -149,7 +151,7 @@ bool SIP_Presentity::Open()
   // find the endpoint
   m_endpoint = m_manager->FindEndPointAs<SIPEndPoint>("sip");
   if (m_endpoint == NULL) {
-    PTRACE(1, "SIPPres\tCannot open SIP_Presentity without sip endpoint");
+    PTRACE(1, "Cannot open SIP_Presentity without sip endpoint");
     return false;
   }
 
@@ -163,13 +165,13 @@ bool SIP_Presentity::Open()
   else if (subProto == "OMA")
     m_subProtocol = e_OMA;
   else {
-    PTRACE(1, "SIPPres\tUnknown sub-protocol \"" << subProto << '"');
+    PTRACE(1, "Unknown sub-protocol \"" << subProto << '"');
     return false;
   }
 
   if (m_subProtocol == e_PeerToPeer) {
     m_presenceAgentURL = PString::Empty();
-    PTRACE(3, "SIPPres\tUsing peer to peer mode for " << m_aor);
+    PTRACE(3, "Using peer to peer mode for " << m_aor);
   }
   else {
     // find presence server for Presentity as per RFC 3861
@@ -183,7 +185,7 @@ bool SIP_Presentity::Open()
       if (m_aor.GetScheme() == "pres") {
         PStringList hosts;
         bool found = PDNS::LookupSRV(m_aor.GetHostName(), "_pres._sip", hosts) && !hosts.IsEmpty();
-        PTRACE(2, "SIPPres\tSRV lookup for '_pres._sip." << m_aor.GetHostName()
+        PTRACE(2, "SRV lookup for '_pres._sip." << m_aor.GetHostName()
                << "' " << (found ? "succeeded" : "failed"));
         if (found)
           presenceAgent = hosts.front();
@@ -202,7 +204,7 @@ bool SIP_Presentity::Open()
       m_defaultRootURL.SetPort(0);
     }
 
-    PTRACE(3, "SIPPres\tPresentity " << m_aor << " using agent " << m_presenceAgentURL << " and XCAP root " << m_defaultRootURL);
+    PTRACE(3, "Presentity " << m_aor << " using agent " << m_presenceAgentURL << " and XCAP root " << m_defaultRootURL);
   }
 
   m_watcherSubscriptionAOR.MakeEmpty();
@@ -240,26 +242,27 @@ bool SIP_Presentity::Close()
   m_notificationMutex.Signal();
 
   if (!watcherSubscriptionAOR.IsEmpty()) {
-    PTRACE(3, "SIPPres\t'" << m_aor << "' sending final unsubscribe for own presence watcher");
+    PTRACE(3, m_aor << " sending final unsubscribe for own presence watcher");
     m_endpoint->Unsubscribe(SIPSubscribe::Presence | SIPSubscribe::Watcher, watcherSubscriptionAOR, true);
   }
 
   for (StringMap::iterator subs = presenceIdByAor.begin(); subs != presenceIdByAor.end(); ++subs) {
-    PTRACE(3, "SIPPres\t'" << m_aor << "' sending final unsubscribe to " << subs->first);
+    PTRACE(3, m_aor << " sending final unsubscribe to " << subs->first);
     m_endpoint->Unsubscribe(SIPSubscribe::Presence, subs->second, true);
   }
 
-  PTRACE(4, "SIPPres\t'" << m_aor << "' awaiting unsubscriptions to complete.");
+  PTRACE(4, m_aor << " awaiting watcher unsubscription to complete.");
   while (m_endpoint->IsSubscribed(SIPSubscribe::Presence | SIPSubscribe::Watcher, watcherSubscriptionAOR, true))
     PThread::Sleep(100);
   for (StringMap::iterator subs = presenceIdByAor.begin(); subs != presenceIdByAor.end(); ++subs) {
+    PTRACE(4, m_aor << " awaiting unsubscription for " << subs->second << " to complete.");
     while (m_endpoint->IsSubscribed(SIPSubscribe::Presence, subs->second, true))
       PThread::Sleep(100);
   }
 
   OpalPresentityWithCommandThread::Close();
   m_endpoint = NULL;
-  PTRACE(3, "SIPPres\t'" << m_aor << "' closed.");
+  PTRACE(3, m_aor << " closed.");
   return true;
 }
 
@@ -268,11 +271,11 @@ void SIP_Presentity::Internal_SubscribeToPresence(const OpalSubscribeToPresenceC
 {
   if (cmd.m_subscribe) {
     if (m_presenceIdByAor.find(cmd.m_presentity) != m_presenceIdByAor.end()) {
-      PTRACE(3, "SIPPres\t'" << m_aor << "' already subscribed to presence of '" << cmd.m_presentity << '\'');
+      PTRACE(3, m_aor << " already subscribed to presence of '" << cmd.m_presentity << '\'');
       return;
     }
 
-    PTRACE(3, "SIPPres\t'" << m_aor << "' subscribing to presence of '" << cmd.m_presentity << '\'');
+    PTRACE(3, m_aor << " subscribing to presence of '" << cmd.m_presentity << '\'');
 
     // subscribe to the presence event on the presence server
     SIPSubscribe::Params param(SIPSubscribe::Presence);
@@ -298,11 +301,11 @@ void SIP_Presentity::Internal_SubscribeToPresence(const OpalSubscribeToPresenceC
   else {
     StringMap::iterator id = m_presenceIdByAor.find(cmd.m_presentity);
     if (id == m_presenceIdByAor.end()) {
-      PTRACE(3, "SIPPres\t'" << m_aor << "' already unsubscribed to presence of '" << cmd.m_presentity << '\'');
+      PTRACE(3, m_aor << " already unsubscribed to presence of '" << cmd.m_presentity << '\'');
       return;
     }
 
-    PTRACE(3, "SIPPres\t'" << m_aor << "' unsubscribing to presence of '" << cmd.m_presentity << '\'');
+    PTRACE(3, m_aor << " unsubscribing to presence of '" << cmd.m_presentity << '\'');
     m_endpoint->Unsubscribe(SIPSubscribe::Presence, id->second);
   }
 }
@@ -318,7 +321,7 @@ void SIP_Presentity::OnPresenceSubscriptionStatus(SIPSubscribeHandler &, const S
   PString id = status.m_handler->GetCallID();
   StringMap::iterator aor = m_presenceAorById.find(id);
   if (aor == m_presenceAorById.end()) {
-    PTRACE(2, "SIPPres\t'" << m_aor << "' " << "recieved subscription status for unknown ID " << id);
+    PTRACE(2, m_aor << " " << "recieved subscription status for unknown ID " << id);
   }
   else {
     SIPPresenceInfo info(status.m_reason, status.m_wasSubscribing);
@@ -349,7 +352,7 @@ void SIP_Presentity::OnPresenceNotify(SIPSubscribeHandler &, SIPSubscribe::Notif
   m_notificationMutex.Wait();
   for (list<SIPPresenceInfo>::iterator it = infoList.begin(); it != infoList.end(); ++it) {
     SetPIDFEntity(it->m_target);
-    PTRACE(3, "SIPPres\t'" << m_aor << "' request for presence of '" << it->m_entity << "' is " << it->m_state);
+    PTRACE(3, m_aor << " request for presence of '" << it->m_entity << "' is " << it->m_state);
     OnPresenceChange(*it);
   }
   m_notificationMutex.Signal();
@@ -366,23 +369,23 @@ unsigned SIP_Presentity::GetExpiryTime() const
 void SIP_Presentity::Internal_SubscribeToWatcherInfo(const SIPWatcherInfoCommand & cmd)
 {
   if (m_subProtocol == e_PeerToPeer) {
-    PTRACE(3, "SIPPres\tRequires agent to do watcher, aor=" << m_aor);
+    PTRACE(3, "Requires agent to do watcher, aor=" << m_aor);
     return;
   }
 
   if (cmd.m_unsubscribe) {
     if (m_watcherSubscriptionAOR.IsEmpty()) {
-      PTRACE(3, "SIPPres\tAlredy unsubscribed presence watcher for " << m_aor);
+      PTRACE(3, "Alredy unsubscribed presence watcher for " << m_aor);
       return;
     }
 
-    PTRACE(3, "SIPPres\t'" << m_aor << "' sending unsubscribe for own presence watcher");
+    PTRACE(3, m_aor << " sending unsubscribe for own presence watcher");
     m_endpoint->Unsubscribe(SIPSubscribe::Presence | SIPSubscribe::Watcher, m_watcherSubscriptionAOR);
     return;
   }
 
   PString aorStr = m_aor.AsString();
-  PTRACE(3, "SIPPres\t'" << aorStr << "' sending subscribe for own presence.watcherinfo");
+  PTRACE(3, '\'' << aorStr << "' sending subscribe for own presence.watcherinfo");
 
   // subscribe to the presence.winfo event on the presence server
   SIPSubscribe::Params param(SIPSubscribe::Presence | SIPSubscribe::Watcher);
@@ -403,22 +406,22 @@ void SIP_Presentity::Internal_SubscribeToWatcherInfo(const SIPWatcherInfoCommand
 void SIP_Presentity::SetPIDFEntity(PURL & entity)
 {
   if (entity.Parse(m_attributes.Get(SIP_Presentity::PIDFEntityKey), "pres")) {
-    PTRACE(4, "SIPPres\tPIDF entity set via attribute to " << entity);
+    PTRACE(4, "PIDF entity set via attribute to " << entity);
     return;
   }
 
   if (m_aor.GetScheme() == "pres") {
     entity = m_aor;
-    PTRACE(4, "SIPPres\tPIDF entity set via AOR to " << entity);
+    PTRACE(4, "PIDF entity set via AOR to " << entity);
   }
 
   if (entity.Parse(m_aor.GetUserName() + '@' + m_aor.GetHostName(), "pres")) {
-    PTRACE(4, "SIPPres\tPIDF entity derived from AOR as " << entity);
+    PTRACE(4, "PIDF entity derived from AOR as " << entity);
     return;
   }
 
   entity = m_aor;
-  PTRACE(4, "SIPPres\tPIDF entity set via failsafe AOR of " << entity);
+  PTRACE(4, "PIDF entity set via failsafe AOR of " << entity);
 }
 
 
@@ -484,27 +487,27 @@ void SIP_Presentity::OnWatcherInfoNotify(SIPSubscribeHandler &, SIPSubscribe::No
 
   // check version number
   if (m_watcherInfoVersion >= 0 && version <= m_watcherInfoVersion) {
-    PTRACE(3, "SIPPres\t'" << m_aor << "' received repeated NOTIFY for own presence.watcherinfo, already processed");
+    PTRACE(3, m_aor << " received repeated NOTIFY for own presence.watcherinfo, already processed");
     return;
   }
 
   // if this is a full list of watcher info, we can empty out our pending lists
   if (rootElement->GetAttribute("state") *= "full") {
-    PTRACE(3, "SIPPres\t'" << m_aor << "' received full watcher list for own presence.watcherinfo");
+    PTRACE(3, m_aor << " received full watcher list for own presence.watcherinfo");
     m_watcherAorById.clear();
   }
   else if (m_watcherInfoVersion < 0) {
-    PTRACE(2, "SIPPres\t'" << m_aor << "' received partial watcher list for own presence.watcherinfo, but awaiting full list");
+    PTRACE(2, m_aor << " received partial watcher list for own presence.watcherinfo, but awaiting full list");
     return;
   }
   else if (version != m_watcherInfoVersion+1) {
-    PTRACE(2, "SIPPres\t'" << m_aor << "' received partial watcher list for own presence.watcherinfo, but have missing sequence number, resubscribing");
+    PTRACE(2, m_aor << " received partial watcher list for own presence.watcherinfo, but have missing sequence number, resubscribing");
     m_watcherInfoVersion = -1;
     SendCommand(CreateCommand<SIPWatcherInfoCommand>());
     return;
   }
   else {
-    PTRACE(3, "SIPPres\t'" << m_aor << "' received partial watcher list for own presence.watcherinfo");
+    PTRACE(3, m_aor << " received partial watcher list for own presence.watcherinfo");
   }
 
   m_watcherInfoVersion = version;
@@ -534,16 +537,16 @@ void SIP_Presentity::OnReceivedWatcherStatus(PXMLElement * watcher)
   // save pending subscription status from this user
   if (status == "pending") {
     if (existingAOR != m_watcherAorById.end()) {
-      PTRACE(3, "SIPPres\t'" << m_aor << "' received followup to request from '" << authreq.m_presentity << "' for access to presence information");
+      PTRACE(3, m_aor << " received followup to request from '" << authreq.m_presentity << "' for access to presence information");
     } 
     else {
       m_watcherAorById[id] = authreq.m_presentity;
-      PTRACE(3, "SIPPres\t'" << authreq.m_presentity << "' has requested access to presence information of '" << m_aor << '\'');
+      PTRACE(3, '\'' << authreq.m_presentity << "' has requested access to presence information of '" << m_aor << '\'');
       OnAuthorisationRequest(authreq);
     }
   }
   else {
-    PTRACE(3, "SIPPres\t'" << m_aor << "' has received event '" << watcher->GetAttribute("event")
+    PTRACE(3, m_aor << " has received event '" << watcher->GetAttribute("event")
            << "', status '" << status << "', for '" << authreq.m_presentity << '\'');
   }
 }
@@ -553,7 +556,7 @@ static atomic<uint32_t> g_idNumber;
 
 void SIP_Presentity::Internal_SendLocalPresence(const OpalSetLocalPresenceCommand & cmd)
 {
-  PTRACE(3, "SIPPres\t'" << m_aor << "' sending own presence " << cmd.m_state << "/" << cmd.m_note);
+  PTRACE(3, m_aor << " sending own presence " << cmd.m_state << "/" << cmd.m_note);
 
   SIPPresenceInfo sipPresence(cmd);
 
@@ -590,10 +593,10 @@ bool SIP_Presentity::ChangeAuthNode(XCAPClient & xcap, const OpalAuthorisationRe
 
   if (cmd.m_authorisation == AuthorisationRemove) {
     if (xcap.DeleteXml()) {
-      PTRACE(3, "SIPPres\tRule id=" << ruleId << " removed for '" << cmd.m_presentity << "' at '" << m_aor << '\'');
+      PTRACE(3, "Rule id=" << ruleId << " removed for '" << cmd.m_presentity << "' at '" << m_aor << '\'');
     }
     else {
-      PTRACE(3, "SIPPres\tCould not remove rule id=" << ruleId
+      PTRACE(3, "Could not remove rule id=" << ruleId
              << " for '" << cmd.m_presentity << "' at '" << m_aor << "\'\n"
              << xcap.GetLastResponseCode() << ' '  << xcap.GetLastResponseInfo());
     }
@@ -602,7 +605,7 @@ bool SIP_Presentity::ChangeAuthNode(XCAPClient & xcap, const OpalAuthorisationRe
 
   PXML xml;
   if (!xcap.GetXml(xml)) {
-    PTRACE(3, "SIPPres\tCould not locate existing rule id=" << ruleId
+    PTRACE(3, "Could not locate existing rule id=" << ruleId
            << " for '" << cmd.m_presentity << "' at '" << m_aor << '\'');
     return false;
   }
@@ -611,13 +614,13 @@ bool SIP_Presentity::ChangeAuthNode(XCAPClient & xcap, const OpalAuthorisationRe
   if ((root = xml.GetRootElement()) == NULL ||
       (actions = root->GetElement("cr:actions")) == NULL ||
       (subHandling = actions->GetElement("pr:sub-handling")) == NULL) {
-    PTRACE(2, "SIPPres\tInvalid XML in existing rule id=" << ruleId
+    PTRACE(2, "Invalid XML in existing rule id=" << ruleId
            << " for '" << cmd.m_presentity << "' at '" << m_aor << '\'');
     return false;
   }
 
   if (subHandling->GetData() *= AuthNames[cmd.m_authorisation]) {
-    PTRACE(3, "SIPPres\tRule id=" << ruleId << " already set to "
+    PTRACE(3, "Rule id=" << ruleId << " already set to "
            << AuthNames[cmd.m_authorisation] << " for '" << cmd.m_presentity << "' at '" << m_aor << '\'');
     return true;
   }
@@ -626,12 +629,12 @@ bool SIP_Presentity::ChangeAuthNode(XCAPClient & xcap, const OpalAuthorisationRe
   subHandling->SetData(AuthNames[cmd.m_authorisation]);
 
   if (xcap.PutXml(xml)) {
-    PTRACE(3, "SIPPres\tRule id=" << ruleId << " changed to"
+    PTRACE(3, "Rule id=" << ruleId << " changed to"
            << AuthNames[cmd.m_authorisation] << " for '" << cmd.m_presentity << "' at '" << m_aor << '\'');
     return true;
   }
 
-  PTRACE(3, "SIPPres\tCould not change existing rule id=" << ruleId
+  PTRACE(3, "Could not change existing rule id=" << ruleId
          << " for '" << cmd.m_presentity << "' at '" << m_aor << "\'\n"
          << xcap.GetLastResponseCode() << ' '  << xcap.GetLastResponseInfo());
   return false;
@@ -641,7 +644,7 @@ bool SIP_Presentity::ChangeAuthNode(XCAPClient & xcap, const OpalAuthorisationRe
 void SIP_Presentity::Internal_AuthorisationRequest(const OpalAuthorisationRequestCommand & cmd)
 {
   if (m_subProtocol < e_XCAP) {
-    PTRACE(4, "SIPPres\tRequires XCAP to do authorisation, aor=" << m_aor);
+    PTRACE(4, "Requires XCAP to do authorisation, aor=" << m_aor);
     return;
   }
 
@@ -667,7 +670,7 @@ void SIP_Presentity::Internal_AuthorisationRequest(const OpalAuthorisationReques
   // Could not find rule element quickly, get the whole document
   if (!xcapClient.GetXml(xml)) {
     if (xcapClient.GetLastResponseCode() != PHTTP::NotFound) {
-      PTRACE(2, "SIPPres\tUnexpected error getting rule file for '"
+      PTRACE(2, "Unexpected error getting rule file for '"
              << cmd.m_presentity << "' at '" << m_aor << "\'\n"
              << xcapClient.GetLastResponseCode() << ' '  << xcapClient.GetLastResponseInfo());
       return;
@@ -719,12 +722,12 @@ void SIP_Presentity::Internal_AuthorisationRequest(const OpalAuthorisationReques
     }
 
     if (!xcapClient.PutXml(xml)) {
-      PTRACE(2, "SIPPres\tCould not add new rule file for '" << m_aor << "\'\n"
+      PTRACE(2, "Could not add new rule file for '" << m_aor << "\'\n"
              << xcapClient.GetLastResponseCode() << ' '  << xcapClient.GetLastResponseInfo());
       return;
     }
 
-    PTRACE(3, "SIPPres\tNew rule file created for '" << m_aor << '\'');
+    PTRACE(3, "New rule file created for '" << m_aor << '\'');
   }
 
   // Extract all the rules from it
@@ -741,7 +744,7 @@ void SIP_Presentity::Internal_AuthorisationRequest(const OpalAuthorisationReques
       PString watcher = element->GetAttribute("id");
 
       m_authorisationIdByAor[watcher] = ruleId;
-      PTRACE(4, "SIPPres\tGetting rule id=" << ruleId << " for '" << watcher << "' at '" << m_aor << '\'');
+      PTRACE(4, "Getting rule id=" << ruleId << " for '" << watcher << "' at '" << m_aor << '\'');
 
       if (watcher == cmd.m_presentity)
         existingRuleForWatcher = true;
@@ -779,12 +782,12 @@ void SIP_Presentity::Internal_AuthorisationRequest(const OpalAuthorisationReques
   xcapClient.SetNode(node);
 
   if (xcapClient.PutXml(xml)) {
-    PTRACE(3, "SIPPres\tNew rule set to" << AuthNames[cmd.m_authorisation] << " for '" << cmd.m_presentity << "' at '" << m_aor << '\'');
+    PTRACE(3, "New rule set to" << AuthNames[cmd.m_authorisation] << " for '" << cmd.m_presentity << "' at '" << m_aor << '\'');
     m_authorisationIdByAor[cmd.m_presentity] = newRuleId;
     return;
   }
 
-  PTRACE(2, "SIPPres\tCould not add new rule for '" << cmd.m_presentity << "' at '" << m_aor << "\'\n"
+  PTRACE(2, "Could not add new rule for '" << cmd.m_presentity << "' at '" << m_aor << "\'\n"
          << xcapClient.GetLastResponseCode() << ' '  << xcapClient.GetLastResponseInfo());
 }
 
@@ -897,7 +900,7 @@ static bool RecursiveGetBuddyList(OpalPresentity::BuddyList & buddies, XCAPClien
 OpalPresentity::BuddyStatus SIP_Presentity::GetBuddyListEx(BuddyList & buddies)
 {
   if (m_subProtocol < e_XCAP) {
-    PTRACE(4, "SIPPres\tRequires XCAP to have buddies, aor=" << m_aor);
+    PTRACE(4, "Requires XCAP to have buddies, aor=" << m_aor);
     return BuddyStatus_ListFeatureNotImplemented;
   }
 
@@ -915,7 +918,7 @@ OpalPresentity::BuddyStatus SIP_Presentity::GetBuddyListEx(BuddyList & buddies)
 OpalPresentity::BuddyStatus SIP_Presentity::SetBuddyListEx(const BuddyList & buddies)
 {
   if (m_subProtocol < e_XCAP) {
-    PTRACE(4, "SIPPres\tRequires XCAP to have buddies, aor=" << m_aor);
+    PTRACE(4, "Requires XCAP to have buddies, aor=" << m_aor);
     return BuddyStatus_ListFeatureNotImplemented;
   }
 
@@ -951,7 +954,7 @@ OpalPresentity::BuddyStatus SIP_Presentity::SetBuddyListEx(const BuddyList & bud
       return BuddyStatus_OK;
   }
 
-  PTRACE(2, "SIPPres\tError setting buddy list of '" << m_aor << "\'\n"
+  PTRACE(2, "Error setting buddy list of '" << m_aor << "\'\n"
          << xcap.GetLastResponseCode() << ' '  << xcap.GetLastResponseInfo());
 
   return BuddyStatus_GenericFailure;
@@ -961,7 +964,7 @@ OpalPresentity::BuddyStatus SIP_Presentity::SetBuddyListEx(const BuddyList & bud
 OpalPresentity::BuddyStatus SIP_Presentity::DeleteBuddyListEx()
 {
   if (m_subProtocol < e_XCAP) {
-    PTRACE(4, "SIPPres\tRequires XCAP to have buddies, aor=" << m_aor);
+    PTRACE(4, "Requires XCAP to have buddies, aor=" << m_aor);
     return BuddyStatus_ListFeatureNotImplemented;
   }
 
@@ -971,7 +974,7 @@ OpalPresentity::BuddyStatus SIP_Presentity::DeleteBuddyListEx()
   if (xcap.DeleteXml())
     return BuddyStatus_OK;
 
-  PTRACE(2, "SIPPres\tError deleting buddy list of '" << m_aor << "\'\n"
+  PTRACE(2, "Error deleting buddy list of '" << m_aor << "\'\n"
          << xcap.GetLastResponseCode() << ' '  << xcap.GetLastResponseInfo());
   return BuddyStatus_GenericFailure;
 }
@@ -980,7 +983,7 @@ OpalPresentity::BuddyStatus SIP_Presentity::DeleteBuddyListEx()
 OpalPresentity::BuddyStatus SIP_Presentity::GetBuddyEx(BuddyInfo & buddy)
 {
   if (m_subProtocol < e_XCAP) {
-    PTRACE(4, "SIPPres\tRequires XCAP to have buddies, aor=" << m_aor);
+    PTRACE(4, "Requires XCAP to have buddies, aor=" << m_aor);
     return BuddyStatus_ListFeatureNotImplemented;
   }
 
@@ -998,7 +1001,7 @@ OpalPresentity::BuddyStatus SIP_Presentity::GetBuddyEx(BuddyInfo & buddy)
 OpalPresentity::BuddyStatus SIP_Presentity::SetBuddyEx(const BuddyInfo & buddy)
 {
   if (m_subProtocol < e_XCAP) {
-    PTRACE(4, "SIPPres\tRequires XCAP to have buddies, aor=" << m_aor);
+    PTRACE(4, "Requires XCAP to have buddies, aor=" << m_aor);
     return BuddyStatus_ListFeatureNotImplemented;
   }
 
@@ -1015,7 +1018,7 @@ OpalPresentity::BuddyStatus SIP_Presentity::SetBuddyEx(const BuddyInfo & buddy)
     return BuddyStatus_OK;
 
   if (xcap.GetLastResponseCode() != PHTTP::Conflict || xcap.GetLastResponseInfo().Find("Parent") == P_MAX_INDEX) {
-    PTRACE(2, "SIPPres\tError setting buddy '" << buddy.m_presentity << "' of '" << m_aor << "\'\n"
+    PTRACE(2, "Error setting buddy '" << buddy.m_presentity << "' of '" << m_aor << "\'\n"
            << xcap.GetLastResponseCode() << ' '  << xcap.GetLastResponseInfo());
     return BuddyStatus_GenericFailure;
   }
@@ -1030,7 +1033,7 @@ OpalPresentity::BuddyStatus SIP_Presentity::SetBuddyEx(const BuddyInfo & buddy)
 OpalPresentity::BuddyStatus SIP_Presentity::DeleteBuddyEx(const PURL & presentity)
 {
   if (m_subProtocol < e_XCAP) {
-    PTRACE(4, "SIPPres\tRequires XCAP to have buddies, aor=" << m_aor);
+    PTRACE(4, "Requires XCAP to have buddies, aor=" << m_aor);
     return BuddyStatus_ListFeatureNotImplemented;
   }
 
@@ -1040,7 +1043,7 @@ OpalPresentity::BuddyStatus SIP_Presentity::DeleteBuddyEx(const PURL & presentit
   if (xcap.DeleteXml())
     return BuddyStatus_OK;
 
-  PTRACE(2, "SIPPres\tError deleting buddy '" << presentity << "' of '" << m_aor << "\'\n"
+  PTRACE(2, "Error deleting buddy '" << presentity << "' of '" << m_aor << "\'\n"
          << xcap.GetLastResponseCode() << ' '  << xcap.GetLastResponseInfo());
   return BuddyStatus_GenericFailure;
 }
@@ -1049,7 +1052,7 @@ OpalPresentity::BuddyStatus SIP_Presentity::DeleteBuddyEx(const PURL & presentit
 OpalPresentity::BuddyStatus SIP_Presentity::SubscribeBuddyListEx(PINDEX & numSuccessful, bool subscribe)
 {
   if (m_subProtocol < e_XCAP) {
-    PTRACE(4, "SIPPres\tRequires XCAP to have buddies, aor=" << m_aor);
+    PTRACE(4, "Requires XCAP to have buddies, aor=" << m_aor);
     return BuddyStatus_ListFeatureNotImplemented;
   }
 
@@ -1067,7 +1070,7 @@ OpalPresentity::BuddyStatus SIP_Presentity::SubscribeBuddyListEx(PINDEX & numSuc
 
   if (!xcap.GetXml(xml)) {
     if (xcap.GetLastResponseCode() != PHTTP::NotFound) {
-      PTRACE(2, "SIPPres\tUnexpected error getting rls-services file for at '" << m_aor << "\'\n"
+      PTRACE(2, "Unexpected error getting rls-services file for at '" << m_aor << "\'\n"
              << xcap.GetLastResponseCode() << ' '  << xcap.GetLastResponseInfo());
       return OpalPresentity::SubscribeBuddyListEx(numSuccessful, subscribe); // Do individual subscribes
     }
@@ -1079,7 +1082,7 @@ OpalPresentity::BuddyStatus SIP_Presentity::SubscribeBuddyListEx(PINDEX & numSuc
     // Have file, see if have specific service
     PXMLElement * element = xml.GetElement("service", "uri", serviceURI);
     if (element != NULL) {
-      PTRACE(4, "SIPPres\tConfirmed rls-services entry for '" << serviceURI << "\' is\n" << xml);
+      PTRACE(4, "Confirmed rls-services entry for '" << serviceURI << "\' is\n" << xml);
       numSuccessful = P_MAX_INDEX;
       return SubscribeToPresence(serviceURI, subscribe) ? BuddyStatus_OK : BuddyStatus_GenericFailure;
     }
@@ -1103,7 +1106,7 @@ OpalPresentity::BuddyStatus SIP_Presentity::SubscribeBuddyListEx(PINDEX & numSuc
     return SubscribeToPresence(serviceURI, subscribe) ? BuddyStatus_OK : BuddyStatus_GenericFailure;
   }
 
-  PTRACE(2, "SIPPres\tCould not add new rls-services entry for '" << m_aor << "\'\n"
+  PTRACE(2, "Could not add new rls-services entry for '" << m_aor << "\'\n"
          << xcap.GetLastResponseCode() << ' '  << xcap.GetLastResponseInfo());
 
   return OpalPresentity::SubscribeBuddyListEx(numSuccessful, subscribe); // Do individual subscribes
@@ -1157,7 +1160,7 @@ bool XCAPClient::GetXml(const PURL & url, PXML & xml)
 
   PString body;
   if (!GetTextDocument(url, body, hasNode ? "application/xcap-el+xml" : m_contentType)) {
-    PTRACE(3, "SIPPres\tError getting buddy list at '" << url << "\'\n"
+    PTRACE(3, "Error getting buddy list at '" << url << "\'\n"
            << GetLastResponseCode() << ' '  << GetLastResponseInfo());
     return false;
   }
