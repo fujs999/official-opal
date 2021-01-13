@@ -1691,16 +1691,23 @@ bool SIPEndPoint::IsSubscribed(const PString & token, bool includeOffline)
 bool SIPEndPoint::IsSubscribed(const PString & eventPackage, const PString & token, bool includeOffline) 
 {
   PSafePtr<SIPHandler> handler = m_activeSIPHandlers.FindSIPHandlerByCallID(token, PSafeReference);
-  if (handler == NULL)
+  if (handler == NULL) {
     handler = m_activeSIPHandlers.FindSIPHandlerByUrl(token, SIP_PDU::Method_SUBSCRIBE, eventPackage, PSafeReference);
+    if (handler == NULL) {
+      PTRACE(4, "Could not find subscription: token=\"" << token << "\", event=" << eventPackage);
+      return false;
+    }
+  }
   else {
-    if (handler->GetEventPackage() != eventPackage)
-      handler.SetNULL();
+    if (handler->GetEventPackage() != eventPackage) {
+      PTRACE(3, "Subscription mismatch: token=\"" << token << "\", event=" << eventPackage);
+      return false;
+    }
   }
 
-  return handler != NULL &&
-         (includeOffline ? (handler->GetState() != SIPHandler::Unsubscribed)
-                         : (handler->GetState() == SIPHandler::Subscribed));
+  PTRACE(4, "Checking subscription: token=\"" << token << "\", event=" << eventPackage << ", state=" << handler->GetState());
+  return includeOffline ? (handler->GetState() != SIPHandler::Unsubscribed)
+                        : (handler->GetState() == SIPHandler::Subscribed);
 }
 
 
