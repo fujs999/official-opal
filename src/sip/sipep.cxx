@@ -762,6 +762,8 @@ bool SIPEndPoint::OnReceivedPDU(SIP_PDU * pdu)
   if (PAssertNULL(pdu) == NULL)
     return false;
 
+  PTRACE(4, "OnReceivedPDU: method=" << pdu->GetMethod() << ", id=" << pdu->GetTransactionID());
+
   // Prevent any new INVITE/SUBSCRIBE etc etc while we are on the way out.
   if (m_shuttingDown && pdu->GetMethod() != SIP_PDU::NumMethods) {
     pdu->SendResponse(SIP_PDU::Failure_ServiceUnavailable);
@@ -853,6 +855,7 @@ bool SIPEndPoint::OnReceivedPDU(SIP_PDU * pdu)
           }
         }
 
+        PTRACE(4, "Received a new INVITE, sending 100 Trying");
         pdu->SendResponse(SIP_PDU::Information_Trying);
         return OnReceivedINVITE(pdu);
       }

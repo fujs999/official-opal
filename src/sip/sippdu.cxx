@@ -2066,6 +2066,8 @@ void SIP_PDU::InitialiseHeaders(SIPConnection & connection, unsigned cseq)
 
 void SIP_PDU::InitialiseHeaders(const SIP_PDU & request)
 {
+  PTRACE(4, "InitialiseHeaders: id=" << request.GetTransactionID() << ", via=" << request.m_viaAddress);
+
   m_versionMajor = request.GetVersionMajor();
   m_versionMinor = request.GetVersionMinor();
   m_viaAddress = request.m_viaAddress;
