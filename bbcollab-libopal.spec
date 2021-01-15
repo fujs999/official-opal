@@ -1,10 +1,10 @@
 %global version_major  3
 %global version_minor  19
 %global version_patch  6
-%global version_oem    2
+%global version_oem    3
 
 %global ffmpeg_ver_el7 2.6.3-10.4.el7
-%global ptlib_ver_el7 2.19.4.13
+%global ptlib_ver_el7 2.19.4.14
 %global srtp_ver_el7 2.1.0-4.3.el7
 
 # Branch ID should be 0 for local builds/PRs
