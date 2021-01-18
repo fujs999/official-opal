@@ -2254,8 +2254,10 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
   // Note that the below only applies to unreliable (UDP) transport, or if
   // the reliable transport fails.
 
-  // Set the default return address for the response, must send back to Via address
   PString via = m_mime.GetFirstVia();
+  PTRACE(4, "Parsing Via: " << via);
+
+  // Set the default return address for the response, must send back to Via address
   PINDEX space = via.Find(' ');
   if (via.IsEmpty() || space == P_MAX_INDEX)
     return status; // Illegal via, only hope is IP sender
@@ -2453,6 +2455,27 @@ SIP_PDU::StatusCodes SIP_PDU::Parse(istream & stream, bool truncated)
     }
 
     m_entityBody[contentLength] = '\0';
+
+    /* RFC3261 Sections 8.1.1.7 & 17.1.3 transactions are identified by the
+        branch paranmeter in the top most Via and CSeq. We do NOT include the
+        CSeq in our id as we want the CANCEL messages directed at out
+        transaction structure.
+      */
+    m_transactionID = SIPMIMEInfo::ExtractFieldParameter(m_mime.GetFirstVia(), "branch");
+    if (m_transactionID.NumCompare(TransactionPrefix) != EqualTo) {
+      PTRACE(2, "Transaction " << m_mime.GetCSeq() << " has "
+              << (m_transactionID.IsEmpty() ? "no" : "RFC2543") << " branch parameter!");
+
+      SIPURL to(m_mime.GetTo());
+      to.Sanitise(SIPURL::ToURI);
+
+      SIPURL from(m_mime.GetFrom());
+      from.Sanitise(SIPURL::FromURI);
+
+      PStringStream strm;
+      strm << to << from << m_mime.GetCallID() << m_mime.GetCSeq();
+      m_transactionID += strm;
+    }
   }
 
 #if PTRACING
@@ -2477,6 +2500,9 @@ SIP_PDU::StatusCodes SIP_PDU::Parse(istream & stream, bool truncated)
             << ",local=" << m_transport->GetLocalAddress()
             << ",if=" << m_transport->GetLastReceivedInterface();
 
+    if (!m_transactionID.empty())
+      trace << ",id=" << m_transactionID;
+
     if (PTrace::CanTrace(4)) {
       trace << '\n' << cmd << '\n' << setfill('\n') << m_mime << setfill(' ');
       for (const char * ptr = m_entityBody; *ptr != '\0'; ++ptr) {
@@ -2491,31 +2517,7 @@ SIP_PDU::StatusCodes SIP_PDU::Parse(istream & stream, bool truncated)
   }
 #endif
 
-  if (truncated)
-    return SIP_PDU::Failure_MessageTooLarge;
-  
-  /* RFC3261 Sections 8.1.1.7 & 17.1.3 transactions are identified by the
-      branch paranmeter in the top most Via and CSeq. We do NOT include the
-      CSeq in our id as we want the CANCEL messages directed at out
-      transaction structure.
-    */
-  m_transactionID = SIPMIMEInfo::ExtractFieldParameter(m_mime.GetFirstVia(), "branch");
-  if (m_transactionID.NumCompare(TransactionPrefix) != EqualTo) {
-    PTRACE(2, "Transaction " << m_mime.GetCSeq() << " has "
-            << (m_transactionID.IsEmpty() ? "no" : "RFC2543") << " branch parameter!");
-
-    SIPURL to(m_mime.GetTo());
-    to.Sanitise(SIPURL::ToURI);
-
-    SIPURL from(m_mime.GetFrom());
-    from.Sanitise(SIPURL::FromURI);
-
-    PStringStream strm;
-    strm << to << from << m_mime.GetCallID() << m_mime.GetCSeq();
-    m_transactionID += strm;
-  }
-
-  return SIP_PDU::Successful_OK;
+  return truncated ? SIP_PDU::Failure_MessageTooLarge : SIP_PDU::Successful_OK;
 }
 
 
