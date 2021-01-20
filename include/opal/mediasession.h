@@ -397,6 +397,8 @@ struct OpalMediaTransportChannelTypes
 #if PTRACING
 ostream & operator<<(ostream & strm, OpalMediaTransportChannelTypes::SubChannels channel);
 #endif
+inline OpalMediaTransportChannelTypes::SubChannels operator++(OpalMediaTransportChannelTypes::SubChannels & channel)
+  { return channel = (OpalMediaTransportChannelTypes::SubChannels)(channel + 1); }
 
 
 /** Class for low level transport of media
@@ -462,7 +464,14 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
     virtual void SetCandidates(
       const PString & user,
       const PString & pass,
-      const PNatCandidateList & candidates
+      const PNatCandidateList & candidates,
+      unsigned options = 0
+    );
+
+    /**Add an the candidate for use in this media transport.
+      */
+    virtual void AddCandidate(
+      const PNatCandidate & candidate
     );
 
     /**Get the candidates for use in this media transport.
@@ -471,6 +480,7 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
       PString & user,
       PString & pass,
       PNatCandidateList & candidates,
+      unsigned & options,
       bool offering
     );
 

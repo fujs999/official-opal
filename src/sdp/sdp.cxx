@@ -55,9 +55,11 @@ static char const CRLF[] = "\r\n";
 static PConstString const WhiteSpace(" \t\r\n");
 static char const TokenChars[] = "!#$%&'*+-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ^_`abcdefghijklmnopqrstuvwxyz{|}~"; // From RFC4566
 #if OPAL_ICE
-  static char const * const CandidateTypeNames[PNatCandidate::NumTypes] = { "host", "srflx", "prflx", "relay", "endOfCandidates" };
+  static char const * const CandidateTypeNames[PNatCandidate::NumTypes] = { "host", "srflx", "prflx", "relay", "end-of-candidates" };
 #endif
 static PConstString const IceLiteOption("ice-lite");
+static PConstString const TrickleIceOption("trickle");
+
 
 static struct {
   const char * m_name;
@@ -724,7 +726,7 @@ void SDPCommonAttributes::OutputAttributes(ostream & strm) const
   for (PStringSet::const_iterator it = m_iceOptions.begin(); it != m_iceOptions.end(); ++it) {
     if (*it == IceLiteOption)
       continue;
-    if (it != m_iceOptions.begin())
+    if (*crlf != '\0')
       strm << ' ';
     else {
       strm << "a=ice-options:";
@@ -798,8 +800,15 @@ bool SDPMediaDescription::FromSession(OpalMediaSession * session, const SDPMedia
 
     PString user, pass;
     PNatCandidateList candidates;
-    if (transport->GetCandidates(user, pass, candidates, offer == NULL))
-      SetICE(user, pass, candidates);
+    unsigned options = 0;
+    if (transport->GetCandidates(user, pass, candidates, options, offer == NULL)) {
+      PStringSet opts;
+      if (options & OpalICEMediaTransport::OptLite)
+        opts += IceLiteOption;
+      if (options & OpalICEMediaTransport::OptTrickle)
+        opts += TrickleIceOption;
+      SetICE(user, pass, candidates, opts);
+    }
   }
 #endif // OPAL_ICE
 
@@ -823,8 +832,14 @@ bool SDPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSourceAr
 {
 #if OPAL_ICE
   OpalMediaTransportPtr transport = session->GetTransport();
-  if (transport != NULL)
-    transport->SetCandidates(GetUsername(), GetPassword(), GetCandidates());
+  if (transport != NULL) {
+    OpalICEMediaTransport::Options options;
+    if (m_iceOptions.Contains(IceLiteOption))
+      options |= OpalICEMediaTransport::OptLite;
+    if (m_iceOptions.Contains(TrickleIceOption))
+      options |= OpalICEMediaTransport::OptTrickle;
+    transport->SetCandidates(GetUsername(), GetPassword(), GetCandidates(), options);
+  }
 #endif //OPAL_ICE
 
   // Must be done after ICE
@@ -1071,55 +1086,9 @@ void SDPMediaDescription::SetAttribute(const PString & attr, const PString & val
 
 #if OPAL_ICE
   if (attr *= "candidate") {
-    PStringArray words = value.Tokenise(WhiteSpace, false); // Spec says space only, but lets be forgiving
-    if (words.GetSize() < 8) {
-      PTRACE(2, "Not enough parameters in candidate: \"" << value << '"');
-      return;
-    }
-
     PNatCandidate candidate;
-    candidate.m_foundation = words[0];
-    candidate.m_component = (PNatMethod::Component)words[1].AsUnsigned();
-    candidate.m_protocol = words[2];
-    candidate.m_priority = words[3].AsUnsigned();
-
-    PIPSocket::Address ip;
-    static const PConstCaselessString local(".local");
-    if (local == words[4].Right(local.length()) && m_stringOptions.GetBoolean(OPAL_OPT_ICE_DISABLE_mDNS))
-      ip = PIPAddress(169,254,0,0); // Use "any" link-local address
-    else if (!PIPSocket::GetHostAddress(words[4], ip)) {
-      PTRACE(2, "Illegal host or IP address in candidate: \"" << words[4] << '"');
-      return;
-    }
-
-    candidate.m_baseTransportAddress.SetAddress(ip, (WORD)words[5].AsUnsigned());
-
-    PINDEX word = 6;
-    while (word < words.GetSize()) {
-      PCaselessString param = words[word++];
-      if (param == "typ") {
-        PCaselessString typeName = words[word++];
-        for (candidate.m_type = PNatCandidate::BeginTypes; candidate.m_type < PNatCandidate::EndTypes; ++candidate.m_type) {
-          if (typeName == CandidateTypeNames[candidate.m_type])
-            break;
-        }
-      }
-      else if (param == "raddr")
-        candidate.m_localTransportAddress.SetAddress(PIPSocket::Address(words[word++]));
-      else if (param == "rport")
-        candidate.m_localTransportAddress.SetPort((WORD)words[word++].AsUnsigned());
-      else if (param == "network-cost")
-        candidate.m_networkCost = words[word++].AsUnsigned();
-      else if (param == "network-id")
-        candidate.m_networkId = words[word++].AsUnsigned();
-    }
-
-    if (candidate.m_type == PNatCandidate::EndTypes) {
-      PTRACE(2, "Unknown or missing candidate type: \"" << value << '"');
-      return;
-    }
-
-    m_candidates.Append(new PNatCandidate(candidate));
+    if (ParseCandidate(value, candidate, m_stringOptions.GetBoolean(OPAL_OPT_ICE_DISABLE_mDNS)))
+      m_candidates.Append(new PNatCandidate(candidate));
     return;
   }
 #endif //OPAL_ICE
@@ -1261,23 +1230,27 @@ void SDPMediaDescription::OutputAttributes(ostream & strm) const
     return;
 
   for (PNatCandidateList::const_iterator it = m_candidates.begin(); it != m_candidates.end(); ++it) {
-    strm << "a=candidate:"
-          << it->m_foundation << ' '
-          << it->m_component << ' '
-          << it->m_protocol << ' '
-          << it->m_priority << ' '
-          << it->m_baseTransportAddress.GetAddress() << ' '
-          << it->m_baseTransportAddress.GetPort()
-          << " typ " << CandidateTypeNames[it->m_type];
-    if (it->m_localTransportAddress.IsValid())
-      strm << "raddr " << it->m_localTransportAddress.GetAddress() << " rport " << it->m_localTransportAddress.GetPort();
-    if (it->m_networkCost > 0 && it->m_networkId > 0)
-      strm << " network-cost " << it->m_networkCost << " network-id " << it->m_networkId;
+    strm << "a=";
+    if (it->m_type == PNatCandidate::FinalType)
+      strm << CandidateTypeNames[PNatCandidate::FinalType];
+    else {
+      strm << "candidate:"
+            << it->m_foundation << ' '
+            << it->m_component << ' '
+            << it->m_protocol << ' '
+            << it->m_priority << ' '
+            << it->m_baseTransportAddress.GetAddress() << ' '
+            << it->m_baseTransportAddress.GetPort()
+            << " typ " << CandidateTypeNames[it->m_type];
+      if (it->m_localTransportAddress.IsValid())
+        strm << "raddr " << it->m_localTransportAddress.GetAddress() << " rport " << it->m_localTransportAddress.GetPort();
+      if (it->m_networkCost > 0 && it->m_networkId > 0)
+        strm << " network-cost " << it->m_networkCost << " network-id " << it->m_networkId;
+    }
     strm << CRLF;
   }
 
-  strm << "a=end-of-candidates" << CRLF  // Until we support trickle ICE, we are done here and now.
-       << "a=ice-ufrag:" << m_username << CRLF
+  strm << "a=ice-ufrag:" << m_username << CRLF
        << "a=ice-pwd:" << m_password << CRLF;
 #endif //OPAL_ICE
 }
@@ -1321,16 +1294,102 @@ bool SDPMediaDescription::HasICE() const
 }
 
 
-void SDPMediaDescription::SetICE(const PString & username, const PString & password, const PNatCandidateList & candidates)
+void SDPMediaDescription::SetICE(const PString & username,
+                                 const PString & password,
+                                 const PNatCandidateList & candidates,
+                                 const PStringSet & options)
 {
     m_username = username;
     m_password = password;
+    m_iceOptions = options;
 
     m_candidates.clear();
     for (PNatCandidateList::const_iterator it = candidates.begin(); it != candidates.end(); ++it) {
       if (CanUseCandidate(*it))
         m_candidates.push_back(*it);
     }
+    PTRACE(4, "Added " << m_candidates.size() << " ICE candidates to " << m_index);
+}
+
+
+bool SDPMediaDescription::ParseCandidate(const PString & str, PNatCandidate & candidate, bool mDNSdisabled)
+{
+  if (str == CandidateTypeNames[PNatCandidate::FinalType]) {
+    candidate = PNatCandidate(PNatCandidate::FinalType);
+    return true;
+  }
+
+  PINDEX start = 0;
+  static const PConstString prefix("candidate:");
+  if (str.NumCompare(prefix) == EqualTo)
+    start = prefix.GetLength()+1;
+
+  PStringArray words = str.Mid(start).Tokenise(WhiteSpace, false); // Spec says space only, but lets be forgiving
+  if (words.GetSize() < 8) {
+    PTRACE(2, PTraceModule(), "Not enough parameters in ICE candidate: \"" << str << '"');
+    return false;
+  }
+
+  candidate.m_foundation = words[0];
+  candidate.m_component = (PNatMethod::Component)words[1].AsUnsigned();
+  candidate.m_protocol = words[2];
+  candidate.m_priority = words[3].AsUnsigned();
+
+  PString baseAddress = words[4];
+  WORD basePort = (WORD)words[5].AsUnsigned();
+  if (basePort == 0) {
+    PTRACE(2, PTraceModule(), "Illegal port in ICE candidate: \"" << words[5] << '"');
+    return false;
+  }
+
+  PIPSocket::Address ip;
+  static const PConstCaselessString DotLocal(".local");
+  if (DotLocal != baseAddress.Right(DotLocal.length())) {
+    if (!PIPSocket::GetHostAddress(baseAddress, ip)) {
+      PTRACE(2, PTraceModule(), "Illegal host or IP address in ICE candidate: \"" << baseAddress << '"');
+      return false;
+    }
+  }
+  else {
+    /* The mDNSdisabled hack is due to some systems (docker) under some circumstances taking
+        many seconds to fail to resolve the DNS look up of the .local address. In these cases
+        we allow a string option to immediately fail. */
+    if (mDNSdisabled || !PIPSocket::GetHostAddress(baseAddress, ip)) {
+      // As per https://tools.ietf.org/html/draft-ietf-rtcweb-mdns-ice-candidates-04#section-3.2.1
+      PTRACE(4, PTraceModule(), "Ignoring mDNS host in ICE candidate: \"" << baseAddress << '"');
+      return false;
+    }
+  }
+
+  candidate.m_baseTransportAddress.SetAddress(ip, basePort);
+
+  PINDEX word = 6;
+  while (word < words.GetSize()) {
+    PCaselessString param = words[word++];
+    if (param == "typ") {
+      PCaselessString typeName = words[word++];
+      for (candidate.m_type = PNatCandidate::BeginTypes; candidate.m_type < PNatCandidate::EndTypes; ++candidate.m_type) {
+        if (typeName == CandidateTypeNames[candidate.m_type])
+          break;
+      }
+    }
+    else if (param == "raddr")
+      candidate.m_localTransportAddress.SetAddress(PIPSocket::Address(words[word++]));
+    else if (param == "rport")
+      candidate.m_localTransportAddress.SetPort((WORD)words[word++].AsUnsigned());
+    else if (param == "network-cost")
+      candidate.m_networkCost = words[word++].AsUnsigned();
+    else if (param == "network-id")
+      candidate.m_networkId = words[word++].AsUnsigned();
+  }
+
+  if (candidate.m_type == PNatCandidate::EndTypes) {
+    PTRACE(2, PTraceModule(), "Unknown or missing ICE candidate type: \"" << str << '"');
+    return false;
+  }
+
+  PTRACE(4, PTraceModule(), "Parsed ICE candidate: " << candidate);
+  return true;
 }
 #endif //OPAL_ICE
 
@@ -3325,7 +3384,7 @@ void SDPSessionDescription::PrintOn(ostream & strm) const
 #if OPAL_ICE
   for (PINDEX i = 0; i < mediaDescriptions.GetSize(); i++) {
     const SDPRTPAVPMediaDescription * avp = dynamic_cast<const SDPRTPAVPMediaDescription *>(&mediaDescriptions[i]);
-    if (avp != NULL && avp->HasICE()) {
+    if (avp != NULL && avp->HasICE() && avp->GetICEOptions().Contains(IceLiteOption)) {
       strm << "a=" << IceLiteOption << CRLF;
       break;
     }
@@ -3567,7 +3626,10 @@ bool SDPSessionDescription::Decode(const PStringArray & lines, const OpalMediaFo
       for (PINDEX i = 0; i < mediaDescriptions.GetSize(); ++i) {
         SDPMediaDescription & md = mediaDescriptions[i];
         if (md.IsGroupMember(OpalMediaSession::GetBundleGroupId()) && !md.HasICE())
-          md.SetICE(mdBundledICE->GetUsername(), mdBundledICE->GetPassword(), mdBundledICE->GetCandidates());
+          md.SetICE(mdBundledICE->GetUsername(),
+                    mdBundledICE->GetPassword(),
+                    mdBundledICE->GetCandidates(),
+                    mdBundledICE->GetICEOptions());
       }
     }
 
