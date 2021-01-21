@@ -1364,7 +1364,7 @@ bool SDPMediaDescription::ParseCandidate(const PString & str, PNatCandidate & ca
   candidate.m_baseTransportAddress.SetAddress(ip, basePort);
 
   PINDEX word = 6;
-  while (word < words.GetSize()) {
+  while ((word+1) < words.GetSize()) {
     PCaselessString param = words[word++];
     if (param == "typ") {
       PCaselessString typeName = words[word++];

@@ -130,11 +130,17 @@ bool OpalICEMediaTransport::IsEstablished() const
 
 bool OpalICEMediaTransport::InternalRxData(SubChannels subchannel, const PBYTEArray & data)
 {
-  ChecklistState state = GetICEChannel(subchannel).m_state;
-  if (state == e_Disabled)
-    return OpalUDPMediaTransport::InternalRxData(subchannel, data);
+  switch (GetICEChannel(subchannel).m_state) {
+    case e_Disabled :
+      return OpalUDPMediaTransport::InternalRxData(subchannel, data);
 
-  return OpalMediaTransport::InternalRxData(subchannel, data) && state == e_Completed;
+    case e_Completed :
+      return OpalMediaTransport::InternalRxData(subchannel, data);
+
+    default :
+      OpalMediaTransport::InternalRxData(subchannel, data);
+      return false;
+  }
 }
 
 
