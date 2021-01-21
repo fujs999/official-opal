@@ -444,9 +444,9 @@ PBoolean OpalICEMediaTransport::ICEChannel::Read(void * data, PINDEX size)
  */
 bool OpalICEMediaTransport::ICEChannel::HandleICE(const void * data, PINDEX length)
 {
-    P_INSTRUMENTED_LOCK_READ_WRITE2(lock, m_owner);
-    if (!lock.IsLocked())
-      return false;
+  P_INSTRUMENTED_LOCK_READ_WRITE2(lock, m_owner);
+  if (!lock.IsLocked())
+    return false;
 
   if (m_state == e_Disabled)
     return true;
