@@ -295,6 +295,9 @@ class SDPCommonAttributes
       m_username = username;
       m_password = password;
     }
+
+    void SetICEOption(const PString & opt) { m_iceOptions += opt; }
+    PStringSet GetICEOptions() const { return m_iceOptions; }
 #endif //OPAL_ICE
 
   protected:
@@ -388,8 +391,10 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
     void SetICE(
         const PString & username,
         const PString & password,
-        const PNatCandidateList & candidates
+        const PNatCandidateList & candidates,
+        const PStringSet & options
     );
+    static bool ParseCandidate(const PString & str, PNatCandidate & candidate, bool mDNSdisabled);
 #endif //OPAL_ICE
 
     virtual OpalMediaType GetMediaType() const { return m_mediaType; }
@@ -750,10 +755,6 @@ class SDPSessionDescription : public PObject, public SDPCommonAttributes
     void SetOwnerAddress(OpalTransportAddress addr) { ownerAddress = addr; }
 
     GroupDict GetGroups() const { return m_groups; }
-
-#if OPAL_ICE
-    PStringSet GetICEOptions() const { return m_iceOptions; }
-#endif
 
     OpalMediaFormatList GetMediaFormats() const;
 
