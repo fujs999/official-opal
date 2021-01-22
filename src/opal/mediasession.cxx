@@ -767,12 +767,17 @@ PChannel::Errors OpalMediaTransport::GetLastError(SubChannels subchannel) const
 }
 
 
-void OpalMediaTransport::SetCandidates(const PString &, const PString &, const PNatCandidateList &)
+void OpalMediaTransport::SetCandidates(const PString &, const PString &, const PNatCandidateList &, unsigned)
 {
 }
 
 
-bool OpalMediaTransport::GetCandidates(PString &, PString &, PNatCandidateList &, bool)
+void OpalMediaTransport::AddCandidate(const PNatCandidate &)
+{
+}
+
+
+bool OpalMediaTransport::GetCandidates(PString &, PString &, PNatCandidateList &, unsigned &, bool)
 {
   return true;
 }
