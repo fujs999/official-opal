@@ -256,7 +256,7 @@ bool RTP_DataFrame::SetExtensionSizeDWORDs(PINDEX sz)
     return false;
 
   (*this)[0] |= 0x10;
-  SetAs<PUInt16b>(extHdrOffset + 2, sz);
+  SetAs<PUInt16b>(extHdrOffset + 2, (uint16_t)sz);
   return true;
 }
 
@@ -460,7 +460,7 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
           return false;
 
         SetAs<PUInt16b>(baseHeaderSize, 0xbede);
-        SetAt(baseHeaderSize + 4, (id << 4)|(length-1));
+        SetAt(baseHeaderSize + 4, (uint8_t)((id << 4)|(length-1)));
         memcpy(GetPointer() + baseHeaderSize + 5, data, length);
         return true;
       }
@@ -505,8 +505,8 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
           return false;
 
         SetAs<PUInt16b>(baseHeaderSize, 0x1000);
-        SetAt(baseHeaderSize + 4, (BYTE)id);
-        SetAt(baseHeaderSize + 5, length);
+        SetAt(baseHeaderSize + 4, (uint8_t)id);
+        SetAt(baseHeaderSize + 5, (uint8_t)length);
         memcpy(GetPointer() + baseHeaderSize + 6, data, length);
         return true;
       }
@@ -599,7 +599,7 @@ bool RTP_DataFrame::SetPaddingSize(PINDEX paddingSize)
   if (!SetMinSize(packetSize))
     return false;
 
-  SetAt(packetSize-1, m_paddingSize);
+  SetAt(packetSize-1, (uint8_t)m_paddingSize);
   return true;
 }
 
