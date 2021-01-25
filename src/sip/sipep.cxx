@@ -762,6 +762,8 @@ bool SIPEndPoint::OnReceivedPDU(SIP_PDU * pdu)
   if (PAssertNULL(pdu) == NULL)
     return false;
 
+  PTRACE(4, "OnReceivedPDU: method=" << pdu->GetMethod() << ", id=" << pdu->GetTransactionID());
+
   // Prevent any new INVITE/SUBSCRIBE etc etc while we are on the way out.
   if (m_shuttingDown && pdu->GetMethod() != SIP_PDU::NumMethods) {
     pdu->SendResponse(SIP_PDU::Failure_ServiceUnavailable);
@@ -853,6 +855,7 @@ bool SIPEndPoint::OnReceivedPDU(SIP_PDU * pdu)
           }
         }
 
+        PTRACE(4, "Received a new INVITE, sending 100 Trying");
         pdu->SendResponse(SIP_PDU::Information_Trying);
         return OnReceivedINVITE(pdu);
       }
@@ -1691,16 +1694,23 @@ bool SIPEndPoint::IsSubscribed(const PString & token, bool includeOffline)
 bool SIPEndPoint::IsSubscribed(const PString & eventPackage, const PString & token, bool includeOffline) 
 {
   PSafePtr<SIPHandler> handler = m_activeSIPHandlers.FindSIPHandlerByCallID(token, PSafeReference);
-  if (handler == NULL)
+  if (handler == NULL) {
     handler = m_activeSIPHandlers.FindSIPHandlerByUrl(token, SIP_PDU::Method_SUBSCRIBE, eventPackage, PSafeReference);
+    if (handler == NULL) {
+      PTRACE(4, "Could not find subscription: token=\"" << token << "\", event=" << eventPackage);
+      return false;
+    }
+  }
   else {
-    if (handler->GetEventPackage() != eventPackage)
-      handler.SetNULL();
+    if (handler->GetEventPackage() != eventPackage) {
+      PTRACE(3, "Subscription mismatch: token=\"" << token << "\", event=" << eventPackage);
+      return false;
+    }
   }
 
-  return handler != NULL &&
-         (includeOffline ? (handler->GetState() != SIPHandler::Unsubscribed)
-                         : (handler->GetState() == SIPHandler::Subscribed));
+  PTRACE(4, "Checking subscription: token=\"" << token << "\", event=" << eventPackage << ", state=" << handler->GetState());
+  return includeOffline ? (handler->GetState() != SIPHandler::Unsubscribed)
+                        : (handler->GetState() == SIPHandler::Subscribed);
 }
 
 

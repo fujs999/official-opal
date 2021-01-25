@@ -1427,6 +1427,7 @@ class OpalAudioFormat : public OpalMediaFormat
 #if OPAL_SDP
     static const PString & MinPacketTimeOption();
     static const PString & MaxPacketTimeOption();
+    static const PString & SilenceSuppressionOption();
 #endif
 
     P_DECLARE_BITWISE_ENUM(FrameType, 3, (
