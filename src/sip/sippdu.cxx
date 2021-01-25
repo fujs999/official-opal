@@ -2302,7 +2302,7 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
   // If above fails, we try some other options.
 
   // See if sent-by is explicit IP address
-  PIPAddress ip(sent_by.Left(pos));
+  PIPAddress ip(sent_by.Left(colon));
   if (ip.IsValid()) {
     m_responseAddresses.AppendAddress(OpalTransportAddress(ip, port, proto), true);
     return status;
