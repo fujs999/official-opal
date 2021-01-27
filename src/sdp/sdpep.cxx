@@ -76,6 +76,7 @@ PStringList OpalSDPEndPoint::GetAvailableStringOptions() const
     OPAL_OPT_SUPPRESS_UDP_TLS,
     #ifdef OPAL_ICE
       OPAL_OPT_OFFER_ICE,
+      OPAL_OPT_ICE_DISABLE_mDNS,
     #endif
     OPAL_OPT_ALLOW_MUSIC_ON_HOLD,
     OPAL_OPT_AV_BUNDLE,
