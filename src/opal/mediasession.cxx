@@ -157,6 +157,7 @@ OpalMediaStatistics::UpdateInfo::UpdateInfo()
 #if OPAL_VIDEO
 OpalVideoStatistics::OpalVideoStatistics()
   : m_totalFrames(0)
+  , m_lastFrameTime(0)
   , m_keyFrames(0)
   , m_droppedFrames(0)
   , m_lastKeyFrameTime(0)
@@ -174,6 +175,7 @@ OpalVideoStatistics::OpalVideoStatistics()
 void OpalVideoStatistics::IncrementFrames(bool key)
 {
   ++m_totalFrames;
+  m_lastFrameTime.SetCurrentTime();
   if (key) {
     ++m_keyFrames;
     m_lastKeyFrameTime.SetCurrentTime();

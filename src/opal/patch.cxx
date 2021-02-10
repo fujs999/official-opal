@@ -1013,31 +1013,34 @@ bool OpalMediaPatch::Sink::WriteFrame(RTP_DataFrame & sourceFrame, bool bypassin
 
 #if OPAL_VIDEO
     switch (videoFrameType) {
-      case OpalVideoFormat::e_IntraFrame :
-        m_statsMutex.Wait();
-        m_videoStatistics[0].IncrementFrames(true);
-        if ((ssrc = sourceFrame.GetSyncSource()) != 0)
-          m_videoStatistics[ssrc].IncrementFrames(true);
-        PTRACE(4, "I-Frame detected: SSRC=" << RTP_TRACE_SRC(ssrc)
-                << ", ts=" << sourceFrame.GetTimestamp() << ", total=" << m_videoStatistics[ssrc].m_totalFrames
-                << ", key=" << m_videoStatistics[ssrc].m_keyFrames
-                << ", req=" << m_videoStatistics[ssrc].m_lastUpdateRequestTime << ", on " << m_patch);
-        m_statsMutex.Signal();
-        break;
-
-      case OpalVideoFormat::e_InterFrame :
-        m_statsMutex.Wait();
-        m_videoStatistics[0].IncrementFrames(false);
-        if ((ssrc = sourceFrame.GetSyncSource()) != 0)
-          m_videoStatistics[ssrc].IncrementFrames(false);
-        PTRACE(5, "P-Frame detected: SSRC=" << RTP_TRACE_SRC(ssrc)
-                << ", ts=" << sourceFrame.GetTimestamp() << ", total=" << m_videoStatistics[ssrc].m_totalFrames
-                << ", key=" << m_videoStatistics[ssrc].m_keyFrames << ", on " << m_patch);
-        m_statsMutex.Signal();
-        break;
-
       default :
         break;
+
+      case OpalVideoFormat::e_IntraFrame :
+      case OpalVideoFormat::e_InterFrame :
+        bool intraFrame = videoFrameType == OpalVideoFormat::e_IntraFrame;
+        m_statsMutex.Wait();
+        OpalVideoStatistics * stats = &m_videoStatistics[0];
+        stats->IncrementFrames(intraFrame);
+        if ((ssrc = sourceFrame.GetSyncSource()) != 0) {
+          stats = &m_videoStatistics[ssrc];
+          stats->IncrementFrames(intraFrame);
+        }
+#if PTRACING
+        ostream & log = PTRACE_BEGIN(4);
+        log << (intraFrame ? 'I' : 'P') << "-Frame detected:"
+               " SSRC=" << RTP_TRACE_SRC(ssrc) << ","
+               " ts=" << sourceFrame.GetTimestamp() << ","
+               " delay=" << setprecision(3) << stats->m_lastFrameTime.GetElapsed() << ","
+               " total=" << stats->m_totalFrames << ","
+               " key=" << stats->m_keyFrames << ",";
+        if (intraFrame) {
+          log << " last=" << stats->m_lastKeyFrameTime.GetElapsed() << ","
+                 " req=" << stats->m_lastUpdateRequestTime << ",";
+        }
+        log << " on " << m_patch << PTrace::End;
+#endif // PTRACING
+        m_statsMutex.Signal();
     }
 #endif // OPAL_VIDEO
 #endif // OPAL_STATISTICS
