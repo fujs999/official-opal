@@ -157,6 +157,7 @@ struct OpalVideoStatistics
   void IncrementUpdateCount(bool full);
 
   unsigned      m_totalFrames;
+  PTime         m_lastFrameTime;
   unsigned      m_keyFrames;
   unsigned      m_droppedFrames;
   PTime         m_lastKeyFrameTime;
