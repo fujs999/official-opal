@@ -1,7 +1,7 @@
 %global version_major  3
 %global version_minor  19
-%global version_patch  6
-%global version_oem    4
+%global version_patch  7
+%global version_oem    1
 
 %global ffmpeg_ver_el7 2.6.3-10.4.el7
 %global ptlib_ver_el7 2.19.4.14
