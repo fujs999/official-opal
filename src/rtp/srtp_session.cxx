@@ -594,10 +594,10 @@ bool OpalSRTPSession::Open(const PString & localInterface, const OpalTransportAd
 
 RTP_SyncSourceId OpalSRTPSession::AddSyncSource(RTP_SyncSourceId ssrc, Direction dir, const char * cname)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE(return 0);
-
   if ((ssrc = OpalRTPSession::AddSyncSource(ssrc, dir, cname)) == 0)
     return 0;
+
+  P_INSTRUMENTED_LOCK_READ_WRITE(return 0);
 
   if (m_keyInfo[dir] == NULL) {
     PTRACE(3, *this << "could not add SRTP stream for SSRC=" << RTP_TRACE_SRC(ssrc) << ", no " << dir << " key (yet)");
