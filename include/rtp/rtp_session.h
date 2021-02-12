@@ -501,6 +501,12 @@ class OpalRTPSession : public OpalMediaSession
       bool allow    ///<  Flag for allow any SSRC values
     );
 
+    /**Change the SSRC value when collision occurs.
+      */
+    virtual RTP_SyncSourceId OnSyncSourceCollision(
+      RTP_SyncSourceId ssrc  ///< SSRC to change
+    );
+
 
     /**Get the maximum out of order packets before flagging it missing.
       */

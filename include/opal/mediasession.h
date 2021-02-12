@@ -557,6 +557,27 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
     virtual void GetStatistics(OpalMediaStatistics & statistics) const;
 #endif
 
+    /**Generate a new unique SSRC for this media transport.
+      */
+    uint32_t NewSyncSource(
+      unsigned sessionID    ///< Session requesting the SSRC
+    );
+
+    /**Add a new SSRC from remote for this media transport.
+       If the SSRC is already registered, then a collision has occurred and
+       the session that currently holds the SSRC is returned.
+      */
+    unsigned AddSyncSource(
+      unsigned sessionID,     ///< Session requesting the SSRC
+      uint32_t ssrc   ///< SSRC being added
+    );
+
+    /**Remove an SSRC for this media transport.
+      */
+    void RemoveSyncSource(
+      uint32_t ssrc  ///< SSRC to remove as no longer used by a session
+    );
+
   protected:
     virtual void InternalClose();
     virtual bool GarbageCollection(); // Override from PSafeObject
@@ -576,6 +597,10 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
     atomic<CongestionControl *> m_congestionControl;
     PTimer m_ccTimer;
     PDECLARE_NOTIFIER(PTimer, OpalMediaTransport, ProcessCongestionControl);
+
+    typedef std::map<uint32_t, unsigned> SyncSourceMap;
+    SyncSourceMap  m_ssrcSessions;
+    PDECLARE_MUTEX(m_ssrcMutex);
 
     enum RemoteAddressSources {
       e_RemoteAddressUnknown,

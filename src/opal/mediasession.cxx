@@ -855,6 +855,41 @@ void OpalMediaTransport::GetStatistics(OpalMediaStatistics & statistics) const
 #endif
 
 
+uint32_t OpalMediaTransport::NewSyncSource(unsigned sessionID)
+{
+  PWaitAndSignal lock(m_ssrcMutex);
+
+  uint32_t ssrc;
+  do {
+    ssrc = PRandom::Number(0x00000010, 0xfffffff0);
+  } while (m_ssrcSessions.find(ssrc) != m_ssrcSessions.end());
+
+  m_ssrcSessions[ssrc] = sessionID;
+
+  return ssrc;
+}
+
+
+unsigned OpalMediaTransport::AddSyncSource(unsigned sessionID, uint32_t ssrc)
+{
+  PWaitAndSignal lock(m_ssrcMutex);
+
+  SyncSourceMap::iterator it = m_ssrcSessions.find(ssrc);
+  if (it != m_ssrcSessions.end())
+    return it->second;
+
+  m_ssrcSessions[ssrc] = sessionID;
+  return 0;
+}
+
+
+void OpalMediaTransport::RemoveSyncSource(uint32_t ssrc)
+{
+  PWaitAndSignal lock(m_ssrcMutex);
+  m_ssrcSessions.erase(ssrc);
+}
+
+
 OpalMediaTransport::ChannelInfo::ChannelInfo(OpalMediaTransport & owner, SubChannels subchannel, PChannel * chan)
   : m_owner(owner)
   , m_subchannel(subchannel)
