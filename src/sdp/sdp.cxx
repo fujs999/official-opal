@@ -2523,13 +2523,39 @@ void SDPRTPAVPMediaDescription::SetAttribute(const PString & attr, const PString
 
   if (attr *= "ssrc-group") {
     PStringArray tokens = value.Tokenise(' ', false);
-    if (tokens.GetSize() > 1 && (tokens[0] *= "FID")) {
-      RTP_SyncSourceArray ssrcs(tokens.GetSize() - 1);
-      for (PINDEX i = 1; i < tokens.GetSize(); ++i)
-        ssrcs[i - 1] = tokens[i].AsUnsigned();
-      m_flowSSRC.push_back(ssrcs);
-      return;
+    if (tokens.GetSize() < 2)
+      PTRACE(3, "Invalid ssrc-group: \"" << value << '"');
+    else {
+      PCaselessString groupType = tokens[0];
+      if (groupType == "FID") {
+        RTP_SyncSourceArray ssrcs(tokens.GetSize() - 1);
+        for (PINDEX i = 1; i < tokens.GetSize(); ++i)
+          ssrcs[i - 1] = tokens[i].AsUnsigned();
+        m_flowSSRC.push_back(ssrcs);
+      }
+      else if (groupType == "SIM") {
+        // Fake modern style simulcast info from the old style used by Safari.
+        m_simulcast.resize(1);
+        m_simulcast.front().resize(1);
+        for (PINDEX i = 1; i < tokens.GetSize(); ++i) {
+          RTP_SyncSourceId ssrc = value.AsUnsigned();
+          if (ssrc == 0)
+            PTRACE(3, "Invalid value in ssrc-group: \"" << value << '"');
+          else {
+            // Synthesize RID values, "A", "B", etc
+            PString rid = (char)('A' + i - 1);
+            m_ssrcInfo[ssrc].SetAt("RtpStreamId", rid);
+            m_restrictions[rid].m_id = rid;
+            m_restrictions[rid].m_direction = e_Send;
+            m_simulcast.front().front().push_back(rid);
+          }
+        }
+      }
+      else {
+        PTRACE(3, "Unknown ssrc-group type: \"" << groupType << '"');
+      }
     }
+    return;
   }
 
   SDPMediaDescription::SetAttribute(attr, value);
@@ -2718,6 +2744,12 @@ bool SDPRTPAVPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSo
         it->second.GetString("msid").Split(' ', msid, appdata);
         rtpSession->SetMediaTrackId(msid, ssrc, OpalRTPSession::e_Receiver);
         rtpSession->SetMediaStreamId(appdata, ssrc, OpalRTPSession::e_Receiver);
+
+        // With normal Simulcast, this comes in a header extensions, if it is in
+        // the explicit SSRC options, then we are faking old Safarie mechanism.
+        PString rtpStreamId = it->second.GetString("RtpStreamId");
+        if (!rtpStreamId.empty())
+          rtpSession->SetRtpStreamId(rtpStreamId, ssrc, OpalRTPSession::e_Receiver);
       }
     }
 
