@@ -7,25 +7,32 @@ if [ `whoami` != root ]; then
    exit 1
 fi
 
+VERSION=2.1.1
+LIBCVER=6
+
 LIBDIR=/usr/local/lib
 
 case `uname -sm` in
    Linux*x86_64 )
      PLATFORM=linux64
-     EXT=so
+     LIBEXT=so
+     LINKEXT=${LIBEXT}.${LIBCVER}
      LIBDIR=/usr/local/lib64
    ;;
    Linux*x86 )
      PLATFORM=linux32
-     EXT=so
+     LIBEXT=so
+     LINKEXT=${LIBEXT}.${LIBCVER}
    ;;
    Darwin*x86_64 )
      PLATFORM=osx64
-     EXT=dylib
+     LIBEXT=dylib
+     LINKEXT=${LIBCVER}.${LIBEXT}
    ;;
    Darwin*x86 )
      PLATFORM=osx32
-     EXT=dylib
+     LIBEXT=dylib
+     LINKEXT=${LIBCVER}.${LIBEXT}
    ;;
    * )
      echo Unknown platform `uname -sm`
@@ -34,7 +41,7 @@ case `uname -sm` in
 esac
 
 LIBBASE=libopenh264
-LIBFILE=${LIBBASE}-2.1.0-${PLATFORM}.5.$EXT
+LIBFILE=${LIBBASE}-${VERSION}-${PLATFORM}.${LIBCVER}.${LIBEXT}
 
 if [ -n "$1" ]; then
     LIBDIR="$1"
@@ -51,6 +58,7 @@ else
     echo Installing $LIBBASE to $LIBDIR.
     rm -f ${LIBBASE}*
     curl --silent http://ciscobinary.openh264.org/$LIBFILE.bz2 | bunzip2 > $LIBFILE
-    ln -s $LIBFILE ${LIBBASE}.$EXT
+    ln -s $LIBFILE ${LIBBASE}.${LINKEXT}
+    ln -s ${LIBBASE}.${LINKEXT} ${LIBBASE}.${LIBEXT}
 fi
 ls -l $LIBDIR/${LIBBASE}*
