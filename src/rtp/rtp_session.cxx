@@ -168,6 +168,13 @@ RTP_SyncSourceId OpalRTPSession::AddSyncSource(RTP_SyncSourceId id, Direction di
   else {
     unsigned collidingSessionId = transport->AddSyncSource(GetSessionID(), id);
     if (collidingSessionId != 0) {
+      if (GetSessionID() == collidingSessionId) {
+        P_INSTRUMENTED_LOCK_READ_ONLY(return 0);
+        SyncSourceMap::iterator it = m_SSRC.find(id);
+        if (it != m_SSRC.end() && (cname == NULL || (it->second->m_direction == dir && it->second->m_canonicalName == cname)))
+            return id;
+      }
+
       OpalRTPSession * session = dynamic_cast<OpalRTPSession *>(dynamic_cast<OpalRTPConnection &>(m_connection).GetMediaSession(collidingSessionId));
       if (session) {
         if (session->OnSyncSourceCollision(id) == 0)

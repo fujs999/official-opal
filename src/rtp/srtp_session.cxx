@@ -585,10 +585,13 @@ OpalMediaCryptoKeyInfo * OpalSRTPSession::IsCryptoSecured(bool rx) const
 
 bool OpalSRTPSession::Open(const PString & localInterface, const OpalTransportAddress & remoteAddress)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
-  m_anyRTCP_SSRC = GetSyncSourceIn() == 0 && m_stringOptions.GetBoolean(OPAL_OPT_SRTP_RTCP_ANY_SSRC, m_anyRTCP_SSRC);
+  if (!OpalRTPSession::Open(localInterface, remoteAddress))
+    return false;
 
-  return OpalRTPSession::Open(localInterface, remoteAddress);
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
+
+  m_anyRTCP_SSRC = GetSyncSourceIn() == 0 && m_stringOptions.GetBoolean(OPAL_OPT_SRTP_RTCP_ANY_SSRC, m_anyRTCP_SSRC);
+  return true;
 }
 
 
@@ -812,7 +815,7 @@ OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnReceiveControl(RTP_ControlF
      However, for Chrome, we have a special cases of SSRC=1 for video and 0xfa17fa17
      for audio, neither of which they indicate in the SDP when in recvonly mode. So,
      we force creation of those specifically. */
-  if (UseSyncSource(ssrc, e_Receiver, m_anyRTCP_SSRC || ssrc == 1 || ssrc == 0xfa17fa17) == NULL) {
+  if (UseSyncSource(ssrc, e_Receiver, m_anyRTCP_SSRC || ssrc == (IsAudio() ? 0xfa17fa17 : 1)) == NULL) {
     OPAL_SRTP_TRACE(2, e_Receiver, e_Control, ssrc, 3, "not automatically added");
     return e_IgnorePacket;
   }
