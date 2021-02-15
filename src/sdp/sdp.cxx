@@ -2523,13 +2523,32 @@ void SDPRTPAVPMediaDescription::SetAttribute(const PString & attr, const PString
 
   if (attr *= "ssrc-group") {
     PStringArray tokens = value.Tokenise(' ', false);
-    if (tokens.GetSize() > 1 && (tokens[0] *= "FID")) {
-      RTP_SyncSourceArray ssrcs(tokens.GetSize() - 1);
-      for (PINDEX i = 1; i < tokens.GetSize(); ++i)
-        ssrcs[i - 1] = tokens[i].AsUnsigned();
-      m_flowSSRC.push_back(ssrcs);
-      return;
+    if (tokens.GetSize() < 2)
+      PTRACE(3, "Invalid ssrc-group: \"" << value << '"');
+    else {
+      PCaselessString groupType = tokens[0];
+      if (groupType == "FID") {
+        RTP_SyncSourceArray ssrcs(tokens.GetSize() - 1);
+        for (PINDEX i = 1; i < tokens.GetSize(); ++i)
+          ssrcs[i - 1] = tokens[i].AsUnsigned();
+        m_flowSSRC.push_back(ssrcs);
+      }
+      else if (groupType == "SIM") {
+        // Fake modern style simulcast info from the old style.
+        m_simulcast.resize(1);
+        m_simulcast[0].resize(1);
+        for (PINDEX i = 1; i < tokens.GetSize(); ++i) {
+          PString id(i);
+          m_restrictions[id].m_id = id;
+          m_restrictions[id].m_direction = e_Send;
+          m_simulcast[0][0].push_back(id);
+        }
+      }
+      else {
+        PTRACE(3, "Unknown ssrc-group type: \"" << groupType << '"');
+      }
     }
+    return;
   }
 
   SDPMediaDescription::SetAttribute(attr, value);
