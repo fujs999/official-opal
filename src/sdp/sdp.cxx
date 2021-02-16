@@ -2724,82 +2724,85 @@ bool SDPRTPAVPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSo
     rtpSession->SetHeaderExtensions(GetHeaderExtensions());
     rtpSession->SetLabel(m_label);
 
-    for (SsrcInfo::const_iterator it = m_ssrcInfo.begin(); it != m_ssrcInfo.end(); ++it) {
-      RTP_SyncSourceId ssrc = it->first;
-      ssrcs.push_back(ssrc);
-      PString cname(it->second.GetString("cname"));
-      if (!cname.IsEmpty()) {
-        PString oldCname = rtpSession->GetCanonicalName(ssrc, OpalRTPSession::e_Receiver);
-        if (!oldCname.IsEmpty() && oldCname != cname)
-          rtpSession->RemoveSyncSource(ssrc PTRACE_PARAM(, "cname changed"));
-        if (rtpSession->AddSyncSource(ssrc, OpalRTPSession::e_Receiver, cname) == ssrc) {
-          PTRACE(4, *rtpSession << "added receiver SSRC " << RTP_TRACE_SRC(ssrc));
+    // Don't do the SSRC manipulations until session is open as collision avoidance needs it
+    if (session->IsOpen()) {
+      for (SsrcInfo::const_iterator it = m_ssrcInfo.begin(); it != m_ssrcInfo.end(); ++it) {
+        RTP_SyncSourceId ssrc = it->first;
+        ssrcs.push_back(ssrc);
+        PString cname(it->second.GetString("cname"));
+        if (!cname.IsEmpty()) {
+          PString oldCname = rtpSession->GetCanonicalName(ssrc, OpalRTPSession::e_Receiver);
+          if (!oldCname.IsEmpty() && oldCname != cname)
+            rtpSession->RemoveSyncSource(ssrc PTRACE_PARAM(, "cname changed"));
+          if (rtpSession->AddSyncSource(ssrc, OpalRTPSession::e_Receiver, cname) == ssrc) {
+            PTRACE(4, *rtpSession << "added receiver SSRC " << RTP_TRACE_SRC(ssrc));
+          }
+
+          PString * mid = m_groups.GetAt(OpalMediaSession::GetBundleGroupId());
+          if (mid != NULL && !mid->empty())
+            rtpSession->SetBundleMediaId(*mid, ssrc, OpalRTPSession::e_Receiver);
+
+          PString msid, appdata;
+          it->second.GetString("msid").Split(' ', msid, appdata);
+          rtpSession->SetMediaTrackId(msid, ssrc, OpalRTPSession::e_Receiver);
+          rtpSession->SetMediaStreamId(appdata, ssrc, OpalRTPSession::e_Receiver);
+
+          // With normal Simulcast, this comes in a header extensions, if it is in
+          // the explicit SSRC options, then we are faking old Safarie mechanism.
+          PString rtpStreamId = it->second.GetString("RtpStreamId");
+          if (!rtpStreamId.empty())
+            rtpSession->SetRtpStreamId(rtpStreamId, ssrc, OpalRTPSession::e_Receiver);
         }
-
-        PString * mid = m_groups.GetAt(OpalMediaSession::GetBundleGroupId());
-        if (mid != NULL && !mid->empty())
-          rtpSession->SetBundleMediaId(*mid, ssrc, OpalRTPSession::e_Receiver);
-
-        PString msid, appdata;
-        it->second.GetString("msid").Split(' ', msid, appdata);
-        rtpSession->SetMediaTrackId(msid, ssrc, OpalRTPSession::e_Receiver);
-        rtpSession->SetMediaStreamId(appdata, ssrc, OpalRTPSession::e_Receiver);
-
-        // With normal Simulcast, this comes in a header extensions, if it is in
-        // the explicit SSRC options, then we are faking old Safarie mechanism.
-        PString rtpStreamId = it->second.GetString("RtpStreamId");
-        if (!rtpStreamId.empty())
-          rtpSession->SetRtpStreamId(rtpStreamId, ssrc, OpalRTPSession::e_Receiver);
       }
-    }
 
-    // See if "rtx" is offerred/answered by remote
-    RTP_DataFrame::PayloadTypes rtxPT = RTP_DataFrame::IllegalPayloadType;
-    for (SDPMediaFormatList::const_iterator rtxFmtIter = m_formats.begin(); rtxFmtIter != m_formats.end(); ++rtxFmtIter) {
-      const OpalMediaFormat rtxMediaFormat = rtxFmtIter->GetMediaFormat();
-      if (OpalRtx::EncodingName() != rtxMediaFormat.GetEncodingName())
-        continue;
+      // See if "rtx" is offerred/answered by remote
+      RTP_DataFrame::PayloadTypes rtxPT = RTP_DataFrame::IllegalPayloadType;
+      for (SDPMediaFormatList::const_iterator rtxFmtIter = m_formats.begin(); rtxFmtIter != m_formats.end(); ++rtxFmtIter) {
+        const OpalMediaFormat rtxMediaFormat = rtxFmtIter->GetMediaFormat();
+        if (OpalRtx::EncodingName() != rtxMediaFormat.GetEncodingName())
+          continue;
 
-      RTP_DataFrame::PayloadTypes assocPT = rtxMediaFormat.GetOptionPayloadType(OpalRtx::AssociatedPayloadTypeOption());
-      if (assocPT == RTP_DataFrame::IllegalPayloadType)
-        continue;
+        RTP_DataFrame::PayloadTypes assocPT = rtxMediaFormat.GetOptionPayloadType(OpalRtx::AssociatedPayloadTypeOption());
+        if (assocPT == RTP_DataFrame::IllegalPayloadType)
+          continue;
 
-      // Verify it matches the primary codec
-      for (SDPMediaFormatList::const_iterator assocFmtIter = m_formats.begin(); assocFmtIter != m_formats.end(); ++assocFmtIter) {
-        if (assocFmtIter->GetMediaFormat().GetPayloadType() == assocPT) {
-          rtxPT = assocPT;
+        // Verify it matches the primary codec
+        for (SDPMediaFormatList::const_iterator assocFmtIter = m_formats.begin(); assocFmtIter != m_formats.end(); ++assocFmtIter) {
+          if (assocFmtIter->GetMediaFormat().GetPayloadType() == assocPT) {
+            rtxPT = assocPT;
+            break;
+          }
+        }
+        if (rtxPT != RTP_DataFrame::IllegalPayloadType)
           break;
-        }
       }
-      if (rtxPT != RTP_DataFrame::IllegalPayloadType)
-        break;
-    }
 
-    if (rtxPT != RTP_DataFrame::IllegalPayloadType) {
-      // Connect up the SSRC's used for "rtx" packets
-      for (vector<RTP_SyncSourceArray>::const_iterator it = m_flowSSRC.begin(); it != m_flowSSRC.end(); ++it) {
-        if (it->size() == 2) {
-          RTP_SyncSourceId primarySSRC = it->at(0);
-          RTP_SyncSourceId rtxSSRC = it->at(1);
-          PString primaryCNAME = rtpSession->GetCanonicalName(primarySSRC, OpalRTPSession::e_Receiver);
-          PString rtxCNAME = rtpSession->GetCanonicalName(rtxSSRC, OpalRTPSession::e_Receiver);
-          if (primaryCNAME == rtxCNAME)
-            rtpSession->EnableSyncSourceRtx(primarySSRC, rtxPT, rtxSSRC);
-          else {
-            PTRACE(3, *rtpSession << "flow grouping not using same CNAME:"
-                      " SSRC1=" << RTP_TRACE_SRC(primarySSRC) << " CNAME1=\"" << primaryCNAME << "\""
-                      " SSRC2=" << RTP_TRACE_SRC(rtxSSRC) << " CNAME2=\"" << rtxCNAME << '"');
+      if (rtxPT != RTP_DataFrame::IllegalPayloadType) {
+        // Connect up the SSRC's used for "rtx" packets
+        for (vector<RTP_SyncSourceArray>::const_iterator it = m_flowSSRC.begin(); it != m_flowSSRC.end(); ++it) {
+          if (it->size() == 2) {
+            RTP_SyncSourceId primarySSRC = it->at(0);
+            RTP_SyncSourceId rtxSSRC = it->at(1);
+            PString primaryCNAME = rtpSession->GetCanonicalName(primarySSRC, OpalRTPSession::e_Receiver);
+            PString rtxCNAME = rtpSession->GetCanonicalName(rtxSSRC, OpalRTPSession::e_Receiver);
+            if (primaryCNAME == rtxCNAME)
+              rtpSession->EnableSyncSourceRtx(primarySSRC, rtxPT, rtxSSRC);
+            else {
+              PTRACE(3, *rtpSession << "flow grouping not using same CNAME:"
+                     " SSRC1=" << RTP_TRACE_SRC(primarySSRC) << " CNAME1=\"" << primaryCNAME << "\""
+                     " SSRC2=" << RTP_TRACE_SRC(rtxSSRC) << " CNAME2=\"" << rtxCNAME << '"');
+            }
           }
         }
       }
-    }
-    else {
-      // Go through and remove rtx SSRC's, as didn't get confirmed
-      RTP_SyncSourceArray senderSSRCs = rtpSession->GetSyncSources(OpalRTPSession::e_Sender);
-      for (RTP_SyncSourceArray::iterator it = senderSSRCs.begin(); it != senderSSRCs.end(); ++it) {
-        RTP_SyncSourceId ssrc = *it;
-        if (rtpSession->GetRtxSyncSource(ssrc, OpalRTPSession::e_Sender, false) != 0)
-          rtpSession->RemoveSyncSource(ssrc PTRACE_PARAM(, "RTX not confirmed"));
+      else {
+        // Go through and remove rtx SSRC's, as didn't get confirmed
+        RTP_SyncSourceArray senderSSRCs = rtpSession->GetSyncSources(OpalRTPSession::e_Sender);
+        for (RTP_SyncSourceArray::iterator it = senderSSRCs.begin(); it != senderSSRCs.end(); ++it) {
+          RTP_SyncSourceId ssrc = *it;
+          if (rtpSession->GetRtxSyncSource(ssrc, OpalRTPSession::e_Sender, false) != 0)
+            rtpSession->RemoveSyncSource(ssrc PTRACE_PARAM(, "RTX not confirmed"));
+        }
       }
     }
   }
