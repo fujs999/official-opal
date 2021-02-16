@@ -159,24 +159,36 @@ OpalRTPSession::~OpalRTPSession()
 
 RTP_SyncSourceId OpalRTPSession::AddSyncSource(RTP_SyncSourceId id, Direction dir, const char * cname)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE(return 0);
+  OpalMediaTransportPtr transport = m_transport;
+  if (PAssertNULL(transport) == NULL)
+    return 0;
 
-  if (id == 0) {
-    do {
-      id = PRandom::Number();
-    } while (id < 4 || m_SSRC.find(id) != m_SSRC.end());
-  }
+  if (id == 0)
+    id = transport->NewSyncSource(GetSessionID());
   else {
-    SyncSourceMap::iterator it = m_SSRC.find(id);
-    if (it != m_SSRC.end()) {
-      if (cname == NULL || (it->second->m_direction == dir && it->second->m_canonicalName == cname))
-        return id;
-      PTRACE(2, *this << "could not add SSRC=" << RTP_TRACE_SRC(id) << ","
-                " probable clash with " << it->second->m_direction << ","
-                " cname=" << it->second->m_canonicalName);
-      return 0;
+    unsigned collidingSessionId = transport->AddSyncSource(GetSessionID(), id);
+    if (collidingSessionId != 0) {
+      if (GetSessionID() == collidingSessionId) {
+        P_INSTRUMENTED_LOCK_READ_ONLY(return 0);
+        SyncSourceMap::iterator it = m_SSRC.find(id);
+        if (it != m_SSRC.end() && (cname == NULL || (it->second->m_direction == dir && it->second->m_canonicalName == cname)))
+            return id;
+      }
+
+      OpalRTPSession * session = dynamic_cast<OpalRTPSession *>(dynamic_cast<OpalRTPConnection &>(m_connection).GetMediaSession(collidingSessionId));
+      if (session) {
+        if (session->OnSyncSourceCollision(id) == 0)
+          return 0;
+      }
+      else {
+        // Unusual case of a session disappearing, is OK to re-use the SSRC then.
+        transport->RemoveSyncSource(id);
+        transport->AddSyncSource(GetSessionID(), id);
+      }
     }
   }
+
+  P_INSTRUMENTED_LOCK_READ_WRITE(return 0);
 
   if (m_defaultSSRC[dir] == 0) {
     PTRACE(3, *this << "setting default " << dir << " (added) SSRC=" << RTP_TRACE_SRC(id));
@@ -188,6 +200,36 @@ RTP_SyncSourceId OpalRTPSession::AddSyncSource(RTP_SyncSourceId id, Direction di
 }
 
 
+RTP_SyncSourceId OpalRTPSession::OnSyncSourceCollision(RTP_SyncSourceId oldSSRC)
+{
+  P_INSTRUMENTED_LOCK_READ_WRITE(return 0);
+
+  OpalMediaTransportPtr transport = m_transport;
+  if (PAssertNULL(transport) == NULL)
+    return 0;
+
+  SyncSourceMap::iterator it = m_SSRC.find(oldSSRC);
+  if (it == m_SSRC.end()) {
+    PTRACE(2, *this << "non-existant collision on SSRC " << RTP_TRACE_SRC(oldSSRC));
+    return 0;
+  }
+
+  if (it->second->m_direction != e_Sender) {
+    PTRACE(2, *this << "cannot resolve collision on receiver SSRC " << RTP_TRACE_SRC(oldSSRC));
+    return 0;
+  }
+
+  it->second->SendBYE();
+  it->second->m_firstPacketTime.SetCurrentTime(); // Make sure certain header extensions are resent
+
+  RTP_SyncSourceId newSSRC = transport->NewSyncSource(GetSessionID());
+  PTRACE(3, *this << "collision on SSRC " << RTP_TRACE_SRC(oldSSRC) << " changing to " << RTP_TRACE_SRC(newSSRC));
+  m_SSRC[newSSRC] = it->second;
+  m_SSRC.erase(it);
+  return newSSRC;
+}
+
+
 bool OpalRTPSession::RemoveSyncSource(RTP_SyncSourceId ssrc PTRACE_PARAM(, const char * reason))
 {
   P_INSTRUMENTED_LOCK_READ_WRITE(return false);
@@ -195,6 +237,10 @@ bool OpalRTPSession::RemoveSyncSource(RTP_SyncSourceId ssrc PTRACE_PARAM(, const
   SyncSourceMap::iterator it = m_SSRC.find(ssrc);
   if (it == m_SSRC.end())
     return false;
+
+  OpalMediaTransportPtr transport = m_transport;
+  if (transport)
+    transport->RemoveSyncSource(ssrc);
 
   if (it->second->m_direction == e_Sender)
     it->second->SendBYE();
