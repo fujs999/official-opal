@@ -300,6 +300,27 @@ OpalRTPSession::SyncSource * OpalRTPSession::UseSyncSource(RTP_SyncSourceId ssrc
 }
 
 
+OpalRTPSession::SyncSource * OpalRTPSession::AddSyncSourceByBundleMediaId(RTP_SyncSourceId ssrc, const PString & mid PTRACE_PARAM(, const char * from))
+{
+  if (FindGroupMediaId(GetBundleGroupId(), mid) == UINT_MAX) {
+    PTRACE(m_throttleRxBundleId, *this << "Received " << from << " for unknown BUNDLE mid: \"" << mid << '"' << m_throttleRxBundleId);
+    return NULL;
+  }
+
+  if (AddSyncSource(ssrc, e_Receiver) != ssrc) {
+    PTRACE(m_throttleRxBundleId, *this << "Received " << from << " for invalid SSRC on BUNDLE mid: \"" << mid << '"' << m_throttleRxBundleId);
+    return NULL;
+  }
+
+  SyncSource * receiver = m_SSRC.find(ssrc)->second;
+  receiver->m_bundleMediaId = mid;
+  receiver->m_mediaStreamId = m_mediaStreamByBundleMediaId(mid);
+  receiver->m_mediaTrackId = m_mediaTrackByBundleMediaId(mid);
+  PTRACE(3, *receiver << "added via " << from << " for BUNDLE mid: \"" << mid << '"');
+  return receiver;
+}
+
+
 OpalRTPSession::SyncSource * OpalRTPSession::CreateSyncSource(RTP_SyncSourceId id, Direction dir, const char * cname)
 {
   return new SyncSource(*this, id, dir, cname);
@@ -2054,20 +2075,8 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnPreReceiveData(RTP_DataFrame
 
   BYTE * exthdr;
   PINDEX hdrlen;
-  if (receiver == NULL) {
-    if ((exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_Auto, m_bundleMediaIdHdrExtId, hdrlen)) != NULL) {
-      PString mid((const char *)exthdr, hdrlen);
-      if (FindGroupMediaId(GetBundleGroupId(), mid) == UINT_MAX)
-        PTRACE(m_throttleRxBundleId, *this << "Received header extension for unknown BUNDLE mid: \"" << mid << '"' << m_throttleRxBundleId);
-      else {
-        receiver = UseSyncSource(ssrc, e_Receiver, true);
-        receiver->m_bundleMediaId = mid;
-        receiver->m_mediaStreamId = m_mediaStreamByBundleMediaId(mid);
-        receiver->m_mediaTrackId = m_mediaTrackByBundleMediaId(mid);
-        PTRACE(3, *receiver << "added via header extension for BUNDLE mid: \"" << mid << '"');
-      }
-    }
-  }
+  if (receiver == NULL && (exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_Auto, m_bundleMediaIdHdrExtId, hdrlen)) != NULL)
+    receiver = AddSyncSourceByBundleMediaId(ssrc, PString((const char *)exthdr, hdrlen) PTRACE_PARAM(, "header extension"));
 
   if (receiver == NULL) {
     PTRACE_IF(2, m_loggedBadSSRC.insert(ssrc).second, *this << "ignoring unknown SSRC: " << setw(1) << frame);
@@ -3014,17 +3023,8 @@ void OpalRTPSession::OnRxSourceDescription(const RTP_SourceDescriptionArray & de
     SyncSource * receiver = UseSyncSource(ssrc, e_Receiver, false);
     if (receiver == NULL) {
       PString * mid = description.items.GetAt(RTP_ControlFrame::e_MID);
-      if (mid != NULL) {
-        if (FindGroupMediaId(GetBundleGroupId(), *mid) != UINT_MAX)
-          PTRACE(2, *this << "Received SDES for unknown BUNDLE mid: \"" << *mid << '"' << m_throttleRxBundleId);
-        else {
-          receiver = UseSyncSource(ssrc, e_Receiver, true);
-          receiver->m_bundleMediaId = *mid;
-          receiver->m_mediaStreamId = m_mediaStreamByBundleMediaId(*mid);
-          receiver->m_mediaTrackId = m_mediaTrackByBundleMediaId(*mid);
-          PTRACE(3, *receiver << "Received SDES for BUNDLE mid: \"" << *mid << '"');
-        }
-      }
+      if (mid != NULL)
+        receiver = AddSyncSourceByBundleMediaId(ssrc, *mid PTRACE_PARAM(, "SDES"));
     }
 
     if (receiver != NULL) {
