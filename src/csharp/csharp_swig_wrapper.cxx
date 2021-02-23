@@ -312,7 +312,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_OPAL_C_API_VERSION_get() {
   int jresult ;
   int result;
   
-  result = (int)(41);
+  result = (int)(42);
   jresult = result; 
   return jresult;
 }
@@ -1680,6 +1680,35 @@ SWIGEXPORT unsigned int SWIGSTDCALL CSharp_OpalParamGeneral_autoCreateCertificat
   arg1 = (OpalParamGeneral *)jarg1; 
   result = (unsigned int) ((arg1)->m_autoCreateCertificate);
   jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_OpalParamGeneral_traceLogOptions_set(void * jarg1, char * jarg2) {
+  OpalParamGeneral *arg1 = (OpalParamGeneral *) 0 ;
+  char *arg2 = (char *) 0 ;
+  
+  arg1 = (OpalParamGeneral *)jarg1; 
+  arg2 = (char *)jarg2; 
+  {
+    if (arg2) {
+      arg1->m_traceLogOptions = (char const *) (new char[strlen((const char *)arg2)+1]);
+      strcpy((char *)arg1->m_traceLogOptions, (const char *)arg2);
+    } else {
+      arg1->m_traceLogOptions = 0;
+    }
+  }
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_OpalParamGeneral_traceLogOptions_get(void * jarg1) {
+  char * jresult ;
+  OpalParamGeneral *arg1 = (OpalParamGeneral *) 0 ;
+  char *result = 0 ;
+  
+  arg1 = (OpalParamGeneral *)jarg1; 
+  result = (char *) ((arg1)->m_traceLogOptions);
+  jresult = SWIG_csharp_string_callback((const char *)result); 
   return jresult;
 }
 

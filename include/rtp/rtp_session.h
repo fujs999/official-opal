@@ -426,25 +426,29 @@ class OpalRTPSession : public OpalMediaSession
     */
     void SetRtpStreamId(const PString & id, RTP_SyncSourceId ssrc, Direction dir);
 
-    /**Get the "MediaStream" id for the RTP session SSRC.
+    /**Get the "MediaStream" id for the RTP session SSRC/mid.
        See http://tools.ietf.org/html/draft-ietf-mmusic-msid
     */
     PString GetMediaStreamId(RTP_SyncSourceId ssrc, Direction dir) const;
+    PString GetMediaStreamId(const PString & mid) const;
 
-    /**Set the "MediaStream" id for the RTP session SSRC.
+    /**Set the "MediaStream" id for the RTP session SSRC/mid.
        See http://tools.ietf.org/html/draft-ietf-mmusic-msid
     */
-    void SetMediaStreamId(const PString & id, RTP_SyncSourceId ssrc, Direction dir);
+    void SetMediaStreamId(const PString & msid, RTP_SyncSourceId ssrc, Direction dir);
+    void SetMediaStreamId(const PString & msid, const PString & mid);
 
     /**Get the "MediaStreamTrack" id for the RTP session SSRC.
        See http://tools.ietf.org/html/draft-ietf-mmusic-msid
     */
     PString GetMediaTrackId(RTP_SyncSourceId ssrc, Direction dir) const;
+    PString GetMediaTrackId(const PString & mid) const;
 
     /**Set the "MediaStreamTrack" id for the RTP session SSRC.
        See http://tools.ietf.org/html/draft-ietf-mmusic-msid
     */
-    void SetMediaTrackId(const PString & id, RTP_SyncSourceId ssrc, Direction dir);
+    void SetMediaTrackId(const PString & mtid, RTP_SyncSourceId ssrc, Direction dir);
+    void SetMediaTrackId(const PString & mtid, const PString & mid);
 
     /**Get the SSRC for the secondary rtx packets.
        If \p primary is true then \p ssrc is a primary SSRC and the function
@@ -954,6 +958,8 @@ class OpalRTPSession : public OpalMediaSession
     SyncSource       m_dummySyncSource;
     std::atomic<RTP_SyncSourceId> m_defaultSSRC[2]; // For e_Sender and e_Receiver
     std::map<PString, RTP_SyncSourceId> m_rtpStreamIdToSendSSRC;
+    PStringToString m_mediaStreamByBundleMediaId;
+    PStringToString m_mediaTrackByBundleMediaId;
 
     const SyncSource & GetSyncSource(RTP_SyncSourceId ssrc, Direction dir) const;
     virtual bool GetSyncSource(RTP_SyncSourceId ssrc, Direction dir, SyncSource * & info);

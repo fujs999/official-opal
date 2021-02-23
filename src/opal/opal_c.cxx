@@ -1422,6 +1422,17 @@ void OpalManager_C::SetOutgoingCallInfo(OpalMessageType type, OpalCall & call)
 
 void OpalManager_C::HandleSetGeneral(const OpalMessage & command, OpalMessageBuffer & response)
 {
+#if PTRACING
+  if (m_apiVersion >= 42 && !IsNullString(command.m_param.m_general.m_traceLogOptions)) {
+    PArgList args(command.m_param.m_general.m_traceLogOptions, PTRACE_ARGLIST_EXT("t","l","o","R","O"), false);
+    if (!args.IsParsed()) {
+      response.SetError("Could not parse trace log options.");
+      return;
+    }
+    PTRACE_INITIALISE(args);
+  }
+#endif
+
 #if OPAL_HAS_PCSS
   OpalPCSSEndPoint_C * pcssEP = FindEndPointAs<OpalPCSSEndPoint_C>(OPAL_PREFIX_PCSS);
   if (pcssEP != NULL) {
