@@ -1583,6 +1583,13 @@ PString OpalRTPSession::GetMediaStreamId(RTP_SyncSourceId ssrc, Direction dir) c
 }
 
 
+PString OpalRTPSession::GetMediaStreamId(const PString & mid) const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
+  return m_mediaStreamByBundleMediaId(mid).GetPointer();
+}
+
+
 void OpalRTPSession::SetMediaStreamId(const PString & id, RTP_SyncSourceId ssrc, Direction dir)
 {
   P_INSTRUMENTED_LOCK_READ_WRITE(return);
@@ -1601,10 +1608,28 @@ void OpalRTPSession::SetMediaStreamId(const PString & id, RTP_SyncSourceId ssrc,
 }
 
 
+void OpalRTPSession::SetMediaStreamId(const PString & id, const PString & mid)
+{
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+
+  PString trackId = m_mediaTrackByBundleMediaId(mid);
+  if (trackId.IsEmpty() || trackId.NumCompare(m_mediaStreamByBundleMediaId(mid) + '+') == EqualTo)
+    m_mediaTrackByBundleMediaId.SetAt(mid, PSTRSTRM(id << '+' << m_mediaType));
+  m_mediaStreamByBundleMediaId.SetAt(mid, id);
+}
+
+
 PString OpalRTPSession::GetMediaTrackId(RTP_SyncSourceId ssrc, Direction dir) const
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
   return GetSyncSource(ssrc, dir).m_mediaTrackId.GetPointer();
+}
+
+
+PString OpalRTPSession::GetMediaTrackId(const PString & mid) const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
+  return m_mediaTrackByBundleMediaId(mid).GetPointer();
 }
 
 
@@ -1621,6 +1646,13 @@ void OpalRTPSession::SetMediaTrackId(const PString & id, RTP_SyncSourceId ssrc, 
     if (dir == e_Sender && info->m_rtxSSRC != 0 && !info->IsRtx())
       SetMediaTrackId(id, info->m_rtxSSRC, dir);
   }
+}
+
+
+void OpalRTPSession::SetMediaTrackId(const PString & id, const PString & mid)
+{
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+  m_mediaTrackByBundleMediaId.SetAt(mid, id);
 }
 
 
@@ -2029,6 +2061,9 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnPreReceiveData(RTP_DataFrame
         PTRACE(m_throttleRxBundleId, *this << "Received header extension for unknown BUNDLE mid: \"" << mid << '"' << m_throttleRxBundleId);
       else {
         receiver = UseSyncSource(ssrc, e_Receiver, true);
+        receiver->m_bundleMediaId = mid;
+        receiver->m_mediaStreamId = m_mediaStreamByBundleMediaId(mid);
+        receiver->m_mediaTrackId = m_mediaTrackByBundleMediaId(mid);
         PTRACE(3, *receiver << "added via header extension for BUNDLE mid: \"" << mid << '"');
       }
     }
@@ -2985,6 +3020,8 @@ void OpalRTPSession::OnRxSourceDescription(const RTP_SourceDescriptionArray & de
         else {
           receiver = UseSyncSource(ssrc, e_Receiver, true);
           receiver->m_bundleMediaId = *mid;
+          receiver->m_mediaStreamId = m_mediaStreamByBundleMediaId(*mid);
+          receiver->m_mediaTrackId = m_mediaTrackByBundleMediaId(*mid);
           PTRACE(3, *receiver << "Received SDES for BUNDLE mid: \"" << *mid << '"');
         }
       }
