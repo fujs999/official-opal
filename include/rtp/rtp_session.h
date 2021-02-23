@@ -964,6 +964,7 @@ class OpalRTPSession : public OpalMediaSession
     const SyncSource & GetSyncSource(RTP_SyncSourceId ssrc, Direction dir) const;
     virtual bool GetSyncSource(RTP_SyncSourceId ssrc, Direction dir, SyncSource * & info);
     virtual SyncSource * UseSyncSource(RTP_SyncSourceId ssrc, Direction dir, bool force);
+    virtual SyncSource * AddSyncSourceByBundleMediaId(RTP_SyncSourceId ssrc, const PString & mid PTRACE_PARAM(, const char * from));
     virtual SyncSource * CreateSyncSource(RTP_SyncSourceId id, Direction dir, const char * cname);
     virtual bool CheckControlSSRC(RTP_SyncSourceId senderSSRC, RTP_SyncSourceId targetSSRC, SyncSource * & info PTRACE_PARAM(, const char * pduName));
     virtual bool ResequenceOutOfOrderPackets(SyncSource & ssrc) const;

@@ -2766,7 +2766,7 @@ bool SDPRTPAVPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSo
             rtpSession->SetBundleMediaId(mid, ssrc, OpalRTPSession::e_Receiver);
 
           PString streamId, trackId;
-          if (SplitMSID(m_msid, streamId, trackId)) {
+          if (SplitMSID(it->second.GetString("msid"), streamId, trackId)) {
             rtpSession->SetMediaTrackId(trackId, ssrc, OpalRTPSession::e_Receiver);
             rtpSession->SetMediaStreamId(streamId, ssrc, OpalRTPSession::e_Receiver);
           }
