@@ -310,7 +310,7 @@ bool OpalICEMediaTransport::GetCandidates(PString & user,
                                           PString & pass,
                                           PNatCandidateList & candidates,
                                           unsigned & options,
-                                          bool offering)
+                                          bool /*offering*/)
 {
   P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 

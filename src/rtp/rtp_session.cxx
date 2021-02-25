@@ -686,6 +686,12 @@ OpalRTPSession::SyncSource::~SyncSource()
 
 void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame, const PTime & now)
 {
+  PTRACE_IF(3, m_packets == 0, &m_session,
+            m_session << (m_direction == e_Receiver ? "received" : "sent") <<
+            " first packet: " << setw(1) << frame <<
+            " rem=" << m_session.GetRemoteAddress() <<
+            " local=" << m_session.GetLocalAddress());
+
   m_payloadType = frame.GetPayloadType();
   m_octets += frame.GetPayloadSize();
   m_packets++;
@@ -809,10 +815,6 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnSendData(RTP_Dat
     if (rewrite == e_RewriteHeader)
       frame.SetSequenceNumber(sequenceNumber = (RTP_SequenceNumber)PRandom::Number(1, 32768));
     m_firstSequenceNumber = sequenceNumber;
-    PTRACE(3, &m_session, m_session << "first sent data: "
-           << setw(1) << frame
-           << " rem=" << m_session.GetRemoteAddress()
-           << " local=" << m_session.GetLocalAddress());
   }
   else {
     PTRACE_IF(5, frame.GetDiscontinuity() > 0, &m_session,
@@ -912,8 +914,6 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
   // Check packet sequence numbers
   if (m_packets == 0) {
     m_firstPacketTime = m_lastPacketNetTime = now;
-
-    PTRACE(3, &m_session, m_session << "first receive data:" << setw(1) << frame);
 
 #if OPAL_RTCP_XR
     delete m_metrics; // Should be NULL, but just in case ...

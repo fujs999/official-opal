@@ -2538,7 +2538,7 @@ void SDPRTPAVPMediaDescription::SetAttribute(const PString & attr, const PString
         m_simulcast.resize(1);
         m_simulcast.front().resize(1);
         for (PINDEX i = 1; i < tokens.GetSize(); ++i) {
-          RTP_SyncSourceId ssrc = value.AsUnsigned();
+          RTP_SyncSourceId ssrc = tokens[i].AsUnsigned();
           if (ssrc == 0)
             PTRACE(3, "Invalid value in ssrc-group: \"" << value << '"');
           else {

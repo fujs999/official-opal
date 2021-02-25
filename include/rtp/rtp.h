@@ -607,9 +607,6 @@ class RTP_DataFrame : public PBYTEArray
 
     unsigned GetVersion() const { return (GetAt(0)>>6)&3; }
 
-    bool GetExtension() const   { return (GetAt(0)&0x10) != 0; }
-    void SetExtension(bool ext);
-
     bool GetMarker() const { return (GetAt(1)&0x80) != 0; }
     void SetMarker(bool m);
 
@@ -687,9 +684,6 @@ class RTP_DataFrame : public PBYTEArray
       const BYTE * data,  ///< Data to put into extension
       HeaderExtensionType type ///< RFC standard used
     );
-
-    PINDEX GetExtensionSizeDWORDs() const;      // get the number of 32 bit words in the extension (excluding the header).
-    bool   SetExtensionSizeDWORDs(PINDEX sz);   // set the number of 32 bit words in the extension (excluding the header)
 
     PINDEX GetPayloadSize() const { return m_payloadSize; }
     bool   SetPayloadSize(PINDEX sz);
@@ -796,6 +790,8 @@ class RTP_DataFrame : public PBYTEArray
 
   protected:
     bool AdjustHeaderSize(PINDEX newSize);
+    bool HasExtensions() const   { return (GetAt(0)&0x10) != 0; }
+    bool SetExtensionSizeBytes(PINDEX sz);
 
     PINDEX   m_headerSize;
     PINDEX   m_payloadSize;
