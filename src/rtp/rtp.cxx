@@ -97,7 +97,7 @@ bool RTP_DataFrame::SetPacketSize(PINDEX sz)
   m_headerSize = MinHeaderSize + 4*GetContribSrcCount();
 
   if (HasExtensions()) {
-    unsigned dwordsSansHeader = GetAs<PUInt16b>(m_headerSize + 2);
+    PINDEX dwordsSansHeader = GetAs<PUInt16b>(m_headerSize + 2);
     m_headerSize += (dwordsSansHeader + 1)*4;
   }
 
