@@ -2670,12 +2670,18 @@ bool SDPRTPAVPMediaDescription::FromSession(OpalMediaSession * session,
         if (!cname.IsEmpty())
           info.SetAt("cname", cname);
         PString msid = rtpSession->GetMediaStreamId(ssrc, OpalRTPSession::e_Sender);
-        if (!msid.IsEmpty()) {
-          PString appdata = rtpSession->GetMediaTrackId(ssrc, OpalRTPSession::e_Sender);
+        PString appdata = rtpSession->GetMediaTrackId(ssrc, OpalRTPSession::e_Sender);
+        if (!msid.IsEmpty() || !appdata.IsEmpty()) {
+          if (msid.IsEmpty())
+            msid = '-';
+          if (appdata.IsEmpty())
+            appdata = PSTRSTRM(msid << '+' << GetMediaType());
           info.SetAt("msid", msid & appdata);
           // These two are for backward compatibility, not in current standard.
-          info.SetAt("mslabel", msid);
-          info.SetAt("label", appdata);
+          if (msid != "-")
+            info.SetAt("mslabel", msid);
+          if (appdata != "-")
+            info.SetAt("label", appdata);
         }
 
         RTP_SyncSourceId rtxSSRC = rtpSession->GetRtxSyncSource(ssrc, OpalRTPSession::e_Sender, true);

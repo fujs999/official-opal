@@ -524,8 +524,8 @@ void OpalRTPConnection::SetUpLipSyncMediaStreams()
 
     PString id = PGloballyUniqueID().AsString();
     PTRACE(3, "Setting lip sync A/V media stream ID to \"" << id << "\""
-              " for audio SSRC " << RTP_TRACE_SRC(audioSSRC) <<
-              " and video SSRC " << RTP_TRACE_SRC(videoSSRC) <<
+              " for audio SSRC " << RTP_TRACE_SRC(audioSSRC) << " (mid=" << audioSession->GetBundleMediaId(audioSSRC) << ")"
+              " and video SSRC " << RTP_TRACE_SRC(videoSSRC) << " (mid=" << videoSession->GetBundleMediaId(videoSSRC) << ")"
               " on " << *this);
     audioSession->SetMediaStreamId(id, audioSSRC, OpalRTPSession::e_Sender);
     videoSession->SetMediaStreamId(id, videoSSRC, OpalRTPSession::e_Sender);
