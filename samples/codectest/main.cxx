@@ -365,7 +365,7 @@ int TranscoderThread::InitialiseCodec(PArgList & args,
           if (mediaFormat.GetOptionInteger(OpalMediaFormat::MaxBitRateOption()) < bitrate)
             mediaFormat.SetOptionInteger(OpalMediaFormat::MaxBitRateOption(), (unsigned)bitrate);
         }
-        cout << "Target bit rate set to " << PString(PString::ScaleSI, mediaFormat.GetOptionInteger(OpalMediaFormat::TargetBitRateOption())) << "bps" << endl;
+        cout << "Target bit rate set to " << PScaleSI(mediaFormat.GetOptionInteger(OpalMediaFormat::TargetBitRateOption()), 3, "b/s") << endl;
 
         PStringArray options = args.GetOptionString('O').Lines();
         for (PINDEX opt = 0; opt < options.GetSize(); ++opt) {
@@ -448,7 +448,7 @@ bool AudioThread::Initialise(PArgList & args)
   if (!driverName.IsEmpty())
     cout << "driver \"" << driverName << "\" and ";
   cout << "device \"" << m_recorder->GetName() << "\" at "
-       << PString(PString::ScaleSI, m_recorder->GetSampleRate()) << "Hz, using "
+       << PScaleSI(m_recorder->GetSampleRate(), 4, "Hz") << ", using "
        << bufferCount << 'x' << m_readSize << " byte buffers ";
 
   if (!m_recorder->SetBuffers(m_readSize, bufferCount)) {
@@ -485,7 +485,7 @@ bool AudioThread::Initialise(PArgList & args)
   if (!driverName.IsEmpty())
     cout << "driver \"" << driverName << "\" and ";
   cout << "device \"" << m_player->GetName() << "\" at "
-       << PString(PString::ScaleSI, m_player->GetSampleRate()) << "Hz, using "
+       << PScaleSI(m_player->GetSampleRate(), 4, "Hz") << ", using "
        << bufferCount << 'x' << m_readSize << " byte buffers ";
 
   if (!m_player->SetBuffers(m_readSize, bufferCount)) {

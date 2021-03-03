@@ -682,25 +682,44 @@ static PString BuildPartyStatus(const PString & party, const PString & name, con
 #if OPAL_STATISTICS
 static void SetMediaStats(PString & insert, OpalCall & call, const OpalMediaType & mediaType, bool fromAparty)
 {
-  static PConstString NA("N/A");
-  OpalMediaStatistics stats;
-  bool gotStats = call.GetStatistics(mediaType, true, stats);
+  static PConstString const NA("N/A");
+  static const char * const suffix[] = {
+    "bytes",
+    "packets",
+    "lost",
+    "jitter",
+    "discarded",
+    "resolution",
+    "frames",
+    "key-frames",
+    "key-requests"
+  };
   PString prefix = PSTRSTRM("status " << (fromAparty ? 'A' : 'B') << '-' << mediaType << '-');
-  PServiceHTML::SpliceMacro(insert, prefix + "bytes", gotStats ? PString(PString::ScaleSI, stats.m_totalBytes, 3) : NA);
-  PServiceHTML::SpliceMacro(insert, prefix + "packets", gotStats ? PString(stats.m_totalPackets) : NA);
-  PServiceHTML::SpliceMacro(insert, prefix + "lost", gotStats ? PString(stats.m_unrecovered) : NA);
-  if (mediaType == OpalMediaType::Audio()) {
-    PServiceHTML::SpliceMacro(insert, prefix + "jitter", gotStats ? PString(stats.m_jitterBufferDelay) : NA);
-    PServiceHTML::SpliceMacro(insert, prefix + "discarded", gotStats ? PString(stats.m_packetsTooLate+stats.m_packetOverruns) : NA);
-  }
-  #if OPAL_VIDEO
-    else if (mediaType == OpalMediaType::Video()) {
-      PServiceHTML::SpliceMacro(insert, prefix + "resolution", gotStats ? PSTRSTRM(stats.m_frameWidth << 'x' << stats.m_frameHeight) : NA);
-      PServiceHTML::SpliceMacro(insert, prefix + "frames", gotStats ? PString(stats.m_totalFrames) : NA);
-      PServiceHTML::SpliceMacro(insert, prefix + "key-frames", gotStats ? PString(stats.m_keyFrames) : NA);
-      PServiceHTML::SpliceMacro(insert, prefix + "key-requests", gotStats ? PString(stats.m_fullUpdateRequests+stats.m_pictureLossRequests) : NA);
+  OpalMediaStatistics stats;
+  if (call.GetStatistics(mediaType, true, stats)) {
+    PServiceHTML::SpliceMacro(insert, prefix + suffix[0], PScaleSI(stats.m_totalBytes, 3));
+    PServiceHTML::SpliceMacro(insert, prefix + suffix[1], stats.m_totalPackets);
+    PServiceHTML::SpliceMacro(insert, prefix + suffix[2], stats.m_unrecovered);
+    if (mediaType == OpalMediaType::Audio()) {
+      PServiceHTML::SpliceMacro(insert, prefix + suffix[3], stats.m_jitterBufferDelay);
+      PServiceHTML::SpliceMacro(insert, prefix + suffix[4], stats.m_packetsTooLate + stats.m_packetOverruns);
     }
-  #endif // OPAL_VIDEO
+    #if OPAL_VIDEO
+      else if (mediaType == OpalMediaType::Video()) {
+        PServiceHTML::SpliceMacro(insert, prefix + suffix[5], PSTRSTRM(stats.m_frameWidth << 'x' << stats.m_frameHeight));
+        PServiceHTML::SpliceMacro(insert, prefix + suffix[6], stats.m_totalFrames);
+        PServiceHTML::SpliceMacro(insert, prefix + suffix[7], stats.m_keyFrames);
+        PServiceHTML::SpliceMacro(insert, prefix + suffix[8], stats.m_fullUpdateRequests + stats.m_pictureLossRequests);
+      }
+    #else
+      for (PINDEX i = 5; i < PARRAYSIZE(suffix); ++i)
+        PServiceHTML::SpliceMacro(insert, prefix + suffix[i], NA);
+    #endif // OPAL_VIDEO
+  }
+  else {
+    for (PINDEX i = 0; i < PARRAYSIZE(suffix); ++i)
+      PServiceHTML::SpliceMacro(insert, prefix + suffix[i], NA);
+  }
 }
 #endif // OPAL_STATISTICS
 
