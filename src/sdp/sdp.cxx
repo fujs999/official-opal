@@ -2538,7 +2538,7 @@ void SDPRTPAVPMediaDescription::SetAttribute(const PString & attr, const PString
         m_simulcast.resize(1);
         m_simulcast.front().resize(1);
         for (PINDEX i = 1; i < tokens.GetSize(); ++i) {
-          RTP_SyncSourceId ssrc = value.AsUnsigned();
+          RTP_SyncSourceId ssrc = tokens[i].AsUnsigned();
           if (ssrc == 0)
             PTRACE(3, "Invalid value in ssrc-group: \"" << value << '"');
           else {
@@ -2670,12 +2670,18 @@ bool SDPRTPAVPMediaDescription::FromSession(OpalMediaSession * session,
         if (!cname.IsEmpty())
           info.SetAt("cname", cname);
         PString msid = rtpSession->GetMediaStreamId(ssrc, OpalRTPSession::e_Sender);
-        if (!msid.IsEmpty()) {
-          PString appdata = rtpSession->GetMediaTrackId(ssrc, OpalRTPSession::e_Sender);
+        PString appdata = rtpSession->GetMediaTrackId(ssrc, OpalRTPSession::e_Sender);
+        if (!msid.IsEmpty() || !appdata.IsEmpty()) {
+          if (msid.IsEmpty())
+            msid = '-';
+          if (appdata.IsEmpty())
+            appdata = PSTRSTRM(msid << '+' << GetMediaType());
           info.SetAt("msid", msid & appdata);
           // These two are for backward compatibility, not in current standard.
-          info.SetAt("mslabel", msid);
-          info.SetAt("label", appdata);
+          if (msid != "-")
+            info.SetAt("mslabel", msid);
+          if (appdata != "-")
+            info.SetAt("label", appdata);
         }
 
         RTP_SyncSourceId rtxSSRC = rtpSession->GetRtxSyncSource(ssrc, OpalRTPSession::e_Sender, true);
@@ -2709,6 +2715,21 @@ bool SDPRTPAVPMediaDescription::FromSession(OpalMediaSession * session,
 }
 
 
+static bool SplitMSID(const PString & msid, PString & streamId, PString & trackId)
+{
+  if (!msid.Split(' ', streamId, trackId, PString::SplitTrim|PString::SplitNonEmpty))
+    return false;
+
+  if (streamId == "-")
+    streamId.MakeEmpty();
+
+  if (trackId == "-")
+    trackId.MakeEmpty();
+
+  return true;
+}
+
+
 bool SDPRTPAVPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSourceArray & ssrcs) const
 {
   OpalRTPSession * rtpSession = dynamic_cast<OpalRTPSession *>(session);
@@ -2726,6 +2747,15 @@ bool SDPRTPAVPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSo
 
     // Don't do the SSRC manipulations until session is open as collision avoidance needs it
     if (session->IsOpen()) {
+      PString mid = m_groups(OpalMediaSession::GetBundleGroupId());
+      if (!mid.empty() && m_ssrcInfo.empty()) {
+        rtpSession->SetBundleMediaId(mid, 0, OpalRTPSession::e_Receiver);
+        PString streamId, trackId;
+        if (SplitMSID(m_msid, streamId, trackId)) {
+          rtpSession->SetMediaTrackId(trackId, mid);
+          rtpSession->SetMediaStreamId(streamId, mid);
+        }
+      }
       for (SsrcInfo::const_iterator it = m_ssrcInfo.begin(); it != m_ssrcInfo.end(); ++it) {
         RTP_SyncSourceId ssrc = it->first;
         ssrcs.push_back(ssrc);
@@ -2738,14 +2768,14 @@ bool SDPRTPAVPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSo
             PTRACE(4, *rtpSession << "added receiver SSRC " << RTP_TRACE_SRC(ssrc));
           }
 
-          PString * mid = m_groups.GetAt(OpalMediaSession::GetBundleGroupId());
-          if (mid != NULL && !mid->empty())
-            rtpSession->SetBundleMediaId(*mid, ssrc, OpalRTPSession::e_Receiver);
+          if (!mid.empty())
+            rtpSession->SetBundleMediaId(mid, ssrc, OpalRTPSession::e_Receiver);
 
-          PString msid, appdata;
-          it->second.GetString("msid").Split(' ', msid, appdata);
-          rtpSession->SetMediaTrackId(msid, ssrc, OpalRTPSession::e_Receiver);
-          rtpSession->SetMediaStreamId(appdata, ssrc, OpalRTPSession::e_Receiver);
+          PString streamId, trackId;
+          if (SplitMSID(it->second.GetString("msid"), streamId, trackId)) {
+            rtpSession->SetMediaTrackId(trackId, ssrc, OpalRTPSession::e_Receiver);
+            rtpSession->SetMediaStreamId(streamId, ssrc, OpalRTPSession::e_Receiver);
+          }
 
           // With normal Simulcast, this comes in a header extensions, if it is in
           // the explicit SSRC options, then we are faking old Safarie mechanism.

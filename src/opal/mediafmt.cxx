@@ -210,7 +210,7 @@ PObject::Comparison OpalBandwidth::Compare(const PObject & other) const
 
 void OpalBandwidth::PrintOn(std::ostream & strm) const
 {
-  strm << PString(PString::ScaleSI, m_bps) << "b/s";
+  strm << PScaleSI(m_bps, 4, "b/s");
 }
 
 

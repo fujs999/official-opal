@@ -76,7 +76,7 @@ typedef struct OpalHandleStruct * OpalHandle;
 typedef struct OpalMessage OpalMessage;
 
 /// Current API version
-#define OPAL_C_API_VERSION 41
+#define OPAL_C_API_VERSION 42
 
 
 ///////////////////////////////////////
@@ -822,6 +822,7 @@ typedef struct OpalParamGeneral {
                                            if the certicalte and private key files are not found at the locations
                                            indicated (value=1), or that only the file/value indicated in above
                                            fields is used exclusively (value=2). */
+  const char * m_traceLogOptions;     /**< Set trace logging options as described in the OpalInitialise function. */
 } OpalParamGeneral;
 
 

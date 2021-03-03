@@ -446,7 +446,8 @@ struct OpalSDPConnection::BundleMergeInfo
 
         RTP_SyncSourceArray ssrcs = rtpSession->GetSyncSources(OpalRTPSession::e_Receiver);
         for (RTP_SyncSourceArray::const_iterator ssrc = ssrcs.begin(); ssrc != ssrcs.end(); ++ssrc) {
-          if (std::find(m_recvSsrcs.begin(), m_recvSsrcs.end(), *ssrc) == m_recvSsrcs.end())
+          if (std::find(m_recvSsrcs.begin(), m_recvSsrcs.end(), *ssrc) == m_recvSsrcs.end() &&
+              rtpSession->GetRtpStreamId(*ssrc, OpalRTPSession::e_Receiver).IsEmpty()) // Don't clear if using new header extensions
             rtpSession->RemoveSyncSource(*ssrc PTRACE_PARAM(, "clearing non-confirmed SSRC in bundle"));
         }
       }

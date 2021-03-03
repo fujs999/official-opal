@@ -383,6 +383,14 @@ public class OpalParamGeneral {
     return OPALJNI.OpalParamGeneral_autoCreateCertificate_get(swigCPtr, this);
   }
 
+  public void setTraceLogOptions(String value) {
+    OPALJNI.OpalParamGeneral_traceLogOptions_set(swigCPtr, this, value);
+  }
+
+  public String getTraceLogOptions() {
+    return OPALJNI.OpalParamGeneral_traceLogOptions_get(swigCPtr, this);
+  }
+
   public OpalParamGeneral() {
     this(OPALJNI.new_OpalParamGeneral(), true);
   }

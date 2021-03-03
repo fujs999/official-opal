@@ -476,6 +476,16 @@ public class OpalParamGeneral : global::System.IDisposable {
     } 
   }
 
+  public string traceLogOptions {
+    set {
+      OPALPINVOKE.OpalParamGeneral_traceLogOptions_set(swigCPtr, value);
+    } 
+    get {
+      string ret = OPALPINVOKE.OpalParamGeneral_traceLogOptions_get(swigCPtr);
+      return ret;
+    } 
+  }
+
   public OpalParamGeneral() : this(OPALPINVOKE.new_OpalParamGeneral(), true) {
   }
 

@@ -96,8 +96,10 @@ bool RTP_DataFrame::SetPacketSize(PINDEX sz)
 
   m_headerSize = MinHeaderSize + 4*GetContribSrcCount();
 
-  if (GetExtension())
-    m_headerSize += (GetExtensionSizeDWORDs()+1)*4;
+  if (HasExtensions()) {
+    PINDEX dwordsSansHeader = GetAs<PUInt16b>(m_headerSize + 2);
+    m_headerSize += (dwordsSansHeader + 1)*4;
+  }
 
   if (sz < m_headerSize) {
     PTRACE(2, "RTP\tInvalid RTP packet, "
@@ -220,37 +222,9 @@ void RTP_DataFrame::Copy(const RTP_DataFrame & other)
 }
 
 
-void RTP_DataFrame::SetExtension(bool ext)
+bool RTP_DataFrame::SetExtensionSizeBytes(PINDEX count)
 {
-  bool oldState = GetExtension();
-  if (ext) {
-    if (!oldState && SetExtensionSizeDWORDs(0))
-      SetAs<PUInt16b>(MinHeaderSize + 4*GetContribSrcCount(), 0);
-  }
-  else {
-    BYTE* theArray = GetPointer();
-    theArray[0] &= 0xef;
-    if (oldState) {
-      PINDEX baseHeader = MinHeaderSize + 4*GetContribSrcCount();
-      if (m_payloadSize > 0)
-        memmove(&theArray[baseHeader], &theArray[m_headerSize], m_payloadSize);
-      m_headerSize = baseHeader;
-    }
-  }
-}
-
-
-PINDEX RTP_DataFrame::GetExtensionSizeDWORDs() const
-{
-  if (GetExtension())
-    return GetAs<PUInt16b>(MinHeaderSize + 4*GetContribSrcCount() + 2);
-
-  return 0;
-}
-
-
-bool RTP_DataFrame::SetExtensionSizeDWORDs(PINDEX sz)
-{
+  PINDEX sz =(count+3)/4; // Converted to whole DWORDs
   PINDEX extHdrOffset = MinHeaderSize + 4*GetContribSrcCount();
   if (!AdjustHeaderSize(extHdrOffset + (sz+1)*4))
     return false;
@@ -263,7 +237,7 @@ bool RTP_DataFrame::SetExtensionSizeDWORDs(PINDEX sz)
 
 BYTE * RTP_DataFrame::GetHeaderExtension(unsigned & id, PINDEX & length, int idx) const
 {
-  if (!GetExtension())
+  if (!HasExtensions())
     return NULL;
 
   BYTE * ptr = const_cast<BYTE *>(GetPointer() + MinHeaderSize + 4*GetContribSrcCount());
@@ -327,7 +301,7 @@ BYTE * RTP_DataFrame::GetHeaderExtension(HeaderExtensionType type, unsigned idTo
   if (idToFind > MaxHeaderExtensionId)
     return NULL;
 
-  if (!GetExtension())
+  if (!HasExtensions())
     return NULL;
 
   if (type == RFC5285_Auto) {
@@ -420,7 +394,7 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
 
   unsigned oldId;
   PINDEX extensionSize;
-  if (GetExtension()) {
+  if (HasExtensions()) {
     oldId = GetAs<PUInt16b>(baseHeaderSize);
     extensionSize = GetAs<PUInt16b>(baseHeaderSize+2);
   }
@@ -439,7 +413,7 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
         return false;
 
       // Set the header size and allocate extra space as needed
-      if (!SetExtensionSizeDWORDs((length + 3) / 4))
+      if (!SetExtensionSizeBytes(length))
         return false;
 
       // Primitive, and there can be only one.
@@ -456,7 +430,7 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
            correct type for RFC5285 One Byte mode, maybe two byte mode for
            example. So overwrite it, setting new RFC3550 header extension size
            and copying in our one new extension. */
-        if (!SetExtensionSizeDWORDs((length + 1 + 3) / 4))
+        if (!SetExtensionSizeBytes(length + 1))
           return false;
 
         SetAs<PUInt16b>(baseHeaderSize, 0xbede);
@@ -506,7 +480,7 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
            correct type for RFC5285 Two Byte mode, maybe one byte mode for
            example. So overwrite it, setting new RFC3550 header extension size
            and copying in our one new extension. */
-        if (!SetExtensionSizeDWORDs((length + 2 + 3) / 4))
+        if (!SetExtensionSizeBytes(length + 2))
           return false;
 
         SetAs<PUInt16b>(baseHeaderSize, 0x1000);
@@ -558,7 +532,7 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
   // Calculate new RFC3550 header extension size, as we append new one to the end
   PINDEX previousHeadersSize = PAssertNULL(currentExtension) - (GetPointer() + baseHeaderSize + 2);
   PINDEX newHeadersSize = previousHeadersSize + (type == RFC5285_OneByte ? 1 : 2) + length; // New appended header size
-  if (!SetExtensionSizeDWORDs((newHeadersSize + 3)/4)) // Converted to whole DWORDs
+  if (!SetExtensionSizeBytes(newHeadersSize))
     return false;
 
   // Set the header extensions header
@@ -636,7 +610,7 @@ void RTP_DataFrame::PrintOn(ostream & strm) const
     strm << " pad-sz=" << m_paddingSize;
 
   if (summary) {
-    if (GetExtension()) {
+    if (HasExtensions()) {
       strm << " hdr-ext=";
 
       unsigned id;
@@ -659,7 +633,7 @@ void RTP_DataFrame::PrintOn(ostream & strm) const
   for (int csrc = 0; csrc < csrcCount; csrc++)
     strm << "  CSRC[" << csrc << "]=" << RTP_TRACE_SRC(GetContribSource(csrc)) << '\n';
 
-  if (GetExtension()) {
+  if (HasExtensions()) {
     for (int idx = -1; ; ++idx) {
       unsigned id;
       PINDEX len;

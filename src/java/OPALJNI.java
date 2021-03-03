@@ -126,6 +126,8 @@ public class OPALJNI {
   public final static native String OpalParamGeneral_privateKey_get(long jarg1, OpalParamGeneral jarg1_);
   public final static native void OpalParamGeneral_autoCreateCertificate_set(long jarg1, OpalParamGeneral jarg1_, long jarg2);
   public final static native long OpalParamGeneral_autoCreateCertificate_get(long jarg1, OpalParamGeneral jarg1_);
+  public final static native void OpalParamGeneral_traceLogOptions_set(long jarg1, OpalParamGeneral jarg1_, String jarg2);
+  public final static native String OpalParamGeneral_traceLogOptions_get(long jarg1, OpalParamGeneral jarg1_);
   public final static native long new_OpalParamGeneral();
   public final static native void delete_OpalParamGeneral(long jarg1);
   public final static native void OpalProductDescription_vendor_set(long jarg1, OpalProductDescription jarg1_, String jarg2);
