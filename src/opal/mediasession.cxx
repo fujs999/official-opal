@@ -314,7 +314,7 @@ static PString InternalGetRate(const PTime & lastUpdate,
       else if (value <= 1.0)
         str = PSTRSTRM(fixed << setprecision(significantFigures) << value);
       else
-        str = PString(PString::ScaleSI, value, significantFigures);
+        str = PScaleSI(value, significantFigures);
     }
     str += units;
   }
@@ -404,7 +404,7 @@ void OpalMediaStatistics::PrintOn(ostream & strm) const
     strm << setw(indent) <<         "Local address" << " = " << m_localAddress << '\n';
   if (!m_remoteAddress.IsEmpty())
     strm << setw(indent) <<        "Remote address" << " = " << m_remoteAddress << '\n';
-  strm << setw(indent) <<             "Total bytes" << " = " << PString(PString::ScaleSI, m_totalBytes) << "B\n"
+  strm << setw(indent) <<             "Total bytes" << " = " << PScaleSI(m_totalBytes, 5, "B") << "\n"
        << setw(indent) <<        "Average bit rate" << " = " << GetAverageBitRate("bps", 2) << '\n'
        << setw(indent) <<        "Current bit rate" << " = " << GetCurrentBitRate("bps", 3) << '\n'
        << setw(indent) <<           "Total packets" << " = " << m_totalPackets << '\n'
