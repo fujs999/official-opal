@@ -1254,21 +1254,23 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPStream(SDPMediaDescripti
       sendStream->UpdateMediaFormat(*m_activeFormatList.FindFormat(sendStream->GetMediaFormat()), true);
 
       // Deal with more than one stream per session
-      if (sessionId != rtpStreamIndex) {
-        OpalRTPSession * rtpSession = dynamic_cast<OpalRTPSession *>(mediaSession);
-        if (rtpSession != NULL) {
-          RTP_SyncSourceId ssrc;
-          PString mid = rtpSession->GetGroupMediaId(OpalMediaSession::GetBundleGroupId(), rtpStreamIndex);
-          if (mid.empty())
+      OpalRTPSession * rtpSession = dynamic_cast<OpalRTPSession *>(mediaSession);
+      if (rtpSession != NULL) {
+        RTP_SyncSourceId ssrc;
+        PString mid = rtpSession->GetGroupMediaId(OpalMediaSession::GetBundleGroupId(), rtpStreamIndex);
+        if (mid.empty()) {
+          if (sessionId != rtpStreamIndex)
             ssrc = rtpSession->AddSyncSource(0, OpalRTPSession::e_Sender);
-          else if ((ssrc = rtpSession->FindBundleMediaId(mid, OpalRTPSession::e_Sender)) != 0)
-            PTRACE(4, "Found existing SSRC " << RTP_TRACE_SRC(ssrc) << " on index " << rtpStreamIndex << " using BUNDLE mid \"" << mid << '"');
-          else {
-            ssrc = rtpSession->AddSyncSource(0, OpalRTPSession::e_Sender);
-            rtpSession->SetBundleMediaId(mid, ssrc, OpalRTPSession::e_Sender);
-          }
-          bundleMergeInfo.m_sendSsrcs[rtpStreamIndex] = ssrc;
+          else
+            ssrc = rtpSession->GetSyncSourceOut();
         }
+        else if ((ssrc = rtpSession->FindBundleMediaId(mid, OpalRTPSession::e_Sender)) != 0)
+          PTRACE(4, "Found existing SSRC " << RTP_TRACE_SRC(ssrc) << " on index " << rtpStreamIndex << " using BUNDLE mid \"" << mid << '"');
+        else {
+          ssrc = rtpSession->AddSyncSource(0, OpalRTPSession::e_Sender);
+          rtpSession->SetBundleMediaId(mid, ssrc, OpalRTPSession::e_Sender);
+        }
+        bundleMergeInfo.m_sendSsrcs[rtpStreamIndex] = ssrc;
       }
     }
 
