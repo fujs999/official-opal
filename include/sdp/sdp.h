@@ -220,6 +220,7 @@ class SDPCommonAttributes
       SendOnly,
       SendRecv
     };
+    friend std::ostream & operator<<(std::ostream & strm, const Direction dir);
 
     P_DECLARE_ENUM(Directions, e_Send, e_Recv);
 
