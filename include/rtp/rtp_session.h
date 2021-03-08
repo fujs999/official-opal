@@ -416,6 +416,11 @@ class OpalRTPSession : public OpalMediaSession
     */
     void SetBundleMediaId(const PString & id, RTP_SyncSourceId ssrc, Direction dir);
 
+    /**Find the SSRC for the  the BUNDLE media id (mid).
+       See https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation
+    */
+    RTP_SyncSourceId FindBundleMediaId(const PString & id, Direction dir);
+
     /**Get the "RtpStreamId" for the RTP session SSRC.
        See https://tools.ietf.org/html/draft-ietf-avtext-rid
     */
