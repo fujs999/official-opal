@@ -1580,7 +1580,7 @@ RTP_SyncSourceId OpalRTPSession::FindBundleMediaId(const PString & id, Direction
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return 0);
   for (SyncSourceMap::iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
-    if (it->second->m_bundleMediaId == id)
+    if (it->second->m_direction == dir && it->second->m_bundleMediaId == id)
       return it->first;
   }
   return 0;
