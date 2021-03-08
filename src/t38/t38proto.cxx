@@ -629,6 +629,7 @@ OpalFaxConnection::OpalFaxConnection(OpalCall        & call,
   , m_receiving(receiving)
   , m_disableT38(disableT38)
   , m_switchTime(0)
+  , m_switchedOnUserInput(false)
   , m_tiffFileFormat(TIFF_File_FormatName)
   , m_completed(false)
 {
@@ -824,11 +825,20 @@ void OpalFaxConnection::OnUserInputTone(char tone, unsigned /*duration*/)
   if (IsReleased())
     return;
 
-  if (m_receiving ? (tone == 'X')
-                  : (tone == 'Y' && m_stringOptions.GetBoolean(OPAL_SWITCH_ON_CED))) {
-    PTRACE(3, "Requesting mode change in response to " << (tone == 'X' ? "CNG" : "CED"));
-    SwitchFaxMediaStreams(!m_disableT38);
+  if (m_receiving) {
+    if (tone != 'X')
+      return;
   }
+  else {
+    if (tone != 'Y' || !m_stringOptions.GetBoolean(OPAL_SWITCH_ON_CED))
+      return;
+  }
+
+  if (m_switchedOnUserInput.exchange(true))
+    return;
+
+  PTRACE(3, "Requesting mode change in response to " << (tone == 'X' ? "CNG" : "CED"));
+  SwitchFaxMediaStreams(!m_disableT38);
 }
 
 

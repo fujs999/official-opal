@@ -282,6 +282,7 @@ class OpalFaxConnection : public OpalLocalConnection
     bool              m_receiving;
     bool              m_disableT38;
     unsigned          m_switchTime;
+    atomic<bool>      m_switchedOnUserInput;
     OpalMediaFormat   m_tiffFileFormat;
 
     PTimer m_switchTimer;
