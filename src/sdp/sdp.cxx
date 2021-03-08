@@ -78,6 +78,22 @@ static struct {
 static const PConstString SendRecvNames[SDPCommonAttributes::NumDirections+1] = { "send", "recv", "<invalid>" };
 
 
+std::ostream & operator<<(std::ostream & strm, const SDPCommonAttributes::Direction dir)
+{
+  switch (dir) {
+    case SDPCommonAttributes::RecvOnly:
+      return strm << "recvonly";
+    case SDPCommonAttributes::SendOnly:
+      return strm << "sendonly";
+    case SDPCommonAttributes::SendRecv:
+      return strm << "sendrecv";
+    case SDPCommonAttributes::Inactive:
+      return strm << "inactive";
+    default:
+      return strm << "undefined";
+  }
+}
+
 /////////////////////////////////////////////////////////
 //
 //  the following functions bind the media type factory to the SDP format types
@@ -664,22 +680,8 @@ void SDPCommonAttributes::SetAttribute(const PString & attr, const PString & val
 void SDPCommonAttributes::OutputAttributes(ostream & strm) const
 {
   // media format direction
-  switch (m_direction) {
-    case RecvOnly:
-      strm << "a=recvonly\r\n";
-      break;
-    case SendOnly:
-      strm << "a=sendonly\r\n";
-      break;
-    case SendRecv:
-      strm << "a=sendrecv\r\n";
-      break;
-    case Inactive:
-      strm << "a=inactive\r\n";
-      break;
-    default:
-      break;
-  }
+  if (m_direction != Undefined)
+    strm << "a=" << m_direction << CRLF;
 
 #if OPAL_SRTP
   if (m_setupMode != SetupNotSet) {
@@ -2734,7 +2736,8 @@ bool SDPRTPAVPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSo
 {
   OpalRTPSession * rtpSession = dynamic_cast<OpalRTPSession *>(session);
   if (rtpSession != NULL) {
-    PTRACE(4, *rtpSession << "setting SDP to RTP session.");
+    PString mid = m_groups(OpalMediaSession::GetBundleGroupId());
+    PTRACE(4, *rtpSession << "setting SDP to RTP session: index=" << m_index << ", mid=\"" << mid << '"');
 
     /* Set single port or disjoint RTCP port, must be done before Open()
        and before SDPMediaDescription::ToSession() */
@@ -2747,9 +2750,7 @@ bool SDPRTPAVPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSo
 
     // Don't do the SSRC manipulations until session is open as collision avoidance needs it
     if (session->IsOpen()) {
-      PString mid = m_groups(OpalMediaSession::GetBundleGroupId());
       if (!mid.empty() && m_ssrcInfo.empty()) {
-        rtpSession->SetBundleMediaId(mid, 0, OpalRTPSession::e_Receiver);
         PString streamId, trackId;
         if (SplitMSID(m_msid, streamId, trackId)) {
           rtpSession->SetMediaTrackId(trackId, mid);

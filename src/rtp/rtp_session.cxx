@@ -1576,6 +1576,16 @@ void OpalRTPSession::SetBundleMediaId(const PString & id, RTP_SyncSourceId ssrc,
 }
 
 
+RTP_SyncSourceId OpalRTPSession::FindBundleMediaId(const PString & id, Direction dir)
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return 0);
+  for (SyncSourceMap::iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
+    if (it->second->m_bundleMediaId == id)
+      return it->first;
+  }
+  return 0;
+}
+
 PString OpalRTPSession::GetRtpStreamId(RTP_SyncSourceId ssrc, Direction dir) const
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
