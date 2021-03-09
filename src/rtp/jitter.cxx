@@ -939,8 +939,12 @@ bool OpalNonJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTimeInte
 
 bool OpalNonJitterBuffer::ReadData(RTP_DataFrame & frame, const PTimeInterval & timeout PTRACE_PARAM(, const PTimeInterval &))
 {
-  if (!m_queue.Dequeue(frame, timeout))
-    frame.SetPayloadSize(0);
+  if (!m_queue.Dequeue(frame, timeout)) {
+    /* Completely empty the packet, do not keep anything from previous frame
+       or things can get confused. */
+    static const RTP_DataFrame EmptyFrame;
+    frame.Copy(EmptyFrame);
+  }
   return m_queue.IsOpen();
 }
 
