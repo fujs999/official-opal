@@ -752,7 +752,6 @@ void OpalMediaPatch::Main()
      each time and passed back in to source.Read() (and eventually the JB) so
      it knows where it is up to in extracting data from the JB. */
   RTP_DataFrame sourceFrame(0);
-  static const RTP_DataFrame EmptyFrame;
 
   while (m_source.IsOpen()) {
     if (m_source.IsPaused()) {
@@ -762,13 +761,6 @@ void OpalMediaPatch::Main()
         break; // Shutting down
       continue;
     }
-
-   /* Before we do a read of the new source frame, clear old data. This is so
-       if ReadPacket() returns without chnaging the frame, e.g. a timeout on
-       OpalRTPStream, then we don't try and process a simple duplicate of the
-       previous frame. We do this as a copy so we do not re-allocate memory
-       every time around the loop. */
-    sourceFrame.Copy(EmptyFrame);
 
     if (!m_source.ReadPacket(sourceFrame)) {
       PTRACE(4, "Thread ended because source read failed on " << *this);
