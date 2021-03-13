@@ -796,7 +796,7 @@ SDPMediaDescription * OpalSDPConnection::OnSendOfferSDPStream(OpalMediaSession *
       localMedia->SetDirection(SDPMediaDescription::SendOnly);
   }
   else {
-    switch (GetAutoStart(mediaType, ssrc)) {
+    switch (GetAutoStart(mediaType, ssrc).AsBits()) {
       case OpalMediaType::Transmit :
         localMedia->SetDirection(SDPCommonAttributes::SendOnly);
         break;
