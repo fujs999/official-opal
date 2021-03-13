@@ -154,7 +154,13 @@ PString SIP_PDU::GetStatusCodeDescription(int code)
     { SIP_PDU::GlobalFailure_NotAcceptable,         "Not Acceptable" },
 
     { SIP_PDU::Local_TransportError,                "Transport Error" },
+    { SIP_PDU::Local_BadTransportAddress,           "Invalid Address/Hostname" },
     { SIP_PDU::Local_Timeout,                       "Timeout or retries exceeded" },
+    { SIP_PDU::Local_NoCompatibleListener,          "No compatible listener" },
+    { SIP_PDU::Local_CannotMapScheme,               "Cannot map URI scheme to registration" },
+    { SIP_PDU::Local_TransportLost,                 "Transport lost" },
+    { SIP_PDU::Local_KeepAlive,                     "Keep Alive received" },
+    { SIP_PDU::Local_NotAuthenticated,              "Not authenticated (certificate)" },
 
     { 0 }
   };
@@ -536,6 +542,21 @@ OpalTransportAddress SIPURL::GetTransportAddress(PINDEX entry) const
   return OpalTransportAddress(GetHostName(), m_port, proto);
 }
 
+bool SIPURL::CanLookupSRV() const
+{
+#if OPAL_PTLIB_DNS_RESOLVER
+  // RFC3263 states we do not do lookup if explicit port mentioned
+  if (GetPortSupplied()) {
+    PTRACE(5, "No SRV lookup, as has explicit port number.");
+    return false;
+  }
+
+  PIPSocketAddressAndPortVector dummy;
+  return PDNS::LookupSRV(GetHostName(), "_sip._" + GetTransportProto(), GetPort(), dummy);
+#else
+  return false;
+#endif // OPAL_PTLIB_DNS_RESOLVER
+}
 
 void SIPURL::SetHostAddress(const OpalTransportAddress & addr)
 {
@@ -918,6 +939,12 @@ SIPURL SIPMIMEInfo::GetFrom() const
 }
 
 
+PString SIPMIMEInfo::GetFromTag() const
+{
+  return GetFieldParameter("From", TagStr);
+}
+
+
 void SIPMIMEInfo::SetFrom(const SIPURL & uri)
 {
   SetAt("From", uri.AsQuotedString());
@@ -1004,6 +1031,12 @@ void SIPMIMEInfo::SetSubject(const PString & v)
 SIPURL SIPMIMEInfo::GetTo() const
 {
   return SIPURL(*this, "To");
+}
+
+
+PString SIPMIMEInfo::GetToTag() const
+{
+  return GetFieldParameter("To", TagStr);
 }
 
 
@@ -1833,18 +1866,19 @@ void SIPNTLMAuthentication::ConstructType1Message(PBYTEArray & buffer) const
   BYTE * ptr = buffer.GetPointer(sizeof(Type1MessageHdr) + hostName.GetLength() + domainName.GetLength());
 
   Type1MessageHdr * hdr = (Type1MessageHdr *)ptr;
-  memset(hdr, 0, sizeof(Type1MessageHdr));
+  memset(ptr, 0, sizeof(Type1MessageHdr));
   memcpy(hdr->protocol, "NTLMSSP", 7);
   hdr->flags = 0xb203;
 
   hdr->host_off = PUInt16l((WORD)(&hdr->hostAndDomain - (BYTE *)hdr));
   PAssert(hdr->host_off == 0x20, "NTLM auth cannot be constructed");
   hdr->host_len = hdr->host_len2 = PUInt16l((WORD)hostName.GetLength());
-  memcpy(&hdr->hostAndDomain, (const char *)hostName, hdr->host_len);
+  BYTE * hostPtr = &hdr->hostAndDomain;
+  memcpy(hostPtr, hostName.c_str(), hdr->host_len);
 
   hdr->dom_off = PUInt16l((WORD)(hdr->host_off + hdr->host_len));
   hdr->dom_len = hdr->dom_len2  = PUInt16l((WORD)domainName.GetLength());
-  memcpy(&hdr->hostAndDomain + hdr->dom_len - hdr->host_len, (const char *)domainName, hdr->host_len2);
+  memcpy(hostPtr + hdr->dom_len - hdr->host_len, domainName.c_str(), hdr->host_len2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -1934,7 +1968,7 @@ void SIP_PDU::SetTransport(const OpalTransportPtr & transport PTRACE_PARAM(, con
     m_transport->Dereference();
   }
 
-  // THis is the one and only place we bypass the const-ness
+  // This is the one and only place we bypass the const-ness
   const_cast<OpalTransportPtr &>(m_transport) = transport;
 
   if (m_transport != NULL) {
@@ -2032,6 +2066,8 @@ void SIP_PDU::InitialiseHeaders(SIPConnection & connection, unsigned cseq)
 
 void SIP_PDU::InitialiseHeaders(const SIP_PDU & request)
 {
+  PTRACE(4, "InitialiseHeaders: id=" << request.GetTransactionID() << ", via=" << request.m_viaAddress);
+
   m_versionMajor = request.GetVersionMajor();
   m_versionMinor = request.GetVersionMinor();
   m_viaAddress = request.m_viaAddress;
@@ -2214,43 +2250,82 @@ SIP_PDU::StatusCodes SIP_PDU::Read()
   if (m_method == NumMethods)
     return status;
 
-  // If a command coming in, figure out where reply goes. Sometimes via, sometimes where it came from.
-  OpalTransportAddress receivedAddress = m_transport->GetLastReceivedAddress();
+  // Follow rules from RFC3261 18.2.2 and RFC3263 section 5
+  // Note that the below only applies to unreliable (UDP) transport, or if
+  // the reliable transport fails.
+
+  PString via = m_mime.GetFirstVia();
+  PTRACE(4, "Parsing Via: " << via);
 
   // Set the default return address for the response, must send back to Via address
-  PString via = m_mime.GetFirstVia();
   PINDEX space = via.Find(' ');
-  if (via.IsEmpty() || space == P_MAX_INDEX) {
-    // Illegal via, send reply back from whence it came
-    m_viaAddress = receivedAddress;
-    return status;
-  }
+  if (via.IsEmpty() || space == P_MAX_INDEX)
+    return status; // Illegal via, only hope is IP sender
 
   // get the protocol type from Via header
   PINDEX pos;
-  PString proto;
+  PCaselessString proto;
   if ((pos = via.FindLast('/', space)) != P_MAX_INDEX)
     proto = via(pos+1, space-1).ToLower();
 
-  // Parse the via address
-  PIPSocketAddressAndPort addrport(SIPURL::DefaultPort);
-  addrport.Parse(via(space+1, via.Find(';', space)-1));
+  // Extract the sent-by component of the via
+  PString sent_by = via(space+1, via.Find(';', space)-1);
 
-  // Make OpalTransportAddress out the bits in Via
-  OpalTransportAddress viaAddress(addrport.AsString(), 5060, proto);
+  // Extract port from sent-by, if present
+  WORD port = SIPURL::DefaultPort;
+  PINDEX colon;
+  if (sent_by.Find('[') != P_MAX_INDEX) // IPv6?
+    colon = sent_by.Find(':', sent_by.Find(']'));
+  else
+    colon = sent_by.Find(':');
+  if (colon != P_MAX_INDEX)
+    port = (WORD)sent_by.Mid(colon+1).AsUnsigned();
 
-  // Now see if we are UDP, have rport, and received addr is different to Via,
-  // which means use actual received address not Via, NAT!
+  // RFC3261 18.2.2 First possibility is if has received address, NAT!
   PINDEX start, end;
-  if (receivedAddress.GetProtoPrefix() != OpalTransportAddress::UdpPrefix() ||
-        !LocateFieldParameter(via, "rport", start, pos, end) || receivedAddress == viaAddress) {
-    m_viaAddress = viaAddress;
+  if (LocateFieldParameter(via, "received", start, pos, end))
+    m_responseAddresses.AppendAddress(OpalTransportAddress(via(pos, end), port, proto), true);
+
+  // RFC3261 18.2.2 Second is maddr (multicast) in via
+  if (LocateFieldParameter(via, "maddr", start, pos, end))
+    m_responseAddresses.AppendAddress(OpalTransportAddress(via(pos, end), port, proto), true);
+
+  // From here it's RFC3263 section 5.
+
+  // First, if UDP, send to ip address the packet came from and port from Via
+  if (proto == "udp") {
+    PIPAddress ip;
+    if (m_transport->GetLastReceivedAddress().GetIpAddress(ip))
+      m_responseAddresses.AppendAddress(OpalTransportAddress(ip, port, proto));
+  }
+
+  // If above fails, we try some other options.
+
+  // See if sent-by is explicit IP address
+  PIPAddress ip(sent_by.Left(colon));
+  if (ip.IsValid()) {
+    m_responseAddresses.AppendAddress(OpalTransportAddress(ip, port, proto), true);
     return status;
   }
 
-  // Is UDP and has rport, send reply back from whence it came, fill in received elsewhere
-  m_externalTransportAddress = m_viaAddress = receivedAddress;
-  PTRACE(4, "Detected rport, using " << receivedAddress << " as reply address");
+  // We have a DNS name, get all possible IP's
+  if (colon == P_MAX_INDEX) {
+    // No explicit port so use SRV
+    PIPSocketAddressAndPortVector addrs;
+    if (PDNS::LookupSRV(sent_by, "_sip._" + proto, port, addrs)) {
+      for (size_t i = 0; i < addrs.size(); ++i)
+        m_responseAddresses.AppendAddress(OpalTransportAddress(addrs[i], proto), true);
+      return status;
+    }
+  }
+
+  // Explicit port, so get all possible DNS addresses
+  PStringArray aliases = PIPSocket::GetHostAliases(sent_by.Left(colon));
+  for (PINDEX i = 0; i < aliases.GetSize(); ++i) {
+    if (ip.FromString(aliases[i]))
+      m_responseAddresses.AppendAddress(OpalTransportAddress(ip, port, proto), true);
+  }
+
   return status;
 }
 
@@ -2380,6 +2455,27 @@ SIP_PDU::StatusCodes SIP_PDU::Parse(istream & stream, bool truncated)
     }
 
     m_entityBody[contentLength] = '\0';
+
+    /* RFC3261 Sections 8.1.1.7 & 17.1.3 transactions are identified by the
+        branch paranmeter in the top most Via and CSeq. We do NOT include the
+        CSeq in our id as we want the CANCEL messages directed at out
+        transaction structure.
+      */
+    m_transactionID = SIPMIMEInfo::ExtractFieldParameter(m_mime.GetFirstVia(), "branch");
+    if (m_transactionID.NumCompare(TransactionPrefix) != EqualTo) {
+      PTRACE(2, "Transaction " << m_mime.GetCSeq() << " has "
+              << (m_transactionID.IsEmpty() ? "no" : "RFC2543") << " branch parameter!");
+
+      SIPURL to(m_mime.GetTo());
+      to.Sanitise(SIPURL::ToURI);
+
+      SIPURL from(m_mime.GetFrom());
+      from.Sanitise(SIPURL::FromURI);
+
+      PStringStream strm;
+      strm << to << from << m_mime.GetCallID() << m_mime.GetCSeq();
+      m_transactionID += strm;
+    }
   }
 
 #if PTRACING
@@ -2404,6 +2500,9 @@ SIP_PDU::StatusCodes SIP_PDU::Parse(istream & stream, bool truncated)
             << ",local=" << m_transport->GetLocalAddress()
             << ",if=" << m_transport->GetLastReceivedInterface();
 
+    if (!m_transactionID.empty())
+      trace << ",id=" << m_transactionID;
+
     if (PTrace::CanTrace(4)) {
       trace << '\n' << cmd << '\n' << setfill('\n') << m_mime << setfill(' ');
       for (const char * ptr = m_entityBody; *ptr != '\0'; ++ptr) {
@@ -2418,31 +2517,7 @@ SIP_PDU::StatusCodes SIP_PDU::Parse(istream & stream, bool truncated)
   }
 #endif
 
-  if (truncated)
-    return SIP_PDU::Failure_MessageTooLarge;
-  
-  /* RFC3261 Sections 8.1.1.7 & 17.1.3 transactions are identified by the
-      branch paranmeter in the top most Via and CSeq. We do NOT include the
-      CSeq in our id as we want the CANCEL messages directed at out
-      transaction structure.
-    */
-  m_transactionID = SIPMIMEInfo::ExtractFieldParameter(m_mime.GetFirstVia(), "branch");
-  if (m_transactionID.NumCompare(TransactionPrefix) != EqualTo) {
-    PTRACE(2, "Transaction " << m_mime.GetCSeq() << " has "
-            << (m_transactionID.IsEmpty() ? "no" : "RFC2543") << " branch parameter!");
-
-    SIPURL to(m_mime.GetTo());
-    to.Sanitise(SIPURL::ToURI);
-
-    SIPURL from(m_mime.GetFrom());
-    from.Sanitise(SIPURL::FromURI);
-
-    PStringStream strm;
-    strm << to << from << m_mime.GetCallID() << m_mime.GetCSeq();
-    m_transactionID += strm;
-  }
-
-  return SIP_PDU::Successful_OK;
+  return truncated ? SIP_PDU::Failure_MessageTooLarge : SIP_PDU::Successful_OK;
 }
 
 
@@ -2451,8 +2526,54 @@ bool SIP_PDU::Send()
   if (PAssertNULL(m_transport) == NULL)
     return false;
 
-  PSafeLockReadWrite mutex(*m_transport);
-  return InternalSend(false) == Successful_OK;
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
+
+  // Just send for a command
+  if (m_method != NumMethods || m_responseAddresses.IsEmpty()) {
+    PTRACE_IF(4, m_method == NumMethods, "No response addresses, using transport default.");
+    return InternalSend(false) == Successful_OK;
+  }
+
+  // Sending responses is a bit more complex
+  bool canDoReliable = false;
+  for (PINDEX index = 0; index < m_responseAddresses.GetSize(); ++index) {
+    if (m_responseAddresses[index].GetProto() != OpalTransportAddress::UdpPrefix())
+      canDoReliable = true;
+  }
+
+  bool requireReliable = false;
+  for (PINDEX index = 0; index < m_responseAddresses.GetSize(); ++index) {
+    OpalTransportAddress addr = m_responseAddresses[index];
+    PTRACE(4, "Trying response address #" << index << ' ' << addr << ","
+              " canDoReliable=" << boolalpha << canDoReliable << ","
+              " requireReliable=" << requireReliable);
+
+    if (requireReliable && addr.GetProto() != OpalTransportAddress::UdpPrefix())
+      continue;
+
+    if (m_transport->GetLocalAddress().GetProto() != addr.GetProto()) {
+      // Create new transport
+      m_transport = addr.CreateTransport(m_transport->GetEndPoint(), OpalTransportAddress::RouteInterface);
+      if (m_transport == NULL)
+        return false;
+    }
+    if (!m_transport->SetRemoteAddress(addr))
+      continue;
+
+    switch (InternalSend(canDoReliable)) {
+      case Successful_OK:
+        return true;
+
+      case Failure_MessageTooLarge :
+        requireReliable = true;
+        break;
+
+      default :
+        break;
+    }
+  }
+
+  return false;
 }
 
 
@@ -2460,7 +2581,7 @@ SIP_PDU::StatusCodes SIP_PDU::InternalSend(bool canDoTCP)
 {
   if (!m_transport->IsOpen()) {
     PTRACE(1, "Attempt to write PDU to closed transport " << *m_transport);
-    return Local_TransportError;
+    return Local_TransportLost;
   }
 
   SIPEndPoint & endpoint = dynamic_cast<SIPEndPoint &>(m_transport->GetEndPoint());
@@ -2477,17 +2598,15 @@ SIP_PDU::StatusCodes SIP_PDU::InternalSend(bool canDoTCP)
   // RFC3261 18.1.1 specifies maximum PDU size of 1300 bytes.
   if (!m_transport->IsReliable()) {
     if (pduLen > endpoint.GetMaxPacketSizeUDP()) {
+      PTRACE(4, "PDU is too large (" << pduLen << " bytes), trying compact form.");
       m_mime.SetCompactForm(true);
       Build(pduStr, pduLen);
-      if (canDoTCP && pduLen > endpoint.GetMaxPacketSizeUDP()) {
+      if (pduLen > endpoint.GetMaxPacketSizeUDP()) {
         PTRACE(2, "PDU is too large (" << pduLen << " bytes) for UDP datagram.");
-        return Failure_MessageTooLarge;
+        if (canDoTCP)
+          return Failure_MessageTooLarge;
       }
-      PTRACE(4, "PDU is too large (" << pduLen << " bytes) using compact form.");
     }
-
-    if (!m_viaAddress.IsEmpty())
-      m_transport->SetRemoteAddress(m_viaAddress);
   }
 
 #if PTRACING
@@ -2615,11 +2734,28 @@ bool SIP_PDU::IsContentSDP(bool emptyOK) const
 
 bool SIP_PDU::DecodeSDP(SIPConnection & connection, PMultiPartList & parts)
 {
-  if (m_SDP != NULL)
-    return true;
-
   PString sdpText;
-  if (!m_mime.GetSDP(m_entityBody, sdpText, parts))
+  return DecodeSDP(connection, sdpText, parts);
+}
+
+
+bool SIP_PDU::DecodeSDP(SIPConnection & connection, PString & sdpText, PMultiPartList & parts)
+{
+  bool createSDP = m_SDP == NULL && m_mime.GetSDP(m_entityBody, sdpText, parts);
+
+  static PConstString const x_sip_headers("x-sip/headers");
+  for (PMultiPartList::iterator it = parts.begin(); ; ++it) {
+    if (it == parts.end()) {
+      parts.push_back(PMultiPartInfo(m_mime.AsString(), x_sip_headers));
+      break;
+    }
+    if (it->m_contentType == x_sip_headers) {
+      it->m_textBody = m_mime.AsString();
+      break;
+    }
+  }
+
+  if (!createSDP)
     return false;
 
   m_SDP = connection.GetEndPoint().CreateSDP(0, 0, OpalTransportAddress());
@@ -2731,7 +2867,7 @@ void SIPDialogContext::SetLocalURI(const SIPURL & url)
 {
   m_localURI = url;
   m_localURI.Sanitise(SIPURL::FromURI);
-  m_localTag = m_localURI.SetTag(m_localTag);
+  m_localTag = m_localURI.SetTag(m_localTag.IsEmpty() ? SIPURL::GenerateTag() : m_localTag);
   PTRACE(4, "Set dialog local URI to " << m_localURI.AsQuotedString());
 }
 
@@ -2817,19 +2953,10 @@ void SIPDialogContext::Update(const SIP_PDU & pdu)
     PTRACE(4, "Set dialog URIs from command: local is " << m_localURI.AsQuotedString() << ", remote is " << m_remoteURI.AsQuotedString());
   }
 
-  m_fixedTransportAddress = pdu.GetExternalTransportAddress();
+  m_responseAddresses = pdu.GetResponseAddresses();
   OpalTransportPtr transport = pdu.GetTransport();
-  if (transport == NULL)
-    return;
-
-#if OPAL_PTLIB_SSL && OPAL_PTLIB_HTTP
-  if (m_fixedTransportAddress.IsEmpty() &&
-            (transport->GetProtoPrefix() == OpalTransportAddress::WsPrefix() ||
-             transport->GetProtoPrefix() == OpalTransportAddress::WssPrefix()))
-    m_fixedTransportAddress = transport->GetRemoteAddress();
-#endif
-
-  m_interface = transport->GetInterface();
+  if (transport != NULL)
+    m_interface = transport->GetInterface();
 }
 
 
@@ -2865,9 +2992,9 @@ OpalTransportAddress SIPDialogContext::GetRemoteTransportAddress(PINDEX dnsEntry
 {
   // In order of priority ...
 
-  if (!m_fixedTransportAddress.IsEmpty()) {
-    PTRACE(4, "Remote dialog address external (NAT/WebSocket): " << m_fixedTransportAddress);
-    return m_fixedTransportAddress;
+  if (dnsEntry < m_responseAddresses.GetSize()) {
+    PTRACE(4, "Remote dialog response address " << dnsEntry << ": " << m_responseAddresses[dnsEntry]);
+    return m_responseAddresses[dnsEntry];
   }
 
   OpalTransportAddress addr;
@@ -3176,7 +3303,7 @@ SIPTransaction::SIPTransaction(Methods method,
 
   PAssert(m_owner->m_object.SafeReference(), "Transaction created on owner pending deletion.");
 
-  if (m_transport == NULL) {
+  if (m_transport == NULL || !m_transport->IsOpen()) {
     SIP_PDU::StatusCodes reason;
     SetTransport(GetEndPoint().GetTransport(*m_owner, reason) PTRACE_PARAM(, "SIPTransaction"));
   }
@@ -3189,7 +3316,10 @@ SIPTransaction::SIPTransaction(Methods method,
     InitialiseHeaders(*conn);
   }
 
-  PTRACE(4, method << " transaction id=" << GetTransactionID() << " created.");
+  if (m_transport != NULL)
+    PTRACE(4, method << " transaction created: id=" << GetTransactionID() << ", transport=" << *m_transport);
+  else
+    PTRACE(2, method << " transaction created: id=" << GetTransactionID() << ", no transport");
 }
 
 
@@ -3216,6 +3346,13 @@ SIPTransaction::~SIPTransaction()
 SIPConnection * SIPTransaction::GetConnection() const
 {
   return dynamic_cast<SIPConnection *>(m_owner);
+}
+
+
+PString SIPTransaction::GetInterface() const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
+  return m_localInterface;
 }
 
 
@@ -3246,7 +3383,7 @@ void SIPTransaction::SetParameters(const SIPParameters & params)
 
 bool SIPTransaction::Start()
 {
-  PSafeLockReadWrite lock(*this);
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   if (!PAssert(m_state == NotStarted, PLogicError))
     return false;
@@ -3320,12 +3457,16 @@ bool SIPTransaction::Start()
 
 void SIPTransaction::WaitForCompletion()
 {
-  if (IsCompleted())
-    return;
+  {
+    P_INSTRUMENTED_LOCK_READ_ONLY(return);
 
-  if (m_state == NotStarted) {
-    if (!Start())
+    if (IsCompleted())
       return;
+
+    if (m_state == NotStarted) {
+      if (!Start())
+        return;
+    }
   }
 
   PTRACE(4, "Awaiting completion of " << GetMethod() << " transaction id=" << GetTransactionID());
@@ -3335,7 +3476,7 @@ void SIPTransaction::WaitForCompletion()
 
 PBoolean SIPTransaction::Cancel()
 {
-  PSafeLockReadWrite lock(*this);
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   if (m_state == NotStarted || m_state >= Cancelling) {
     PTRACE(3, GetMethod() << " transaction id=" << GetTransactionID() << " cannot be cancelled as in state " << m_state);
@@ -3408,12 +3549,11 @@ PBoolean SIPTransaction::OnReceivedResponse(SIP_PDU & response)
      "issues" according to the spec but
      */
   if (IsInProgress()) {
+    bool completed = false;
     if (response.GetStatusCode()/100 == 1) {
       PTRACE(3, GetMethod() << " transaction id=" << GetTransactionID() << " proceeding.");
 
-      PSafeLockReadWrite lock(*this);
-      if (!lock.IsLocked())
-        return false;
+      P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
       if (m_state == Trying)
         m_state = Proceeding;
@@ -3435,8 +3575,10 @@ PBoolean SIPTransaction::OnReceivedResponse(SIP_PDU & response)
     }
     else {
       PTRACE(4, GetMethod() << " transaction id=" << GetTransactionID() << " completing.");
+      P_INSTRUMENTED_LOCK_READ_WRITE(return false);
       m_state = Completed;
       m_statusCode = response.GetStatusCode();
+      completed = true;
     }
 
     if (m_owner->m_object.LockReadWrite()) {
@@ -3444,7 +3586,7 @@ PBoolean SIPTransaction::OnReceivedResponse(SIP_PDU & response)
       m_owner->m_object.UnlockReadWrite();
     }
 
-    if (m_state == Completed) {
+    if (completed) {
       if (LockReadWrite()) {
         OnCompleted(response);
         UnlockReadWrite();
@@ -3485,6 +3627,17 @@ void SIPTransaction::OnRetry()
   if (m_retry >= GetEndPoint().GetMaxRetries()) {
     SetTerminated(Terminated_RetriesExceeded);
     return;
+  }
+
+  PTRACE(3, "OnRetry: m_retry: " << m_retry << "  m_uri: " << m_uri
+         << "  m_remoteAddress: " << m_transport->GetRemoteAddress());
+  if (m_retry >= 4) {
+    OpalTransportAddress myOpalTransAddr = GetEndPoint().NextSRVAddress(m_uri);
+    if (!myOpalTransAddr.IsEmpty()) {
+      m_transport->SetRemoteAddress(myOpalTransAddr);
+      PTRACE(3, "Switching to next SRV record: " << myOpalTransAddr);
+      m_retry = 0;
+    }
   }
 
   if (m_state > Trying)
@@ -3546,8 +3699,17 @@ void SIPTransaction::OnTimeout()
 }
 
 
+SIPTransaction::States SIPTransaction::GetState() const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return NotStarted);
+  return m_state;
+}
+
+
 void SIPTransaction::SetTerminated(States newState)
 {
+  // Assumes caller is holding ReadWrite lock
+
   if (!PAssert(newState >= Terminated_Success, PInvalidParameter))
     return;
 
@@ -3767,12 +3929,14 @@ class SIPTransactionOwnerDummy : public PSafeObject, public SIPTransactionOwner
 
 SIPResponse::SIPResponse(SIPEndPoint & endpoint, const SIP_PDU & request, StatusCodes code)
   : SIPTransaction(NumMethods,
-                   new SIPTransactionOwnerDummy(endpoint, request.GetURI()), request.GetTransport(),
+                   new SIPTransactionOwnerDummy(endpoint, request.GetURI()),
+                   request.GetTransport(),
                    true,
                    request.GetTransactionID())
 {
   m_statusCode = code;
   InitialiseHeaders(request);
+  m_responseAddresses = request.GetResponseAddresses();
 }
 
 
@@ -3784,7 +3948,7 @@ SIPTransaction * SIPResponse::CreateDuplicate() const
 
 bool SIPResponse::Send()
 {
-  PSafeLockReadWrite lock(*this);
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   if (m_state == NotStarted) {
     GetEndPoint().AddTransaction(this);
@@ -4006,17 +4170,17 @@ PObject::Comparison SIPSubscribe::EventPackage::InternalCompare(PINDEX offset, P
   for (;;) {
     if (length-- == 0)
       return EqualTo;
-    if (theArray[idx+offset] == '\0' && cstr[idx] == '\0')
+    if (GetAt(idx+offset) == '\0' && cstr[idx] == '\0')
       return EqualTo;
-    if (theArray[idx+offset] == ';' || cstr[idx] == ';')
+    if (GetAt(idx+offset) == ';' || cstr[idx] == ';')
       break;
-    Comparison c = PCaselessString::InternalCompare(idx+offset, cstr[idx]);
-    if (c != EqualTo)
-      return c;
+    int c = internal_strncmp(c_str()+idx+offset, cstr+idx, 1);
+    if (c != 0)
+      return PObject::Compare2(c, 0);
     idx++;
   }
 
-  const char * myIdPtr = strstr(theArray+idx+offset, "id");
+  const char * myIdPtr = strstr(c_str()+idx+offset, "id");
   const char * theirIdPtr = strstr(cstr+idx, "id");
   if (myIdPtr == NULL && theirIdPtr == NULL)
     return EqualTo;

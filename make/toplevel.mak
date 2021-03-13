@@ -307,14 +307,9 @@ ifeq ($(OPAL_SDP),yes)
              $(OPAL_SRCDIR)/sip/sdp.cxx \
              $(OPAL_SRCDIR)/sip/ice.cxx
 
-ifeq ($(OPAL_BFCP),yes)
-  SOURCES += $(OPAL_SRCDIR)/sdp/bfcpinterface.cxx
-
-  BFCP_DIR := $(OPAL_TOP_LEVEL_DIR)/src/sdp/BFCP
-  LIBS     := -L$(BFCP_DIR)/lib -lbfcprel $(LIBS)
-  BFCP_LIB := $(BFCP_DIR)/lib/libbfcprel.a
-endif # OPAL_BFCP
-
+  ifeq ($(OPAL_T38_CAP), yes)
+    SOURCES += $(OPAL_SRCDIR)/t38/sipt38.cxx
+  endif
 endif # OPAL_SDP
 
 ########################################
@@ -326,10 +321,6 @@ ifeq ($(OPAL_SIP),yes)
              $(OPAL_SRCDIR)/sip/sippdu.cxx \
              $(OPAL_SRCDIR)/sip/handlers.cxx \
              $(OPAL_SRCDIR)/sip/sippres.cxx
-
-  ifeq ($(OPAL_T38_CAP), yes)
-    SOURCES += $(OPAL_SRCDIR)/t38/sipt38.cxx
-  endif
 endif
 
 
@@ -566,6 +557,7 @@ install:
 	   cd $(DESTDIR)$(libdir) ; \
 	   $(LN_S) -f $(notdir $(OPAL_DEBUG_SHARED_FILE)) $(notdir $(OPAL_DEBUG_SHARED_LINK)) ; \
 	fi
+	$(INSTALL) -m 755 plugins/install_openh264.sh $(DESTDIR)$(datarootdir)/opal
 	$(INSTALL) -m 644 make/*.mak $(DESTDIR)$(datarootdir)/opal/make
 	$(INSTALL) -m 644 include/*.h $(DESTDIR)$(includedir)/opal
 	for dir in $(INCSUBDIRS); \

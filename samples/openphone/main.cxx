@@ -531,7 +531,7 @@ static PwxString MediaDeviceNameToScreen(const PString & name)
   return str;
 }
 
-static PString MediaDeviceNameFromScreen(const wxString & name)
+static PString MediaDeviceNameFromScreen(const PwxString & name)
 {
   PwxString str = name;
   str.Replace(wxT(": "), wxT("\t"));
@@ -1257,7 +1257,7 @@ bool MyManager::Initialise(bool startMinimised)
   config->SetPath(VideoGroup);
   PVideoDevice::OpenArgs videoArgs = GetVideoInputDevice();
   if (config->Read(VideoGrabDeviceKey, &str))
-    videoArgs.deviceName = str.p_str();
+    videoArgs.deviceName = MediaDeviceNameFromScreen(str);
   if (config->Read(VideoGrabFormatKey, &value1))
     videoArgs.videoFormat = PVideoDevice::VideoFormatFromInt(value1);
   if (config->Read(VideoGrabSourceKey, &value1) && value1 >= -1)
@@ -1296,12 +1296,12 @@ bool MyManager::Initialise(bool startMinimised)
 
   videoArgs = pcssEP->GetVideoOnHoldDevice();
   if (config->Read(VideoOnHoldKey, &str))
-    videoArgs.deviceName = str.p_str();
+    videoArgs.deviceName = MediaDeviceNameFromScreen(str);
   pcssEP->SetVideoOnHoldDevice(videoArgs);
 
   videoArgs = pcssEP->GetVideoOnRingDevice();
   if (config->Read(VideoOnRingKey, &str))
-    videoArgs.deviceName = str.p_str();
+    videoArgs.deviceName = MediaDeviceNameFromScreen(str);
   pcssEP->SetVideoOnRingDevice(videoArgs);
 
   for (int preview = 0; preview < 2; ++preview) {
@@ -1681,16 +1681,18 @@ void MyManager::StartLID()
 
 void MyManager::SetNAT(const PwxString & method, bool active, const PwxString & server, int priority)
 {
-  if (!server.empty()) {
+  if (!active || server.empty())
+    SetNATServer(method, server, active, priority);
+  else {
     LogWindow << method << " server \"" << server << "\" being contacted ..." << endl;
     wxGetApp().ProcessPendingEvents();
     Update();
-  }
 
-  if (SetNATServer(method, server, active, priority))
-    LogWindow << *GetNatMethods().GetMethodByName(method) << endl;
-  else if (!server.empty())
-    LogWindow << method << " server at " << server << " offline." << endl;
+    if (SetNATServer(method, server, active, priority))
+      LogWindow << *GetNatMethods().GetMethodByName(method) << endl;
+    else
+      LogWindow << method << " server at " << server << " offline." << endl;
+  }
 }
 
 
@@ -2759,6 +2761,8 @@ void MyManager::OnEvtEstablished(wxCommandEvent & theEvent)
 
 void MyManager::OnClearedCall(OpalCall & call)
 {
+  OpalManager::OnClearedCall(call);
+
   StopRingSound();
 
   PString name = call.GetPartyB().IsEmpty() ? call.GetPartyA() : call.GetPartyB();
@@ -3599,7 +3603,7 @@ bool MyManager::CreateVideoInputDevice(const OpalConnection & connection,
                                        PVideoInputDevice * & device,
                                        PBoolean & autoDelete)
 {
-  if (m_primaryVideoGrabber == NULL || m_primaryVideoGrabber->GetDeviceName() != args.deviceName)
+  if (m_primaryVideoGrabber == NULL || args.deviceName.Find(m_primaryVideoGrabber->GetDeviceName()) == P_MAX_INDEX)
     return OpalManager::CreateVideoInputDevice(connection, args, device, autoDelete);
 
   device = m_primaryVideoGrabber;
@@ -3788,7 +3792,7 @@ bool MyManager::MonitorPresence(const PString & aor, const PString & uri, bool s
 }
 
 
-void MyManager::OnPresenceChange(OpalPresentity &, std::auto_ptr<OpalPresenceInfo> info)
+void MyManager::OnPresenceChange(OpalPresentity &, PAutoPtr<OpalPresenceInfo> info)
 {
   int count = m_speedDials->GetItemCount();
   for (int index = 0; index < count; index++) {
@@ -4380,6 +4384,7 @@ BEGIN_EVENT_TABLE(OptionsDialog, wxDialog)
 #endif
   EVT_LISTBOX(XRCID("LocalInterfaces"), OptionsDialog::SelectedLocalInterface)
   EVT_CHOICE(XRCID("InterfaceProtocol"), OptionsDialog::ChangedInterfaceInfo)
+  EVT_COMBOBOX(XRCID("InterfaceAddress"), OptionsDialog::ChangedInterfaceInfo)
   EVT_TEXT(XRCID("InterfaceAddress"), OptionsDialog::ChangedInterfaceInfo)
   EVT_TEXT(XRCID("InterfacePort"), OptionsDialog::ChangedInterfaceInfo)
   EVT_BUTTON(XRCID("AddInterface"), OptionsDialog::AddInterface)
@@ -4605,6 +4610,8 @@ OptionsDialog::OptionsDialog(MyManager * manager)
   FindWindowByNameAs(m_InterfaceProtocol, this, wxT("InterfaceProtocol"));
   FindWindowByNameAs(m_InterfacePort, this, wxT("InterfacePort"));
   FindWindowByNameAs(m_InterfaceAddress, this, wxT("InterfaceAddress"))->Append(wxT("*"));
+
+  std::set<PwxString> addresses; // So list is sorted and unique
   PIPSocket::InterfaceTable ifaces;
   if (PIPSocket::GetInterfaceTable(ifaces)) {
     for (i = 0; i < ifaces.GetSize(); i++) {
@@ -4612,11 +4619,14 @@ OptionsDialog::OptionsDialog(MyManager * manager)
       PwxString addr = ip.AsString(true);
       PwxString name = wxT("%");
       name += PwxString(ifaces[i].GetName());
-      m_InterfaceAddress->Append(addr);
-      m_InterfaceAddress->Append(PwxString(PIPSocket::Address::GetAny(ip.GetVersion()).AsString(true)) + name);
-      m_InterfaceAddress->Append(addr + name);
+      addresses.insert(addr);
+      addresses.insert(name);
+      addresses.insert(addr + name);
     }
   }
+  for (std::set<PwxString>::iterator it = addresses.begin(); it != addresses.end(); ++it)
+    m_InterfaceAddress->Append(*it);
+
   FindWindowByNameAs(m_LocalInterfaces, this, wxT("LocalInterfaces"));
   for (i = 0; (size_t)i < m_manager.m_LocalInterfaces.size(); i++)
     m_LocalInterfaces->Append(PwxString(m_manager.m_LocalInterfaces[i]));
@@ -4707,7 +4717,7 @@ OptionsDialog::OptionsDialog(MyManager * manager)
 
   ////////////////////////////////////////
   // Video fields
-  INIT_FIELD(VideoGrabDevice, m_manager.GetVideoInputDevice().deviceName);
+  INIT_FIELD(VideoGrabDevice, MediaDeviceNameToScreen(m_manager.GetVideoInputDevice().deviceName));
   INIT_FIELD(VideoGrabFormat, m_manager.GetVideoInputDevice().videoFormat);
   INIT_FIELD_CTRL(VideoGrabSource, m_manager.GetVideoInputDevice().channelNumber+1);
   INIT_FIELD(VideoGrabFrameRate, m_manager.GetVideoInputDevice().rate);
@@ -4719,8 +4729,8 @@ OptionsDialog::OptionsDialog(MyManager * manager)
   INIT_FIELD(VideoFlipRemote, m_manager.GetVideoOutputDevice().flip != false);
   INIT_FIELD(VideoGrabBitRate, m_manager.m_VideoTargetBitRate);
   INIT_FIELD(VideoMaxBitRate, m_manager.m_VideoMaxBitRate);
-  INIT_FIELD(VideoOnHold, m_manager.pcssEP->GetVideoOnHoldDevice().deviceName);
-  INIT_FIELD(VideoOnRing, m_manager.pcssEP->GetVideoOnRingDevice().deviceName);
+  INIT_FIELD(VideoOnHold, MediaDeviceNameToScreen(m_manager.pcssEP->GetVideoOnHoldDevice().deviceName));
+  INIT_FIELD(VideoOnRing, MediaDeviceNameToScreen(m_manager.pcssEP->GetVideoOnRingDevice().deviceName));
   INIT_FIELD(ExtendedVideoRoles, m_manager.m_ExtendedVideoRoles);
 
   PStringArray knownSizes = PVideoFrameInfo::GetSizeNames();
@@ -5216,7 +5226,7 @@ bool OptionsDialog::TransferDataFromWindow()
   // Video fields
   config->SetPath(VideoGroup);
   PVideoDevice::OpenArgs videoDevice = m_manager.GetVideoInputDevice();
-  SAVE_FIELD_STR(VideoGrabDevice, videoDevice.deviceName = );
+  SAVE_FIELD_STR(VideoGrabDevice, videoDevice.deviceName = MediaDeviceNameFromScreen);
   SAVE_FIELD(VideoGrabFormat, videoDevice.videoFormat = (PVideoDevice::VideoFormat));
   --m_VideoGrabSource;
   SAVE_FIELD(VideoGrabSource, videoDevice.channelNumber = );
@@ -5237,11 +5247,11 @@ bool OptionsDialog::TransferDataFromWindow()
   SAVE_FIELD(VideoMaxBitRate, m_manager.m_VideoMaxBitRate = );
 
   videoDevice = m_manager.pcssEP->GetVideoOnHoldDevice();
-  SAVE_FIELD_STR(VideoOnHold, videoDevice.deviceName = );
+  SAVE_FIELD_STR(VideoOnHold, videoDevice.deviceName = MediaDeviceNameFromScreen);
   m_manager.pcssEP->SetVideoOnHoldDevice(videoDevice);
 
   videoDevice = m_manager.pcssEP->GetVideoOnRingDevice();
-  SAVE_FIELD_STR(VideoOnRing, videoDevice.deviceName = );
+  SAVE_FIELD_STR(VideoOnRing, videoDevice.deviceName = MediaDeviceNameFromScreen);
   m_manager.pcssEP->SetVideoOnRingDevice(videoDevice);
 
   SAVE_FIELD(ExtendedVideoRoles, m_manager.m_ExtendedVideoRoles = (MyManager::ExtendedVideoRoles));
@@ -7895,17 +7905,12 @@ void InCallPanel::SetVolume(bool isMicrophone, int value, bool muted)
 
 static void SetGauge(wxGauge * gauge, int level)
 {
-  if (level < 0 || level > 32767) {
+  if (level > 0)
     gauge->Show(false);
-    return;
+  else {
+    gauge->Show();
+    gauge->SetValue(level + 127); // Convert -127..0 to 0..127 as gauge doesn't do negatives
   }
-  gauge->Show();
-  int val = (int)(100*log10(1.0 + 9.0*level/8192.0)); // Convert to logarithmic scale
-  if (val < 0)
-    val = 0;
-  else if (val > 100)
-    val = 100;
-  gauge->SetValue(val);
 }
 
 
@@ -7919,8 +7924,8 @@ void InCallPanel::OnUpdateVU(wxTimerEvent & WXUNUSED(event))
     int spkLevel = -1;
     PSafePtr<OpalLocalConnection> connection;
     if (m_manager.GetConnection(connection, PSafeReadOnly)) {
-      spkLevel = connection->GetAudioSignalLevel(false);
-      micLevel = connection->GetAudioSignalLevel(true);
+      spkLevel = connection->GetAudioLevelDB(false);
+      micLevel = connection->GetAudioLevelDB(true);
 
       if (m_updateStatistics % 3 == 0) {
         PTime established = connection->GetPhaseTime(OpalConnection::EstablishedPhase);

@@ -257,8 +257,8 @@ bool OpalVideoTranscoder::ShouldDropFrame(RTP_Timestamp ts)
 
   // Sent too many bits, drop frame
   PTRACE(4, "Frame dropped:"
-            " overrun=" << PString(PString::ScaleSI, m_frameDropBits, 3) << "bits,"
-            " rate=" << PString(PString::ScaleSI, m_frameDropRate, 3) << "bps");
+            " overrun=" << PScaleSI(m_frameDropBits, 3, "bits") << ","
+            " rate=" << PScaleSI(m_frameDropRate, 3, "bps"));
   ++m_framesDropped;
   return true;
 }

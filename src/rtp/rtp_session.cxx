@@ -103,8 +103,12 @@ OpalRTPSession::OpalRTPSession(const Init & init)
   , m_timeUnits(m_isAudio ? 8 : 90)
   , m_toolName(PProcess::Current().GetName())
   , m_absSendTimeHdrExtId(UINT_MAX)
+  , m_audioLevelHdrExtId(UINT_MAX)
+  , m_vadHdrExtEnabled(true)
   , m_transportWideSeqNumHdrExtId(UINT_MAX)
-  , m_allowAnySyncSource(true)
+  , m_rtpStreamIdHdrExtId(UINT_MAX)
+  , m_repairedRtpStreamIdHdrExtId(UINT_MAX)
+  , m_bundleMediaIdHdrExtId(UINT_MAX)
   , m_staleReceiverTimeout(m_manager.GetStaleReceiverTimeout())
   , m_maxOutOfOrderPackets(20)
   , m_waitOutOfOrderTime(GetDefaultOutOfOrderWaitTime(m_isAudio))
@@ -126,8 +130,6 @@ OpalRTPSession::OpalRTPSession(const Init & init)
   , m_packetOverhead(0)
   , m_remoteControlPort(0)
   , m_sendEstablished(true)
-  , m_dataNotifier(PCREATE_NOTIFIER(OnRxDataPacket))
-  , m_controlNotifier(PCREATE_NOTIFIER(OnRxControlPacket))
 {
   m_defaultSSRC[e_Receiver] = m_defaultSSRC[e_Sender] = 0;
 
@@ -157,24 +159,36 @@ OpalRTPSession::~OpalRTPSession()
 
 RTP_SyncSourceId OpalRTPSession::AddSyncSource(RTP_SyncSourceId id, Direction dir, const char * cname)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE(return 0);
+  OpalMediaTransportPtr transport = m_transport;
+  if (PAssertNULL(transport) == NULL)
+    return 0;
 
-  if (id == 0) {
-    do {
-      id = PRandom::Number();
-    } while (id < 4 || m_SSRC.find(id) != m_SSRC.end());
-  }
+  if (id == 0)
+    id = transport->NewSyncSource(GetSessionID());
   else {
-    SyncSourceMap::iterator it = m_SSRC.find(id);
-    if (it != m_SSRC.end()) {
-      if (cname == NULL || (it->second->m_direction == dir && it->second->m_canonicalName == cname))
-        return id;
-      PTRACE(2, *this << "could not add SSRC=" << RTP_TRACE_SRC(id) << ","
-                " probable clash with " << it->second->m_direction << ","
-                " cname=" << it->second->m_canonicalName);
-      return 0;
+    unsigned collidingSessionId = transport->AddSyncSource(GetSessionID(), id);
+    if (collidingSessionId != 0) {
+      if (GetSessionID() == collidingSessionId) {
+        P_INSTRUMENTED_LOCK_READ_ONLY(return 0);
+        SyncSourceMap::iterator it = m_SSRC.find(id);
+        if (it != m_SSRC.end() && (cname == NULL || (it->second->m_direction == dir && it->second->m_canonicalName == cname)))
+            return id;
+      }
+
+      OpalRTPSession * session = dynamic_cast<OpalRTPSession *>(dynamic_cast<OpalRTPConnection &>(m_connection).GetMediaSession(collidingSessionId));
+      if (session) {
+        if (session->OnSyncSourceCollision(id) == 0)
+          return 0;
+      }
+      else {
+        // Unusual case of a session disappearing, is OK to re-use the SSRC then.
+        transport->RemoveSyncSource(id);
+        transport->AddSyncSource(GetSessionID(), id);
+      }
     }
   }
+
+  P_INSTRUMENTED_LOCK_READ_WRITE(return 0);
 
   if (m_defaultSSRC[dir] == 0) {
     PTRACE(3, *this << "setting default " << dir << " (added) SSRC=" << RTP_TRACE_SRC(id));
@@ -186,6 +200,36 @@ RTP_SyncSourceId OpalRTPSession::AddSyncSource(RTP_SyncSourceId id, Direction di
 }
 
 
+RTP_SyncSourceId OpalRTPSession::OnSyncSourceCollision(RTP_SyncSourceId oldSSRC)
+{
+  P_INSTRUMENTED_LOCK_READ_WRITE(return 0);
+
+  OpalMediaTransportPtr transport = m_transport;
+  if (PAssertNULL(transport) == NULL)
+    return 0;
+
+  SyncSourceMap::iterator it = m_SSRC.find(oldSSRC);
+  if (it == m_SSRC.end()) {
+    PTRACE(2, *this << "non-existant collision on SSRC " << RTP_TRACE_SRC(oldSSRC));
+    return 0;
+  }
+
+  if (it->second->m_direction != e_Sender) {
+    PTRACE(2, *this << "cannot resolve collision on receiver SSRC " << RTP_TRACE_SRC(oldSSRC));
+    return 0;
+  }
+
+  it->second->SendBYE();
+  it->second->m_firstPacketTime.SetCurrentTime(); // Make sure certain header extensions are resent
+
+  RTP_SyncSourceId newSSRC = transport->NewSyncSource(GetSessionID());
+  PTRACE(3, *this << "collision on SSRC " << RTP_TRACE_SRC(oldSSRC) << " changing to " << RTP_TRACE_SRC(newSSRC));
+  m_SSRC[newSSRC] = it->second;
+  m_SSRC.erase(it);
+  return newSSRC;
+}
+
+
 bool OpalRTPSession::RemoveSyncSource(RTP_SyncSourceId ssrc PTRACE_PARAM(, const char * reason))
 {
   P_INSTRUMENTED_LOCK_READ_WRITE(return false);
@@ -193,6 +237,10 @@ bool OpalRTPSession::RemoveSyncSource(RTP_SyncSourceId ssrc PTRACE_PARAM(, const
   SyncSourceMap::iterator it = m_SSRC.find(ssrc);
   if (it == m_SSRC.end())
     return false;
+
+  OpalMediaTransportPtr transport = m_transport;
+  if (transport)
+    transport->RemoveSyncSource(ssrc);
 
   if (it->second->m_direction == e_Sender)
     it->second->SendBYE();
@@ -222,7 +270,16 @@ OpalRTPSession::SyncSource * OpalRTPSession::UseSyncSource(RTP_SyncSourceId ssrc
   if (it != m_SSRC.end())
     return it->second;
 
-  if ((force || m_allowAnySyncSource) && AddSyncSource(ssrc, dir) == ssrc) {
+  if (!force) {
+    PCaselessString mode = m_stringOptions.Get(OPAL_OPT_RTP_ALLOW_SSRC, OPAL_OPT_RTP_ALLOW_SSRC_ANY);
+    if (mode == OPAL_OPT_RTP_ALLOW_SSRC_ANY)
+      force = true;
+    else if (mode == OPAL_OPT_RTP_ALLOW_SSRC_FIRST && m_defaultSSRC[dir] == 0) {
+      force = true;
+    }
+  }
+
+  if (force && AddSyncSource(ssrc, dir) == ssrc) {
     PTRACE(4, *this << "automatically added " << GetMediaType() << ' ' << dir << " SSRC=" << RTP_TRACE_SRC(ssrc));
     return m_SSRC.find(ssrc)->second;
   }
@@ -243,6 +300,27 @@ OpalRTPSession::SyncSource * OpalRTPSession::UseSyncSource(RTP_SyncSourceId ssrc
 }
 
 
+OpalRTPSession::SyncSource * OpalRTPSession::AddSyncSourceByBundleMediaId(RTP_SyncSourceId ssrc, const PString & mid PTRACE_PARAM(, const char * from))
+{
+  if (FindGroupMediaId(GetBundleGroupId(), mid) == UINT_MAX) {
+    PTRACE(m_throttleRxBundleId, *this << "Received " << from << " for unknown BUNDLE mid: \"" << mid << '"' << m_throttleRxBundleId);
+    return NULL;
+  }
+
+  if (AddSyncSource(ssrc, e_Receiver) != ssrc) {
+    PTRACE(m_throttleRxBundleId, *this << "Received " << from << " for invalid SSRC on BUNDLE mid: \"" << mid << '"' << m_throttleRxBundleId);
+    return NULL;
+  }
+
+  SyncSource * receiver = m_SSRC.find(ssrc)->second;
+  receiver->m_bundleMediaId = mid;
+  receiver->m_mediaStreamId = m_mediaStreamByBundleMediaId(mid);
+  receiver->m_mediaTrackId = m_mediaTrackByBundleMediaId(mid);
+  PTRACE(3, *receiver << "added via " << from << " for BUNDLE mid: \"" << mid << '"');
+  return receiver;
+}
+
+
 OpalRTPSession::SyncSource * OpalRTPSession::CreateSyncSource(RTP_SyncSourceId id, Direction dir, const char * cname)
 {
   return new SyncSource(*this, id, dir, cname);
@@ -253,12 +331,11 @@ RTP_SyncSourceArray OpalRTPSession::GetSyncSources(Direction dir) const
 {
   RTP_SyncSourceArray ssrcs;
 
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  if (lock.IsLocked()) {
-    for (SyncSourceMap::const_iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
-      if (it->second->m_direction == dir)
-        ssrcs.push_back(it->first);
-    }
+  P_INSTRUMENTED_LOCK_READ_ONLY(return ssrcs);
+
+  for (SyncSourceMap::const_iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
+    if (it->second->m_direction == dir)
+      ssrcs.push_back(it->first);
   }
 
   return ssrcs;
@@ -346,11 +423,59 @@ bool OpalRTPSession::GetSyncSource(RTP_SyncSourceId ssrc, Direction dir, SyncSou
 }
 
 
+void OpalRTPSession::OnRxRtpStreamId(SyncSource & receiver, const PString & id, bool repair)
+{
+  #if PTRACING
+    const char * idName = repair ? "repairedRtpStreamId" : "rtpStreamId";
+  #endif
+
+  if (id.empty()) {
+    PTRACE(2, receiver << "received empty " << idName);
+    return;
+  }
+
+  if (receiver.m_rtpStreamId.empty()) {
+    PTRACE(3, receiver << "set " << idName << " to \"" << id << '"');
+    receiver.m_rtpStreamId = id;
+  }
+  else {
+    PTRACE_IF(2, receiver.m_rtpStreamId != id, receiver << "received " << idName << " \"" << id << "\" when expecting \"" << receiver.m_rtpStreamId << '"');
+  }
+
+  // Already linked
+  if (receiver.m_rtxSSRC != 0)
+    return;
+
+  if (repair) {
+    std::map<PString, RTP_SyncSourceId>::iterator it = m_rtxPrimaryByRtpStreamId.find(id);
+    if (it != m_rtxPrimaryByRtpStreamId.end())
+      EnableSyncSourceRtx(it->second, m_rtxPayloadTypeForRtpStreamId, receiver.m_sourceIdentifier);
+    else {
+      PTRACE(4, receiver << "not yet got primary SSRC for retransmit via " << idName);
+      m_rtxByRepairRtpStreamId[id] = receiver.m_sourceIdentifier;
+    }
+  }
+  else {
+    std::map<PString, RTP_SyncSourceId>::iterator it = m_rtxByRepairRtpStreamId.find(id);
+    if (it != m_rtxByRepairRtpStreamId.end())
+      EnableSyncSourceRtx(receiver.m_sourceIdentifier, m_rtxPayloadTypeForRtpStreamId, it->second);
+    else {
+      #if PTRACING
+        bool logIt = m_rtxPrimaryByRtpStreamId.insert(std::make_pair(id, receiver.m_sourceIdentifier)).second;
+        PTRACE_IF(4, logIt, receiver << "not yet got rtx SSRC for retransmit via " << idName);
+      #else
+        m_rtxPrimaryByRtpStreamId[id] = receiver.m_sourceIdentifier;
+      #endif
+    }
+  }
+}
+
+
 RTP_SyncSourceId OpalRTPSession::EnableSyncSourceRtx(RTP_SyncSourceId primarySSRC,
                                                      RTP_DataFrame::PayloadTypes rtxPT,
                                                      RTP_SyncSourceId rtxSSRC)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return 0);
 
   SyncSourceMap::iterator it = m_SSRC.find(primarySSRC);
   if (it == m_SSRC.end()) {
@@ -382,16 +507,22 @@ RTP_SyncSourceId OpalRTPSession::EnableSyncSourceRtx(RTP_SyncSourceId primarySSR
     RemoveSyncSource(primary.m_rtxSSRC PTRACE_PARAM(, "overwriting RTX"));
   }
 
-  rtxSSRC = AddSyncSource(rtxSSRC, primary.m_direction, primary.m_canonicalName);
-  if (rtxSSRC == 0) {
-    PTRACE(2, *this << "could not enable RTX on SSRC=" << RTP_TRACE_SRC(primarySSRC));
-    return 0;
+  // See if already added via https://tools.ietf.org/html/draft-ietf-avtext-rid
+  it = m_SSRC.find(rtxSSRC);
+  if (it == m_SSRC.end() || it->second->m_rtpStreamId != primary.m_rtpStreamId) {
+    // Nope, try and add it
+    rtxSSRC = AddSyncSource(rtxSSRC, primary.m_direction, primary.m_canonicalName);
+    if (rtxSSRC == 0) {
+      PTRACE(2, *this << "could not enable RTX on SSRC=" << RTP_TRACE_SRC(primarySSRC));
+      return 0;
+    }
+
+    it = m_SSRC.find(rtxSSRC);
+    PAssert(it != m_SSRC.end(), PLogicError);
   }
 
   primary.m_rtxSSRC = rtxSSRC;
-
-  it = m_SSRC.find(rtxSSRC);
-  PAssert(it != m_SSRC.end(), PLogicError);
+  it->second->m_bundleMediaId = primary.m_bundleMediaId;
   it->second->m_mediaStreamId = primary.m_mediaStreamId;
   it->second->m_mediaTrackId = primary.m_mediaTrackId;
   it->second->m_rtxSSRC = primarySSRC;
@@ -402,6 +533,29 @@ RTP_SyncSourceId OpalRTPSession::EnableSyncSourceRtx(RTP_SyncSourceId primarySSR
             " PT=" << rtxPT << ","
             " primary SSRC=" << RTP_TRACE_SRC(primarySSRC));
   return rtxSSRC;
+}
+
+
+void OpalRTPSession::FinaliseSyncSourceRtx(RTP_DataFrame::PayloadTypes primaryPT,
+                                           RTP_DataFrame::PayloadTypes rtxPT,
+                                           OpalRTPSession::Direction dir)
+{
+  if (dir == e_Receiver)
+    m_rtxPayloadTypeForRtpStreamId = primaryPT; // For linking up via rtpStreamId
+
+  RTP_SyncSourceArray ssrcs = GetSyncSources(dir);
+  for (RTP_SyncSourceArray::iterator it = ssrcs.begin(); it != ssrcs.end(); ++it) {
+    SyncSource * primary;
+    if (GetSyncSource(*it, dir, primary) && !primary->IsRtx()) {
+      if (dir == OpalRTPSession::e_Sender)
+        EnableSyncSourceRtx(primary->m_sourceIdentifier, rtxPT, primary->m_rtxSSRC); // If no rtxSSRC (==0), create one
+      else if (primary->m_rtxSSRC != 0)
+        EnableSyncSourceRtx(primary->m_sourceIdentifier, primaryPT, primary->m_rtxSSRC);
+      else {
+        PTRACE(3, *primary << "primary has no RTX SSRC");
+      }
+    }
+  }
 }
 
 
@@ -431,10 +585,16 @@ OpalRTPSession::SyncSource::SyncSource(OpalRTPSession & session, RTP_SyncSourceI
   , m_reportTimestamp(0)
   , m_reportAbsoluteTime(0)
   , m_synthesizeAbsTime(true)
-  , m_absSendTimeHighBits(0)
-  , m_absSendTimeLowBits(0)
+  , m_absSendTimeNTP(0)
+  , m_absSendTimeLowBits(UINT_MAX)
 #if PTRACING
   , m_absSendTimeLoglevel(6)
+#endif
+  , m_mismatchThresholdVAD(25)
+  , m_mismatchedSilentVAD(0)
+  , m_mismatchedActiveVAD(0)
+#if PTRACING
+  , m_audioLevelLoglevel(6)
 #endif
   , m_firstPacketTime(0)
   , m_packets(0)
@@ -459,7 +619,6 @@ OpalRTPSession::SyncSource::SyncSource(OpalRTPSession & session, RTP_SyncSourceI
   , m_maximumTimeAccum(0)
   , m_minimumTimeAccum(UINT_MAX)
   , m_jitterAccum(0)
-  , m_lastJitterTimestamp(0)
   , m_lastRRPacketsReceived(0)
   , m_lastRRSequenceNumber(0)
   , m_rtcpDiscardRate(-1)
@@ -526,6 +685,12 @@ OpalRTPSession::SyncSource::~SyncSource()
 
 void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame, const PTime & now)
 {
+  PTRACE_IF(3, m_packets == 0, &m_session,
+            m_session << (m_direction == e_Receiver ? "received" : "sent") <<
+            " first packet: " << setw(1) << frame <<
+            " rem=" << m_session.GetRemoteAddress() <<
+            " local=" << m_session.GetLocalAddress());
+
   m_payloadType = frame.GetPayloadType();
   m_octets += frame.GetPayloadSize();
   m_packets++;
@@ -560,22 +725,23 @@ void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame
   if (m_session.IsAudio() ? frame.GetMarker() : (lastTimestamp == frame.GetTimestamp()))
     return;
 
-  unsigned diff = 0;
+  unsigned localDiff = 0;
+  RTP_Timestamp remoteDiff = 0;
   if (previousPacketNetTime.IsValid()) {
-    diff = (m_lastPacketNetTime - previousPacketNetTime).GetInterval();
+    localDiff = (m_lastPacketNetTime - previousPacketNetTime).GetInterval();
+    remoteDiff = frame.GetTimestamp() - lastTimestamp;
 
-    m_averageTimeAccum += diff;
-    if (diff > m_maximumTimeAccum)
-      m_maximumTimeAccum = diff;
-    if (diff < m_minimumTimeAccum)
-      m_minimumTimeAccum = diff;
+    m_averageTimeAccum += localDiff;
+    if (localDiff > m_maximumTimeAccum)
+      m_maximumTimeAccum = localDiff;
+    if (localDiff < m_minimumTimeAccum)
+      m_minimumTimeAccum = localDiff;
   }
 
   if (m_direction == e_Receiver) {
     // As per RFC3550 Appendix 8
-    diff *= m_session.m_timeUnits; // Convert to timestamp units
-    long variance = diff > m_lastJitterTimestamp ? (diff - m_lastJitterTimestamp) : (m_lastJitterTimestamp - diff);
-    m_lastJitterTimestamp = diff;
+    localDiff *= m_session.m_timeUnits; // Convert to timestamp units
+    long variance = localDiff > remoteDiff ? (localDiff - remoteDiff) : (remoteDiff - localDiff);
     m_jitterAccum += variance - ((m_jitterAccum + (1 << (JitterRoundingGuardBits - 1))) >> JitterRoundingGuardBits);
     m_currentjitter = (m_jitterAccum >> JitterRoundingGuardBits) / m_session.m_timeUnits;
     if (m_maximumJitter < m_currentjitter)
@@ -648,10 +814,6 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnSendData(RTP_Dat
     if (rewrite == e_RewriteHeader)
       frame.SetSequenceNumber(sequenceNumber = (RTP_SequenceNumber)PRandom::Number(1, 32768));
     m_firstSequenceNumber = sequenceNumber;
-    PTRACE(3, &m_session, m_session << "first sent data: "
-           << setw(1) << frame
-           << " rem=" << m_session.GetRemoteAddress()
-           << " local=" << m_session.GetLocalAddress());
   }
   else {
     PTRACE_IF(5, frame.GetDiscontinuity() > 0, &m_session,
@@ -705,10 +867,29 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnSendData(RTP_Dat
     frame.SetHeaderExtension(m_session.m_absSendTimeHdrExtId, sizeof(data), data, RTP_DataFrame::RFC5285_OneByte);
   }
 
+  int level = frame.GetMetaData().m_audioLevel;
+  if (level != INT_MAX && m_session.m_audioLevelHdrExtId <= RTP_DataFrame::MaxHeaderExtensionIdTwoByte) {
+    BYTE data = (BYTE)(std::min(std::max(-level, 0), 127) | (frame.GetMetaData().m_vad ? 0x80 : 0));
+    frame.SetHeaderExtension(m_session.m_audioLevelHdrExtId, 1, &data, RTP_DataFrame::RFC5285_Auto);
+  }
+
   OpalMediaTransport::CongestionControl * cc = m_session.GetCongestionControl();
   if (cc != NULL) {
     PUInt16b sn((uint16_t)cc->HandleTransmitPacket(m_session.m_sessionId, frame.GetSyncSource()));
     frame.SetHeaderExtension(m_session.m_transportWideSeqNumHdrExtId, 2, (const BYTE *)&sn, RTP_DataFrame::RFC5285_OneByte);
+  }
+
+  // Only need to send for the first few seconds
+  static const PTimeInterval IdHdrExtTime(0, 4);
+  if ((now - m_firstPacketTime) < IdHdrExtTime) {
+    if (!m_bundleMediaId.empty() && m_session.m_bundleMediaIdHdrExtId <= RTP_DataFrame::MaxHeaderExtensionIdTwoByte)
+      frame.SetHeaderExtension(m_session.m_bundleMediaIdHdrExtId, m_bundleMediaId.length(), (const BYTE *)m_bundleMediaId.c_str(), RTP_DataFrame::RFC5285_Auto);
+
+    if (!m_rtpStreamId.empty()) {
+      unsigned extId = IsRtx() ? m_session.m_repairedRtpStreamIdHdrExtId : m_session.m_rtpStreamIdHdrExtId;
+      if (extId <= RTP_DataFrame::MaxHeaderExtensionIdTwoByte)
+        frame.SetHeaderExtension(extId, m_rtpStreamId.length(), (const BYTE *)m_rtpStreamId.c_str(), RTP_DataFrame::RFC5285_Auto);
+    }
   }
 
   CalculateStatistics(frame, now);
@@ -723,6 +904,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
                                                                             const PTime & now)
 {
   frame.SetLipSyncId(m_mediaStreamId);
+  frame.SetSimulcastId(m_rtpStreamId);
 
   RTP_SequenceNumber sequenceNumber = frame.GetSequenceNumber();
   RTP_SequenceNumber expectedSequenceNumber = m_lastSequenceNumber + 1;
@@ -731,8 +913,6 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
   // Check packet sequence numbers
   if (m_packets == 0) {
     m_firstPacketTime = m_lastPacketNetTime = now;
-
-    PTRACE(3, &m_session, m_session << "first receive data:" << setw(1) << frame);
 
 #if OPAL_RTCP_XR
     delete m_metrics; // Should be NULL, but just in case ...
@@ -882,51 +1062,96 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
     status = OnReceiveRedundantFrame(frame);
 #endif
 
-  if (rxType != e_RxFromRTX) {
-    PINDEX hdrlen;
-    BYTE * exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_OneByte, m_session.m_absSendTimeHdrExtId, hdrlen);
-    if (exthdr != NULL) {
-      // 24 bits in middle of NTP time, as per http://webrtc.org/experiments/rtp-hdrext/abs-send-time/
-      uint32_t ts = (exthdr[0] << 16) | (exthdr[1] << 8) | exthdr[2];
-
-      if (m_absSendTimeHighBits == 0) {
-        m_absSendTimeHighBits = now.GetNTP() & (~0ULL << 38);
-        m_absSendTimeLowBits = ts;
-      }
-
-      uint64_t highBits = m_absSendTimeHighBits;
-      int32_t delta = (ts - m_absSendTimeLowBits) & 0xffffff;
-      if (delta > 0x800000)
-        highBits -= 1LL << 38; // Got a ts from the previous cycle
-      else {
-        if (ts < m_absSendTimeLowBits) {
-          highBits += 1LL << 38; // We wrapped, increment the cycle
-          m_absSendTimeHighBits = highBits;
-        }
-        m_absSendTimeLowBits = ts;
-      }
-
-      frame.SetTransmitTimeNTP(highBits | ((uint64_t)ts << 14));
-      PTRACE(m_absSendTimeLoglevel, &m_session, *this << "set transmit time on RTP:"
-             " sn=" << frame.GetSequenceNumber() << ","
-             " hdr=0x" << std::hex << setfill('0') << setw(6) << ts << ","
-             " delta=0x" << setw(6) << delta << setfill(' ') << std::dec << ","
-             " time=" << frame.GetMetaData().m_transmitTime.AsString(PTime::TodayFormat, PTrace::GetTimeZone()));
-    }
-
+  // IF this is a real incoming packet, calculate statistics for it.
+  if (rxType != e_RxFromRTX)
     CalculateStatistics(frame, now);
-  }
 
   // Final user handling of the read frame
   if (status != e_ProcessPacket)
     return status;
 
-  // We are receiving retransmissions in this SSRC
+  // We are receiving retransmissions in this SSRC, so don't do things like
+  // extracting header extension data, as that will be handled when
+  // OnReceiveRetransmit() execute this functiona gain on the primary SSRC
   if (IsRtx())
     return OnReceiveRetransmit(frame, now);
 
+  // Set the base time for transmit to the remotes NTP time
+  if (m_absSendTimeNTP == 0 && m_ntpPassThrough != 0) {
+    m_absSendTimeNTP = m_ntpPassThrough;
+    PTRACE(m_absSendTimeLoglevel, &m_session, *this << "set transmit time base to "
+           << PTime().SetNTP(m_absSendTimeNTP).AsString(PTime::TodayFormat, PTrace::GetTimeZone()));
+  }
+
+  BYTE * exthdr;
+  PINDEX hdrlen;
+  if (m_absSendTimeNTP != 0 && (exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_OneByte, m_session.m_absSendTimeHdrExtId, hdrlen)) != NULL) {
+    // 24 bits in middle of NTP time, as per http://webrtc.org/experiments/rtp-hdrext/abs-send-time/
+    uint32_t lowBits = (exthdr[0] << 24) | (exthdr[1] << 16) | (exthdr[2] << 8);
+
+    if (m_absSendTimeLowBits == UINT_MAX) {
+      m_absSendTimeLowBits = lowBits;
+      frame.SetTransmitTimeNTP(m_absSendTimeNTP);
+    }
+    else {
+      int32_t delta = lowBits - m_absSendTimeLowBits;
+      int64_t ntp = m_absSendTimeNTP + ((int64_t)delta << 6);
+      if (delta > 0) {
+        m_absSendTimeLowBits = lowBits;
+        m_absSendTimeNTP = ntp;
+      }
+      frame.SetTransmitTimeNTP(ntp);
+      PTRACE(m_absSendTimeLoglevel, &m_session, *this <<
+              "set transmit time from RTP:"
+              " sn=" << frame.GetSequenceNumber() << ","
+              " ts=" << frame.GetTimestamp() << ","
+              " hdr=0x" << std::hex << setfill('0') << setw(8) << lowBits << setfill(' ') << std::dec << ","
+              " delta=" << delta << ","
+              " time=" << frame.GetMetaData().m_transmitTime.AsString(PTime::TodayFormat, PTrace::GetTimeZone()));
+    }
+  }
+
+  if ((exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_Auto, m_session.m_audioLevelHdrExtId, hdrlen)) != NULL) {
+    RTP_DataFrame::MetaData & md = frame.GetWritableMetaData();
+    md.m_audioLevel = -(int)(*exthdr&0x7f);
+    md.m_vad = RTP_DataFrame::UnknownVAD;
+
+    if (m_session.m_vadHdrExtEnabled) {
+      if ((*exthdr&0x80) != 0) {
+        if (m_packets > m_mismatchThresholdVAD)
+          md.m_vad = RTP_DataFrame::ActiveVAD;
+        if (md.m_audioLevel > -127)
+          m_mismatchedActiveVAD = 0;
+        else
+          ++m_mismatchedActiveVAD;
+      }
+      else {
+        if (m_packets > m_mismatchThresholdVAD)
+          md.m_vad = RTP_DataFrame::InactiveVAD;
+        if (md.m_audioLevel < -63)
+          m_mismatchedSilentVAD = 0;
+        else
+          ++m_mismatchedSilentVAD;
+      }
+      // We check for if VAD is marked "detected" but we have digital silence, or
+      // the opposite, no VAD is detected but there is a reasonable amount of noise
+      if (m_mismatchedSilentVAD >= m_mismatchThresholdVAD || m_mismatchedActiveVAD >= m_mismatchThresholdVAD) {
+        PTRACE(3, &m_session, *this << "The VAD indication in audio level RTP header extension cannot be trusted, disabling");
+        m_session.m_vadHdrExtEnabled = false;
+      }
+    }
+
+    PTRACE(m_audioLevelLoglevel, &m_session, *this <<
+            "received audio level from RTP:"
+            " sn=" << frame.GetSequenceNumber() << ","
+            " level=" << md.m_audioLevel << ","
+            " vad=" << boolalpha << md.m_vad << ","
+            " raw=0x" << std::hex << setfill('0') << (unsigned)*exthdr);
+  }
+
   Data data(frame);
-  for (NotifierMap::iterator it = m_notifiers.begin(); it != m_notifiers.end(); ++it) {
+  NotifierMap notifiers = m_notifiers; // Make a copy in case the notifier changes the list
+  for (NotifierMap::iterator it = notifiers.begin(); it != notifiers.end(); ++it) {
     it->second(m_session, data);
     if (data.m_status != e_ProcessPacket) {
       PTRACE(5, &m_session, "Data processing ended, notifier returned " << data.m_status);
@@ -1183,27 +1408,34 @@ bool OpalRTPSession::SyncSource::HandlePendingFrames(const PTime & now)
 
 void OpalRTPSession::AttachTransport(const OpalMediaTransportPtr & newTransport)
 {
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
   InternalAttachTransport(newTransport PTRACE_PARAM(, "attached"));
 }
 
 
 void OpalRTPSession::InternalAttachTransport(const OpalMediaTransportPtr & newTransport PTRACE_PARAM(, const char * from))
 {
+  // Assumes read/write lock is already held
+
   OpalMediaSession::AttachTransport(newTransport);
   if (!IsOpen())
     return;
 
+  if (m_dataNotifier.IsNULL())
+    m_dataNotifier = PCREATE_NOTIFIER(OnRxDataPacket);
   newTransport->AddReadNotifier(m_dataNotifier, e_Data);
-  if (!m_singlePortRx)
+  if (!m_singlePortRx) {
+    if (m_controlNotifier.IsNULL())
+      m_controlNotifier = PCREATE_NOTIFIER(OnRxDataPacket);
     newTransport->AddReadNotifier(m_controlNotifier, e_Control);
-
+  }
   m_rtcpPacketsReceived = 0;
 
   PIPAddress localAddress(0);
   if (newTransport->GetLocalAddress(e_Media).GetIpAddress(localAddress))
     m_packetOverhead = localAddress.GetVersion() != 6 ? (20 + 8 + 12) : (40 + 8 + 12);
 
-  SetQoS(m_qos);
+  InternalSetQoS(m_qos);
 
   if (!m_reportTimer.IsRunning())
     m_reportTimer.RunContinuous(m_reportTimer.GetResetTime());
@@ -1229,17 +1461,18 @@ OpalMediaTransportPtr OpalRTPSession::DetachTransport()
 }
 
 
-bool OpalRTPSession::AddGroup(const PString & groupId, const PString & mediaId, bool overwrite)
+bool OpalRTPSession::AddGroup(const PString & groupId, unsigned index, const PString & mediaId)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
-  if (!OpalMediaSession::AddGroup(groupId, mediaId, overwrite))
+  if (!OpalMediaSession::AddGroup(groupId, index, mediaId))
     return false;
 
   if (IsGroupMember(GetBundleGroupId())) {
     // When bundling we force rtcp-mux and only allow announced SSRC values
-    m_singlePortRx = true;
-    m_allowAnySyncSource = false;
+    if (!m_singlePortRx)
+      m_singlePortRx = true; // TSan workaround: only set if changed
+    m_stringOptions.Set(OPAL_OPT_RTP_ALLOW_SSRC, OPAL_OPT_RTP_ALLOW_SSRC_PRESET);
   }
 
   return true;
@@ -1323,10 +1556,67 @@ void OpalRTPSession::SetCanonicalName(const PString & name, RTP_SyncSourceId ssr
 }
 
 
+PString OpalRTPSession::GetBundleMediaId(RTP_SyncSourceId ssrc, Direction dir) const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
+  return GetSyncSource(ssrc, dir).m_bundleMediaId.GetPointer();
+}
+
+
+void OpalRTPSession::SetBundleMediaId(const PString & id, RTP_SyncSourceId ssrc, Direction dir)
+{
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+  SyncSource * info;
+  if (GetSyncSource(ssrc, dir, info)) {
+    info->m_bundleMediaId = id.c_str();
+    PTRACE(4, *this << "set BUNDLE mid for " << dir <<
+           " SSRC=" << RTP_TRACE_SRC(info->m_sourceIdentifier) << " to \"" << id << '"');
+  }
+}
+
+
+RTP_SyncSourceId OpalRTPSession::FindBundleMediaId(const PString & id, Direction dir)
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return 0);
+  for (SyncSourceMap::iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
+    if (it->second->m_direction == dir && it->second->m_bundleMediaId == id)
+      return it->first;
+  }
+  return 0;
+}
+
+PString OpalRTPSession::GetRtpStreamId(RTP_SyncSourceId ssrc, Direction dir) const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
+  return GetSyncSource(ssrc, dir).m_rtpStreamId.GetPointer();
+}
+
+
+void OpalRTPSession::SetRtpStreamId(const PString & id, RTP_SyncSourceId ssrc, Direction dir)
+{
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+  SyncSource * info;
+  if (GetSyncSource(ssrc, dir, info)) {
+    info->m_rtpStreamId = id.c_str();
+    if (dir == e_Sender)
+      m_rtpStreamIdToSendSSRC[info->m_rtpStreamId] = info->m_sourceIdentifier;
+    PTRACE(4, *this << "set RtpStreamId for " << dir <<
+           " SSRC=" << RTP_TRACE_SRC(info->m_sourceIdentifier) << " to \"" << id << '"');
+  }
+}
+
+
 PString OpalRTPSession::GetMediaStreamId(RTP_SyncSourceId ssrc, Direction dir) const
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
   return GetSyncSource(ssrc, dir).m_mediaStreamId.GetPointer();
+}
+
+
+PString OpalRTPSession::GetMediaStreamId(const PString & mid) const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
+  return m_mediaStreamByBundleMediaId(mid).GetPointer();
 }
 
 
@@ -1342,14 +1632,20 @@ void OpalRTPSession::SetMediaStreamId(const PString & id, RTP_SyncSourceId ssrc,
     info->m_mediaStreamId.MakeUnique();
     PTRACE(4, *this << "set MediaStream id for " << dir <<
            " SSRC=" << RTP_TRACE_SRC(info->m_sourceIdentifier) << " to \"" << id << '"');
-
-    // If have an RTX, set it as well
-    SyncSource * rtx;
-    if (dir == e_Sender && info->m_rtxSSRC != 0 && !info->IsRtx() && GetSyncSource(info->m_rtxSSRC, dir, rtx)) {
-      rtx->m_mediaStreamId = info->m_mediaStreamId;
-      rtx->m_mediaTrackId = info->m_mediaTrackId;
-    }
+    if (dir == e_Sender && info->m_rtxSSRC != 0 && !info->IsRtx())
+      SetMediaStreamId(id, info->m_rtxSSRC, dir);
   }
+}
+
+
+void OpalRTPSession::SetMediaStreamId(const PString & id, const PString & mid)
+{
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+
+  PString trackId = m_mediaTrackByBundleMediaId(mid);
+  if (trackId.IsEmpty() || trackId.NumCompare(m_mediaStreamByBundleMediaId(mid) + '+') == EqualTo)
+    m_mediaTrackByBundleMediaId.SetAt(mid, PSTRSTRM(id << '+' << m_mediaType));
+  m_mediaStreamByBundleMediaId.SetAt(mid, id);
 }
 
 
@@ -1357,6 +1653,13 @@ PString OpalRTPSession::GetMediaTrackId(RTP_SyncSourceId ssrc, Direction dir) co
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
   return GetSyncSource(ssrc, dir).m_mediaTrackId.GetPointer();
+}
+
+
+PString OpalRTPSession::GetMediaTrackId(const PString & mid) const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
+  return m_mediaTrackByBundleMediaId(mid).GetPointer();
 }
 
 
@@ -1370,12 +1673,16 @@ void OpalRTPSession::SetMediaTrackId(const PString & id, RTP_SyncSourceId ssrc, 
     info->m_mediaTrackId.MakeUnique();
     PTRACE(4, *this << "set MediaStreamTrack id for " << dir <<
            " SSRC=" << RTP_TRACE_SRC(info->m_sourceIdentifier) << " to \"" << id << '"');
-
-    // If have an RTX, set it as well
-    SyncSource * rtx;
-    if (dir == e_Sender && info->m_rtxSSRC != 0 && !info->IsRtx() && GetSyncSource(info->m_rtxSSRC, dir, rtx))
-      rtx->m_mediaTrackId = info->m_mediaTrackId;
+    if (dir == e_Sender && info->m_rtxSSRC != 0 && !info->IsRtx())
+      SetMediaTrackId(id, info->m_rtxSSRC, dir);
   }
+}
+
+
+void OpalRTPSession::SetMediaTrackId(const PString & id, const PString & mid)
+{
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+  m_mediaTrackByBundleMediaId.SetAt(mid, id);
 }
 
 
@@ -1408,13 +1715,17 @@ void OpalRTPSession::SetToolName(const PString & name)
 
 RTPHeaderExtensions OpalRTPSession::GetHeaderExtensions() const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return RTPHeaderExtensions());
   return m_headerExtensions;
 }
 
 
-const PString & OpalRTPSession::GetAbsSendTimeHdrExtURI() { static const PConstString s("http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time"); return s; }
+const PString & OpalRTPSession::GetAbsSendTimeHdrExtURI()         { static const PConstString s("http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time"               ); return s; }
+const PString & OpalRTPSession::GetAudioLevelHdrExtURI()          { static const PConstString s("urn:ietf:params:rtp-hdrext:ssrc-audio-level"                              ); return s; }
 const PString & OpalRTPSession::GetTransportWideSeqNumHdrExtURI() { static const PConstString s("http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01"); return s; }
+const PString & OpalRTPSession::GetBundleMediaIdExtURI()          { static const PConstString s("urn:ietf:params:rtp-hdrext:sdes:mid"                                      ); return s; }
+const PString & OpalRTPSession::GetRtpStreamIdExtURI()            { static const PConstString s("urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id"                            ); return s; }
+const PString & OpalRTPSession::GetRepairedRtpStreamIdExtURI()    { static const PConstString s("urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id"                   ); return s; }
 
 void OpalRTPSession::SetHeaderExtensions(const RTPHeaderExtensions & ext)
 {
@@ -1437,14 +1748,44 @@ bool OpalRTPSession::AddHeaderExtension(const RTPHeaderExtensionInfo & ext)
   RTPHeaderExtensionInfo adjustedExt(ext);
   PCaselessString uri = ext.m_uri.AsString();
   if (uri == GetAbsSendTimeHdrExtURI() && m_stringOptions.GetBoolean(OPAL_OPT_RTP_ABS_SEND_TIME)) {
-    if (m_headerExtensions.AddUniqueID(adjustedExt))
+    if (m_headerExtensions.AddUniqueID(adjustedExt)) {
       m_absSendTimeHdrExtId = adjustedExt.m_id;
+      PTRACE(4, *this << "enabled abs send time header extension: id=" << m_absSendTimeHdrExtId);
+    }
+    return true;
+  }
+
+  if (uri == GetAudioLevelHdrExtURI() && m_stringOptions.GetBoolean(OPAL_OPT_RTP_AUDIO_LEVEL) && m_mediaType == OpalMediaType::Audio()) {
+    if (m_headerExtensions.AddUniqueID(adjustedExt)) {
+      m_audioLevelHdrExtId = adjustedExt.m_id;
+      static const PRegularExpression vadoff("vad[ \t]*=[ \t]*off", PRegularExpression::IgnoreCase);
+      m_vadHdrExtEnabled = ext.m_attributes.FindRegEx(vadoff) == P_MAX_INDEX;
+      PTRACE(4, *this << "enabled audio level header extension: id=" << m_audioLevelHdrExtId << ", vad=" << boolalpha << m_vadHdrExtEnabled);
+    }
     return true;
   }
 
   if (uri == GetTransportWideSeqNumHdrExtURI() && m_stringOptions.GetBoolean(OPAL_OPT_TRANSPORT_WIDE_CONGESTION_CONTROL)) {
     if (m_headerExtensions.AddUniqueID(adjustedExt))
       m_transportWideSeqNumHdrExtId = adjustedExt.m_id;
+    return true;
+  }
+
+  if (uri == GetBundleMediaIdExtURI()) {
+    if (!IsGroupMember(GetBundleGroupId()) && m_headerExtensions.AddUniqueID(adjustedExt))
+      m_bundleMediaIdHdrExtId = adjustedExt.m_id;
+    return true;
+  }
+
+  if (uri == GetRtpStreamIdExtURI()) {
+    if (m_headerExtensions.AddUniqueID(adjustedExt))
+      m_rtpStreamIdHdrExtId = adjustedExt.m_id;
+    return true;
+  }
+
+  if (uri == GetRepairedRtpStreamIdExtURI()) {
+    if (m_headerExtensions.AddUniqueID(adjustedExt))
+      m_repairedRtpStreamIdHdrExtId = adjustedExt.m_id;
     return true;
   }
 
@@ -1455,15 +1796,22 @@ bool OpalRTPSession::AddHeaderExtension(const RTPHeaderExtensionInfo & ext)
 
 void OpalRTPSession::SetAnySyncSource(bool allow)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
-  m_allowAnySyncSource = allow;
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+  m_stringOptions.Set(OPAL_OPT_RTP_ALLOW_SSRC, allow ? OPAL_OPT_RTP_ALLOW_SSRC_ANY : OPAL_OPT_RTP_ALLOW_SSRC_PRESET);
 }
 
 
 void OpalRTPSession::SetMaxOutOfOrderPackets(PINDEX packets)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
   m_maxOutOfOrderPackets = packets;
+}
+
+
+int OpalRTPSession::GetRoundTripTime() const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return -1);
+  return m_roundTripTime;
 }
 
 
@@ -1565,7 +1913,7 @@ void OpalRTPSession::SyncSource::OnRxReceiverReport(const RTP_ReceiverReport & r
   PTRACE_IF(m_throttleInvalidLost, (unsigned)m_packetsMissing > m_packets, &m_session,
             m_session << "remote indicated packet loss (" << m_packetsMissing << ")"
             " larger than number of packets we sent (" << m_packets << ')' << m_throttleInvalidLost);
-  m_currentjitter = (report.jitter + m_session.m_timeUnits -1)/m_session.m_timeUnits;
+  m_currentjitter = (report.jitter + m_session.m_timeUnits / 2)/m_session.m_timeUnits;
   if (m_maximumJitter < m_currentjitter)
     m_maximumJitter = m_currentjitter;
 
@@ -1613,6 +1961,15 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnSendData(RewriteMode & rewri
                                                              const PTime & now)
 {
   RTP_SyncSourceId ssrc = frame.GetSyncSource();
+  if (ssrc == 0) {
+    PString rtpStreamId = frame.GetSimulcastId();
+    if (!rtpStreamId.empty()) {
+      std::map<PString, RTP_SyncSourceId>::const_iterator it = m_rtpStreamIdToSendSSRC.find(rtpStreamId);
+      if (it != m_rtpStreamIdToSendSSRC.end())
+        ssrc = it->second;
+    }
+  }
+
   SyncSource * syncSource;
   if (GetSyncSource(ssrc, e_Sender, syncSource)) {
     if (syncSource->m_direction == e_Receiver) {
@@ -1724,10 +2081,22 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnPreReceiveData(RTP_DataFrame
 
   RTP_SyncSourceId ssrc = frame.GetSyncSource();
   SyncSource * receiver = UseSyncSource(ssrc, e_Receiver, false);
+
+  BYTE * exthdr;
+  PINDEX hdrlen;
+  if (receiver == NULL && (exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_Auto, m_bundleMediaIdHdrExtId, hdrlen)) != NULL)
+    receiver = AddSyncSourceByBundleMediaId(ssrc, PString((const char *)exthdr, hdrlen) PTRACE_PARAM(, "header extension"));
+
   if (receiver == NULL) {
-      PTRACE_IF(2, m_loggedBadSSRC.insert(ssrc).second, *this << "ignoring unknown SSRC: " << setw(1) << frame);
-      return e_IgnorePacket;
+    PTRACE_IF(2, m_loggedBadSSRC.insert(ssrc).second, *this << "ignoring unknown SSRC: " << setw(1) << frame);
+    return e_IgnorePacket;
   }
+
+  if ((exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_Auto, m_rtpStreamIdHdrExtId, hdrlen)) != NULL)
+    OnRxRtpStreamId(*receiver, PString((const char *)exthdr, hdrlen), false);
+
+  if ((exthdr = frame.GetHeaderExtension(RTP_DataFrame::RFC5285_Auto, m_repairedRtpStreamIdHdrExtId, hdrlen)) != NULL)
+    OnRxRtpStreamId(*receiver, PString((const char *)exthdr, hdrlen), true);
 
   return receiver->OnReceiveData(frame, e_RxFromNetwork, now);
 }
@@ -1904,6 +2273,11 @@ bool OpalRTPSession::InternalSendReport(RTP_ControlFrame & report,
   unsigned receivers = 0;
   if (includeReceivers) {
     for (SyncSourceMap::iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
+      if (receivers >= 31) {
+        PTRACE(logLevel, "Too many receivers to add to ReceiverReport" << m_throttleTxReport);
+        break;
+      }
+
       if (it->second->OnSendReceiverReport(NULL, now PTRACE_PARAM(, logLevel)))
         ++receivers;
     }
@@ -1917,29 +2291,34 @@ bool OpalRTPSession::InternalSendReport(RTP_ControlFrame & report,
            << (receivers == 0 ? "empty " : "") << "ReceiverReport" << m_throttleTxReport);
   }
   else {
+    // Adjust the RTP timestamp from the last sent packet based on the current wall clock
+    const PTimeInterval elapsed = now - sender.m_reportAbsoluteTime;
+    const RTP_Timestamp srts = sender.m_reportTimestamp + static_cast<RTP_Timestamp>(elapsed.GetMilliSeconds() * m_timeUnits);
     rr = report.AddSenderReport(sender.m_sourceIdentifier,
-                                sender.m_reportAbsoluteTime,
-                                sender.m_reportTimestamp,
+                                now,
+                                srts,
                                 sender.m_packets,
                                 sender.m_octets,
                                 receivers);
 
-    sender.m_ntpPassThrough = sender.m_reportAbsoluteTime.GetNTP();
+    sender.m_ntpPassThrough = now.GetNTP();
     sender.m_lastSenderReportTime = now;
 
     PTRACE(logLevel, sender << "sending " << forcedStr << "SenderReport:"
-              " ntp=" << sender.m_reportAbsoluteTime.AsString(PTime::TodayFormat, PTrace::GetTimeZone())
+              " ntp=" << now.AsString(PTime::TodayFormat, PTrace::GetTimeZone())
            << " 0x" << hex << sender.m_ntpPassThrough << dec
-           << " rtp=" << sender.m_reportTimestamp
+           << " rtp=" << srts
            << " psent=" << sender.m_packets
            << " osent=" << sender.m_octets
            << m_throttleTxReport);
   }
 
   if (rr != NULL) {
-    for (SyncSourceMap::iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
-      if (it->second->OnSendReceiverReport(rr, now PTRACE_PARAM(, logLevel)))
+    for (SyncSourceMap::iterator it = m_SSRC.begin(); receivers > 0 && it != m_SSRC.end(); ++it) {
+      if (it->second->OnSendReceiverReport(rr, now PTRACE_PARAM(, logLevel))) {
+        --receivers;
         ++rr;
+      }
     }
   }
 
@@ -1957,7 +2336,13 @@ bool OpalRTPSession::InternalSendReport(RTP_ControlFrame & report,
 
   // Add the SDES part to compound RTCP packet
   PTRACE(logLevel, sender << "sending SDES cname=\"" << sender.m_canonicalName << '"');
-  report.AddSourceDescription(sender.m_sourceIdentifier, sender.m_canonicalName, m_toolName);
+  report.AddSourceDescription(sender.m_sourceIdentifier,
+                              sender.m_canonicalName,
+                              m_toolName,
+                              sender.m_bundleMediaId,
+                              sender.m_rtpStreamId,
+                              sender.IsRtx(),
+                              true);
 
   // Count receivers that have had a RRTR
   receivers = 0;
@@ -2637,9 +3022,29 @@ void OpalRTPSession::OnRxReceiverReport(RTP_SyncSourceId, const RTP_ReceiverRepo
 }
 
 
-void OpalRTPSession::OnRxSourceDescription(const RTP_SourceDescriptionArray & PTRACE_PARAM(description))
+void OpalRTPSession::OnRxSourceDescription(const RTP_SourceDescriptionArray & descriptions)
 {
-  PTRACE(m_throttleRxSDES, *this << "OnSourceDescription: " << description.GetSize() << " entries" << description);
+  PTRACE(m_throttleRxSDES, *this << "OnSourceDescription: " << descriptions.GetSize() << " entries" << descriptions);
+
+  for (PINDEX i = 0; i < descriptions.GetSize(); ++i) {
+    const RTP_SourceDescription & description = descriptions[i];
+    RTP_SyncSourceId ssrc = description.sourceIdentifier;
+    SyncSource * receiver = UseSyncSource(ssrc, e_Receiver, false);
+    if (receiver == NULL) {
+      PString * mid = description.items.GetAt(RTP_ControlFrame::e_MID);
+      if (mid != NULL)
+        receiver = AddSyncSourceByBundleMediaId(ssrc, *mid PTRACE_PARAM(, "SDES"));
+    }
+
+    if (receiver != NULL) {
+      PString * id = description.items.GetAt(RTP_ControlFrame::e_RtpStreamId);
+      if (id != NULL)
+        OnRxRtpStreamId(*receiver, *id, false);
+      id = description.items.GetAt(RTP_ControlFrame::e_RepairedRtpStreamId);
+      if (id != NULL)
+        OnRxRtpStreamId(*receiver, *id, true);
+    }
+  }
 }
 
 
@@ -3053,7 +3458,7 @@ bool OpalRTPSession::UpdateMediaFormat(const OpalMediaFormat & mediaFormat)
     m_qos.m_transmit.m_maxJitter = m_qos.m_receive.m_maxJitter = 250000; // 250ms
   }
 
-  SetQoS(m_qos);
+  InternalSetQoS(m_qos);
 
   PTRACE(4, *this << "updated media format " << mediaFormat << ": timeUnits=" << m_timeUnits << " maxBitRate=" << maxBitRate << ", feedback=" << m_feedback);
   return true;
@@ -3115,8 +3520,10 @@ bool OpalRTPSession::Open(const PString & localInterface, const OpalTransportAdd
 }
 
 
-bool OpalRTPSession::SetQoS(const PIPSocket::QoS & qos)
+bool OpalRTPSession::InternalSetQoS(const PIPSocket::QoS & qos)
 {
+  // Assumes read/write lock is already held
+
   OpalMediaTransportPtr transport = m_transport; // This way avoids races
   if (transport == NULL || !transport->IsOpen())
     return false;
@@ -3124,8 +3531,6 @@ bool OpalRTPSession::SetQoS(const PIPSocket::QoS & qos)
   PIPSocket * socket = dynamic_cast<PIPSocket *>(transport->GetChannel(e_Data));
   if (socket == NULL)
     return false;
-
-  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
 
   PIPAddress remoteAddress;
   WORD remotePort;
@@ -3141,8 +3546,14 @@ bool OpalRTPSession::Close()
 {
   PTRACE(3, *this << "closing RTP.");
 
-  m_reportTimer.Stop(true);
+  if (LockReadWrite()) {
+    m_dataNotifier = NULL;
+    m_controlNotifier = NULL;
+    UnlockReadWrite();
+  }
+
   m_endpoint.RegisterLocalRTP(this, true);
+  m_reportTimer.Stop(true);
 
   if (IsOpen() && LockReadOnly(P_DEBUG_LOCATION)) {
     for (SyncSourceMap::iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
@@ -3167,8 +3578,11 @@ PString OpalRTPSession::GetLocalHostName()
 void OpalRTPSession::SetSinglePortRx(bool singlePortRx)
 {
   P_INSTRUMENTED_LOCK_READ_WRITE(return);
-  PTRACE_IF(3, m_singlePortRx != singlePortRx, *this << (singlePortRx ? "enable" : "disable") << " single port mode for receive");
-  m_singlePortRx = singlePortRx;
+  // TSan workaround: only set if changed
+  if (m_singlePortRx != singlePortRx) {
+    PTRACE(3, *this << (singlePortRx ? "enable" : "disable") << " single port mode for receive");
+    m_singlePortRx = singlePortRx;
+  }
 }
 
 
@@ -3176,8 +3590,11 @@ void OpalRTPSession::SetSinglePortTx(bool singlePortTx)
 {
   {
     P_INSTRUMENTED_LOCK_READ_WRITE(return);
-    PTRACE_IF(3, m_singlePortTx != singlePortTx, *this << (singlePortTx ? "enable" : "disable") << " single port mode for transmit");
-    m_singlePortTx = singlePortTx;
+    // TSan workaround: only set if changed
+    if (m_singlePortTx != singlePortTx) {
+      PTRACE(3, *this << (singlePortTx ? "enable" : "disable") << " single port mode for transmit");
+      m_singlePortTx = singlePortTx;
+    }
   }
 
   OpalMediaTransportPtr transport = m_transport; // This way avoids races
@@ -3193,6 +3610,8 @@ void OpalRTPSession::SetSinglePortTx(bool singlePortTx)
 #endif
 
   OpalTransportAddress remoteDataAddress = transport->GetRemoteAddress(e_Data);
+  if (remoteDataAddress.IsEmpty())
+    return; // Not got it yet
   if (singlePortTx)
     transport->SetRemoteAddress(remoteDataAddress, e_Control);
   else {
@@ -3284,6 +3703,10 @@ void OpalRTPSession::OnRxDataPacket(OpalMediaTransport &, PBYTEArray data)
     m_manager.QueueDecoupledEvent(new PSafeWorkNoArg<OpalConnection, bool>(&m_connection, &OpalConnection::InternalOnEstablished));
   }
 
+  // Ignore one byte packet, as possibly there to open pinhole
+  if (data.GetSize() == 1)
+    return;
+
   // Check for single port operation, incoming RTCP on RTP
   RTP_ControlFrame control(data, data.GetSize(), false);
   unsigned type = control.GetPayloadType();
@@ -3293,8 +3716,10 @@ void OpalRTPSession::OnRxDataPacket(OpalMediaTransport &, PBYTEArray data)
   }
   else {
     RTP_DataFrame frame(data);
-    if (OnPreReceiveData(frame, PTime()) == e_AbortTransport)
-      SessionFailed(e_Data PTRACE_PARAM(, "OnReceiveData abort"));
+    if ((data.GetSize() > RTP_DataFrame::MinHeaderSize && IsEncrypted()) || frame.SetPacketSize(data.GetSize())) {
+      if (OnPreReceiveData(frame, PTime()) == e_AbortTransport)
+        SessionFailed(e_Data PTRACE_PARAM(, "OnReceiveData abort"));
+    }
   }
 }
 
@@ -3307,6 +3732,15 @@ void OpalRTPSession::OnRxControlPacket(OpalMediaTransport &, PBYTEArray data)
     SessionFailed(e_Control PTRACE_PARAM(, "with no data"));
     return;
   }
+
+  if (m_sendEstablished && IsEstablished()) {
+    m_sendEstablished = false;
+    m_manager.QueueDecoupledEvent(new PSafeWorkNoArg<OpalConnection, bool>(&m_connection, &OpalConnection::InternalOnEstablished));
+  }
+
+  // Ignore one byte packet, as possibly there to open pinhole
+  if (data.GetSize() == 1)
+    return;
 
   RTP_ControlFrame control(data, data.GetSize(), false);
   if (control.IsValid()) {

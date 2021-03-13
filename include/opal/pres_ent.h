@@ -337,10 +337,10 @@ class OpalPresentity : public PSafeObject
       const OpalPresenceInfo & info ///< Info on other presentity that changed state
     );
 
-    typedef PNotifierTemplate< std::auto_ptr<OpalPresenceInfo> > PresenceChangeNotifier;
-    #define PDECLARE_PresenceChangeNotifier(cls, fn) PDECLARE_NOTIFIER2(OpalPresentity, cls, fn, std::auto_ptr<OpalPresenceInfo>)
-    #define PDECLARE_ASYNC_PresenceChangeNotifier(cls, fn) PDECLARE_ASYNC_NOTIFIER2(OpalPresentity, cls, fn, std::auto_ptr<OpalPresenceInfo>)
-    #define PCREATE_PresenceChangeNotifier(fn) PCREATE_NOTIFIER2(fn, std::auto_ptr<OpalPresenceInfo>)
+    typedef PNotifierTemplate< PAutoPtr<OpalPresenceInfo> > PresenceChangeNotifier;
+    #define PDECLARE_PresenceChangeNotifier(cls, fn) PDECLARE_NOTIFIER2(OpalPresentity, cls, fn, PAutoPtr<OpalPresenceInfo>)
+    #define PDECLARE_ASYNC_PresenceChangeNotifier(cls, fn) PDECLARE_ASYNC_NOTIFIER2(OpalPresentity, cls, fn, PAutoPtr<OpalPresenceInfo>)
+    #define PCREATE_PresenceChangeNotifier(fn) PCREATE_NOTIFIER2(fn, PAutoPtr<OpalPresenceInfo>)
 
     /// Set the notifier for the OnPresenceChange() function.
     void SetPresenceChangeNotifier(
@@ -564,7 +564,7 @@ class OpalPresentityWithCommandThread : public OpalPresentity
     OpalPresentityWithCommandThread(const OpalPresentityWithCommandThread & other);
 
   public:
-    /** Destory the presentity class that uses a command thread.
+    /** Destroy the presentity class that uses a command thread.
         Note this will block until the background thread has stopped.
       */
     ~OpalPresentityWithCommandThread();
@@ -572,6 +572,10 @@ class OpalPresentityWithCommandThread : public OpalPresentity
 
   /**@name Overrides from OpalPresentity */
   //@{
+    /**Close the presentity.
+      */
+    virtual bool Close();
+
     /** Lowlevel function to send a command to the presentity handler.
         All commands are asynchronous. They will usually initiate an action
         for which an indication (callback) will give a result.
@@ -588,49 +592,17 @@ class OpalPresentityWithCommandThread : public OpalPresentity
     );
   //@}
 
-  /**@name new functions */
-  //@{
-    /**Start the background thread to handle commands.
-       This is typically called from the concrete classes Open() function.
-
-       If the argument is true (the default) then the thread starts processing
-       queue entries ASAP.
-
-       If the argument is false, the thread is still created and still runs, 
-       but it does not process queue entries. This allows for presenties that
-       may need to allow commands to be paused, for example during initialisation
-      */
-    void StartThread(
-      bool startQueue = true
-    );
-
-    /**Stop the background thread to handle commands.
-       This is typically called from the concrete classes Close() function.
-       It is also called fro the destructor to be sure the thread has stopped
-       before the object is destroyed.
-      */
-    void StopThread();
-
-    /**Start/resume processing of queue commands
-      */
-    void StartQueue(
-      bool startQueue = true
-    );
-    
-  //@}
-
   protected:
-    void ThreadMain();
+    struct WorkItem
+    {
+      OpalPresentity & m_owner;
+      OpalPresentityCommand * m_command;
+      WorkItem(OpalPresentityWithCommandThread & owner, OpalPresentityCommand * command);
+      ~WorkItem();
+      void Work();
+    };
 
-    typedef std::queue<OpalPresentityCommand *> CommandQueue;
-    CommandQueue     m_commandQueue;
-    PDECLARE_MUTEX(  m_commandQueueMutex);
-    atomic<unsigned> m_commandSequence;
-    PSyncPoint       m_commandQueueSync;
-
-    bool      m_threadRunning;
-    bool      m_queueRunning;
-    PThread * m_thread;
+    PQueuedThreadPool<WorkItem> m_threadPool;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

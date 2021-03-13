@@ -524,7 +524,7 @@ bool MyLocalEndPoint::Initialise(PArgList & args)
     cout << "Not using outgoing audio file." << endl;
   else {
     m_audioFilePath = args.GetOptionString('A');
-    std::auto_ptr<PFile> file(OpenAudioFile());
+    PAutoPtr<PFile> file(OpenAudioFile());
     if (file.get() == NULL) {
       cout << "Outgoing audio file  \"" << m_audioFilePath << "\" does not exist!" << endl;
       return false;
@@ -551,7 +551,7 @@ bool MyLocalEndPoint::Initialise(PArgList & args)
     cout << "Not using outgoing video file." << endl;
   else {
     m_videoFilePath = args.GetOptionString('Y');
-    std::auto_ptr<PFile> file(OpenVideoFile());
+    PAutoPtr<PFile> file(OpenVideoFile());
     if (file.get() == NULL) {
       cout << "Outgoing video file  \"" << m_audioFilePath << "\" does not exist!" << endl;
       return false;
@@ -724,11 +724,8 @@ bool MyLocalConnection::OnReadMediaData(const OpalMediaStream & mediaStream, voi
 bool MyLocalConnection::OnReadMediaFrame(const OpalMediaStream & mediaStream, RTP_DataFrame & frame)
 {
   OpalPCAPFile * pcapFile;
-  if (mediaStream.GetMediaFormat().GetMediaType() == OpalMediaType::Audio()) {
+  if (mediaStream.GetMediaFormat().GetMediaType() == OpalMediaType::Audio())
     pcapFile = dynamic_cast<OpalPCAPFile *>(m_audioFile);
-    if (pcapFile == NULL)
-      return OpalLocalConnection::OnReadMediaFrame(mediaStream, frame);
-  }
 
 #if OPAL_VIDEO
   else {
@@ -742,10 +739,12 @@ bool MyLocalConnection::OnReadMediaFrame(const OpalMediaStream & mediaStream, RT
       return true;
     }
 
-    if ((pcapFile = dynamic_cast<OpalPCAPFile *>(m_videoFile)) == NULL)
-      return true;
+    pcapFile = dynamic_cast<OpalPCAPFile *>(m_videoFile);
   }
 #endif
+
+  if (pcapFile == NULL)
+    return OpalLocalConnection::OnReadMediaFrame(mediaStream, frame);
 
   if (pcapFile->GetRTP(frame) < 0) {
     PTRACE(3, "Could not get RTP from PCAP file.");

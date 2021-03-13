@@ -67,8 +67,9 @@ class PURL;
 #define OPAL_MAKE_URL_PARAM2(opt, val)  OPAL_MAKE_URL_PARAM(opt) "=" val
 
 #define OPAL_OPT_AUTO_START           "AutoStart"             /**< String option for auto-started media types. This is a '\n' separated list
-                                                                   of entries of the form type:mode, type is "audio", "video", "fax" etc. The
-                                                                   mode is "inactive", "sendonly", "recvonly", "sendrecv" or "no". "yes" is a
+                                                                   of entries of the form type:mode or ssrc:mode, type is "audio", "video",
+                                                                   "fax" etc. An ssrc is a numeric RTP SyncSourceId. The mode is "inactive",
+                                                                   "sendonly", "recvonly", "sendrecv" or "no" for no offer. A "yes" is a
                                                                    synonym for "sendrecv".
                                                                 */
 #define OPAL_OPT_CALL_IDENTIFIER      "Call-Identifier"       ///< String option to override generated call identifier
@@ -390,6 +391,30 @@ class OpalProductInfo
 };
 
 
+struct OpalConnectionInfo
+{
+  PString          m_identifier;
+  bool             m_originating;
+  OpalProductInfo  m_productInfo;
+  PString          m_localPartyName;
+  PString          m_localPartyURL;
+  PString          m_displayName;
+  PString          m_remotePartyName;
+  PString          m_remotePartyURL;
+  OpalProductInfo  m_remoteProductInfo;
+  PString          m_remotePartyNumber;
+  PString          m_redirectingParty;
+  PString          m_calledPartyNumber;
+  PString          m_calledPartyName;
+  vector<PTime>    m_phaseTime;
+
+  OpalConnectionInfo();
+  OpalConnectionInfo(OpalEndPoint & ep, size_t phases);
+  void ToLogging(ostream & strm) const;
+  void ToJSON(PJSON::Object & obj) const;
+};
+
+
 /**This is the base class for connections to an endpoint.
    A particular protocol will have a descendant class from this to implement
    the specific semantics of that protocols connection.
@@ -407,7 +432,7 @@ class OpalProductInfo
    When media streams are created they must make requests for bandwidth which
    is managed by the connection.
  */
-class OpalConnection : public PSafeObject
+class OpalConnection : public PSafeObject, protected OpalConnectionInfo
 {
     PCLASSINFO(OpalConnection, PSafeObject);
   public:
@@ -452,7 +477,8 @@ class OpalConnection : public PSafeObject
       EndedByCertificateAuthority,   ///< When using TLS, the remote certifcate was not authenticated
       EndedByIllegalAddress,         ///< Destination Address  format was incorrect format
       EndedByCustomCode,             ///< End call with custom protocol specific code (e.g. SIP)
-      EndedByMediaTransportFail      ///< End call due to media transport failure, typically ICE error
+      EndedByMediaTransportFail,     ///< End call due to media transport failure, typically ICE error
+      EndedByMediaTransportClosed    ///< End call due to media transport closed
     );
 
     struct CallEndReason {
@@ -562,6 +588,9 @@ class OpalConnection : public PSafeObject
     /**Destroy connection.
      */
     ~OpalConnection();
+
+    /// Get the connection ifnormation about this connection.
+    const OpalConnectionInfo & GetConnectionInfo() const { return *this; }
   //@}
 
   /**@name Overrides from PObject */
@@ -596,7 +625,7 @@ class OpalConnection : public PSafeObject
     /**Different phases of a call, which are used in all OpalConnection
        instances. These phases are fully described in the documentation page
        \ref pageOpalConnections.  */
-    P_DECLARE_TRACED_ENUM(Phases,
+    P_DECLARE_STREAMABLE_ENUM(Phases,
       UninitialisedPhase,   //!< Indicates the OpalConnection instance has just been constructed
       SetUpPhase,           //!< Has just sent/received the initial SETUP/INVITE packet
       ProceedingPhase,      //!< The receipt of SETUP/INVITE has been acknowledged
@@ -636,14 +665,14 @@ class OpalConnection : public PSafeObject
 
        If the call is still active then this will return NumCallEndReasons.
       */
-    CallEndReason GetCallEndReason() const { return m_callEndReason; }
+    CallEndReason GetCallEndReason() const;
 
     /**Get the reason for this connection shutting down as text.
       */
     static PString GetCallEndReasonText(CallEndReason reason);
-    PString GetCallEndReasonText() const { return GetCallEndReasonText(m_callEndReason); }
+    PString GetCallEndReasonText() const { return GetCallEndReasonText(GetCallEndReason()); }
 
-    /**Get the reason for this connection shutting down as text.
+    /**Set the reason for this connection shutting down as text.
       */
     static void SetCallEndReasonText(CallEndReasonCodes reasonCode, const PString & newText);
 
@@ -1086,6 +1115,10 @@ class OpalConnection : public PSafeObject
     virtual OpalMediaType::AutoStartMode GetAutoStart(
       const OpalMediaType & mediaType  ///< media type to check
     ) const;
+    virtual OpalMediaType::AutoStartMode GetAutoStart(
+      const OpalMediaType & mediaType,  ///< media type to check
+      RTP_SyncSourceId ssrc             ///< RTP SyncSourceId to check
+    ) const;
 
     /**Open source media streams, if needed.
      */
@@ -1225,6 +1258,15 @@ class OpalConnection : public PSafeObject
       bool source,                        ///<  Indicates the direction of stream.
       OpalMediaStreamPtr previous = NULL  ///< Previous stream to start search from
     ) const;
+
+#if OPAL_STATISTICS
+    /// Get media statistics of the type, and of the specifed direction.
+    bool GetStatistics(
+      const OpalMediaType & mediaType,    ///<  Media type to search for.
+      bool source,                        ///<  Indicates the direction of stream.
+      OpalMediaStatistics & statistics    ///< Received statistics
+    ) const;
+#endif // OPAL_STATISTICS
 
     /**Call back when opening a media stream.
        This function is called when a connection has created a new media
@@ -1377,11 +1419,11 @@ class OpalConnection : public PSafeObject
       bool & mute         ///< Flag for muted audio
     );
 
-    /**Get the average signal level (0..32767) for the audio media channel.
-       A return value of UINT_MAX indicates no valid signal, eg no audio channel opened.
+    /**Get the signal level in dBov (-127 to 0) for the audio media channel.
+       A return value of INT_MAX indicates no valid signal, eg no audio channel opened.
       */
-    virtual unsigned GetAudioSignalLevel(
-      PBoolean source                   ///< true for source (microphone), false for sink (speaker)
+    virtual int GetAudioLevelDB(
+      bool source   ///< true for source (microphone), false for sink (speaker)
     );
   //@}
 
@@ -1686,7 +1728,7 @@ class OpalConnection : public PSafeObject
 
     /**Get the local name/alias.
       */
-    virtual PString GetLocalPartyURL() const;
+    PString GetLocalPartyURL() const { return m_localPartyURL; }
 
     /**Get the local display name.
       */
@@ -1895,9 +1937,8 @@ class OpalConnection : public PSafeObject
 #endif
 
     /**Get the protocol-specific unique identifier for this connection.
-       Default behaviour just returns the connection token.
      */
-    virtual PString GetIdentifier() const;
+    PString GetIdentifier() const;
 
     /**Get the maximum transmitted RTP payload size.
        This function allows a user to override the value returned on a
@@ -1927,10 +1968,10 @@ class OpalConnection : public PSafeObject
     virtual void DisableRecording();
 
     PDECLARE_NOTIFIER(RTP_DataFrame, OpalConnection, OnRecordAudio);
-    void InternalOnRecordAudio(PString key, std::auto_ptr<RTP_DataFrame> frame);
+    void InternalOnRecordAudio(PString key, PAutoPtr<RTP_DataFrame> frame);
 #if OPAL_VIDEO
     PDECLARE_NOTIFIER(RTP_DataFrame, OpalConnection, OnRecordVideo);
-    void InternalOnRecordVideo(PString key, std::auto_ptr<RTP_DataFrame> frame);
+    void InternalOnRecordVideo(PString key, PAutoPtr<RTP_DataFrame> frame);
 #endif
 
     virtual void OnStartRecording(OpalMediaPatch * patch);
@@ -1957,31 +1998,17 @@ class OpalConnection : public PSafeObject
     Phases               m_phase;
 
   protected:
-    PString              m_callToken;
-    PBoolean             m_originating;
-    OpalProductInfo      m_productInfo;
-    PString              m_localPartyName;
-    PString              m_displayName;
-    PString              m_remotePartyName;
-    PString              m_remotePartyURL;
-    OpalProductInfo      m_remoteProductInfo;
-    PString              m_remotePartyNumber;
-    PString              m_redirectingParty;
-    CallEndReason        m_callEndReason;
-    PString              m_calledPartyNumber;
-    PString              m_calledPartyName;
-
-    SendUserInputModes   m_sendUserInputMode;
-    PString              m_userInputString;
-    PSyncPoint           m_userInputAvailable;
-
+    PString               m_callToken;
+    CallEndReason         m_callEndReason;
+    SendUserInputModes    m_sendUserInputMode;
+    PString               m_userInputString;
+    PSyncPoint            m_userInputAvailable;
     OpalSilenceDetector * m_silenceDetector;
 #if OPAL_AEC
     OpalEchoCanceler    * m_echoCanceler;
 #endif
     OpalMediaFormat       m_filterMediaFormat;
-
-    OpalMediaFormatList        m_localMediaFormats;
+    OpalMediaFormatList   m_localMediaFormats;
 
     struct StreamKey : PKey<uint64_t>
     {
@@ -2043,14 +2070,6 @@ class OpalConnection : public PSafeObject
     PDECLARE_ScriptFunctionNotifier(OpalConnection, ScriptGetCalledPartyURL);
     PDECLARE_ScriptFunctionNotifier(OpalConnection, ScriptGetRedirectingParty);
 #endif // OPAL_SCRIPT
-
-    // A version of PTime where default constructor creates invalid times
-    class ZeroTime : public PTime
-    {
-      public:
-        ZeroTime() : PTime(0) { }
-    };
-    ZeroTime m_phaseTime[NumPhases];
 
     std::set<unsigned> m_mediaSessionFailed;
     PDECLARE_MUTEX(    m_mediaSessionFailedMutex);

@@ -50,7 +50,6 @@ OpalSDPHTTPEndPoint::OpalSDPHTTPEndPoint(OpalManager & manager, const PCaselessS
   // This is almost always for WebRTC, so turn on some advanced features by default.
   m_defaultStringOptions.SetBoolean(OPAL_OPT_AV_BUNDLE, true);
   m_defaultStringOptions.SetBoolean(OPAL_OPT_RTCP_MUX, true);
-  m_defaultStringOptions.SetBoolean(OPAL_OPT_USE_MEDIA_STREAMS, true);
   m_defaultStringOptions.SetString(OPAL_OPT_CRYPTO_EXCHANGE, OPAL_OPT_CRYPTO_EXCHANGE_INBAND_KEY_EXCHANGE);
 }
 
@@ -241,6 +240,7 @@ PBoolean OpalSDPHTTPConnection::SetUpConnection()
   PString id = replyMIME(OPAL_SDP_HTTP_ID_HEADER);
   if (!id.IsEmpty())
     m_guid = id;
+  m_identifier = m_guid.AsString();
 
   return HandleAnswerSDP(answer);
 }
@@ -300,6 +300,7 @@ bool OpalSDPHTTPConnection::OnReceivedHTTP(PHTTPRequest & request)
   PString id = parameters(OPAL_SDP_HTTP_ID_QUERY_PARAM);
   if (!id.IsEmpty())
     m_guid = id;
+  m_identifier = m_guid.AsString();
 
   m_remotePartyName = request.origin.AsString();
   m_remoteAddress = OpalTransportAddress(m_remotePartyName, OpalTransportAddress::TcpPrefix());
@@ -313,6 +314,9 @@ bool OpalSDPHTTPConnection::OnReceivedHTTP(PHTTPRequest & request)
     PTRACE(1, "HTTP does not have " << PHTTP::ContentTypeTag() << " of " << OpalSDPEndPoint::ContentType());
     return request.OnError(PHTTP::NoneAcceptable, "Must be " + OpalSDPEndPoint::ContentType());
   }
+
+  if (parameters(OPAL_SDP_HTTP_SIMULCAST_QUERY_PARAM) *= "true")
+    m_stringOptions.SetBoolean(OPAL_OPT_SIMULCAST, true);
 
   SetPhase(SetUpPhase);
   OnApplyStringOptions();
@@ -372,12 +376,6 @@ PBoolean OpalSDPHTTPConnection::SetConnected()
 
   m_connected.Signal();
   return ok && OpalSDPConnection::SetConnected();
-}
-
-
-PString OpalSDPHTTPConnection::GetIdentifier() const
-{
-  return m_guid.AsString();
 }
 
 

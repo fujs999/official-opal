@@ -883,7 +883,7 @@ static void H323GenericCapabilityInfo_OnReceivedGenericPDU(OpalMediaFormat & med
     }
 
     PTRACE(2, "H323\tInvalid generic parameter type (" << param->GetTagName()
-           << ") for option \"" << option.GetName() << "\" (" << option.GetClass() << ')');
+           << ") for option \"" << option.GetName() << "\" (" << option.GetClassName() << ')');
   }
 }
 
@@ -3513,7 +3513,7 @@ H323Capability * H323FindMediaCapability(const H323Capabilities & caps,
 H323Capability * H323CheckExactCapability(const H245_DataType & dataType, H323Capability * capability)
 {
   if (capability != NULL) {
-    std::auto_ptr<H323Capability> compare(capability->CloneAs<H323Capability>());
+    PAutoPtr<H323Capability> compare(capability->CloneAs<H323Capability>());
     if (compare->OnReceivedPDU(dataType, false) && *compare == *capability)
       return capability;
   }

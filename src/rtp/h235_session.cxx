@@ -292,22 +292,6 @@ OpalRTPSession::SendReceiveStatus H2356_Session::OnSendData(RewriteMode & rewrit
 }
 
 
-#if !H235_6_CODED_TO_CORRECT_SPECIFICATION
-OpalRTPSession::SendReceiveStatus H2356_Session::OnPreReceiveData(RTP_DataFrame & frame, const PTime & now)
-{
-  // Allow for broken implementations that set padding bit but do not set the padding length!
-  bool padding = frame.GetPadding();
-  frame.SetPadding(false);
-
-  SendReceiveStatus status = OpalRTPSession::OnPreReceiveData(frame, now);
-
-  frame.SetPadding(padding);
-
-  return status;
-}
-#endif
-
-
 OpalRTPSession::SendReceiveStatus H2356_Session::OnReceiveData(RTP_DataFrame & frame, ReceiveType rxType, const PTime & now)
 {
   return (rxType == e_RxFromRTX || m_rx.Decrypt(frame)) ? OpalRTPSession::OnReceiveData(frame, rxType, now) : e_IgnorePacket;
@@ -396,16 +380,23 @@ bool H2356_Session::Context::Decrypt(RTP_DataFrame & frame)
     return true;
 
   // Get length of whole payload including the padding
-  PINDEX len = frame.GetPacketSize() - frame.GetHeaderSize();
+  PINDEX len = frame.GetSize() - frame.GetHeaderSize();
 
+#if H235_6_CODED_TO_CORRECT_SPECIFICATION
   if (frame.GetPadding())
     m_cipher.SetPadding(PSSLCipherContext::PadLoosePKCS);
-  else if (frame.GetPayloadSize()%m_cipher.GetBlockSize() == 0)
-    m_cipher.SetPadding(PSSLCipherContext::NoPadding);
   else
-    m_cipher.SetPadding(PSSLCipherContext::PadCipherStealing);
+#endif
+  {
+    if (len%m_cipher.GetBlockSize() == 0)
+      m_cipher.SetPadding(PSSLCipherContext::NoPadding);
+    else
+      m_cipher.SetPadding(PSSLCipherContext::PadCipherStealing);
+  }
 
   bool ok = m_cipher.Process(m_buffer.GetPayloadPtr(), len, frame.GetPayloadPtr(), len);
+
+  frame.SetPacketSize(len); // len has been adjusted by decrypter
 
   PTRACE(5, NULL, PTraceModule(),
          "Decrypt: in=" << m_buffer.GetPayloadSize()
@@ -415,8 +406,6 @@ bool H2356_Session::Context::Decrypt(RTP_DataFrame & frame)
              << " out=" << len
              <<  " ok=" << ok);
 
-  frame.SetPaddingSize(0);
-  frame.SetPayloadSize(len);
   return ok;
 }
 #endif // OPAL_H235_6

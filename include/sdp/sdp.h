@@ -97,6 +97,40 @@
 */
 #define OPAL_OPT_OFFER_ICE "Offer-ICE"
 
+/**Disable ICE candidate mDNS support in SDP.
+   Defaults to false.
+*/
+#define OPAL_OPT_ICE_DISABLE_mDNS "ICE-Disable-mDNS"
+
+/**Enable detection of music on hold in SDP.
+   Defaults to true.
+*/
+#define OPAL_OPT_ALLOW_MUSIC_ON_HOLD "SDP-Music-On-Hold"
+
+/**Enable "bundle only" option as per draft-ietf-mmusic-sdp-bundle-negotiation.
+   Defaults to false.
+*/
+#define OPAL_OPT_BUNDLE_ONLY "SDP-Bundle-Only"
+
+/**Enable multiple sync sources in single session.
+This allows multiple SSRC values to be attached to a single SDP media
+descriptor, m= line. Each SSRC must use the same media format selected for
+the session. If false, and multiple SSRC's are attached to the session,
+then each SSRC will create a separate SDP media descriptor section. Note
+in this latter case, OPAL_OPT_AV_BUNDLE must also be used.
+
+For WebRTC this is known as "Plan B".
+
+Defaults to false.
+*/
+#define OPAL_OPT_MULTI_SSRC "Multi-SSRC"
+
+/**Indicate media format restrictions are supported.
+   See draft-ietf-mmusic-rid.
+   Defaults to false.
+  */
+#define OPAL_OPT_ENABLE_RID "Enable-rid"
+
 
 /////////////////////////////////////////////////////////
 
@@ -186,6 +220,9 @@ class SDPCommonAttributes
       SendOnly,
       SendRecv
     };
+    friend std::ostream & operator<<(std::ostream & strm, const Direction dir);
+
+    P_DECLARE_ENUM(Directions, e_Send, e_Recv);
 
     typedef PDictionary<PString, PStringArray> GroupDict;
 
@@ -233,6 +270,9 @@ class SDPCommonAttributes
       m_username = username;
       m_password = password;
     }
+
+    void SetICEOption(const PString & opt) { m_iceOptions += opt; }
+    PStringSet GetICEOptions() const { return m_iceOptions; }
 #endif //OPAL_ICE
 
   protected:
@@ -272,7 +312,7 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
 
     virtual bool Decode(const PStringArray & tokens);
     virtual bool Decode(char key, const PString & value);
-    virtual bool PostDecode(const OpalMediaFormatList & mediaFormats);
+    virtual bool PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats);
 
     // return the string used within SDP to identify this media type
     virtual PString GetSDPMediaType() const;
@@ -316,6 +356,8 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
     const OpalTransportAddress & GetControlAddress() const { return m_controlAddress; }
     bool SetAddresses(const OpalTransportAddress & media, const OpalTransportAddress & control);
 
+    unsigned GetIndex() const { return m_index; }
+    void SetIndex(unsigned index) { m_index = index; }
     WORD GetPort() const { return m_port; }
     void SetPort(WORD port) { m_port = port; }
 
@@ -325,8 +367,10 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
     void SetICE(
         const PString & username,
         const PString & password,
-        const PNatCandidateList & candidates
+        const PNatCandidateList & candidates,
+        const PStringSet & options
     );
+    static bool ParseCandidate(const PString & str, PNatCandidate & candidate, bool mDNSdisabled);
 #endif //OPAL_ICE
 
     virtual OpalMediaType GetMediaType() const { return m_mediaType; }
@@ -366,15 +410,63 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
     virtual void SetContentRole(OpalVideoFormat::ContentRole /*role*/) { }
 #endif // OPAL_VIDEO
 
+    // draft-ietf-mmusic-rid
+    struct Restriction : PObject
+    {
+      PString             m_id;
+      Directions          m_direction;
+      OpalMediaFormatList m_mediaFormats;
+      PStringOptions      m_options;
+
+      Restriction() : m_direction(EndDirections) { }
+      bool AnswerOffer(const OpalMediaFormatList & selectedFormats);
+      bool Parse(const PString & params);
+      bool PostDecode(const SDPMediaDescription & md, const OpalMediaFormatList & selectedFormats);
+      bool PreEncode(const PString & id, Direction dir, const OpalMediaFormatList & selectedFormats);
+      void Output(ostream & strm) const;
+      friend ostream & operator<<(ostream & strm, const Restriction & restriction) { restriction.Output(strm); return strm; }
+    };
+    typedef std::map<PString, Restriction> Restrictions;
+    Restrictions GetRestrictions() const { return m_restrictions; }
+    void SetRestrictions(const Restrictions & restrictions) { m_restrictions = restrictions; }
+    static const PString & RestrictionPayloadTypeKey();
+    static const PString & RestrictionDependsKey();
+
+    // draft-ietf-mmusic-sdp-simulcast
+    struct SimulcastStream
+    {
+      PString m_rid;
+      bool    m_paused;
+
+      SimulcastStream(const PString & rid = PString::Empty(), bool paused = false) : m_rid(rid), m_paused(paused) { }
+      bool Parse(const PString & param);
+      void Output(ostream & strm) const;
+    };
+    typedef std::vector<SimulcastStream> SimulcastAlternative;
+    typedef std::vector<SimulcastAlternative> SimulcastStreams;
+    struct Simulcast : std::vector<SimulcastStreams>
+    {
+      Simulcast() : std::vector<SimulcastStreams>(NumDirections) { }
+
+      bool IsValid() const;
+      bool Parse(const PString & params);
+      bool PostDecode(const Restrictions & restrictions);
+      void Output(ostream & strm) const;
+      friend ostream & operator<<(ostream & strm, const Simulcast & simulcast) { simulcast.Output(strm); return strm; }
+    };
+    Simulcast GetSimulcast() const { return m_simulcast; }
+    void SetSimulcast(const Simulcast & simulcast) { m_simulcast = simulcast; }
+
   protected:
     virtual SDPMediaFormat * FindFormat(PString & str) const;
 
+    unsigned             m_index; // Essentially position of m= line in whole SDP
     OpalTransportAddress m_mediaAddress;
     OpalTransportAddress m_controlAddress;
     WORD                 m_port;
     WORD                 m_portCount;
     OpalMediaType        m_mediaType;
-    bool                 m_bundleOnly; // draft-ietf-mmusic-sdp-bundle-negotiation-52
+    bool                 m_bundleOnly; // draft-ietf-mmusic-sdp-bundle-negotiation
     PStringList          m_mids;
     PStringToString      m_groups;
     SetupModes           m_setupMode;      // RFC4145
@@ -384,6 +476,8 @@ class SDPMediaDescription : public PObject, public SDPCommonAttributes
     PNatCandidateList    m_candidates;
 #endif //OPAL_ICE
     SDPMediaFormatList   m_formats;
+    Restrictions         m_restrictions;
+    Simulcast            m_simulcast;
 
   P_REMOVE_VIRTUAL(SDPMediaFormat *,CreateSDPMediaFormat(const PString &),0);
   P_REMOVE_VIRTUAL(OpalTransportAddress,GetTransportAddress(),OpalTransportAddress());
@@ -478,6 +572,7 @@ class SDPRTPAVPMediaDescription : public SDPMediaDescription
     virtual bool IsSecure() const;
 #endif
     virtual void SetAttribute(const PString & attr, const PString & value);
+    virtual bool PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats);
     virtual bool FromSession(OpalMediaSession * session, const SDPMediaDescription * offer, RTP_SyncSourceId ssrc);
     virtual bool ToSession(OpalMediaSession * session, RTP_SyncSourceArray & ssrcs) const;
 
@@ -529,11 +624,12 @@ class SDPAudioMediaDescription : public SDPRTPAVPMediaDescription
     SDPAudioMediaDescription(const OpalTransportAddress & address);
     virtual void OutputAttributes(ostream & str) const;
     virtual void SetAttribute(const PString & attr, const PString & value);
-    virtual bool PostDecode(const OpalMediaFormatList & mediaFormats);
+    virtual bool PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats);
 
   protected:
     unsigned m_PTime;
     unsigned m_maxPTime;
+    PString  m_silenceSupp;
 };
 
 
@@ -553,7 +649,7 @@ class SDPVideoMediaDescription : public SDPRTPAVPMediaDescription
     virtual bool PreEncode();
     virtual void OutputAttributes(ostream & str) const;
     virtual void SetAttribute(const PString & attr, const PString & value);
-    virtual bool PostDecode(const OpalMediaFormatList & mediaFormats);
+    virtual bool PostDecode(Direction defaultDirection, const OpalMediaFormatList & mediaFormats);
     virtual bool FromSession(OpalMediaSession * session, const SDPMediaDescription * offer, RTP_SyncSourceId ssrc);
     virtual bool ToSession(OpalMediaSession * session, RTP_SyncSourceArray & ssrcs) const;
     virtual OpalVideoFormat::ContentRole GetContentRole() const { return m_contentRole; }
@@ -648,9 +744,8 @@ class SDPSessionDescription : public PObject, public SDPCommonAttributes
     SDPMediaDescription * GetMediaDescriptionByType(const OpalMediaType & rtpMediaType) const;
     SDPMediaDescription * GetMediaDescriptionByIndex(PINDEX i) const;
     void AddMediaDescription(SDPMediaDescription * md);
-    
-    virtual SDPMediaDescription::Direction GetDirection(unsigned) const;
-    bool IsHold() const;
+
+    bool IsHold(bool allowMusicOnHold) const;
     bool HasActiveSend() const;
 
     const OpalTransportAddress & GetDefaultConnectAddress() const { return defaultConnectAddress; }
@@ -669,10 +764,6 @@ class SDPSessionDescription : public PObject, public SDPCommonAttributes
 
     GroupDict GetGroups() const { return m_groups; }
 
-#if OPAL_ICE
-    PStringSet GetICEOptions() const { return m_iceOptions; }
-#endif
-
     OpalMediaFormatList GetMediaFormats() const;
 
   protected:
@@ -690,8 +781,6 @@ class SDPSessionDescription : public PObject, public SDPCommonAttributes
     OpalTransportAddress defaultConnectAddress;
 
     GroupDict    m_groups;
-
-    PStringArray m_mediaStreamIds;
 };
 
 /////////////////////////////////////////////////////////

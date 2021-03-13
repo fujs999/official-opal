@@ -112,12 +112,12 @@ class RTP_ControlFrame : public PBYTEArray
 
     bool IsValid() const;
 
-    unsigned GetVersion() const { return (BYTE)theArray[m_compoundOffset]>>6; }
+    unsigned GetVersion() const { return GetAt(m_compoundOffset)>>6; }
 
-    unsigned GetCount() const { return (BYTE)theArray[m_compoundOffset]&0x1f; }
+    unsigned GetCount() const { return GetAt(m_compoundOffset)&0x1f; }
     void     SetCount(unsigned count);
 
-    RTP_SyncSourceId GetSenderSyncSource() const { return *(PUInt32b *)(theArray + 4); } // Always first DWORD in the first payload
+    RTP_SyncSourceId GetSenderSyncSource() const { return GetAs<PUInt32b>(4); } // Always first DWORD in the first payload
 
     enum PayloadTypes {
       e_FirstValidPayloadType   = 192, // RFC5761
@@ -133,10 +133,10 @@ class RTP_ControlFrame : public PBYTEArray
       e_LastValidPayloadType    = 223  // RFC5761
     };
 
-    PayloadTypes GetPayloadType() const { return (PayloadTypes)(BYTE)theArray[m_compoundOffset+1]; }
+    PayloadTypes GetPayloadType() const { return (PayloadTypes)GetAt(m_compoundOffset+1); }
     void         SetPayloadType(PayloadTypes pt);
 
-    PINDEX GetPayloadSize() const { return 4*(*(PUInt16b *)&theArray[m_compoundOffset+2]); }
+    PINDEX GetPayloadSize() const { return 4*GetAs<PUInt16b>(m_compoundOffset+2); }
     bool   SetPayloadSize(PINDEX sz);
 
     BYTE * GetPayloadPtr() const;
@@ -268,6 +268,13 @@ class RTP_ControlFrame : public PBYTEArray
       e_TOOL,
       e_NOTE,
       e_PRIV,
+      e_H323_CADDR,
+      e_ASPI,                // RFC6776
+      e_RGRP,                // https://www.iana.org/go/draft-ietf-avtcore-rtp-multi-stream-optimisation
+      e_RtpStreamId,         // https://www.iana.org/go/draft-ietf-avtext-rid
+      e_RepairedRtpStreamId, // https://www.iana.org/go/draft-ietf-avtext-rid
+      e_CCID,                // https://www.iana.org/go/draft-ietf-clue-rtp-mapping
+      e_MID,                 // https://www.iana.org/go/draft-ietf-mmusic-sdp-bundle-negotiation
       NumDescriptionTypes
     };
 
@@ -304,7 +311,10 @@ class RTP_ControlFrame : public PBYTEArray
       RTP_SyncSourceId ssrc,
       const PString & cname,
       const PString & toolName,
-      bool endPacket = true
+      const PString & mid,
+      const PString & rtpStreamId,
+      bool rtx,
+      bool endPacket
     );
 
     // Add RFC2032 Intra Frame Request
@@ -319,7 +329,7 @@ class RTP_ControlFrame : public PBYTEArray
       PUInt32b mediaSSRC;   /* data source of media */
     };
 
-    unsigned GetFbType() const { return (BYTE)theArray[m_compoundOffset]&0x1f; }
+    unsigned GetFbType() const { return GetAt(m_compoundOffset)&0x1f; }
 
     FbHeader * AddFeedback(PayloadTypes pt, unsigned type, PINDEX fciSize);
     template <typename FB> void AddFeedback(PayloadTypes pt, unsigned type, FB * & data) { data = (FB *)AddFeedback(pt, type, sizeof(FB)); }
@@ -544,7 +554,7 @@ class RTP_DataFrame : public PBYTEArray
   public:
     RTP_DataFrame(PINDEX payloadSize = 0, PINDEX bufferSize = 0);
     RTP_DataFrame(const BYTE * data, PINDEX len, bool dynamic = true);
-    RTP_DataFrame(const PBYTEArray data);
+    RTP_DataFrame(const PBYTEArray & data);
 
     enum {
       ProtocolVersion = 2,
@@ -595,34 +605,31 @@ class RTP_DataFrame : public PBYTEArray
       IllegalPayloadType
     };
 
-    unsigned GetVersion() const { return (theArray[0]>>6)&3; }
+    unsigned GetVersion() const { return (GetAt(0)>>6)&3; }
 
-    bool GetExtension() const   { return (theArray[0]&0x10) != 0; }
-    void SetExtension(bool ext);
-
-    bool GetMarker() const { return (theArray[1]&0x80) != 0; }
+    bool GetMarker() const { return (GetAt(1)&0x80) != 0; }
     void SetMarker(bool m);
 
-    bool GetPadding() const { return (theArray[0]&0x20) != 0; }
-    void SetPadding(bool v)  { if (v) theArray[0] |= 0x20; else theArray[0] &= 0xdf; }
-    BYTE * GetPaddingPtr() const { return (BYTE *)(theArray+m_headerSize+m_payloadSize); }
+    bool GetPadding() const { return (GetAt(0)&0x20) != 0; }
+    void SetPadding(bool v)  { if (v) (*this)[0] |= 0x20; else (*this)[0] &= 0xdf; }
+    BYTE * GetPaddingPtr() const { return const_cast<BYTE *>(GetPointer()+m_headerSize+m_payloadSize); }
 
     PINDEX GetPaddingSize() const { return m_paddingSize > 0 ? m_paddingSize-1 : 0; }
     bool   SetPaddingSize(PINDEX sz);
 
-    PayloadTypes GetPayloadType() const { return (PayloadTypes)(theArray[1]&0x7f); }
+    PayloadTypes GetPayloadType() const { return (PayloadTypes)(GetAt(1)&0x7f); }
     void         SetPayloadType(PayloadTypes t);
 
-    RTP_SequenceNumber GetSequenceNumber() const { return *(PUInt16b *)&theArray[2]; }
-    void SetSequenceNumber(RTP_SequenceNumber n) { *(PUInt16b *)&theArray[2] = n; }
+    RTP_SequenceNumber GetSequenceNumber() const { return GetAs<PUInt16b>(2); }
+    void SetSequenceNumber(RTP_SequenceNumber n) { SetAs<PUInt16b>(2, n); }
 
-    RTP_Timestamp GetTimestamp() const  { return *(PUInt32b *)&theArray[4]; }
-    void  SetTimestamp(RTP_Timestamp t) { *(PUInt32b *)&theArray[4] = t; }
+    RTP_Timestamp GetTimestamp() const  { return GetAs<PUInt32b>(4); }
+    void  SetTimestamp(RTP_Timestamp t) { SetAs<PUInt32b>(4, t); }
 
-    RTP_SyncSourceId GetSyncSource() const  { return *(PUInt32b *)&theArray[8]; }
-    void  SetSyncSource(RTP_SyncSourceId s) { *(PUInt32b *)&theArray[8] = s; }
+    RTP_SyncSourceId GetSyncSource() const  { return GetAs<PUInt32b>(8); }
+    void  SetSyncSource(RTP_SyncSourceId s) { SetAs<PUInt32b>(8, s); }
 
-    PINDEX GetContribSrcCount() const { return theArray[0]&0xf; }
+    PINDEX GetContribSrcCount() const { return GetAt(0)&0xf; }
     RTP_SyncSourceId  GetContribSource(PINDEX idx) const;
     void   SetContribSource(PINDEX idx, RTP_SyncSourceId src);
 
@@ -647,7 +654,8 @@ class RTP_DataFrame : public PBYTEArray
     enum HeaderExtensionType {
       RFC3550,
       RFC5285_OneByte,
-      RFC5285_TwoByte
+      RFC5285_TwoByte,
+      RFC5285_Auto  /// Automatically choose OneByte or TwoByte depending on id value
     };
 
     static const unsigned MaxHeaderExtensionId = 65535;
@@ -677,13 +685,10 @@ class RTP_DataFrame : public PBYTEArray
       HeaderExtensionType type ///< RFC standard used
     );
 
-    PINDEX GetExtensionSizeDWORDs() const;      // get the number of 32 bit words in the extension (excluding the header).
-    bool   SetExtensionSizeDWORDs(PINDEX sz);   // set the number of 32 bit words in the extension (excluding the header)
-
     PINDEX GetPayloadSize() const { return m_payloadSize; }
     bool   SetPayloadSize(PINDEX sz);
     bool   SetPayload(const BYTE * data, PINDEX sz);
-    BYTE * GetPayloadPtr()     const { return (BYTE *)(theArray+m_headerSize); }
+    BYTE * GetPayloadPtr() const { return const_cast<BYTE *>(GetPointer()+m_headerSize); }
 
     virtual PObject * Clone() const { return new RTP_DataFrame(*this); }
 #if PTRACING
@@ -697,21 +702,41 @@ class RTP_DataFrame : public PBYTEArray
     // Get the packet size including headers, padding etc.
     PINDEX GetPacketSize() const;
 
+    enum VAD {
+        UnknownVAD,
+        InactiveVAD,
+        ActiveVAD
+    };
+
+    /** Extra information about the RTP data packet.
+        Note that m_absoluteTime and m_transmitTime are not synchronised with
+        the local machine RTC, but the remote systems.
+    */
     struct MetaData
     {
         MetaData();
 
-        // Note the first two times here are not synchronised with the local CPU clock, but the remote systems.
-        PTime    m_absoluteTime; // Wall clock time media was sampled, as calculated via RTCP and timestamp
-        PTime    m_transmitTime; // Wall clock time packet was transmitted (calculated from header extensions)
-        PTime    m_receivedTime; // Wall clock time packet physically read from socket
-        unsigned m_discontinuity;
-        PString  m_lipSyncId;
+        PTime    m_absoluteTime;  /**< Remote wall clock time media was sampled,
+                                       as calculated via RTCP and timestamp, invalid time if
+                                       RTCP RR not yet received */
+        PTime    m_transmitTime;  /**< Remote wall clock time packet was transmitted,
+                                       calculated from header extensions, invalid time if
+                                       extension not present, or RTCP RR not yet received */
+        PTime    m_receivedTime;  //< Local wall clock time packet was physically read from socket
+        unsigned m_discontinuity; //< Number of packets lost since the last one
+        PString  m_lipSyncId;     //< Identifier for pairing audio and video packets.
+        PString  m_simulcastId;   //< Identifier for simulcast stream
+        int      m_audioLevel;    //< Audio level for this packet in dBov (-127..0) as per RFC6464, INT_MAX means not used
+        VAD      m_vad;           //< Indicate Voice Activity Detect has detected voice.
     };
 
     /**Get meta data for RTP packet.
       */
     const MetaData & GetMetaData() const { return m_metaData; }
+
+    /**Get writable meta data for RTP packet.
+      */
+    MetaData & GetWritableMetaData() { return m_metaData; }
 
     /**Set meta data for RTP packet.
       */
@@ -751,12 +776,22 @@ class RTP_DataFrame : public PBYTEArray
     */
     void SetLipSyncId(const PString & id) { m_metaData.m_lipSyncId = id; }
 
+    /** Get the identifier that indicates the simulcast sub-stream.
+    */
+    const PString & GetSimulcastId() const { return m_metaData.m_simulcastId; }
+
+    /** Set the identifier that indicates the simulcast sub-stream.
+    */
+    void SetSimulcastId(const PString & id) { m_metaData.m_simulcastId = id; }
+
     // backward compatibility
     P_DEPRECATED const PString & GetBundleId() const { return m_metaData.m_lipSyncId; }
     P_DEPRECATED void SetBundleId(const PString & id) { m_metaData.m_lipSyncId = id; }
 
   protected:
     bool AdjustHeaderSize(PINDEX newSize);
+    bool HasExtensions() const   { return (GetAt(0)&0x10) != 0; }
+    bool SetExtensionSizeBytes(PINDEX sz);
 
     PINDEX   m_headerSize;
     PINDEX   m_payloadSize;

@@ -361,10 +361,11 @@ AC_DEFUN([MY_OUTPUT_SUMMARY],[
    AS_ECHO("")
    m4_map_args_pair([INTERNAL_OUTPUT_SUMMARY], [AS_ECHO], $@)
    AS_ECHO("")
+   INTERNAL_OUTPUT_SUMMARY([                     Advanced C++], [CPLUSPLUS_STD])
    INTERNAL_OUTPUT_SUMMARY([                         CPPFLAGS], [CPPFLAGS])
    INTERNAL_OUTPUT_SUMMARY([                           CFLAGS], [CFLAGS])
    INTERNAL_OUTPUT_SUMMARY([                         CXXFLAGS], [CXXFLAGS])
-   INTERNAL_OUTPUT_SUMMARY([                          LDFLAGS], [CXXFLAGS])
+   INTERNAL_OUTPUT_SUMMARY([                          LDFLAGS], [LDFLAGS])
    INTERNAL_OUTPUT_SUMMARY([                             LIBS], [LIBS])
    AS_ECHO("")
    AS_ECHO("========================================================================")
@@ -476,6 +477,7 @@ AC_SUBST(ARFLAGS, "rc")
 dnl Check for latest and greatest
 AC_ARG_ENABLE(cpp11, AS_HELP_STRING([--enable-cpp11],[Enable C++11 build]),AC_SUBST(CPLUSPLUS_STD,"-std=c++11"))
 AC_ARG_ENABLE(cpp14, AS_HELP_STRING([--enable-cpp14],[Enable C++14 build]),AC_SUBST(CPLUSPLUS_STD,"-std=c++14"))
+AC_ARG_ENABLE(cpp17, AS_HELP_STRING([--enable-cpp17],[Enable C++17 build]),AC_SUBST(CPLUSPLUS_STD,"-std=c++17"))
 
 
 case "$target_os" in
@@ -513,7 +515,8 @@ case "$target_os" in
 
    darwin* )
       target_os=Darwin
-      target_release=`xcodebuild -showsdks | sed -n 's/.*macosx\(.*\)/\1/p' | sort | tail -n 1`
+      target_release=`xcodebuild -showsdks | sed -n 's/.* macosx\(.*\)/\1/p' | sort | tail -n 1`
+      AS_VAR_SET_IF([target_release], , AC_MSG_ERROR([Unable to determine iOS release number]))
 
       CPPFLAGS="-mmacosx-version-min=$target_release $CPPFLAGS"
       LDFLAGS="-mmacosx-version-min=$target_release $LDFLAGS"
@@ -625,6 +628,11 @@ AS_CASE([$target_cpu],
 
    aarch64*, [
       target_64bit=1
+      AC_ARG_ENABLE(graviton2, AS_HELP_STRING([--enable-graviton2],[Optimise compiler for Graviton2 processor]))
+      AS_VAR_IF([enable_graviton2], [yes], [
+         CFLAGS="-march=armv8.2-a+fp16 -mtune=cortex-a72 $CFLAGS"
+         CXXFLAGS="-march=armv8.2-a+fp16 -mtune=cortex-a72 $CXXFLAGS"
+      ])
    ],
 
    mips64 | mips64el, [
@@ -683,11 +691,11 @@ AC_SUBST(DEBUG_CFLAGS, "$DEBUG_FLAG $DEBUG_CFLAGS")
 
 AC_SUBST(OPT_CPPFLAGS, "-DNDEBUG $OPT_CPPFLAGS")
 MY_COMPILE_IFELSE(
-   [optimised build (-O3)],
-   [-O3],
+   [optimised build (-O2)],
+   [-O2],
    [],
    [],
-   [OPT_CFLAGS="-O3 $OPT_CFLAGS"],
+   [OPT_CFLAGS="-O2 $OPT_CFLAGS"],
    [OPT_CFLAGS="-O $OPT_CFLAGS"]
 )
 AC_SUBST(OPT_CFLAGS)
@@ -717,6 +725,22 @@ MY_COMPILE_IFELSE(
    [CPPFLAGS="-Wno-unknown-pragmas $CPPFLAGS"]
 )
 
+MY_COMPILE_IFELSE(
+   [compiler -fno-diagnostics-show-caret],
+   [-Werror -fno-diagnostics-show-caret],
+   [],
+   [],
+   [CPPFLAGS="-fno-diagnostics-show-caret $CPPFLAGS"]
+)
+
+MY_COMPILE_IFELSE(
+   [compiler -fno-caret-diagnostics],
+   [-Werror -fno-caret-diagnostics],
+   [],
+   [],
+   [CPPFLAGS="-fno-caret-diagnostics $CPPFLAGS"]
+)
+
 AC_LANG_PUSH(C++)
 
 MY_COMPILE_IFELSE(
@@ -736,22 +760,26 @@ MY_COMPILE_IFELSE(
 )
 
 MY_COMPILE_IFELSE(
-   [Disable deprecated-declarations warning (-Wno-deprecated-declarations)],
-   [-Werror -Wdeprecated-declarations -Wno-deprecated-declarations],
-   [],
-   [],
-   [CXXFLAGS="$CXXFLAGS -Wno-deprecated-declarations"]
-)
-
-MY_COMPILE_IFELSE(
    [Disable potentially evaluated expression warning (-Wno-potentially-evaluated-expression)],
    [-Werror -Wpotentially-evaluated-expression -Wno-potentially-evaluated-expression],
    [],
    [],
-   [CXXFLAGS="$CXXFLAGS -Wno-potentially-evaluated-expression"]
+   [CXXFLAGS="-Wno-potentially-evaluated-expression $CXXFLAGS"]
 )
 
 AC_LANG_POP(C++)
+
+AC_ARG_ENABLE(deprecated, AS_HELP_STRING([--disable-deprecated],[Stop compiler warning about deprecated functions]))
+
+if test "${enable_deprecated}" != "yes" ; then
+   MY_COMPILE_IFELSE(
+      [compiler -Wno-deprecated-declarations],
+      [-Werror -Wno-deprecated-declarations],
+      [],
+      [],
+      [CPPFLAGS="$CPPFLAGS -Wno-deprecated-declarations"]
+   )
+fi
 
 MY_COMPILE_IFELSE(
    [warnings (-Wall)],
@@ -760,6 +788,19 @@ MY_COMPILE_IFELSE(
    [],
    [CPPFLAGS="-Wall $CPPFLAGS"]
 )
+
+
+ OLD_LDFLAGS="$LDFLAGS"
+ LDFLAGS="-rdynamic $LDFLAGS"
+ AC_MSG_CHECKING([Dynamic linker (-rdynamic)])
+ AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([],[])],
+    [AC_MSG_RESULT(yes)],
+    [
+       LDFLAGS="$OLD_LDFLAGS"
+       AC_MSG_RESULT(no)
+    ]
+ )
 
 
 dnl Check for profiling

@@ -81,7 +81,7 @@ OpalMediaPatch::~OpalMediaPatch()
 
 void OpalMediaPatch::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << '[' << this << "] " << m_source;
+  strm << GetClassName() << '[' << this << "] " << m_source;
 
   P_INSTRUMENTED_LOCK_READ_ONLY(return);
 
@@ -108,15 +108,19 @@ bool OpalMediaPatch::CanStart() const
     return false;
   }
 
-  if (m_sinks.IsEmpty()) {
-    PTRACE(4, "Delaying patch start till have sink stream: " << *this);
-    return false;
-  }
+  {
+    P_INSTRUMENTED_LOCK_READ_ONLY(return false);
 
-  for (PList<Sink>::const_iterator s = m_sinks.begin(); s != m_sinks.end(); ++s) {
-    if (!s->m_stream->IsOpen()) {
-      PTRACE(4, "Delaying patch start till sink stream open: " << *this);
+    if (m_sinks.IsEmpty()) {
+      PTRACE(4, "Delaying patch start till have sink stream: " << *this);
       return false;
+    }
+
+    for (PList<Sink>::const_iterator s = m_sinks.begin(); s != m_sinks.end(); ++s) {
+      if (!s->m_stream->IsOpen()) {
+        PTRACE(4, "Delaying patch start till sink stream open: " << *this);
+        return false;
+      }
     }
   }
 
@@ -160,8 +164,11 @@ void OpalMediaPatch::Start()
 
   if (CanStart()) {
     PString threadName = m_source.GetPatchThreadName();
-    if (threadName.IsEmpty() && !m_sinks.empty())
-      threadName = m_sinks.front().m_stream->GetPatchThreadName();
+    if (threadName.IsEmpty()) {
+      P_INSTRUMENTED_LOCK_READ_ONLY(return);
+      if (!m_sinks.empty())
+        threadName = m_sinks.front().m_stream->GetPatchThreadName();
+    }
     if (threadName.IsEmpty())
       threadName = "Media Patch";
     m_patchThread = new PThreadObj<OpalMediaPatch>(*this, &OpalMediaPatch::Main, false, threadName, PThread::HighPriority);
@@ -226,7 +233,7 @@ void OpalMediaPatch::Close()
 
 PBoolean OpalMediaPatch::AddSink(const OpalMediaStreamPtr & sinkStream)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   if (PAssertNULL(sinkStream) == NULL)
     return false;
@@ -250,7 +257,7 @@ PBoolean OpalMediaPatch::AddSink(const OpalMediaStreamPtr & sinkStream)
 
 bool OpalMediaPatch::ResetTranscoders()
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   for (PList<Sink>::iterator s = m_sinks.begin(); s != m_sinks.end(); ++s) {
     if (!s->CreateTranscoders())
@@ -418,7 +425,7 @@ void OpalMediaPatch::RemoveSink(const OpalMediaStream & stream)
 
 OpalMediaStreamPtr OpalMediaPatch::GetSink(PINDEX i) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return NULL);
   return i < m_sinks.GetSize() ? m_sinks[i].m_stream : OpalMediaStreamPtr();
 }
 
@@ -531,7 +538,7 @@ OpalMediaPatch::Sink::~Sink()
 
 void OpalMediaPatch::AddFilter(const PNotifier & filter, const OpalMediaFormat & stage)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
 
   if (m_source.GetMediaFormat().GetMediaType() != stage.GetMediaType())
     return;
@@ -549,7 +556,7 @@ void OpalMediaPatch::AddFilter(const PNotifier & filter, const OpalMediaFormat &
 
 PBoolean OpalMediaPatch::RemoveFilter(const PNotifier & filter, const OpalMediaFormat & stage)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   for (PList<Filter>::iterator f = m_filters.begin(); f != m_filters.end(); ++f) {
     if (f->m_notifier == filter && f->m_stage == stage) {
@@ -576,7 +583,7 @@ void OpalMediaPatch::FilterFrame(RTP_DataFrame & frame, const OpalMediaFormat & 
 
 bool OpalMediaPatch::UpdateMediaFormat(const OpalMediaFormat & mediaFormat)
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
 
   bool atLeastOne = m_source.InternalUpdateMediaFormat(mediaFormat);
 
@@ -659,7 +666,7 @@ void OpalMediaPatch::InternalOnMediaCommand2(OpalMediaCommand * command)
 
 bool OpalMediaPatch::InternalSetPaused(bool pause, bool fromUser)
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
 
   bool atLeastOne = m_source.InternalSetPaused(pause, fromUser, true);
 
@@ -674,7 +681,7 @@ bool OpalMediaPatch::InternalSetPaused(bool pause, bool fromUser)
 
 bool OpalMediaPatch::OnStartMediaPatch()
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
 
   m_source.OnStartMediaPatch();
 
@@ -690,7 +697,7 @@ bool OpalMediaPatch::OnStartMediaPatch()
 
 bool OpalMediaPatch::EnableJitterBuffer(bool enab)
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
 
   if (m_bypassToPatch != NULL)
     enab = false;
@@ -717,7 +724,10 @@ void OpalMediaPatch::Main()
   PTRACE(4, "Thread started for " << *this);
 
 #if OPAL_STATISTICS
-  m_patchThreadId = PThread::GetCurrentThreadId();
+  {
+    P_INSTRUMENTED_LOCK_READ_WRITE(return);
+    m_patchThreadId = PThread::GetCurrentThreadId();
+  }
 #endif
 
   bool asynchronous = OnStartMediaPatch();
@@ -746,6 +756,7 @@ void OpalMediaPatch::Main()
   while (m_source.IsOpen()) {
     if (m_source.IsPaused()) {
       PThread::Sleep(100);
+      PWaitAndSignal m(m_patchThreadMutex);
       if (m_patchThread == NULL)
         break; // Shutting down
       continue;
@@ -785,7 +796,13 @@ void OpalMediaPatch::Main()
 
   m_source.OnStopMediaPatch(*this);
 
-  if (m_sinks.IsEmpty() && m_source.GetPatch() == this) {
+  bool noSinks = false;
+  {
+    P_INSTRUMENTED_LOCK_READ_ONLY(return);
+    noSinks = m_sinks.IsEmpty();
+  }
+
+  if (noSinks && m_source.GetPatch() == this) {
     PTRACE(4, "Closing source media stream as no sinks in " << *this);
     m_source.GetConnection().GetEndPoint().GetManager().QueueDecoupledEvent(
                 new PSafeWorkArg1<OpalConnection, OpalMediaStreamPtr, bool>(&m_source.GetConnection(),
@@ -798,7 +815,7 @@ void OpalMediaPatch::Main()
 
 bool OpalMediaPatch::SetBypassPatch(const OpalMediaPatchPtr & patch)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   if (!PAssert(m_bypassFromPatch == NULL, PLogicError))
     return false; // Can't be both!
@@ -875,8 +892,8 @@ bool OpalMediaPatch::DispatchFrame(RTP_DataFrame & frame)
 
   UnlockReadOnly(P_DEBUG_LOCATION);
 
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return lock.IsLocked() && patch->DispatchFrameLocked(frame, true);
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
+  return patch->DispatchFrameLocked(frame, true);
 }
 
 
@@ -996,31 +1013,34 @@ bool OpalMediaPatch::Sink::WriteFrame(RTP_DataFrame & sourceFrame, bool bypassin
 
 #if OPAL_VIDEO
     switch (videoFrameType) {
-      case OpalVideoFormat::e_IntraFrame :
-        m_statsMutex.Wait();
-        m_videoStatistics[0].IncrementFrames(true);
-        if ((ssrc = sourceFrame.GetSyncSource()) != 0)
-          m_videoStatistics[ssrc].IncrementFrames(true);
-        PTRACE(4, "I-Frame detected: SSRC=" << RTP_TRACE_SRC(ssrc)
-                << ", ts=" << sourceFrame.GetTimestamp() << ", total=" << m_videoStatistics[ssrc].m_totalFrames
-                << ", key=" << m_videoStatistics[ssrc].m_keyFrames
-                << ", req=" << m_videoStatistics[ssrc].m_lastUpdateRequestTime << ", on " << m_patch);
-        m_statsMutex.Signal();
-        break;
-
-      case OpalVideoFormat::e_InterFrame :
-        m_statsMutex.Wait();
-        m_videoStatistics[0].IncrementFrames(false);
-        if ((ssrc = sourceFrame.GetSyncSource()) != 0)
-          m_videoStatistics[ssrc].IncrementFrames(false);
-        PTRACE(5, "P-Frame detected: SSRC=" << RTP_TRACE_SRC(ssrc)
-                << ", ts=" << sourceFrame.GetTimestamp() << ", total=" << m_videoStatistics[ssrc].m_totalFrames
-                << ", key=" << m_videoStatistics[ssrc].m_keyFrames << ", on " << m_patch);
-        m_statsMutex.Signal();
-        break;
-
       default :
         break;
+
+      case OpalVideoFormat::e_IntraFrame :
+      case OpalVideoFormat::e_InterFrame :
+        bool intraFrame = videoFrameType == OpalVideoFormat::e_IntraFrame;
+        m_statsMutex.Wait();
+        OpalVideoStatistics * stats = &m_videoStatistics[0];
+        stats->IncrementFrames(intraFrame);
+        if ((ssrc = sourceFrame.GetSyncSource()) != 0) {
+          stats = &m_videoStatistics[ssrc];
+          stats->IncrementFrames(intraFrame);
+        }
+#if PTRACING
+        ostream & log = PTRACE_BEGIN(4);
+        log << (intraFrame ? 'I' : 'P') << "-Frame detected:"
+               " SSRC=" << RTP_TRACE_SRC(ssrc) << ","
+               " ts=" << sourceFrame.GetTimestamp() << ","
+               " delay=" << setprecision(3) << stats->m_lastFrameTime.GetElapsed() << ","
+               " total=" << stats->m_totalFrames << ","
+               " key=" << stats->m_keyFrames << ",";
+        if (intraFrame) {
+          log << " last=" << stats->m_lastKeyFrameTime.GetElapsed() << ","
+                 " req=" << stats->m_lastUpdateRequestTime << ",";
+        }
+        log << " on " << m_patch << PTrace::End;
+#endif // PTRACING
+        m_statsMutex.Signal();
     }
 #endif // OPAL_VIDEO
 #endif // OPAL_STATISTICS

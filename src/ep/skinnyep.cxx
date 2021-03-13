@@ -591,7 +591,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice &, const RegisterMsg &)
 
 void OpalSkinnyEndPoint::RegisterMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << " device=" << m_deviceName
+  strm << GetClassName() << " device=" << m_deviceName
         << " type=" << m_deviceType
         << " streams=" << m_maxStreams
         << " ip=" << PIPAddress(m_ip);
@@ -633,7 +633,7 @@ void OpalSkinnyEndPoint::PhoneDevice::OnKeepAlive(PTimer &, P_INT_PTR)
 
 void OpalSkinnyEndPoint::RegisterAckMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << " keepAlive=" << m_keepAlive;
+  strm << GetClassName() << " keepAlive=" << m_keepAlive;
 }
 
 
@@ -667,7 +667,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice &, const PortMsg &)
 
 void OpalSkinnyEndPoint::PortMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << ' ' << m_port;
+  strm << GetClassName() << ' ' << m_port;
 }
 
 
@@ -704,7 +704,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice &, const CapabilityResponseMsg
 
 void OpalSkinnyEndPoint::CapabilityResponseMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << ' ' << m_count << " codecs";
+  strm << GetClassName() << ' ' << m_count << " codecs";
 }
 
 
@@ -748,7 +748,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice & phone, const CallStateMsg & 
 
 void OpalSkinnyEndPoint::CallStateMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << ' ' << GetState() << " line=" << m_lineInstance << " call=" << m_callIdentifier;
+  strm << GetClassName() << ' ' << GetState() << " line=" << m_lineInstance << " call=" << m_callIdentifier;
 }
 
 
@@ -766,7 +766,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice & phone, const CallInfo5Msg & 
 
 void OpalSkinnyEndPoint::CallInfoCommon::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << ' ' << GetType()
+  strm << GetClassName() << ' ' << GetType()
        << " line=" << GetLineInstance()
        << " call=" << GetCallIdentifier()
        << " called=" << GetCalledPartyNumber()
@@ -782,7 +782,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice & phone, const SetRingerMsg & 
 
 void OpalSkinnyEndPoint::SetRingerMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << ' ' << GetType()
+  strm << GetClassName() << ' ' << GetType()
        << " mode=" << m_ringMode
        << " line=" << m_lineInstance
        << " call=" << m_callIdentifier;
@@ -797,7 +797,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice &, const OffHookMsg &)
 
 void OpalSkinnyEndPoint::OffHookMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << " line=" << m_lineInstance << " call=" << m_callIdentifier;
+  strm << GetClassName() << " line=" << m_lineInstance << " call=" << m_callIdentifier;
 }
 
 
@@ -809,7 +809,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice &, const OnHookMsg &)
 
 void OpalSkinnyEndPoint::OnHookMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << " line=" << m_lineInstance << " call=" << m_callIdentifier;
+  strm << GetClassName() << " line=" << m_lineInstance << " call=" << m_callIdentifier;
 }
 
 
@@ -821,7 +821,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice & phone, const StartToneMsg & 
 
 void OpalSkinnyEndPoint::StartToneMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << ' ' << GetType() << " line=" << m_lineInstance << " call=" << m_callIdentifier;
+  strm << GetClassName() << ' ' << GetType() << " line=" << m_lineInstance << " call=" << m_callIdentifier;
 }
 
 
@@ -833,7 +833,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice &, const StopToneMsg &)
 
 void OpalSkinnyEndPoint::StopToneMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << " line=" << m_lineInstance << " call=" << m_callIdentifier;
+  strm << GetClassName() << " line=" << m_lineInstance << " call=" << m_callIdentifier;
 }
 
 
@@ -845,7 +845,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice &, const KeyPadButtonMsg &)
 
 void OpalSkinnyEndPoint::KeyPadButtonMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << " '" << SkinnyToneIndexes[m_dtmf] << "' line=" << m_lineInstance << " call=" << m_callIdentifier;
+  strm << GetClassName() << " '" << SkinnyToneIndexes[m_dtmf] << "' line=" << m_lineInstance << " call=" << m_callIdentifier;
 }
 
 
@@ -857,7 +857,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice &, const SoftKeyEventMsg &)
 
 void OpalSkinnyEndPoint::SoftKeyEventMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << ' ' << GetEvent() << " line=" << m_lineInstance << " call=" << m_callIdentifier;
+  strm << GetClassName() << ' ' << GetEvent() << " line=" << m_lineInstance << " call=" << m_callIdentifier;
 }
 
 
@@ -869,7 +869,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice & phone, const OpenReceiveChan
 
 void OpalSkinnyEndPoint::OpenReceiveChannelMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass()
+  strm << GetClassName()
        << " call=" << m_callIdentifier
        << " id=" << m_passThruPartyId
        << " payload=" << m_payloadCapability;
@@ -884,7 +884,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice &, const OpenReceiveChannelAck
 
 void OpalSkinnyEndPoint::OpenReceiveChannelAckMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass()
+  strm << GetClassName()
        << " id=" << m_passThruPartyId
        << ' ' << PIPAddress(m_ip) << ':' << m_port
        << " status=" << m_status;
@@ -899,7 +899,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice & phone, const CloseReceiveCha
 
 void OpalSkinnyEndPoint::CloseReceiveChannelMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << " call=" << m_callIdentifier << " id=" << m_passThruPartyId;
+  strm << GetClassName() << " call=" << m_callIdentifier << " id=" << m_passThruPartyId;
 }
 
 
@@ -911,7 +911,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice & phone, const StartMediaTrans
 
 void OpalSkinnyEndPoint::StartMediaTransmissionMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass()
+  strm << GetClassName()
        << " call=" << m_callIdentifier
        << " id=" << m_passThruPartyId
        << ' ' << PIPAddress(m_ip) << ':' << m_port
@@ -927,7 +927,7 @@ bool OpalSkinnyEndPoint::OnReceiveMsg(PhoneDevice & phone, const StopMediaTransm
 
 void OpalSkinnyEndPoint::StopMediaTransmissionMsg::PrintOn(ostream & strm) const
 {
-  strm << GetClass() << " call=" << m_callIdentifier << " id=" << m_passThruPartyId;
+  strm << GetClassName() << " call=" << m_callIdentifier << " id=" << m_passThruPartyId;
 }
 
 
@@ -1114,13 +1114,14 @@ bool OpalSkinnyConnection::OnReceiveCallInfo(const OpalSkinnyEndPoint::CallInfoC
     m_remotePartyName = msg.GetCalledPartyName();
     m_remotePartyNumber = msg.GetCalledPartyNumber();
     m_displayName = msg.GetCallingPartyName();
-    m_localPartyName = msg.GetCallingPartyNumber();
+    SetLocalPartyName(msg.GetCallingPartyNumber());
   }
   else {
     m_remotePartyName = msg.GetCallingPartyName();
     m_remotePartyNumber = msg.GetCallingPartyNumber();
     m_calledPartyName = m_displayName = msg.GetCalledPartyName();
-    m_calledPartyNumber = m_localPartyName = msg.GetCalledPartyNumber();
+    m_calledPartyNumber = msg.GetCalledPartyNumber();
+    SetLocalPartyName(m_calledPartyNumber);
     m_redirectingParty = GetPrefixName() + ':' + msg.GetRedirectingPartyNumber();
   }
 
@@ -1323,13 +1324,9 @@ void OpalSkinnyConnection::OpenSimulatedMediaChannel(const MediaInfo & info, con
 #if OPAL_PTLIB_WAVFILE
   PFilePath simulatedAudioFile = m_endpoint.GetEndpointSimulatedAudioFile(m_phoneDevice.GetName(), info.m_sessionId);
 
-  std::auto_ptr<OpalMediaStream> sourceStream;
+  PAutoPtr<OpalMediaStream> sourceStream;
   {
-    std::auto_ptr<OpalWAVFile> wavFile(new OpalWAVFile(simulatedAudioFile,
-                                                       PFile::ReadOnly,
-                                                       PFile::ModeDefault,
-                                                       PWAVFile::fmt_PCM,
-                                                       false));
+    PAutoPtr<OpalWAVFile> wavFile(new OpalWAVFile(simulatedAudioFile, PFile::ReadOnly, PFile::ModeDefault, PWAVFile::fmt_PCM, false));
     if (!wavFile->IsOpen()) {
       PTRACE(3, "Could not simulate transmit " << mediaFormat << " stream, session=" << info.m_sessionId
              << ", file=" << simulatedAudioFile << ": " << wavFile->GetErrorText());

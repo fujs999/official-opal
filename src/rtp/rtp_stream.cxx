@@ -170,9 +170,17 @@ void OpalRTPMediaStream::OnStartMediaPatch()
   // Make sure a RTCP packet goes out as early as possible, helps with issues
   // to do with ICE, DTLS, NAT etc.
   if (IsSink() && !m_rtpSession.IsSinglePortRx()) {
+    PTimeInterval delay(10);
+    PSimpleTimer timeout(0,4);
     while (IsOpen() && m_rtpSession.SendReport(m_syncSource, true) == OpalRTPSession::e_IgnorePacket) {
-      PTRACE(m_throttleSendReport, m_rtpSession << "initial send report write delayed.");
-      PThread::Sleep(20);
+      if (timeout.HasExpired()) {
+        PTRACE(2, m_rtpSession << "could not send initial report.");
+        break;
+      }
+      PTRACE(m_throttleSendReport, m_rtpSession << "initial report write delayed.");
+      PThread::Sleep(delay);
+      if (delay < 640)
+        delay *= 2;
     }
   }
 
@@ -213,7 +221,8 @@ void OpalRTPMediaStream::SetSyncSource(RTP_SyncSourceId ssrc)
   if (m_syncSource == ssrc)
     return;
 
-  if (IsSource()) {
+  bool adjustSession = IsOpen() && IsSource();
+  if (adjustSession) {
       m_rtpSession.SetJitterBuffer(NULL, m_syncSource);
       m_rtpSession.RemoveDataNotifier(m_receiveNotifier, m_syncSource);
   }
@@ -221,7 +230,7 @@ void OpalRTPMediaStream::SetSyncSource(RTP_SyncSourceId ssrc)
   PTRACE(3, "Changing SSRC=" << RTP_TRACE_SRC(m_syncSource) << " to SSRC=" << RTP_TRACE_SRC(ssrc) << " on stream " << *this);
   m_syncSource = ssrc;
 
-  if (IsSource()) {
+  if (adjustSession) {
     m_rtpSession.SetJitterBuffer(m_jitterBuffer, m_syncSource);
     m_rtpSession.AddDataNotifier(m_notifierPriority, m_receiveNotifier, m_syncSource);
   }
@@ -311,6 +320,10 @@ bool OpalRTPMediaStream::InternalExecuteCommand(const OpalMediaCommand & command
 
 void OpalRTPMediaStream::OnReceivedPacket(OpalRTPSession &, OpalRTPSession::Data & data)
 {
+  if (m_syncSource == 0 && !data.m_frame.GetSimulcastId().empty() &&
+          (m_simulcastId.empty() || data.m_frame.GetSimulcastId() == m_simulcastId))
+    SetSyncSource(data.m_frame.GetSyncSource());
+
   if (m_passThruStream == NULL) {
     if (m_jitterBuffer != NULL)
       m_jitterBuffer->WriteData(data.m_frame);
@@ -416,7 +429,7 @@ PBoolean OpalRTPMediaStream::WritePacket(RTP_DataFrame & packet)
   if (m_syncSource != 0)
     packet.SetSyncSource(m_syncSource);
 
-  PSimpleTimer failsafe(0, 5);
+  PSimpleTimer failsafe(m_connection.GetEndPoint().GetManager().GetTxMediaTimeout());
   while (IsOpen()) {
     switch (m_rtpSession.WriteData(packet, m_rewriteHeaders ? OpalRTPSession::e_RewriteHeader : OpalRTPSession::e_RewriteSSRC)) {
       case OpalRTPSession::e_AbortTransport :

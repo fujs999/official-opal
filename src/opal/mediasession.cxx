@@ -62,22 +62,21 @@ OpalCodecStatistics::OpalCodecStatistics()
 
 
 #if OPAL_ICE
-OpalCandidateStatistics::OpalCandidateStatistics(const PNatCandidate & cand)
-  : PNatCandidate(cand)
-  , m_selected(false)
+OpalCandidateStatisticsInfo::OpalCandidateStatisticsInfo()
+  : m_selected(false)
   , m_nominations(0)
   , m_lastNomination(0)
 {
 }
 
-OpalCandidateStatistics::STUN::STUN()
+OpalCandidateStatisticsInfo::STUN::STUN()
   : m_first(0)
   , m_last(0)
   , m_count(0)
 {
 }
 
-void OpalCandidateStatistics::STUN::Count()
+void OpalCandidateStatisticsInfo::STUN::Count()
 {
   if (!m_first.IsValid())
     m_first.SetCurrentTime();
@@ -158,6 +157,7 @@ OpalMediaStatistics::UpdateInfo::UpdateInfo()
 #if OPAL_VIDEO
 OpalVideoStatistics::OpalVideoStatistics()
   : m_totalFrames(0)
+  , m_lastFrameTime(0)
   , m_keyFrames(0)
   , m_droppedFrames(0)
   , m_lastKeyFrameTime(0)
@@ -175,6 +175,7 @@ OpalVideoStatistics::OpalVideoStatistics()
 void OpalVideoStatistics::IncrementFrames(bool key)
 {
   ++m_totalFrames;
+  m_lastFrameTime.SetCurrentTime();
   if (key) {
     ++m_keyFrames;
     m_lastKeyFrameTime.SetCurrentTime();
@@ -233,19 +234,6 @@ ostream & operator<<(ostream & strm, OpalFaxStatistics::FaxCompression compressi
 OpalMediaStatistics::OpalMediaStatistics()
 #if OPAL_FAX
   : m_fax(*this) // Backward compatibility
-#endif
-{
-}
-
-
-OpalMediaStatistics::OpalMediaStatistics(const OpalMediaStatistics & other)
-  : PObject(other)
-  , OpalCodecStatistics(other)
-  , OpalNetworkStatistics(other)
-  , OpalVideoStatistics(other)
-  , OpalFaxStatistics(other)
-#if OPAL_FAX
-  , m_fax(*this) // Backward compatibility
 #endif
 {
 }
@@ -326,7 +314,7 @@ static PString InternalGetRate(const PTime & lastUpdate,
       else if (value <= 1.0)
         str = PSTRSTRM(fixed << setprecision(significantFigures) << value);
       else
-        str = PString(PString::ScaleSI, value, significantFigures);
+        str = PScaleSI(value, significantFigures);
     }
     str += units;
   }
@@ -408,7 +396,7 @@ void OpalMediaStatistics::PrintOn(ostream & strm) const
   std::streamsize indent = strm.precision()+20;
 
   strm << setw(indent) <<            "Media format" << " = " << m_mediaFormat << " (" << m_mediaType << ")\n"
-       << setw(indent) <<      "Session start time" << " = " << m_startTime << '\n'
+       << setw(indent) <<      "Session start time" << " = " << m_startTime.AsString(PTime::LoggingFormat) << '\n'
        << setw(indent) <<        "Session duration" << " = " << InternalTimeDiff(m_updateInfo.m_lastUpdateTime, m_startTime)
                                                              << " (" << InternalTimeDiff(m_updateInfo.m_lastUpdateTime, m_updateInfo.m_previousUpdateTime) << ")\n"
        << setw(indent) <<               "CPU usage" << " = " << GetCPU() << '\n';
@@ -416,7 +404,7 @@ void OpalMediaStatistics::PrintOn(ostream & strm) const
     strm << setw(indent) <<         "Local address" << " = " << m_localAddress << '\n';
   if (!m_remoteAddress.IsEmpty())
     strm << setw(indent) <<        "Remote address" << " = " << m_remoteAddress << '\n';
-  strm << setw(indent) <<             "Total bytes" << " = " << PString(PString::ScaleSI, m_totalBytes) << "B\n"
+  strm << setw(indent) <<             "Total bytes" << " = " << PScaleSI(m_totalBytes, 5, "B") << "\n"
        << setw(indent) <<        "Average bit rate" << " = " << GetAverageBitRate("bps", 2) << '\n'
        << setw(indent) <<        "Current bit rate" << " = " << GetCurrentBitRate("bps", 3) << '\n'
        << setw(indent) <<           "Total packets" << " = " << m_totalPackets << '\n'
@@ -470,7 +458,70 @@ void OpalMediaStatistics::PrintOn(ostream & strm) const
 #endif
   strm << '\n';
 }
+
+
+void OpalMediaStatistics::ToJSON(PJSON::Object & json) const
+{
+  json.SetString("MediaType", m_mediaType);
+  json.SetString("MediaFormat", m_mediaFormat);
+  json.SetTime("SessionStartTime", m_startTime);
+  json.SetNumber("SessionDuration", (m_updateInfo.m_lastUpdateTime - m_startTime).GetMilliSeconds()/1000.0);
+  json.SetString("LocalAddress", m_localAddress);
+  json.SetString("RemoteAddress", m_remoteAddress);
+  json.SetNumber("TotalBytes", (PJSON::NumberType)m_totalBytes);
+  json.SetNumber("AverageBitRate", GetBitRate());
+  json.SetNumber("TotalPackets", m_totalPackets);
+  json.SetNumber("AveragePacketRate", GetPacketRate());
+  json.SetNumber("MinimumPacketTime", m_minimumPacketTime/1000.0);
+  json.SetNumber("AveragePacketTime", m_averagePacketTime/1000.0);
+  json.SetNumber("MaximumPacketTime", m_maximumPacketTime/1000.0);
+  json.SetNumber("PacketsLost", m_packetsLost);
+  json.SetNumber("RestoredOutOfOrder", m_packetsOutOfOrder);
+  json.SetNumber("LateOutOfOrder", m_lateOutOfOrder);
+  json.SetNumber("NACK", m_NACKs);
+  json.SetNumber("FEC", m_FEC);
+  json.SetNumber("RoundTripTime", m_roundTripTime);
+
+  if (m_mediaType == OpalMediaType::Audio()) {
+    PJSON::Object & audio = json.SetObject("audio");
+    audio.SetNumber("JitterBufferTooLate", m_packetsTooLate);
+    audio.SetNumber("JitterBufferOverruns", m_packetOverruns);
+    audio.SetNumber("AverageJitter", m_averageJitter/1000.0);
+    audio.SetNumber("MaximumJitter", m_maximumJitter/1000.0);
+    audio.SetNumber("JitterBufferDelay", m_jitterBufferDelay/1000.0);
+  }
+#if OPAL_VIDEO
+  else if (m_mediaType == OpalMediaType::Video()) {
+    PJSON::Object & video = json.SetObject("video");
+    video.SetNumber("TotalFrames", m_totalFrames);
+    video.SetNumber("AverageFrameRate", GetFrameRate());
+    video.SetNumber("TotalKeyFrames", m_keyFrames);
+    video.SetNumber("DroppedFrames", m_droppedFrames);
+    video.SetNumber("Quality", m_videoQuality);
+  }
 #endif
+#if OPAL_FAX
+  else if (m_mediaType == OpalMediaType::Fax()) {
+    PJSON::Object & fax = json.SetObject("fax");
+    fax.SetNumber("FaxResult", m_fax.m_result);
+    fax.SetNumber("SelectedBitRate", m_fax.m_bitRate);
+    fax.SetNumber("Compression", m_fax.m_compression);
+    fax.SetNumber("TotalImagePages", m_fax.m_totalPages);
+    fax.SetNumber("TotalImageBytes", m_fax.m_imageSize);
+    PJSON::Object & res = fax.SetObject("Resolution");
+    res.SetNumber("x", m_fax.m_resolutionX);
+    res.SetNumber("y", m_fax.m_resolutionY);
+    PJSON::Object & dim = fax.SetObject("PageDimensions");
+    dim.SetNumber("width", m_fax.m_pageWidth);
+    dim.SetNumber("height", m_fax.m_pageHeight);
+    fax.SetNumber("BadRowsTotal", m_fax.m_badRows);
+    fax.SetNumber("BadRowsLongestRun=", m_fax.m_mostBadRows);
+    fax.SetNumber("ErrorCorrection", m_fax.m_errorCorrection);
+    fax.SetNumber("ErrorRetries", m_fax.m_errorCorrectionRetries);
+  }
+#endif
+}
+#endif // OPAL_STATISTICS
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -647,20 +698,21 @@ void OpalMediaTransport::PrintOn(ostream & strm) const
 
 PString OpalMediaTransport::GetType()
 {
-  PString type;
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
 
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  if (lock.IsLocked() && !m_subchannels.empty()) {
-    PChannel * channel = m_subchannels.front().m_channel;
-    if (channel != NULL) {
-      channel = channel->GetBaseReadChannel();
-      if (channel != NULL) {
-        type = channel->GetName();
-        type.Delete(type.Find(':'), P_MAX_INDEX);
-      }
-    }
-  }
+  if (m_subchannels.empty())
+    return PString::Empty();
 
+  PChannel * channel = m_subchannels.front().m_channel;
+  if (channel == NULL)
+    return PString::Empty();
+
+  channel = channel->GetBaseReadChannel();
+  if (channel == NULL)
+    return PString::Empty();
+
+  PString type = channel->GetName();
+  type.Delete(type.Find(':'), P_MAX_INDEX);
   return type;
 }
 
@@ -681,8 +733,9 @@ OpalTransportAddress OpalMediaTransport::GetLocalAddress(SubChannels subchannel)
 {
   OpalTransportAddress addr;
 
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  if (lock.IsLocked() && (size_t)subchannel < m_subchannels.size()) {
+  P_INSTRUMENTED_LOCK_READ_ONLY(return addr);
+
+  if ((size_t)subchannel < m_subchannels.size()) {
     addr = m_subchannels[subchannel].m_localAddress;
     addr.MakeUnique();
   }
@@ -695,8 +748,9 @@ OpalTransportAddress OpalMediaTransport::GetRemoteAddress(SubChannels subchannel
 {
   OpalTransportAddress addr;
 
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  if (lock.IsLocked() && (size_t)subchannel < m_subchannels.size()) {
+  P_INSTRUMENTED_LOCK_READ_ONLY(return addr);
+
+  if ((size_t)subchannel < m_subchannels.size()) {
     addr = m_subchannels[subchannel].m_remoteAddress;
     addr.MakeUnique();
   }
@@ -713,17 +767,22 @@ bool OpalMediaTransport::SetRemoteAddress(const OpalTransportAddress &, SubChann
 
 PChannel::Errors OpalMediaTransport::GetLastError(SubChannels subchannel) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return lock.IsLocked() && (size_t)subchannel < m_subchannels.size() ? m_subchannels[subchannel].m_lastError : PChannel::NotFound;
+  P_INSTRUMENTED_LOCK_READ_ONLY(PChannel::NotOpen);
+  return (size_t)subchannel < m_subchannels.size() ? m_subchannels[subchannel].m_lastError : PChannel::NotFound;
 }
 
 
-void OpalMediaTransport::SetCandidates(const PString &, const PString &, const PNatCandidateList &)
+void OpalMediaTransport::SetCandidates(const PString &, const PString &, const PNatCandidateList &, unsigned)
 {
 }
 
 
-bool OpalMediaTransport::GetCandidates(PString &, PString &, PNatCandidateList &, bool)
+void OpalMediaTransport::AddCandidate(const PNatCandidate &)
+{
+}
+
+
+bool OpalMediaTransport::GetCandidates(PString &, PString &, PNatCandidateList &, unsigned &, bool)
 {
   return true;
 }
@@ -797,6 +856,41 @@ void OpalMediaTransport::GetStatistics(OpalMediaStatistics & statistics) const
   statistics.m_remoteAddress = GetRemoteAddress(e_Media);
 }
 #endif
+
+
+uint32_t OpalMediaTransport::NewSyncSource(unsigned sessionID)
+{
+  PWaitAndSignal lock(m_ssrcMutex);
+
+  uint32_t ssrc;
+  do {
+    ssrc = PRandom::Number(0x00000010, 0xfffffff0);
+  } while (m_ssrcSessions.find(ssrc) != m_ssrcSessions.end());
+
+  m_ssrcSessions[ssrc] = sessionID;
+
+  return ssrc;
+}
+
+
+unsigned OpalMediaTransport::AddSyncSource(unsigned sessionID, uint32_t ssrc)
+{
+  PWaitAndSignal lock(m_ssrcMutex);
+
+  SyncSourceMap::iterator it = m_ssrcSessions.find(ssrc);
+  if (it != m_ssrcSessions.end())
+    return it->second;
+
+  m_ssrcSessions[ssrc] = sessionID;
+  return 0;
+}
+
+
+void OpalMediaTransport::RemoveSyncSource(uint32_t ssrc)
+{
+  PWaitAndSignal lock(m_ssrcMutex);
+  m_ssrcSessions.erase(ssrc);
+}
 
 
 OpalMediaTransport::ChannelInfo::ChannelInfo(OpalMediaTransport & owner, SubChannels subchannel, PChannel * chan)
@@ -917,9 +1011,13 @@ bool OpalMediaTransport::ChannelInfo::HandleUnavailableError()
 
 void OpalMediaTransport::InternalClose()
 {
+  if (!m_opened.exchange(false))
+    return;
+
+  // Continue even if lock failed, must close sockets!
   P_INSTRUMENTED_LOCK_READ_ONLY();
 
-  m_opened = m_established = false;
+  m_established = false;
 
   for (vector<ChannelInfo>::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it) {
     if (it->m_channel != NULL) {
@@ -960,9 +1058,7 @@ void OpalMediaTransport::Start()
   if (m_started.exchange(true))
     return;
 
-  P_INSTRUMENTED_LOCK_READ_WRITE();
-  if (!lock.IsLocked())
-    return;
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
 
   PTRACE(4, *this << "starting read theads, " << m_subchannels.size() << " sub-channels");
   for (ChannelArray::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it) {
@@ -981,10 +1077,7 @@ void OpalMediaTransport::Start()
 
 bool OpalMediaTransport::GarbageCollection()
 {
-  if (m_opened) {
-    PTRACE(4, *this << "stopping " << m_subchannels.size() << " subchannel(s).");
-    InternalClose();
-  }
+  InternalClose();
 
   m_ccTimer.Stop();
 
@@ -1000,6 +1093,8 @@ bool OpalMediaTransport::GarbageCollection()
 
 void OpalMediaTransport::AddChannel(PChannel * channel)
 {
+  // Should already be locked, or in ctor
+
   SubChannels subchannel = (SubChannels)m_subchannels.size();
 
   PTRACE_CONTEXT_ID_TO(channel);
@@ -1086,7 +1181,7 @@ bool OpalUDPMediaTransport::SetRemoteAddress(const OpalTransportAddress & remote
 {
   PIPAddressAndPort ap;
   if (!remoteAddress.GetIpAndPort(ap)) {
-    PTRACE(2, "Illegal IP address, or no prt specified: " << remoteAddress);
+    PTRACE(2, "Illegal IP address, or no port specified: channel=" << subchannel << ", addr=\"" << remoteAddress << '"');
     return false;
   }
 
@@ -1141,9 +1236,7 @@ bool OpalUDPMediaTransport::InternalSetRemoteAddress(const PIPSocket::AddressAnd
   if (!newAP.IsValid())
     return false;
 
-  P_INSTRUMENTED_LOCK_READ_WRITE();
-  if (!lock.IsLocked())
-    return false;
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   PUDPSocket * socket = GetSubChannelAsSocket(subchannel);
   if (socket == NULL)
@@ -1289,6 +1382,8 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
                                  const PString & localInterface,
                                  const OpalTransportAddress & remoteAddress)
 {
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
+
   PTRACE_CONTEXT_ID_FROM(session);
 
   if (!PAssert(subchannelCount > 0, PInvalidParameter))
@@ -1301,6 +1396,9 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
     SetRemoteBehindNAT();
   m_mediaTimeout = session.GetStringOptions().GetVar(OPAL_OPT_MEDIA_RX_TIMEOUT, manager.GetNoMediaTimeout());
   m_maxNoTransmitTime = session.GetStringOptions().GetVar(OPAL_OPT_MEDIA_TX_TIMEOUT, manager.GetTxMediaTimeout());
+
+  if (!PAssert(!localInterface.empty(), PLogicError))
+    return false;
 
   PIPAddress bindingIP(localInterface);
   if (!bindingIP.IsValid()) {
@@ -1318,8 +1416,8 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
   if (!manager.IsLocalAddress(remoteIP)) {
     PNatMethod * natMethod = manager.GetNatMethods().GetMethod(bindingIP, this);
     if (natMethod != NULL) {
-      PTRACE(4, session << "NAT Method " << natMethod->GetMethodName() << " selected for call.");
-
+      static PTimeInterval const TimeToLive(0, 10);
+      natMethod->GetNatType(TimeToLive);
       switch (natMethod->GetRTPSupport()) {
         case PNatMethod::RTPIfSendMedia :
           /* This NAT variant will work if we send something out through the
@@ -1331,7 +1429,7 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
           // Then do case for full cone support and create NAT sockets
 
         case PNatMethod::RTPSupported :
-          PTRACE(4, session << "attempting natMethod: " << natMethod->GetMethodName());
+          PTRACE(4, session << "attempting natMethod: " << natMethod->GetMethodName() << ' ' << natMethod->GetNatTypeName());
           if (subchannelCount == 2) {
             PUDPSocket * dataSocket = NULL;
             PUDPSocket * controlSocket = NULL;
@@ -1364,6 +1462,7 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
              talk to the real RTP destination. All we can so is bind to the
              local interface the NAT is on and hope the NAT router is doing
              something sneaky like symmetric port forwarding. */
+          PTRACE(4, session << "cannot use natMethod: " << natMethod->GetMethodName() << ' ' << natMethod->GetNatTypeName());
           break;
       }
     }
@@ -1583,46 +1682,80 @@ bool OpalMediaSession::UpdateMediaFormat(const OpalMediaFormat &)
 const PString & OpalMediaSession::GetBundleGroupId() { static PConstString const s("BUNDLE"); return s;  }
 
 
-bool OpalMediaSession::AddGroup(const PString & groupId, const PString & mediaId, bool overwrite)
+bool OpalMediaSession::AddGroup(const PString & groupId, unsigned index, const PString & mediaId)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
+  if (!PAssert(!groupId.empty() && !mediaId.empty(), PInvalidParameter))
+    return false;
 
-  if (!overwrite && m_groups.Contains(groupId)) {
-    if (m_groups[groupId] == mediaId)
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
+
+  GroupMediaMaps & media = m_groups[groupId];
+
+  GroupMediaByIndex::const_iterator itIndex = media.m_byIndex.find(index);
+  if (itIndex != media.m_byIndex.end()) {
+    if (itIndex->second == mediaId)
       return true;
-    PTRACE(3, *this << "could not set group \"" << groupId << "\" media id to"
-           " \"" << mediaId << "\", already set to \"" << m_groups[groupId] << '"');
+    PTRACE(4, *this << "media id \"" << itIndex->second << "\" already at index " << index << " in group \"" << groupId << '"');
     return false;
   }
 
-  m_groups.SetAt(groupId, mediaId);
-  PTRACE(4, "Set group \"" << groupId << "\" to media id \"" << mediaId << '"');
+  GroupMediaByIdent::const_iterator itIdent = media.m_byIdent.find(mediaId);
+  if (itIdent != media.m_byIdent.end()) {
+    if (itIdent->second == index)
+      return true;
+    PTRACE(4, *this << "media id \"" << mediaId << "\" already at index " << itIdent->second << " in group \"" << groupId << '"');
+    return false;
+  }
+
+  media.m_byIndex[index] = mediaId;
+  media.m_byIdent[mediaId] = index;
+  PTRACE(3, *this << "added media id \"" << mediaId << "\" at index " << index << " to group \"" << groupId << '"');
   return true;
 }
 
 
 bool OpalMediaSession::IsGroupMember(const PString & groupId) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return m_groups.Contains(groupId);
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
+  return m_groups.find(groupId) != m_groups.end();
 }
 
 
 PStringArray OpalMediaSession::GetGroups() const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return m_groups.GetKeys();
+  PStringArray groups;
+  P_INSTRUMENTED_LOCK_READ_ONLY(return groups);
+  groups.SetSize(m_groups.size());
+  PINDEX i = 0;
+  for (GroupMap::const_iterator it = m_groups.begin(); it != m_groups.end(); ++it,++i)
+    groups[i] = it->first;
+  return groups;
 }
 
 
-PString OpalMediaSession::GetGroupMediaId(const PString & groupId) const
+PString OpalMediaSession::GetGroupMediaId(const PString & groupId, unsigned index) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  PString str = m_groups(groupId);
-  str.MakeUnique();
-  return str;
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
+  GroupMap::const_iterator itGrp = m_groups.find(groupId);
+  if (itGrp != m_groups.end()) {
+    GroupMediaByIndex::const_iterator itMedia = itGrp->second.m_byIndex.find(index);
+    if (itMedia != itGrp->second.m_byIndex.end())
+      return itMedia->second;
+  }
+  return PString::Empty();
 }
 
+unsigned OpalMediaSession::FindGroupMediaId(const PString & groupId, const PString & mediaId) const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return UINT_MAX);
+  GroupMap::const_iterator itGrp = m_groups.find(groupId);
+  if (itGrp != m_groups.end()) {
+    GroupMediaByIdent::const_iterator itMedia = itGrp->second.m_byIdent.find(mediaId);
+    if (itMedia != itGrp->second.m_byIdent.end())
+      return itMedia->second;
+  }
+  return UINT_MAX;
+}
 
 #if OPAL_SDP
 SDPMediaDescription * OpalMediaSession::CreateSDPMediaDescription()
@@ -1720,9 +1853,7 @@ const PCaselessString & OpalDummySession::GetSessionType() const
 
 bool OpalDummySession::Open(const PString &, const OpalTransportAddress &)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
-  if (!lock.IsLocked())
-    return false;
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   PSafePtr<OpalConnection> otherParty = m_connection.GetOtherPartyConnection();
   if (otherParty != NULL) {
@@ -1754,30 +1885,28 @@ bool OpalDummySession::Open(const PString &, const OpalTransportAddress &)
 
 bool OpalDummySession::IsOpen() const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return lock.IsLocked() && !m_localTransportAddress[e_Media].IsEmpty() && !m_remoteTransportAddress[e_Media].IsEmpty();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
+  return !m_localTransportAddress[e_Media].IsEmpty() && !m_remoteTransportAddress[e_Media].IsEmpty();
 }
 
 
 OpalTransportAddress OpalDummySession::GetLocalAddress(bool isMediaAddress) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return lock.IsLocked() ? m_localTransportAddress[isMediaAddress ? e_Media : e_Control] : OpalTransportAddress();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return OpalTransportAddress());
+  return m_localTransportAddress[isMediaAddress ? e_Media : e_Control];
 }
 
 
 OpalTransportAddress OpalDummySession::GetRemoteAddress(bool isMediaAddress) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return lock.IsLocked() ? m_remoteTransportAddress[isMediaAddress ? e_Media : e_Control] : OpalTransportAddress();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return OpalTransportAddress());
+  return m_remoteTransportAddress[isMediaAddress ? e_Media : e_Control];
 }
 
 
 bool OpalDummySession::SetRemoteAddress(const OpalTransportAddress & remoteAddress, bool isMediaAddress)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
-  if (!lock.IsLocked())
-    return false;
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   // Some code to keep the port if new one does not have it but old did.
   PIPSocket::Address ip;

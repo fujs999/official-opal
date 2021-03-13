@@ -234,6 +234,15 @@ bool OpalSockConnection::OnReadMediaData(OpalMediaStream & mediaStream,
     return false;
   }
   length = hdr.m_length;
+
+  if (hdr.m_flags & MediaHeader::Update) {
+#if OPAL_VIDEO
+    ExecuteMediaCommand(OpalVideoUpdatePicture());
+#endif
+    if (length == 0)
+      return true;
+  }
+
   mediaStream.SetMarker((hdr.m_flags & MediaHeader::Marker) != 0);
 
   if (length > size) {
@@ -318,7 +327,7 @@ bool OpalSockConnection::OnMediaCommand(OpalMediaStream & stream, const OpalMedi
       cmd.rate = flow->GetMaxBitRate();
       PWaitAndSignal lock(m_writeMutex);
       if (m_videoSocket->Write(&cmd, sizeof(cmd)))
-        PTRACE(4, "Write of flow control " << PString(PString::ScaleSI, cmd.rate) << "b/s");
+        PTRACE(4, "Write of flow control " << PScaleSI(cmd.rate, 3, "b/s"));
       else {
         PTRACE(2, "Write error for video - " << m_videoSocket->GetErrorText());
       }

@@ -114,16 +114,25 @@ bool OpalDTLSMediaTransport::DTLSChannel::Read(void * buf, PINDEX size)
   if (!m_transport.IsEstablished()) {
     PTRACE(4, "Awaiting transport establishment.");
 
-    // Keep reading, and throwing stuff away, until we have remote address.
-    while (!m_transport.OpalDTLSMediaTransportParent::IsEstablished()) {
+    // Keep reading until we have both the remote address and remote fingerprint
+    // (i.e. ICE complete and remote SDP processed)
+    while (!m_transport.OpalDTLSMediaTransportParent::IsEstablished()
+            || !m_transport.GetRemoteFingerprint().IsValid()) {
       // Let lower protocol layers handle their packets
       if (!PSSLChannelDTLS::Read(buf, size))
         return false;
+      // Cache the most recent packet data passed up to us (probably ClientHello)
+      m_lastReceivedPackets.push_back(PBYTEArray(static_cast<BYTE*>(buf), GetLastReadCount(), true));
+      if (m_lastReceivedPackets.size() > 2)
+        m_lastReceivedPackets.pop_front();
     }
 
     // In here, DTLSChannel::BioRead is called instead of DTLSChannel::Read
     if (!m_transport.InternalPerformHandshake(this))
       return false;
+
+    // Send dummy packet to trigger OnEstablished(), in case we don't get any real data
+    m_transport.OpalMediaTransport::InternalRxData(e_Media, PBYTEArray(1));
   }
 
   while (PSSLChannelDTLS::Read(buf, size)) {
@@ -146,7 +155,8 @@ bool OpalDTLSMediaTransport::DTLSChannel::Read(void * buf, PINDEX size)
     } * frame = reinterpret_cast<AlertFrame *>(buf);
 #pragma pack()
 
-    if (frame->m_type <= 19 || frame->m_type >= 64)
+    // From https://tools.ietf.org/html/rfc7983
+    if (frame->m_type <= 20 || frame->m_type >= 63)
       return true; // Not a DTLS packet
 
     if (len < sizeof(*frame)) {
@@ -173,7 +183,7 @@ bool OpalDTLSMediaTransport::DTLSChannel::Read(void * buf, PINDEX size)
     {
       PTRACE(2, "Received close_notify from remote.");
       Shutdown(ShutdownReadAndWrite); // Does SSL_shutdown, sending a close_notify back
-      GetBaseReadChannel()->Close();  // Then close (most likely) socket
+      CloseBaseReadChannel();  // Then close (most likely) socket
       return false;
     }
 
@@ -194,9 +204,19 @@ bool OpalDTLSMediaTransport::DTLSChannel::Read(void * buf, PINDEX size)
 }
 
 
-#if PTRACING
 int OpalDTLSMediaTransport::DTLSChannel::BioRead(char * buf, int len)
 {
+  if (!m_lastReceivedPackets.empty()) {
+    // First return packets received before we were ready to handshake
+    PBYTEArray & packet = m_lastReceivedPackets.front();
+    size_t packetLen = packet.size();
+    if (static_cast<size_t>(len) >= packetLen)
+      memcpy(buf, packet.GetPointer(), packetLen);
+    m_lastReceivedPackets.pop_front();
+    PTRACE(5, "Read " << packetLen << " bytes from pre-handshake cache");
+    return packetLen;
+  }
+
   int result = PSSLChannelDTLS::BioRead(buf, len);
   if (result < 0)
     PTRACE_IF(2, IsOpen(), "Read error: " << GetErrorText(PChannel::LastReadError));
@@ -212,7 +232,6 @@ int OpalDTLSMediaTransport::DTLSChannel::BioRead(char * buf, int len)
   }
   return result;
 }
-#endif
 
 
 int OpalDTLSMediaTransport::DTLSChannel::BioWrite(const char * buf, int len)
@@ -229,7 +248,7 @@ int OpalDTLSMediaTransport::DTLSChannel::BioWrite(const char * buf, int len)
     if (PTrace::CanTrace(Level)) {
       PUDPSocket * udp = dynamic_cast<PUDPSocket *>(GetBaseReadChannel());
       if (udp != NULL)
-        PTRACE_BEGIN(Level) << "Written " << result << " bytes from " << udp->GetSendAddress() << PTrace::End;
+        PTRACE_BEGIN(Level) << "Written " << result << " bytes to " << udp->GetSendAddress() << PTrace::End;
     }
 #endif // PTRACING
   }
@@ -270,12 +289,14 @@ bool OpalDTLSMediaTransport::Open(OpalMediaSession & session,
 
 PChannel * OpalDTLSMediaTransport::AddWrapperChannels(SubChannels subchannel, PChannel * channel)
 {
+  // Should already be locked, or in ctor
   return new DTLSChannel(*this, OpalDTLSMediaTransportParent::AddWrapperChannels(subchannel, channel));
 }
 
 
 bool OpalDTLSMediaTransport::IsEstablished() const
 {
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
   for (PINDEX i = 0; i < 2; ++i) {
     if (m_keyInfo[i].get() == NULL)
       return false;
@@ -286,11 +307,18 @@ bool OpalDTLSMediaTransport::IsEstablished() const
 
 bool OpalDTLSMediaTransport::GetKeyInfo(OpalMediaCryptoKeyInfo * keyInfo[2])
 {
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
   for (PINDEX i = 0; i < 2; ++i) {
     if ((keyInfo[i] = m_keyInfo[i].get()) == NULL)
       return false;
   }
   return true;
+}
+
+
+void OpalDTLSMediaTransport::SetPassiveMode(bool passive)
+{
+  m_passiveMode = passive;
 }
 
 
@@ -302,9 +330,7 @@ PSSLCertificateFingerprint OpalDTLSMediaTransport::GetLocalFingerprint(PSSLCerti
 
 bool OpalDTLSMediaTransport::SetRemoteFingerprint(const PSSLCertificateFingerprint& fp)
 {
-  PSafeLockReadWrite lock(*this);
-  if (!lock.IsLocked())
-    return false;
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   if (m_remoteFingerprint == fp)
     return false;
@@ -320,6 +346,13 @@ bool OpalDTLSMediaTransport::SetRemoteFingerprint(const PSSLCertificateFingerpri
   for (vector<ChannelInfo>::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it)
     InternalPerformHandshake(dynamic_cast<DTLSChannel *>(it->m_channel));
   return true;
+}
+
+
+PSSLCertificateFingerprint OpalDTLSMediaTransport::GetRemoteFingerprint() const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PSSLCertificateFingerprint());
+  return m_remoteFingerprint;
 }
 
 
@@ -340,13 +373,18 @@ bool OpalDTLSMediaTransport::InternalPerformHandshake(DTLSChannel * channel)
 
 bool OpalDTLSMediaTransport::PerformHandshake(DTLSChannel & channel)
 {
-  if (!(m_passiveMode ? channel.Accept() : channel.Connect())) {
-    PTRACE(2, *this << "could not " << (m_passiveMode ? "accept" : "connect") << " DTLS channel");
+  const bool passiveMode = m_passiveMode;
+  if (!(passiveMode ? channel.Accept() : channel.Connect())) {
+    PTRACE(2, *this << "could not " << (passiveMode ? "accept" : "connect") << " DTLS channel");
     return false;
   }
 
   if (!channel.ExecuteHandshake()) {
-    PTRACE(2, *this << "error in DTLS handshake.");
+    PTRACE_IF(2, channel.GetErrorCode() != PChannel::NotOpen,
+              *this << "error in DTLS handshake:"
+              " code=" << channel.GetErrorCode(PChannel::LastGeneralError) << ","
+              " number=" << channel.GetErrorNumber(PChannel::LastGeneralError) << ","
+              " text=\"" << channel.GetErrorText(PChannel::LastGeneralError) << '"');
     return false;
   }
 
@@ -373,17 +411,21 @@ bool OpalDTLSMediaTransport::PerformHandshake(DTLSChannel & channel)
     return false;
   }
 
-  OpalSRTPKeyInfo * keyInfo = dynamic_cast<OpalSRTPKeyInfo*>(cryptoSuite->CreateKeyInfo());
-  PAssertNULL(keyInfo);
+  {
+    P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
-  keyInfo->SetCipherKey(PBYTEArray(keyMaterial, keyLength));
-  keyInfo->SetAuthSalt(PBYTEArray(keyMaterial + keyLength*2, saltLength));
-  m_keyInfo[channel.IsServer() ? OpalRTPSession::e_Receiver : OpalRTPSession::e_Sender].reset(keyInfo);
+    OpalSRTPKeyInfo * keyInfo = dynamic_cast<OpalSRTPKeyInfo*>(cryptoSuite->CreateKeyInfo());
+    PAssertNULL(keyInfo);
 
-  keyInfo = dynamic_cast<OpalSRTPKeyInfo*>(cryptoSuite->CreateKeyInfo());
-  keyInfo->SetCipherKey(PBYTEArray(keyMaterial + keyLength, keyLength));
-  keyInfo->SetAuthSalt(PBYTEArray(keyMaterial + keyLength*2 + saltLength, saltLength));
-  m_keyInfo[channel.IsServer() ? OpalRTPSession::e_Sender : OpalRTPSession::e_Receiver].reset(keyInfo);
+    keyInfo->SetCipherKey(PBYTEArray(keyMaterial, keyLength));
+    keyInfo->SetAuthSalt(PBYTEArray(keyMaterial + keyLength*2, saltLength));
+    m_keyInfo[channel.IsServer() ? OpalRTPSession::e_Receiver : OpalRTPSession::e_Sender].reset(keyInfo);
+
+    keyInfo = dynamic_cast<OpalSRTPKeyInfo*>(cryptoSuite->CreateKeyInfo());
+    keyInfo->SetCipherKey(PBYTEArray(keyMaterial + keyLength, keyLength));
+    keyInfo->SetAuthSalt(PBYTEArray(keyMaterial + keyLength*2 + saltLength, saltLength));
+    m_keyInfo[channel.IsServer() ? OpalRTPSession::e_Sender : OpalRTPSession::e_Receiver].reset(keyInfo);
+  }
 
   PTRACE(3, *this << "completed DTLS handshake.");
   return true;
@@ -392,6 +434,7 @@ bool OpalDTLSMediaTransport::PerformHandshake(DTLSChannel & channel)
 
 void OpalDTLSMediaTransport::OnVerify(PSSLChannel &, PSSLChannel::VerifyInfo & info)
 {
+  P_INSTRUMENTED_LOCK_READ_ONLY(return);
   info.m_ok = m_remoteFingerprint.MatchForCertificate(info.m_peerCertificate);
   PTRACE_IF(2, !info.m_ok, "Invalid remote certificate.");
 }
@@ -434,6 +477,13 @@ void OpalDTLSSRTPSession::SetSetUpMode(SetUpMode mode)
 }
 
 
+bool OpalDTLSSRTPSession::IsPassiveMode() const
+{
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
+  return m_passiveMode;
+}
+
+
 PSSLCertificateFingerprint OpalDTLSSRTPSession::GetLocalFingerprint(PSSLCertificateFingerprint::HashType hashType) const
 {
   OpalMediaTransportPtr transport = m_transport;
@@ -453,17 +503,19 @@ void OpalDTLSSRTPSession::SetRemoteFingerprint(const PSSLCertificateFingerprint&
     return;
   }
 
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+
   OpalMediaTransportPtr transport = m_transport;
   if (transport == NULL)
     m_earlyRemoteFingerprint = fp;
   else if (dynamic_cast<OpalDTLSMediaTransport &>(*transport).SetRemoteFingerprint(fp))
     ApplyKeysToSRTP(*transport);
-
 }
 
 
 OpalMediaTransport * OpalDTLSSRTPSession::CreateMediaTransport(const PString & name)
 {
+  P_INSTRUMENTED_LOCK_READ_ONLY(return NULL);
   return new OpalDTLSMediaTransport(name, m_passiveMode, m_earlyRemoteFingerprint);
 }
 

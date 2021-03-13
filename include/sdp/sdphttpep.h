@@ -61,7 +61,7 @@
     connection*/
 #define OPAL_SDP_HTTP_OP_STATUS        "status"
 
-/// THe connnection identifier query parameter used by some operations
+/// The connnection identifier query parameter used by some operations
 #define OPAL_SDP_HTTP_ID_QUERY_PARAM   "connection-id"
 
 /// The HTTP header that returns the connection identifier
@@ -69,6 +69,9 @@
 
 /// The destination query parameter for the "connect" operation.
 #define OPAL_SDP_HTTP_DEST_QUERY_PARAM "destination"
+
+/// Indicate simulcast is to be used for a new connection
+#define OPAL_SDP_HTTP_SIMULCAST_QUERY_PARAM "simulcast"
 
 
 /**Endpoint for SDP over HTTP POST command (used for WebRTC).
@@ -276,11 +279,6 @@ class OpalSDPHTTPConnection : public OpalSDPConnection
        The default behaviour calls the OpalEndPoint function of the same name.
       */
     virtual void OnReleased();
-
-    /**Get the protocol-specific unique identifier for this connection.
-    Default behaviour just returns the connection token.
-    */
-    virtual PString GetIdentifier() const;
 
     /// Get the media local interface to initialise the RTP session.
     virtual PString GetMediaInterface();

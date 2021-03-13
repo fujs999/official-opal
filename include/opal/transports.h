@@ -343,7 +343,8 @@ class OpalTransportAddressArray : public PArray<OpalTransportAddress>
 
     /// Append one address to array
     bool AppendAddress(
-      const OpalTransportAddress & address
+      const OpalTransportAddress & address,
+      bool unique = false
     );
 
     /** Append a string with special cases.
@@ -466,6 +467,12 @@ class OpalListener : public PObject
     /**Stop the listener thread and no longer accept incoming connections.
      */
     virtual void Close() = 0;
+
+#if OPAL_PTLIB_NAT
+    /**Indicate that the NAT methods have changed in some way.
+      */
+    virtual bool ChangedNAT() { return true; }
+#endif // OPAL_PTLIB_NAT
 
     /**Accept a new incoming transport.
       */
@@ -723,6 +730,12 @@ class OpalListenerUDP : public OpalListenerIP
     /**Stop the listener thread and no longer accept incoming connections.
      */
     virtual void Close();
+
+#if OPAL_PTLIB_NAT
+    /**Indicate that the NAT methods have changed in some way.
+    */
+    virtual bool ChangedNAT();
+#endif // OPAL_PTLIB_NAT
 
     /**Accept a new incoming transport.
       */

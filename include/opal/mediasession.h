@@ -36,6 +36,7 @@
 #include <opal/transports.h>
 #include <opal//mediafmt.h>
 #include <ptlib/notifier_ext.h>
+#include <ptclib/pjson.h>
 
 
 class OpalConnection;
@@ -75,13 +76,11 @@ struct OpalCodecStatistics
 };
 
 #if OPAL_ICE
-struct OpalCandidateStatistics : PNatCandidate
+struct OpalCandidateStatisticsInfo
 {
-  OpalCandidateStatistics(const PNatCandidate & cand);
+  OpalCandidateStatisticsInfo();
 
-  virtual void PrintOn(ostream & strm) const;
-
-  bool m_selected;
+  bool     m_selected;
   unsigned m_nominations;
   PTime    m_lastNomination;
 
@@ -93,6 +92,15 @@ struct OpalCandidateStatistics : PNatCandidate
     PTime    m_last;
     unsigned m_count;
   } m_rxRequests, m_txRequests;
+};
+
+struct OpalCandidateStatistics : PNatCandidate, OpalCandidateStatisticsInfo
+{
+  OpalCandidateStatistics() { }
+  OpalCandidateStatistics(const PNatCandidate & candidate) : PNatCandidate(candidate) { }
+  OpalCandidateStatistics(const OpalCandidateStatistics & other) : PNatCandidate(other), OpalCandidateStatisticsInfo(other) { }
+
+  virtual void PrintOn(ostream & strm) const;
 };
 #endif // OPAL_ICE
 
@@ -149,6 +157,7 @@ struct OpalVideoStatistics
   void IncrementUpdateCount(bool full);
 
   unsigned      m_totalFrames;
+  PTime         m_lastFrameTime;
   unsigned      m_keyFrames;
   unsigned      m_droppedFrames;
   PTime         m_lastKeyFrameTime;
@@ -216,10 +225,14 @@ class OpalMediaStatistics : public PObject
     PCLASSINFO(OpalMediaStatistics, PObject);
   public:
     OpalMediaStatistics();
-    OpalMediaStatistics(const OpalMediaStatistics & other);
+
+    /* Note operator= does not overwrite the m_updateInfo in the assignee,
+       this allows it to have a different update cycle for bit rates etc
+       to the data being assigned from. */
     OpalMediaStatistics & operator=(const OpalMediaStatistics & other);
 
     virtual void PrintOn(ostream & strm) const;
+    void ToJSON(PJSON::Object & json) const;
 
     // To following fields are not copied by
     struct UpdateInfo
@@ -277,7 +290,7 @@ class OpalMediaStatistics : public PObject
 #endif
 
 
-/** Class for contianing the cryptographic keys for use by OpalMediaCryptoSuite.
+/** Class for containing the cryptographic keys for use by OpalMediaCryptoSuite.
   */
 class OpalMediaCryptoKeyInfo : public PObject
 {
@@ -315,8 +328,8 @@ struct OpalMediaCryptoKeyList : PList<OpalMediaCryptoKeyInfo>
 };
 
 
-/** Class for desribing the crytpographic mechanism used by an OpalMediaSession.
-    These are singletons that descibe the cypto suite in use
+/** Class for describing the cryptographic mechanism used by an OpalMediaSession.
+    These are singletons that describe the crypto suite in use
   */
 class OpalMediaCryptoSuite : public PObject
 {
@@ -385,6 +398,8 @@ struct OpalMediaTransportChannelTypes
 #if PTRACING
 ostream & operator<<(ostream & strm, OpalMediaTransportChannelTypes::SubChannels channel);
 #endif
+inline OpalMediaTransportChannelTypes::SubChannels operator++(OpalMediaTransportChannelTypes::SubChannels & channel)
+  { return channel = (OpalMediaTransportChannelTypes::SubChannels)(channel + 1); }
 
 
 /** Class for low level transport of media
@@ -450,7 +465,14 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
     virtual void SetCandidates(
       const PString & user,
       const PString & pass,
-      const PNatCandidateList & candidates
+      const PNatCandidateList & candidates,
+      unsigned options = 0
+    );
+
+    /**Add an the candidate for use in this media transport.
+      */
+    virtual void AddCandidate(
+      const PNatCandidate & candidate
     );
 
     /**Get the candidates for use in this media transport.
@@ -459,6 +481,7 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
       PString & user,
       PString & pass,
       PNatCandidateList & candidates,
+      unsigned & options,
       bool offering
     );
 
@@ -487,7 +510,7 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
        If PBYEArray is empty, then the transport has had an error and has been closed.
       */
     typedef PNotifierTemplate<PBYTEArray> ReadNotifier;
-    #define PDECLARE_MediaReadNotifier(cls, fn) PDECLARE_NOTIFIER2(OpalMediaTransport, cls, fn, PBYTEArray)
+    #define PDECLARE_MediaReadNotifier(cls, fn) PDECLARE_SAFE_NOTIFIER2(OpalMediaTransport, cls, fn, PBYTEArray)
 
     /** Set the notifier for read data.
       */
@@ -534,6 +557,27 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
     virtual void GetStatistics(OpalMediaStatistics & statistics) const;
 #endif
 
+    /**Generate a new unique SSRC for this media transport.
+      */
+    uint32_t NewSyncSource(
+      unsigned sessionID    ///< Session requesting the SSRC
+    );
+
+    /**Add a new SSRC from remote for this media transport.
+       If the SSRC is already registered, then a collision has occurred and
+       the session that currently holds the SSRC is returned.
+      */
+    unsigned AddSyncSource(
+      unsigned sessionID,     ///< Session requesting the SSRC
+      uint32_t ssrc   ///< SSRC being added
+    );
+
+    /**Remove an SSRC for this media transport.
+      */
+    void RemoveSyncSource(
+      uint32_t ssrc  ///< SSRC to remove as no longer used by a session
+    );
+
   protected:
     virtual void InternalClose();
     virtual bool GarbageCollection(); // Override from PSafeObject
@@ -553,6 +597,10 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
     atomic<CongestionControl *> m_congestionControl;
     PTimer m_ccTimer;
     PDECLARE_NOTIFIER(PTimer, OpalMediaTransport, ProcessCongestionControl);
+
+    typedef std::map<uint32_t, unsigned> SyncSourceMap;
+    SyncSourceMap  m_ssrcSessions;
+    PDECLARE_MUTEX(m_ssrcMutex);
 
     enum RemoteAddressSources {
       e_RemoteAddressUnknown,
@@ -749,18 +797,24 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
       const OpalMediaFormat & mediaFormat
     );
 
+    // https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation
     static const PString & GetBundleGroupId();
 
-    /**Set the "group" id for the RTP session.
+    /**Add the media id to the "group" for the media session.
        This is typically a mechanism for connecting audio and video together via BUNDLE.
     */
     virtual bool AddGroup(
-        const PString & groupId,  ///< Identifier of the "group"
-        const PString & mediaId,  ///< Identifier of the session within the "group"
-        bool overwrite = true     ///< Allow overwrite of the mediaId
+      const PString & groupId,  ///< Identifier of the "group"
+      unsigned index,           ///< Index for the media description within the "group"
+      const PString & mediaId   ///< Identifier of the media description within the "group"
     );
 
-    /**Indicate if the RTP session is a member of the "group".
+    /// Remove group
+    void RemoveGroup(
+      const PString & groupId   ///< Identifier of the "group"
+    ) { m_groups.erase(groupId); }
+
+    /**Indicate if the session is a member of the "group".
        This is typically a mechanism for connecting audio and video together via BUNDLE.
     */
     bool IsGroupMember(
@@ -771,12 +825,21 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
       */
     PStringArray GetGroups() const;
 
-    /**Get the "group media" id for the group in this RTP session.
+    /**Get the "group media" id for the group in this session.
        This is typically a mechanism for connecting audio and video together via BUNDLE.
        If not set, uses the media type.
     */
     PString GetGroupMediaId(
-      const PString & groupId
+      const PString & groupId,  ///< Identifier of the "group"
+      unsigned index            ///< Index for the media description within the "group"
+    ) const;
+
+    /**Find the "group media" id for the group in this session.
+       Returns UINT_MAX if not found.
+    */
+    unsigned FindGroupMediaId(
+      const PString & groupId,  ///< Identifier of the "group"
+      const PString & mediaId   ///< Identifier of the media description within the "group"
     ) const;
 
 #if OPAL_SDP
@@ -880,7 +943,16 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
     bool             m_remoteBehindNAT;
     ConnectionMode   m_connectionMode;
     PStringOptions   m_stringOptions;
-    PStringToString  m_groups;
+
+    typedef std::map<unsigned, PString> GroupMediaByIndex;
+    typedef std::map<PString, unsigned> GroupMediaByIdent;
+    struct GroupMediaMaps
+    {
+      GroupMediaByIndex m_byIndex;
+      GroupMediaByIdent m_byIdent;
+    };
+    typedef std::map<PString, GroupMediaMaps> GroupMap;
+    GroupMap m_groups;
 #if OPAL_VIDEO
     OpalVideoFormat::ContentRole m_videoContentRole;
 #endif
@@ -899,6 +971,7 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
     P_REMOVE_VIRTUAL(OpalTransportAddress, GetRemoteControlAddress() const, 0);
     P_REMOVE_VIRTUAL(bool, SetRemoteControlAddress(const OpalTransportAddress &), false);
     P_REMOVE_VIRTUAL_VOID(SetRemoteUserPass(const PString &, const PString &));
+    P_REMOVE_VIRTUAL(bool,AddGroup(const PString&,const PString&,bool),false);
 };
 
 

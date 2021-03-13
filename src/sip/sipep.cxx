@@ -361,32 +361,32 @@ OpalTransportPtr SIPEndPoint::GetTransport(const SIPTransactionOwner & transacto
       PTRACE(4, "Re-opening transport " << *transport);
       transport->ResetIdle();
     }
+  }
 
-    // Link just created or was closed/lost
-    if (!transport->Connect()) {
-      PTRACE(1, "Could not connect to " << remoteAddress << " - " << transport->GetErrorText());
-      switch (transport->GetErrorCode()) {
-        case PChannel::Timeout :
-          reason = SIP_PDU::Local_Timeout;
-          break;
-        case PChannel::AccessDenied :
-          reason = SIP_PDU::Local_NotAuthenticated;
-          break;
-        default :
-          reason = SIP_PDU::Local_TransportError;
-      }
+  // Link just created or was closed/lost
+  if (!transport->Connect()) {
+    PTRACE(1, "Could not connect to " << remoteAddress << " - " << transport->GetErrorText());
+    switch (transport->GetErrorCode()) {
+      case PChannel::Timeout :
+        reason = SIP_PDU::Local_Timeout;
+        break;
+      case PChannel::AccessDenied :
+        reason = SIP_PDU::Local_NotAuthenticated;
+        break;
+      default :
+        reason = SIP_PDU::Local_TransportError;
     }
-    else if (!transport->IsAuthenticated(transactor.GetRequestURI().GetHostName()))
-      reason = SIP_PDU::Local_NotAuthenticated;
-    else {
-      if (transport->IsReliable())
-        transport->AttachThread(new PThreadObj1Arg<SIPEndPoint, OpalTransportPtr>
-                (*this, transport, &SIPEndPoint::TransportThreadMain, false, "SIP Transport", PThread::HighestPriority));
-      else
-        transport->SetPromiscuous(OpalTransport::AcceptFromAny);
+  }
+  else if (!transport->IsAuthenticated(transactor.GetRequestURI().GetHostName()))
+    reason = SIP_PDU::Local_NotAuthenticated;
+  else {
+    if (transport->IsReliable())
+      transport->AttachThread(new PThreadObj1Arg<SIPEndPoint, OpalTransportPtr>
+              (*this, transport, &SIPEndPoint::TransportThreadMain, false, "SIP Transport", PThread::HighestPriority));
+    else
+      transport->SetPromiscuous(OpalTransport::AcceptFromAny);
 
-      return transport;
-    }
+    return transport;
   }
 
   // Outside of m_transportsTableMutex to avoid deadlock in CloseWait
@@ -762,6 +762,8 @@ bool SIPEndPoint::OnReceivedPDU(SIP_PDU * pdu)
   if (PAssertNULL(pdu) == NULL)
     return false;
 
+  PTRACE(4, "OnReceivedPDU: method=" << pdu->GetMethod() << ", id=" << pdu->GetTransactionID());
+
   // Prevent any new INVITE/SUBSCRIBE etc etc while we are on the way out.
   if (m_shuttingDown && pdu->GetMethod() != SIP_PDU::NumMethods) {
     pdu->SendResponse(SIP_PDU::Failure_ServiceUnavailable);
@@ -782,8 +784,8 @@ bool SIPEndPoint::OnReceivedPDU(SIP_PDU * pdu)
      sounds due to allowing for talking to ones self, always thought madness
      generally lies that way ... */
 
-  PString fromToken = mime.GetFieldParameter("from", "tag");
-  PString toToken = mime.GetFieldParameter("to", "tag");
+  PString fromToken = mime.GetFromTag();
+  PString toToken = mime.GetToTag();
   bool hasFromConnection = HasConnection(fromToken);
   bool hasToConnection = HasConnection(toToken);
 
@@ -853,6 +855,7 @@ bool SIPEndPoint::OnReceivedPDU(SIP_PDU * pdu)
           }
         }
 
+        PTRACE(4, "Received a new INVITE, sending 100 Trying");
         pdu->SendResponse(SIP_PDU::Information_Trying);
         return OnReceivedINVITE(pdu);
       }
@@ -1691,16 +1694,23 @@ bool SIPEndPoint::IsSubscribed(const PString & token, bool includeOffline)
 bool SIPEndPoint::IsSubscribed(const PString & eventPackage, const PString & token, bool includeOffline) 
 {
   PSafePtr<SIPHandler> handler = m_activeSIPHandlers.FindSIPHandlerByCallID(token, PSafeReference);
-  if (handler == NULL)
+  if (handler == NULL) {
     handler = m_activeSIPHandlers.FindSIPHandlerByUrl(token, SIP_PDU::Method_SUBSCRIBE, eventPackage, PSafeReference);
+    if (handler == NULL) {
+      PTRACE(4, "Could not find subscription: token=\"" << token << "\", event=" << eventPackage);
+      return false;
+    }
+  }
   else {
-    if (handler->GetEventPackage() != eventPackage)
-      handler.SetNULL();
+    if (handler->GetEventPackage() != eventPackage) {
+      PTRACE(3, "Subscription mismatch: token=\"" << token << "\", event=" << eventPackage);
+      return false;
+    }
   }
 
-  return handler != NULL &&
-         (includeOffline ? (handler->GetState() != SIPHandler::Unsubscribed)
-                         : (handler->GetState() == SIPHandler::Subscribed));
+  PTRACE(4, "Checking subscription: token=\"" << token << "\", event=" << eventPackage << ", state=" << handler->GetState());
+  return includeOffline ? (handler->GetState() != SIPHandler::Unsubscribed)
+                        : (handler->GetState() == SIPHandler::Subscribed);
 }
 
 
@@ -2055,6 +2065,12 @@ void SIPEndPoint::OnPresenceInfoReceived(const PString & /*entity*/,
 #endif // OPAL_SIP_PRESENCE
 
 
+bool SIPEndPoint::OnReINVITE(SIPConnection &, bool, const PString &)
+{
+  return true;
+}
+
+
 void SIPEndPoint::OnDialogInfoReceived(const SIPDialogNotification & PTRACE_PARAM(info))
 {
   PTRACE(3, "Received dialog info for \"" << info.m_entity << "\" id=\"" << info.m_callId << '"');
@@ -2075,7 +2091,7 @@ void SIPEndPoint::OnRegInfoReceived(const SIPRegNotification & PTRACE_PARAM(info
 
 bool SIPEndPoint::OnReceivedInfoPackage(SIPConnection & /*connection*/,
                                         const PString & /*package*/,
-                                        const PString & /*body*/)
+                                        const PMultiPartList & /*content*/)
 {
   return false;
 }
@@ -2472,6 +2488,44 @@ void SIP_PDU_Work::Work()
 }
 
 
+OpalTransportAddress SIPEndPoint::NextSRVAddress(const SIPURL & url)
+{
+  PWaitAndSignal lock(m_SRVIndexMutex);
+  if (GetSRVIndex(url) == P_MAX_INDEX)
+    return OpalTransportAddress();
+
+  // After GetSRVIndex() we know it exists in map
+  SRVIndexMap::iterator it = m_SRVIndex.find(url.GetHostName());
+  OpalTransportAddress addr = url.GetTransportAddress(++it->second);
+  if (addr.IsEmpty()) {
+    PTRACE(4, "Reached last SRV record, trying again from beginning");
+    it->second = 0;
+    addr = url.GetTransportAddress(0);
+  }
+
+  return addr;
+}
+
+
+PINDEX SIPEndPoint::GetSRVIndex(const SIPURL & url)
+{
+  PWaitAndSignal lock(m_SRVIndexMutex);
+  SRVIndexMap::iterator it = m_SRVIndex.find(url.GetHostName());
+  if (it == m_SRVIndex.end())
+    it = m_SRVIndex.insert(std::make_pair(url.GetHostName(), url.CanLookupSRV() ? 0 : P_MAX_INDEX)).first;
+  return it->second;
+}
+
+
+void SIPEndPoint::ResetSRVIndex(const SIPURL & url)
+{
+  PWaitAndSignal lock(m_SRVIndexMutex);
+  SRVIndexMap::iterator it = m_SRVIndex.find(url.GetHostName());
+  if (it != m_SRVIndex.end() && it->second != P_MAX_INDEX)
+    it->second = 0;
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 void SIPEndPoint::OnHighPriorityInterfaceChange(PInterfaceMonitor &, PInterfaceMonitor::InterfaceChange entry)
@@ -2508,4 +2562,6 @@ void SIPEndPoint::OnLowPriorityInterfaceChange(PInterfaceMonitor &, PInterfaceMo
     }
   }
 }
+
+
 #endif // OPAL_SIP

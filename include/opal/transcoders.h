@@ -438,11 +438,14 @@ class OpalFramedTranscoder : public OpalTranscoder
       PINDEX & created      ///<  number of output bytes created
     );
     virtual PBoolean ConvertSilentFrame(
-      BYTE * output         ///<  Output data
+      BYTE * output,        ///<  Output data
+      PINDEX & created      ///<  number of output bytes created
     );
   //@}
 
   protected:
+    virtual bool ConvertEmptyPacket(const RTP_DataFrame & input, RTP_DataFrame & output, PINDEX & outputLen);
+    virtual bool ConvertFramesInPacket(const RTP_DataFrame & input, RTP_DataFrame & output, PINDEX & outputLen);
     void CalculateSizes();
 
     PINDEX inputBytesPerFrame;

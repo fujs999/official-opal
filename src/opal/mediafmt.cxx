@@ -210,7 +210,7 @@ PObject::Comparison OpalBandwidth::Compare(const PObject & other) const
 
 void OpalBandwidth::PrintOn(std::ostream & strm) const
 {
-  strm << PString(PString::ScaleSI, m_bps) << "b/s";
+  strm << PScaleSI(m_bps, 4, "b/s");
 }
 
 
@@ -1290,7 +1290,7 @@ OpalMediaFormatInternal::OpalMediaFormatInternal(const char * fullName,
                                                  const OpalMediaType & _mediaType,
                                                  RTP_DataFrame::PayloadTypes pt,
                                                  const char * en,
-                                                 PBoolean     nj,
+                                                 bool     nj,
                                                  OpalBandwidth bw,
                                                  PINDEX   fs,
                                                  unsigned ft,
@@ -1850,6 +1850,7 @@ const PString & OpalAudioFormat::ChannelsOption()          { static const PConst
 #if OPAL_SDP
 const PString & OpalAudioFormat::MinPacketTimeOption()     { static const PConstString s("minptime"); return s; }
 const PString & OpalAudioFormat::MaxPacketTimeOption()     { static const PConstString s("maxptime"); return s; }
+const PString & OpalAudioFormat::SilenceSuppressionOption(){ static const PConstString s("Silence Suppression"); return s; }
 #endif
 
 OpalAudioFormat::OpalAudioFormat(Internal * info, bool dynamic)
@@ -1906,7 +1907,7 @@ OpalAudioFormatInternal::OpalAudioFormatInternal(const char * fullName,
                                                  time_t timeStamp,
                                                  unsigned channels)
   : OpalMediaFormatInternal(fullName,
-                            "audio",
+                            OpalMediaType::Audio(),
                             rtpPayloadType,
                             encodingName,
                             true,
@@ -1926,6 +1927,7 @@ OpalAudioFormatInternal::OpalAudioFormatInternal(const char * fullName,
 #if OPAL_SDP
   AddOption(new OpalMediaOptionUnsigned(OpalAudioFormat::MinPacketTimeOption(),      false, OpalMediaOption::NoMerge));
   AddOption(new OpalMediaOptionUnsigned(OpalAudioFormat::MaxPacketTimeOption(),      false, OpalMediaOption::NoMerge));
+  AddOption(new OpalMediaOptionString(OpalAudioFormat::SilenceSuppressionOption(),   false));
 #endif
 }
 
@@ -2041,7 +2043,7 @@ OpalVideoFormatInternal::OpalVideoFormatInternal(const char * fullName,
                                                  unsigned maxBitRate,
                                                  time_t timeStamp)
   : OpalMediaFormatInternal(fullName,
-                            "video",
+                            OpalMediaType::Video(),
                             rtpPayloadType,
                             encodingName,
                             false,

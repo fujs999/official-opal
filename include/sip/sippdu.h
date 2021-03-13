@@ -176,6 +176,9 @@ class SIPURL : public PURL
       PINDEX dnsEntry = P_MAX_INDEX
     ) const;
 
+    ///  Indicate we can do an SRV lookup for host names
+    bool CanLookupSRV() const;
+
     /**Set the host and port as a transport address.
       */
     void SetHostAddress(const OpalTransportAddress & addr);
@@ -310,6 +313,7 @@ class SIPMIMEInfo : public PMIMEInfo
     void SetContentEncoding(const PString & v);
 
     SIPURL GetFrom() const;
+    PString GetFromTag() const;
     void SetFrom(const SIPURL & v);
 
     SIPURL GetPAssertedIdentity() const;
@@ -342,6 +346,7 @@ class SIPMIMEInfo : public PMIMEInfo
     void SetSubject(const PString & v);
 
     SIPURL GetTo() const;
+    PString GetToTag() const;
     void SetTo(const SIPURL & v);
 
     PString GetVia() const;
@@ -710,9 +715,10 @@ class SIP_PDU : public PSafeObject
     SDPSessionDescription * GetSDP()         { return m_SDP; }
     void SetSDP(SDPSessionDescription * sdp);
     bool DecodeSDP(SIPConnection & connection, PMultiPartList & parts);
+    bool DecodeSDP(SIPConnection & connection, PString & sdpText, PMultiPartList & parts);
     bool IsContentSDP(bool emptyOK = false) const;
 
-    const PString & GetExternalTransportAddress() const { return m_externalTransportAddress; }
+    const OpalTransportAddressArray & GetResponseAddresses() const { return m_responseAddresses; }
     OpalTransportPtr GetTransport()  const    { return m_transport; }
     void SetTransport(const OpalTransportPtr & transport PTRACE_PARAM(, const char * location));
 
@@ -732,9 +738,9 @@ class SIP_PDU : public PSafeObject
 
     SDPSessionDescription * m_SDP;
 
-    const OpalTransportPtr m_transport;
-    OpalTransportAddress   m_viaAddress;
-    OpalTransportAddress   m_externalTransportAddress;
+    OpalTransportPtr          m_transport;
+    OpalTransportAddress      m_viaAddress;
+    OpalTransportAddressArray m_responseAddresses;
 };
 
 
@@ -751,7 +757,7 @@ ostream & operator<<(ostream & strm, SIP_PDU::Methods method);
 
 /** Session Initiation Protocol dialog context information.
   */
-class SIPDialogContext
+class SIPDialogContext : public PObject
 {
   public:
     SIPDialogContext();
@@ -819,7 +825,7 @@ class SIPDialogContext
     SIPURLList  m_routeSet;
     unsigned    m_lastSentCSeq;
     unsigned    m_lastReceivedCSeq;
-    OpalTransportAddress m_fixedTransportAddress;
+    OpalTransportAddressArray m_responseAddresses;
     bool        m_forking;
     SIPURL      m_proxy;
     PString     m_interface;
@@ -948,6 +954,11 @@ class SIPPoolTimer : public PPoolTimerArg3<SIPTimeoutWorkItem<Target_T>,
     {
     }
 
+    ~SIPPoolTimer()
+    {
+      this->m_stopped = true;
+    }
+
     virtual const char * GetGroup(const Work_T &) const { return m_token; }
 
     PTIMER_OPERATORS(SIPPoolTimer);
@@ -1060,13 +1071,13 @@ class SIPTransaction : public SIPTransactionBase
     virtual SIPTransaction * CreateDuplicate() const = 0;
 
     bool Start();
-    bool IsTrying()     const { return m_state == Trying; }
-    bool IsProceeding() const { return m_state == Proceeding; }
-    bool IsInProgress() const { return m_state == Trying || m_state == Proceeding; }
-    bool IsFailed()     const { return m_state > Terminated_Success; }
-    bool IsCompleted()  const { return m_state >= Completed; }
-    bool IsCanceled()   const { return m_state == Cancelling || m_state == Terminated_Cancelled || m_state == Terminated_Aborted; }
-    bool IsTerminated() const { return m_state >= Terminated_Success; }
+    bool IsTrying()     const { return GetState() == Trying; }
+    bool IsProceeding() const { return GetState() == Proceeding; }
+    bool IsInProgress() const { const States state = GetState(); return state == Trying || state == Proceeding; }
+    bool IsFailed()     const { return GetState() > Terminated_Success; }
+    bool IsCompleted()  const { return GetState() >= Completed; }
+    bool IsCanceled()   const { const States state = GetState(); return state == Cancelling || state == Terminated_Cancelled || state == Terminated_Aborted; }
+    bool IsTerminated() const { return GetState() >= Terminated_Success; }
 
     void WaitForCompletion();
     PBoolean Cancel();
@@ -1078,7 +1089,7 @@ class SIPTransaction : public SIPTransactionBase
 
     SIPEndPoint & GetEndPoint() const { return m_owner->GetEndPoint(); }
     SIPConnection * GetConnection() const;
-    PString         GetInterface()  const { return m_localInterface; }
+    PString         GetInterface()  const;
 
     static PString GenerateCallID();
 
@@ -1104,10 +1115,11 @@ class SIPTransaction : public SIPTransactionBase
       Terminated_Cancelled,
       Terminated_Aborted
     );
+    States GetState() const;
     virtual void SetTerminated(States newState);
 
-    SIPTransactionOwner * m_owner;
-    bool                  m_deleteOwner;
+    SIPTransactionOwner * const m_owner;
+    const bool                  m_deleteOwner;
 
     PTimeInterval m_retryTimeoutMin; 
     PTimeInterval m_retryTimeoutMax; 

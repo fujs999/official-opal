@@ -66,7 +66,7 @@ class OpalH281Client;
 class OpalConsoleEndPoint
 {
 protected:
-  OpalConsoleEndPoint(OpalManagerConsole & console) : m_console(console) { }
+  OpalConsoleEndPoint(OpalManagerConsole & console) : m_console(console), m_endpointDisabled(false) { }
 
   void AddRoutesFor(const OpalEndPoint * endpoint, const PString & defaultRoute);
 
@@ -83,8 +83,11 @@ public:
   virtual void AddCommands(PCLI & cli) = 0;
 #endif
 
+  void SetEndpointDisabled(bool disabled) { m_endpointDisabled = disabled; }
+
 protected:
   OpalManagerConsole & m_console;
+  bool m_endpointDisabled;
 };
 
 
@@ -419,9 +422,9 @@ class OpalManagerConsole : public OpalManager
     __inline LockedStream LockedOutput() const { return *this; }
 
 
-    bool GetCallFromArgs(PCLI::Arguments & args, PSafePtr<OpalCall> & call) const;
+    bool GetCallFromArgs(PCLI::Arguments & args, PSafePtr<OpalCall> & call);
 
-    template <class CONTYPE> bool GetConnectionFromArgs(PCLI::Arguments & args, PSafePtr<CONTYPE> & connection) const
+    template <class CONTYPE> bool GetConnectionFromArgs(PCLI::Arguments & args, PSafePtr<CONTYPE> & connection)
     {
       PSafePtr<OpalCall> call;
       if (!GetCallFromArgs(args, call))
@@ -439,7 +442,7 @@ class OpalManagerConsole : public OpalManager
       const OpalMediaType & mediaType,
       bool source,
       PSafePtr<OpalMediaStream> & stream
-    ) const;
+    );
 
   protected:
     OpalConsoleEndPoint * GetConsoleEndPoint(const PString & prefix);
@@ -479,10 +482,12 @@ class OpalManagerConsole : public OpalManager
     PStringArray m_endpointPrefixes;
 
     PSyncPoint m_endRun;
-    bool       m_interrupted;
+    unsigned   m_interrupted;
     bool       m_verbose;
     ostream  * m_outputStream;
     PDECLARE_MUTEX(m_outputMutex, OpalConsoleOutput);
+
+    PString m_lastCallToken;
 
 #if OPAL_STATISTICS
     PTimeInterval m_statsPeriod;
@@ -537,12 +542,18 @@ class OpalManagerCLI : public OpalManagerConsole
     PCLICurses * CreateCLICurses();
 #endif
 
-#if OPAL_PTLIB_SSL
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdIpTcpPorts);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdIpUdpPorts);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdIpRtpPorts);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdIpRtpTos);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdIpRtpSize);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdIpQoS);
+    #if OPAL_PTLIB_SSL
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdSSL);
 #endif
 #if P_NAT
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdNatList);
-    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdNatAddress);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdNatServer);
 #endif
 
 #if PTRACING
@@ -575,9 +586,20 @@ class OpalManagerCLI : public OpalManagerConsole
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdCodecOrder);
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdCodecMask);
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdCodecOption);
-    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdShowCalls);
-    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdSendUserInput);
+
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdCall);
+    virtual void AdjustCmdCallArguments(PString & from, PString & to);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdHold);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdRetrieve);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdTransfer);
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdHangUp);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdSendUserInput);
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdWaitPhase);
+#if OPAL_STATISTICS
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdWaitPackets);
+#endif
+    PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdShowCalls);
+
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdDelay);
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdVersion);
     PDECLARE_NOTIFIER(PCLI::Arguments, OpalManagerCLI, CmdQuit);

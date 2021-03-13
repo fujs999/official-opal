@@ -52,9 +52,9 @@
 #define OPAL_OPT_ICE_LITE "ICE-Lite"
 
 /**Execute trickle ICE.
-   Defaults to false.
+   Defaults to true.
    NOTE!!! As only ICE-Lite is supported at this time, this effectively
-           means if a endCandidates entry is appended to offers/answers.
+           means if a end-of-candidates entry is appended to offers/answers.
 */
 #define OPAL_OPT_TRICKLE_ICE "Trickle-ICE"
 
@@ -72,39 +72,36 @@ class OpalICEMediaTransport : public OpalUDPMediaTransport
   public:
     OpalICEMediaTransport(const PString & name);
 
+    P_DECLARE_BITWISE_ENUM(Options, 2, (
+      OptNone,
+      OptLite,
+      OptTrickle
+    ));
+
     virtual bool Open(OpalMediaSession & session, PINDEX count, const PString & localInterface, const OpalTransportAddress & remoteAddress);
     virtual bool IsEstablished() const;
-    virtual void SetCandidates(const PString & user, const PString & pass, const PNatCandidateList & candidates);
-    virtual bool GetCandidates(PString & user, PString & pass, PNatCandidateList & candidates, bool offering);
+    virtual void SetCandidates(const PString & user, const PString & pass, const PNatCandidateList & candidates, unsigned options = OptNone);
+    virtual void AddCandidate(const PNatCandidate & candidate);
+    virtual bool GetCandidates(PString & user, PString & pass, PNatCandidateList & candidates, unsigned & options, bool offering);
 #if OPAL_STATISTICS
     virtual void GetStatistics(OpalMediaStatistics & statistics) const;
 #endif
 
-
   protected:
-    class ICEChannel : public PIndirectChannel
-    {
-        PCLASSINFO(ICEChannel, PIndirectChannel);
-      public:
-        ICEChannel(OpalICEMediaTransport & owner, SubChannels subchannel, PChannel * channel);
-        virtual PBoolean Read(void * buf, PINDEX len);
-      protected:
-        OpalICEMediaTransport & m_owner;
-        SubChannels             m_subchannel;
-    };
-    bool InternalHandleICE(SubChannels subchannel, const void * buf, PINDEX len);
-    virtual bool InternalRxData(SubChannels subchannel, const PBYTEArray & data);
-    virtual bool InternalOpenPinHole(PUDPSocket & socket);
-    virtual PChannel * AddWrapperChannels(SubChannels subchannel, PChannel * channel);
-
     PString       m_localUsername;    // ICE username sent to remote
     PString       m_localPassword;    // ICE password sent to remote
     PString       m_remoteUsername;   // ICE username expected from remote
     PString       m_remotePassword;   // ICE password expected from remote
     PTimeInterval m_iceTimeout;
-    bool          m_lite;
-    bool          m_trickle;
+    bool          m_localLite;
+    bool          m_remoteLite;
+    bool          m_localTrickle;
+    bool          m_remoteTrickle;
     bool          m_useNetworkCost;
+
+    virtual bool InternalRxData(SubChannels subchannel, const PBYTEArray & data);
+    virtual bool InternalOpenPinHole(PUDPSocket & socket);
+    virtual PChannel * AddWrapperChannels(SubChannels subchannel, PChannel * channel);
 
     enum CandidateStates
     {
@@ -116,40 +113,58 @@ class OpalICEMediaTransport : public OpalUDPMediaTransport
     };
 
 #if OPAL_STATISTICS
-    typedef OpalCandidateStatistics CandidateStateBase;
+    typedef OpalCandidateStatistics CandidateBase;
 #else
-    typedef PNatCandidate           CandidateStateBase;
+    typedef PNatCandidate           CandidateBase;
 #endif
-    struct CandidateState : CandidateStateBase
+    struct CandidatePair
     {
+      CandidateBase   m_local;
+      CandidateBase   m_remote;
       CandidateStates m_state;
-      // Not sure what else might be necessary here. Work in progress!
 
-      CandidateState(const PNatCandidate & cand)
-        : CandidateStateBase(cand)
-        , m_state(e_CandidateInProgress)
+      CandidatePair(const PNatCandidate & local, const PNatCandidate & remote)
+        : m_local(local)
+        , m_remote(remote)
+        , m_state(e_CandidateWaiting)
       {
       }
     };
-    typedef std::list<CandidateState> CandidateStateList;
-    typedef std::vector<CandidateStateList> CandidatesArray;
-    friend bool operator!=(const CandidatesArray & left, const CandidatesArray & right);
+    typedef std::vector<CandidatePair> CandidatePairs;
 
-    CandidatesArray m_localCandidates;
-    CandidatesArray m_remoteCandidates;
-
-    enum {
-      e_Disabled, // Note values and order are important
+    enum ChecklistState
+    {
+      // Note values and order are important
+      e_Disabled,  // This is equivalent to RCF 8445 "failed"
       e_Completed,
-      e_Offering,
+      e_Offering,  // States above here are equivalent to RCF 8445 "running"
       e_OfferAnswered,
       e_Answering
-    } m_state;
+    };
+
+    class ICEChannel : public PIndirectChannel
+    {
+        PCLASSINFO(ICEChannel, PIndirectChannel);
+      public:
+        ICEChannel(OpalICEMediaTransport & owner, SubChannels subchannel, PChannel * channel);
+        virtual PBoolean Read(void * buf, PINDEX len);
+        void AddRemoteCandidate(const PNatCandidate & candidate PTRACE_PARAM(, const char * where));
+        void GetLocalCandidates(PNatCandidateList & candidates);
+        bool AddLocalCandidate(const OpalTransportAddress & address);
+        bool HandleICE(const void * buf, PINDEX len);
+
+        OpalICEMediaTransport & m_owner;
+        SubChannels             m_subchannel;
+        vector<PNatCandidate>   m_localCandidates;
+        ChecklistState          m_state;
+        CandidatePairs          m_checklist;
+        PNatCandidate           m_selectedCandidate;
+    };
+    std::vector<ICEChannel *> m_iceChannelCache;
+    ICEChannel & GetICEChannel(SubChannels subchannel) const { return *m_iceChannelCache[subchannel]; }
 
     PSTUNServer m_server;
     PSTUNClient m_client;
-
-    PNatCandidate m_selectedCandidate;
 };
 
 

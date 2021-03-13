@@ -47,18 +47,21 @@ class MyManager : public OpalManagerCLI
     PDECLARE_NOTIFIER(PTimer, MyManager, AutoAnswer);
 
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdAutoAnswer);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdSpeedDial);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdCall);
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdAnswer);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdHold);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdRetrieve);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdTransfer);
+    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdSpeedDial);
+    virtual void AdjustCmdCallArguments(PString & from, PString & to);
 
+    enum AutoAnswerMode
+    {
+      NoAutoAnswer,
+      AutoAnswerImmediate,
+      AutoAnswerDelayed,
+      AutoAnswerRefuse
+    } m_autoAnswerMode;
     PTimeInterval      m_autoAnswerTime;
     PTimer             m_autoAnswerTimer;
     PStringToString    m_speedDial;
-    PSafePtr<OpalCall> m_activeCall;
-    PSafePtr<OpalCall> m_heldCall;
+    PSafePtr<OpalCall> m_incomingCall;
 };
 
 

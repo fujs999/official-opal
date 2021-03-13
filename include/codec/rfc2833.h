@@ -109,8 +109,10 @@ class OpalRFC2833Proto : public PObject
 {
     PCLASSINFO(OpalRFC2833Proto, PObject);
   public:
+    enum NotifyState { Started, Ended };
+    typedef PNotifierTemplate<NotifyState> Notifier;
     OpalRFC2833Proto(
-      const PNotifier & receiveNotifier,
+      const Notifier & receiveNotifier,
       const OpalMediaFormat & mediaFormat
     );
     ~OpalRFC2833Proto();
@@ -145,12 +147,13 @@ class OpalRFC2833Proto : public PObject
     PDECLARE_NOTIFIER(PTimer, OpalRFC2833Proto, ReceiveTimeout);
     PDECLARE_NOTIFIER(PTimer, OpalRFC2833Proto, TransmitTimeout);
 
-    OpalMediaFormat                m_baseMediaFormat;
-    RTP_DataFrame::PayloadTypes    m_txPayloadType;
-    RTP_DataFrame::PayloadTypes    m_rxPayloadType;
+    const OpalMediaFormat          m_baseMediaFormat;
+    // PTs are atomic as mutex usage is inconsistent
+    atomic<RTP_DataFrame::PayloadTypes>    m_txPayloadType;
+    atomic<RTP_DataFrame::PayloadTypes>    m_rxPayloadType;
     OpalRFC2833EventsMask          m_txEvents;
     OpalRFC2833EventsMask          m_rxEvents;
-    PNotifier                      m_receiveNotifier;
+    Notifier                       m_receiveNotifier;
     OpalRTPSession::DataNotifier   m_receiveHandler;
 
     OpalRTPSession * m_rtpSession;

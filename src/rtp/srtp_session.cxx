@@ -501,7 +501,7 @@ bool OpalSRTPSession::ResequenceOutOfOrderPackets(SyncSource &) const
 
 OpalMediaCryptoKeyList & OpalSRTPSession::GetOfferedCryptoKeys()
 {
-  PSafeLockReadOnly lock(*this);
+  PSafeLockReadOnly lock(*this); // protects read of m_keyInfo; m_offeredCryptokeys should be safe
 
   if (m_offeredCryptokeys.IsEmpty() && m_keyInfo[e_Sender] != NULL)
     m_offeredCryptokeys.Append(m_keyInfo[e_Sender]->CloneAs<OpalMediaCryptoKeyInfo>());
@@ -512,7 +512,7 @@ OpalMediaCryptoKeyList & OpalSRTPSession::GetOfferedCryptoKeys()
 
 bool OpalSRTPSession::ApplyCryptoKey(OpalMediaCryptoKeyList & keys, bool rx)
 {
-  PSafeLockReadOnly lock(*this);
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   for (OpalMediaCryptoKeyList::iterator it = keys.begin(); it != keys.end(); ++it) {
     if (ApplyKeyToSRTP(*it, rx ? e_Receiver : e_Sender)) {
@@ -526,7 +526,7 @@ bool OpalSRTPSession::ApplyCryptoKey(OpalMediaCryptoKeyList & keys, bool rx)
 
 bool OpalSRTPSession::ApplyKeyToSRTP(const OpalMediaCryptoKeyInfo & keyInfo, Direction dir)
 {
-  // Aleady locked on entry
+  // Already locked on entry
 
   const OpalSRTPKeyInfo * srtpKeyInfo = dynamic_cast<const OpalSRTPKeyInfo*>(&keyInfo);
   if (srtpKeyInfo == NULL) {
@@ -578,26 +578,29 @@ bool OpalSRTPSession::ApplyKeyToSRTP(const OpalMediaCryptoKeyInfo & keyInfo, Dir
 
 OpalMediaCryptoKeyInfo * OpalSRTPSession::IsCryptoSecured(bool rx) const
 {
+  P_INSTRUMENTED_LOCK_READ_ONLY(return NULL);
   return m_keyInfo[rx ? e_Receiver : e_Sender];
 }
 
 
 bool OpalSRTPSession::Open(const PString & localInterface, const OpalTransportAddress & remoteAddress)
 {
-  m_anyRTCP_SSRC = GetSyncSourceIn() == 0 && m_stringOptions.GetBoolean(OPAL_OPT_SRTP_RTCP_ANY_SSRC, m_anyRTCP_SSRC);
+  if (!OpalRTPSession::Open(localInterface, remoteAddress))
+    return false;
 
-  return OpalRTPSession::Open(localInterface, remoteAddress);
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
+
+  m_anyRTCP_SSRC = GetSyncSourceIn() == 0 && m_stringOptions.GetBoolean(OPAL_OPT_SRTP_RTCP_ANY_SSRC, m_anyRTCP_SSRC);
+  return true;
 }
 
 
 RTP_SyncSourceId OpalSRTPSession::AddSyncSource(RTP_SyncSourceId ssrc, Direction dir, const char * cname)
 {
-  PSafeLockReadWrite lock(*this);
-  if (!lock.IsLocked())
-    return 0;
-
   if ((ssrc = OpalRTPSession::AddSyncSource(ssrc, dir, cname)) == 0)
     return 0;
+
+  P_INSTRUMENTED_LOCK_READ_WRITE(return 0);
 
   if (m_keyInfo[dir] == NULL) {
     PTRACE(3, *this << "could not add SRTP stream for SSRC=" << RTP_TRACE_SRC(ssrc) << ", no " << dir << " key (yet)");
@@ -614,7 +617,7 @@ RTP_SyncSourceId OpalSRTPSession::AddSyncSource(RTP_SyncSourceId ssrc, Direction
 
 bool OpalSRTPSession::AddStreamToSRTP(RTP_SyncSourceId ssrc, Direction dir)
 {
-  // Aleady locked on entry
+  // Already locked on entry
 
   if (m_addedStream.find(ssrc) != m_addedStream.end()) {
     PTRACE(4, *this << "already have " << dir << " SRTP stream for SSRC=" << RTP_TRACE_SRC(ssrc));
@@ -645,6 +648,8 @@ bool OpalSRTPSession::AddStreamToSRTP(RTP_SyncSourceId ssrc, Direction dir)
 
 bool OpalSRTPSession::ApplyKeysToSRTP(OpalMediaTransport & transport)
 {
+  // Already locked on entry
+
   if (IsCryptoSecured(e_Sender) && IsCryptoSecured(e_Receiver))
     return true;
 
@@ -662,6 +667,8 @@ bool OpalSRTPSession::ApplyKeysToSRTP(OpalMediaTransport & transport)
 
 void OpalSRTPSession::OnRxDataPacket(OpalMediaTransport & transport, PBYTEArray data)
 {
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+
   ApplyKeysToSRTP(transport);
   OpalRTPSession::OnRxDataPacket(transport, data);
 }
@@ -669,6 +676,8 @@ void OpalSRTPSession::OnRxDataPacket(OpalMediaTransport & transport, PBYTEArray 
 
 void OpalSRTPSession::OnRxControlPacket(OpalMediaTransport & transport, PBYTEArray data)
 {
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
+
   ApplyKeysToSRTP(transport);
   OpalRTPSession::OnRxControlPacket(transport, data);
 }
@@ -676,7 +685,7 @@ void OpalSRTPSession::OnRxControlPacket(OpalMediaTransport & transport, PBYTEArr
 
 OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnSendData(RewriteMode & rewrite, RTP_DataFrame & frame, const PTime & now)
 {
-  // Aleady locked on entry
+  // Already locked on entry
 
   SendReceiveStatus status = OpalRTPSession::OnSendData(rewrite, frame, now);
   if (status != e_ProcessPacket)
@@ -715,7 +724,7 @@ OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnSendData(RewriteMode & rewr
 
 OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnSendControl(RTP_ControlFrame & frame, const PTime & now)
 {
-  // Aleady locked on entry
+  // Already locked on entry
 
   SendReceiveStatus status = OpalRTPSession::OnSendControl(frame, now);
   if (status != e_ProcessPacket)
@@ -751,7 +760,7 @@ OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnSendControl(RTP_ControlFram
 
 OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnReceiveData(RTP_DataFrame & frame, ReceiveType rxType, const PTime & now)
 {
-  // Aleady locked on entry
+  // Already locked on entry
 
   if (rxType == e_RxFromRTX)
     return OpalRTPSession::OnReceiveData(frame, rxType, now);
@@ -769,7 +778,7 @@ OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnReceiveData(RTP_DataFrame &
   if (UseSyncSource(ssrc, e_Receiver, false) == NULL)
     return e_IgnorePacket;
 
-  int len = frame.GetPacketSize();
+  int len = frame.GetSize();
 
   frame.MakeUnique();
 
@@ -784,7 +793,7 @@ OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnReceiveData(RTP_DataFrame &
 
   OPAL_SRTP_TRACE(3, e_Receiver, e_Data, ssrc, 2, "unprotected RTP packet: " << frame.GetPacketSize() << "->" << len);
 
-  frame.SetPayloadSize(len - frame.GetHeaderSize());
+  frame.SetPacketSize(len); // Do sanity checks now after len adjusted in srtp_unprotect
 
   return OpalRTPSession::OnReceiveData(frame, rxType, now);
 }
@@ -792,7 +801,7 @@ OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnReceiveData(RTP_DataFrame &
 
 OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnReceiveControl(RTP_ControlFrame & encoded, const PTime & now)
 {
-  /* Aleady locked on entry */
+  /* Already locked on entry */
 
   RTP_SyncSourceId ssrc = encoded.GetSenderSyncSource();
   if (!IsCryptoSecured(e_Receiver)) {
@@ -806,7 +815,7 @@ OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnReceiveControl(RTP_ControlF
      However, for Chrome, we have a special cases of SSRC=1 for video and 0xfa17fa17
      for audio, neither of which they indicate in the SDP when in recvonly mode. So,
      we force creation of those specifically. */
-  if (UseSyncSource(ssrc, e_Receiver, m_anyRTCP_SSRC || ssrc == 1 || ssrc == 0xfa17fa17) == NULL) {
+  if (UseSyncSource(ssrc, e_Receiver, m_anyRTCP_SSRC || ssrc == (IsAudio() ? 0xfa17fa17 : 1)) == NULL) {
     OPAL_SRTP_TRACE(2, e_Receiver, e_Control, ssrc, 3, "not automatically added");
     return e_IgnorePacket;
   }
@@ -844,17 +853,19 @@ OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnReceiveDecodedControl(RTP_C
 
 OpalRTPSession::SendReceiveStatus OpalSRTPSession::CheckConsecutiveErrors(bool ok, Direction dir, SubChannels subchannel)
 {
-    if (ok) {
-      PTRACE_IF(3, m_consecutiveErrors[dir][subchannel] > 0, *this << "reset consecutive errors on " << dir << ' ' << subchannel);
-      m_consecutiveErrors[dir][subchannel] = 0;
-      return e_ProcessPacket;
-    }
+  // Already locked on entry
 
-    if (++m_consecutiveErrors[dir][subchannel] < MaxConsecutiveErrors)
-      return e_IgnorePacket;
+  if (ok) {
+    PTRACE_IF(3, m_consecutiveErrors[dir][subchannel] > 0, *this << "reset consecutive errors on " << dir << ' ' << subchannel);
+    m_consecutiveErrors[dir][subchannel] = 0;
+    return e_ProcessPacket;
+  }
 
-    PTRACE(2, *this << "exceeded maximum consecutive errors, aborting " << dir << ' ' << subchannel);
-    return e_AbortTransport;
+  if (++m_consecutiveErrors[dir][subchannel] < MaxConsecutiveErrors)
+    return e_IgnorePacket;
+
+  PTRACE(2, *this << "exceeded maximum consecutive errors, aborting " << dir << ' ' << subchannel);
+  return e_AbortTransport;
 }
 
 

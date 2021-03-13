@@ -629,6 +629,7 @@ OpalFaxConnection::OpalFaxConnection(OpalCall        & call,
   , m_receiving(receiving)
   , m_disableT38(disableT38)
   , m_switchTime(0)
+  , m_switchedOnUserInput(false)
   , m_tiffFileFormat(TIFF_File_FormatName)
   , m_completed(false)
 {
@@ -681,8 +682,12 @@ void OpalFaxConnection::AdjustMediaFormats(bool   local,
   // Remove everything but G.711 or fax stuff
   OpalMediaFormatList::iterator it = mediaFormats.begin();
   while (it != mediaFormats.end()) {
-    if ((!m_ownerCall.IsSwitchingToT38() && it->GetMediaType() == OpalMediaType::Audio())
-         || *it == OpalG711_ULAW_64K || *it == OpalG711_ALAW_64K || *it == OpalRFC2833 || *it == OpalCiscoNSE)
+    if (*it == OpalG711_ULAW_64K || *it == OpalG711_ALAW_64K) {
+      // If we are using G.711 pass thru fax, then we also include silenceSupp:off SDP parameter.
+      it->SetOptionString(OpalAudioFormat::SilenceSuppressionOption(), "off - - - -");
+      ++it;
+    }
+    else if ((!m_ownerCall.IsSwitchingToT38() && it->GetMediaType() == OpalMediaType::Audio()) || it->GetMediaType() == "userinput")
       ++it;
     else if (it->GetMediaType() != OpalMediaType::Fax() || (m_disableT38 && it->GetName().NumCompare(OPAL_T38) == EqualTo))
       mediaFormats -= *it++;
@@ -817,14 +822,23 @@ PBoolean OpalFaxConnection::SendUserInputTone(char tone, unsigned duration)
 void OpalFaxConnection::OnUserInputTone(char tone, unsigned /*duration*/)
 {
   // Not yet switched and got a CNG/CED from the remote system, start switch
-  if (m_disableT38 || IsReleased())
+  if (IsReleased())
     return;
 
-  if (m_receiving ? (tone == 'X')
-                  : (tone == 'Y' && m_stringOptions.GetBoolean(OPAL_SWITCH_ON_CED))) {
-    PTRACE(3, "Requesting mode change in response to " << (tone == 'X' ? "CNG" : "CED"));
-    SwitchFaxMediaStreams(true);
+  if (m_receiving) {
+    if (tone != 'X')
+      return;
   }
+  else {
+    if (tone != 'Y' || !m_stringOptions.GetBoolean(OPAL_SWITCH_ON_CED))
+      return;
+  }
+
+  if (m_switchedOnUserInput.exchange(true))
+    return;
+
+  PTRACE(3, "Requesting mode change in response to " << (tone == 'X' ? "CNG" : "CED"));
+  SwitchFaxMediaStreams(!m_disableT38);
 }
 
 

@@ -37,7 +37,7 @@ PCREATE_PROCESS(MyApp);
 
 MyManager::MyManager()
   : OpalManagerCLI(OPAL_CONSOLE_PREFIXES OPAL_PREFIX_PCSS)
-  , m_autoAnswerTime(-1)
+  , m_autoAnswerMode(NoAutoAnswer)
 {
   m_autoAnswerTimer.SetNotifier(PCREATE_NOTIFIER(AutoAnswer));
 }
@@ -67,13 +67,9 @@ bool MyManager::Initialise(PArgList & args, bool verbose)
   SetAutoAnswer(LockedStream(*this), verbose, args, "auto-answer");
 
   m_cli->SetPrompt("OPAL> ");
-  m_cli->SetCommand("auto-answer", PCREATE_NOTIFIER(CmdAutoAnswer), "Answer call automatically", "\"off\" | \"on\" | <seconds>");
   m_cli->SetCommand("speed-dial",  PCREATE_NOTIFIER(CmdSpeedDial), "Set speed dial", "[ <name> [ <url> ] ]");
-  m_cli->SetCommand("call",        PCREATE_NOTIFIER(CmdCall),     "Start call", "<uri> | <speed-dial>");
+  m_cli->SetCommand("auto-answer", PCREATE_NOTIFIER(CmdAutoAnswer), "Answer call automatically", "\"off\" | \"refuse\" | \"immediate\" | <seconds>");
   m_cli->SetCommand("answer",      PCREATE_NOTIFIER(CmdAnswer),   "Answer call");
-  m_cli->SetCommand("hold",        PCREATE_NOTIFIER(CmdHold),     "Hold call");
-  m_cli->SetCommand("retrieve",    PCREATE_NOTIFIER(CmdRetrieve), "Retrieve call from hold");
-  m_cli->SetCommand("transfer",    PCREATE_NOTIFIER(CmdTransfer), "Transfer call", "<uri>");
 
   switch (args.GetCount()) {
     case 0 :
@@ -110,53 +106,55 @@ bool MyManager::OnLocalIncomingCall(OpalLocalConnection & connection)
     return false;
   }
 
-  if (m_autoAnswerTime < 0)
-    output << ", answer? ";
-  else {
-    // If in a call and auto answer is on, we are busy
-    if (m_activeCall != NULL) {
-      output << " refused as busy.";
-      Broadcast(output);
-      return false;
-    }
+  // If in a call and auto answer is on, we are busy
+  if (m_incomingCall != NULL) {
+    output << " refused as busy.";
+    Broadcast(output);
+    return false;
+  }
 
-    output << ", auto-answer";
-    if (m_autoAnswerTime > 0) {
-      output << " in " << m_autoAnswerTime.GetSeconds() << " seconds.";
-      m_autoAnswerTimer = m_autoAnswerTime;
-    }
-    else {
+  switch (m_autoAnswerMode) {
+    case NoAutoAnswer :
+      output << ", answer? ";
+      break;
+    case AutoAnswerImmediate :
       output << " immediately.";
       connection.AcceptIncoming();
-    }
+      break;
+    case AutoAnswerDelayed :
+      output << " in " << m_autoAnswerTime.GetSeconds() << " seconds.";
+      m_autoAnswerTimer = m_autoAnswerTime;
+      m_incomingCall = &connection.GetCall();
+      break;
+    case AutoAnswerRefuse :
+      output << " refused.";
+      Broadcast(output);
+      return false;
   }
 
   Broadcast(output);
-
-  m_activeCall = &connection.GetCall();
   return true;
 }
 
 
 void MyManager::AutoAnswer(PTimer &, P_INT_PTR)
 {
-  if (m_activeCall == NULL)
+  if (m_incomingCall == NULL)
     return;
 
-  PSafePtr<OpalLocalConnection> connection = m_activeCall->GetConnectionAs<OpalLocalConnection>();
+  PSafePtr<OpalLocalConnection> connection = m_incomingCall->GetConnectionAs<OpalLocalConnection>();
   if (connection == NULL)
     return;
 
   connection->AcceptIncoming();
+  m_incomingCall.SetNULL();
 }
 
 
 void MyManager::OnClearedCall(OpalCall & call)
 {
-  if (m_activeCall == &call)
-    m_activeCall.SetNULL();
-  else if (m_heldCall == &call)
-    m_heldCall.SetNULL();
+  if (m_incomingCall.GetObject() == &call)
+    m_incomingCall.SetNULL();
 
   OpalManagerCLI::OnClearedCall(call);
 }
@@ -167,11 +165,15 @@ bool MyManager::SetAutoAnswer(ostream & output, bool verbose, const PArgList & a
   if (option != NULL ? args.HasOption(option) : (args.GetCount() > 0)) {
     PCaselessString value = option != NULL ? args.GetOptionString(option) : args[0];
     if (value == "off")
-      m_autoAnswerTime = -1;
+      m_autoAnswerMode = NoAutoAnswer;
     else if (value == "on" || value == "immediate")
-      m_autoAnswerTime = 0;
-    else if (value.FindSpan("0123456789") == P_MAX_INDEX)
+      m_autoAnswerMode = AutoAnswerImmediate;
+    else if (value == "refuse")
+      m_autoAnswerMode = AutoAnswerRefuse;
+    else if (value.FindSpan("0123456789") == P_MAX_INDEX) {
+      m_autoAnswerMode = AutoAnswerDelayed;
       m_autoAnswerTime.SetInterval(0, value.AsInteger());
+    }
     else
       return false;
   }
@@ -180,12 +182,20 @@ bool MyManager::SetAutoAnswer(ostream & output, bool verbose, const PArgList & a
 
   if (verbose) {
     output << "Auto answer: ";
-    if (m_autoAnswerTime < 0)
-      output << "off";
-    else if (m_autoAnswerTime == 0)
-      output << "immediate";
-    else
-      output << setprecision(0) << m_autoAnswerTime << " seconds";
+    switch (m_autoAnswerMode) {
+      case NoAutoAnswer :
+        output << "off";
+        break;
+      case AutoAnswerImmediate :
+        output << "immediate";
+        break;
+      case AutoAnswerDelayed :
+        output << setprecision(0) << m_autoAnswerTime << " seconds";
+        break;
+      case AutoAnswerRefuse :
+        output << "refuse";
+        break;
+    }
     output << endl;
   }
 
@@ -197,6 +207,24 @@ void MyManager::CmdAutoAnswer(PCLI::Arguments & args, P_INT_PTR)
 {
   if (!SetAutoAnswer(args.GetContext(), true, args, NULL))
     args.WriteError("Invalid value for seconds");
+}
+
+
+void MyManager::CmdAnswer(PCLI::Arguments & args, P_INT_PTR)
+{
+  if (m_incomingCall == NULL)
+    args.WriteError() << "No call to answer." << endl;
+  else if (m_incomingCall->IsEstablished())
+    args.WriteError() << "Call already answered." << endl;
+  else {
+    PSafePtr<OpalLocalConnection> connection = m_incomingCall->GetConnectionAs<OpalLocalConnection>();
+    if (connection == NULL)
+      args.WriteError() << "Call has disappeared." << endl;
+    else {
+      connection->AcceptIncoming();
+      args.GetContext() << "Answered call from " << m_incomingCall->GetPartyA() << endl;
+    }
+  }
 }
 
 
@@ -223,104 +251,13 @@ void MyManager::CmdSpeedDial(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void MyManager::CmdCall(PCLI::Arguments & args, P_INT_PTR)
+void MyManager::AdjustCmdCallArguments(PString & from, PString & to)
 {
-  if (args.GetCount() < 1)
-    args.WriteUsage();
-  else if (m_activeCall != NULL)
-    args.WriteError() << "Already in call." << endl;
-  else {
-    PString from, to;
-    if (args.GetCount() == 1) {
-      from = OPAL_PREFIX_PCSS":*";
-      to = args[0];
-    }
-    else {
-      from = args[0];
-      to = args[1];
-    }
+  if (from.IsEmpty())
+    from = OPAL_PREFIX_PCSS":*";
 
-    if (m_speedDial.Contains(to))
-      to = m_speedDial[to];
-
-    m_activeCall = SetUpCall(from, to);
-    if (m_activeCall == NULL)
-      args.WriteError() << "Could not start call." << endl;
-    else
-      args.GetContext() << "Started call from " << m_activeCall->GetPartyA() << " to " << m_activeCall->GetPartyB() << endl;
-  }
-}
-
-
-void MyManager::CmdAnswer(PCLI::Arguments & args, P_INT_PTR)
-{
-  if (m_activeCall == NULL)
-    args.WriteError() << "No call to answer." << endl;
-  else if (m_activeCall->IsEstablished())
-    args.WriteError() << "Call already answered." << endl;
-  else {
-    PSafePtr<OpalLocalConnection> connection = m_activeCall->GetConnectionAs<OpalLocalConnection>();
-    if (connection == NULL)
-      args.WriteError() << "Call has disappeared." << endl;
-    else {
-      connection->AcceptIncoming();
-      args.GetContext() << "Answered call from " << m_activeCall->GetPartyA() << endl;
-    }
-  }
-}
-
-
-void MyManager::CmdHold(PCLI::Arguments & args, P_INT_PTR)
-{
-  if (m_activeCall == NULL)
-    args.WriteError() << "No call to hold." << endl;
-  else if (!m_activeCall->IsEstablished())
-    args.WriteError() << "Call not yet answered." << endl;
-  else if (m_activeCall->IsOnHold())
-    args.WriteError() << "Call already on hold." << endl;
-  else if (!m_activeCall->Hold())
-    args.WriteError() << "Call has disappeared." << endl;
-  else {
-    args.GetContext() << "Holding call with " << m_activeCall->GetRemoteParty() << endl;
-    m_heldCall = m_activeCall;
-    m_activeCall.SetNULL();
-  }
-}
-
-
-void MyManager::CmdRetrieve(PCLI::Arguments & args, P_INT_PTR)
-{
-  if (m_activeCall != NULL) {
-    m_activeCall->Clear();
-    m_activeCall.SetNULL();
-  }
-
-  if (m_heldCall == NULL)
-    args.WriteError() << "No call to retrieve from hold." << endl;
-  else if (!m_heldCall->IsOnHold())
-    args.WriteError() << "No call is not on hold." << endl;
-  else if (!m_heldCall->Retrieve())
-    args.WriteError() << "Call has disappeared." << endl;
-  else {
-    args.GetContext() << "Retrieving call with " << m_heldCall->GetRemoteParty() << endl;
-    m_activeCall = m_heldCall;
-    m_heldCall.SetNULL();
-  }
-}
-
-
-void MyManager::CmdTransfer(PCLI::Arguments & args, P_INT_PTR)
-{
-  if (args.GetCount() < 1)
-    args.WriteUsage();
-  else if (m_activeCall == NULL)
-    args.WriteError() << "No call to transfer." << endl;
-  else if (!m_activeCall->IsEstablished())
-    args.WriteError() << "Call not yet answered." << endl;
-  else if (!m_activeCall->Transfer(args[0]))
-    args.WriteError() << "Transfer failed." << endl;
-  else
-    args.GetContext() << "Transfering call with " << m_activeCall->GetRemoteParty() << " to " << args[0] << endl;
+  if (m_speedDial.Contains(to))
+    to = m_speedDial[to];
 }
 
 

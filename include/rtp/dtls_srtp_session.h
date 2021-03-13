@@ -67,9 +67,10 @@ class OpalDTLSMediaTransport : public OpalDTLSMediaTransportParent
     virtual bool IsEstablished() const;
     virtual bool GetKeyInfo(OpalMediaCryptoKeyInfo * keyInfo[2]);
 
-    void SetPassiveMode(bool passive) { m_passiveMode = passive; }
+    void SetPassiveMode(bool passive);
     PSSLCertificateFingerprint GetLocalFingerprint(PSSLCertificateFingerprint::HashType hashType) const;
     bool SetRemoteFingerprint(const PSSLCertificateFingerprint& fp);
+    PSSLCertificateFingerprint GetRemoteFingerprint() const;
 
   protected:
     virtual PChannel * AddWrapperChannels(SubChannels subchannel, PChannel * channel);
@@ -81,12 +82,15 @@ class OpalDTLSMediaTransport : public OpalDTLSMediaTransportParent
         DTLSChannel(OpalDTLSMediaTransport & transport, PChannel * channel);
         ~DTLSChannel() { Close(); }
         virtual bool Read(void * buf, PINDEX len);
-#if PTRACING
         virtual int BioRead(char * buf, int len);
-#endif
         virtual int BioWrite(const char * buf, int len);
       protected:
         OpalDTLSMediaTransport & m_transport;
+        // Used to cache a ClientHello received before we're ready to handshake.
+        // Unfortunately Firefox likes to fragment this over two packets after the
+        // first 3 ignored attempts (~350ms).
+        std::list<PBYTEArray>    m_lastReceivedPackets;
+        // The final handshake response packet (for retransmission in case it is lost)
         PBYTEArray               m_lastResponseData;
         PINDEX                   m_lastResponseLength;
     };
@@ -96,13 +100,13 @@ class OpalDTLSMediaTransport : public OpalDTLSMediaTransportParent
     virtual bool PerformHandshake(DTLSChannel & channel);
     PDECLARE_SSLVerifyNotifier(OpalDTLSMediaTransport, OnVerify);
 
-    bool            m_passiveMode;
-    PTimeInterval   m_handshakeTimeout;
-    unsigned        m_MTU;
-    PSSLCertificate m_certificate;
-    PSSLPrivateKey  m_privateKey;
+    atomic<bool>        m_passiveMode;
+    PTimeInterval       m_handshakeTimeout;
+    unsigned            m_MTU;
+    PSSLCertificate     m_certificate;
+    PSSLPrivateKey      m_privateKey;
     PSSLCertificateFingerprint m_remoteFingerprint;
-    std::auto_ptr<OpalMediaCryptoKeyInfo> m_keyInfo[2];
+    PAutoPtr<OpalMediaCryptoKeyInfo> m_keyInfo[2];
 
   friend class OpalDTLSContext;
 

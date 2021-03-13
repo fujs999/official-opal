@@ -58,14 +58,14 @@ OPAL_INSTANTIATE_SIMPLE_MEDIATYPE(UserInputMediaDefinition, "userinput");
 
 ///////////////////////////////////////////////////////////////////////////////
 
-const OpalMediaType & OpalMediaType::Audio()     { static const OpalMediaType type = OpalAudioMediaDefinition::Name(); return type; }
+const OpalMediaType & OpalMediaType::Audio()     { static const OpalMediaType type(true, OpalAudioMediaDefinition::Name()); return type; }
 #if OPAL_VIDEO
-const OpalMediaType & OpalMediaType::Video()     { static const OpalMediaType type = OpalVideoMediaDefinition::Name(); return type; }
+const OpalMediaType & OpalMediaType::Video()     { static const OpalMediaType type(true, OpalVideoMediaDefinition::Name()); return type; }
 #endif
 #if OPAL_T38_CAPABILITY
-const OpalMediaType & OpalMediaType::Fax()       { static const OpalMediaType type = OpalFaxMediaDefinition::Name();   return type; };
+const OpalMediaType & OpalMediaType::Fax()       { static const OpalMediaType type(true, OpalFaxMediaDefinition::Name());   return type; };
 #endif
-const OpalMediaType & OpalMediaType::UserInput() { static const OpalMediaType type = UserInputMediaDefinition::Name(); return type; };
+const OpalMediaType & OpalMediaType::UserInput() { static const OpalMediaType type(true, UserInputMediaDefinition::Name()); return type; };
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -82,23 +82,23 @@ bool OpalMediaType::AutoStartMap::Add(const PString & stringOption)
   // get autostart option as lines
   PStringArray lines = stringOption.Lines();
   for (PINDEX i = 0; i < lines.GetSize(); ++i) {
-    PCaselessString mediaTypeName, modeName;
-    if (lines[i].Split(':', mediaTypeName, modeName))
-      Add(mediaTypeName, modeName);
-    else
-      Add(lines[i], "sendrecv");
+    PCaselessString key, modeName;
+    if (lines[i].Split(':', key, modeName, PString::SplitDefaultToBefore|PString::SplitBeforeNonEmpty|PString::SplitTrim))
+      Add(key, modeName.empty() ? PConstCaselessString("sendrecv") : modeName);
   }
 
   return !empty();
 }
 
 
-bool OpalMediaType::AutoStartMap::Add(const PCaselessString & mediaTypeName, const PCaselessString & modeName)
+bool OpalMediaType::AutoStartMap::Add(const PCaselessString & key, const PCaselessString & modeName)
 {
-  OpalMediaType mediaType(mediaTypeName);
-  if (mediaType.GetDefinition() == NULL) {
-    PTRACE(2, PTraceModule(), "Illegal/unknown AutoStart media type \"" << mediaTypeName << '"');
-    return false;
+  if (key.FindSpan("0123456789") != P_MAX_INDEX) {
+    OpalMediaType mediaType(key);
+    if (mediaType.GetDefinition() == NULL) {
+      PTRACE(2, PTraceModule(), "Illegal/unknown AutoStart media type \"" << key << '"');
+      return false;
+    }
   }
 
   OpalMediaType::AutoStartMode mode;
@@ -115,7 +115,7 @@ bool OpalMediaType::AutoStartMap::Add(const PCaselessString & mediaTypeName, con
   else if (modeName == "exclusive") {
     OpalMediaTypeList types = OpalMediaType::GetList();
     for (OpalMediaTypeList::iterator it = types.begin(); it != types.end(); ++it)
-      insert(value_type(*it, mediaType == it->c_str() ? OpalMediaType::ReceiveTransmit : OpalMediaType::DontOffer));
+      insert(value_type(*it, key == it->c_str() ? OpalMediaType::ReceiveTransmit : OpalMediaType::DontOffer));
     return true;
   }
   else {
@@ -123,7 +123,11 @@ bool OpalMediaType::AutoStartMap::Add(const PCaselessString & mediaTypeName, con
     return false;
   }
 
-  return insert(value_type(mediaType, mode)).second;
+  if (insert(value_type(key, mode)).second)
+    return true;
+
+  PTRACE(2, PTraceModule(), "AutoStart for " << key << " has multiple entries, ignoring " << modeName);
+  return false;
 }
 
 
@@ -144,22 +148,35 @@ ostream & operator<<(ostream & strm, OpalMediaType::AutoStartMode mode)
 }
 
 
-OpalMediaType::AutoStartMode OpalMediaType::AutoStartMap::GetAutoStart(const OpalMediaType & mediaType) const
+OpalMediaType::AutoStartMode OpalMediaType::AutoStartMap::GetAutoStart(const OpalMediaType & mediaType, const char * key) const
 {
   PWaitAndSignal m(m_mutex);
-  const_iterator it = find(mediaType);
+  const_iterator it;
+  if (key == NULL || (it = find(key)) == end())
+    it = find(mediaType);
   return it == end() ? mediaType.GetAutoStart() : it->second;
 }
 
 
 void OpalMediaType::AutoStartMap::SetGlobalAutoStart()
 {
-  for (iterator it = begin(); it != end(); ++it)
-    it->first->SetAutoStart(it->second);
+  for (iterator it = begin(); it != end(); ++it) {
+    OpalMediaType mediaType(it->first);
+    if (mediaType.GetDefinition() != NULL)
+      mediaType->SetAutoStart(it->second);
+  }
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
+
+void OpalMediaType::Construct(const char * name)
+{
+  OpalMediaTypeDefinition * def = OpalMediaTypesFactory::CreateInstance(OpalMediaType(true, name));
+  if (def != NULL)
+    *this = def->GetMediaType();
+}
+
 
 OpalMediaTypeDefinition * OpalMediaType::GetDefinition() const
 {
@@ -219,7 +236,7 @@ OpalMediaTypeDefinition::OpalMediaTypeDefinition(const char * mediaType,
                                                  const char * mediaSession,
                                                  unsigned defaultSessionId,
                                                  OpalMediaType::AutoStartMode autoStart)
-  : m_mediaType(mediaType)
+  : m_mediaType(true, mediaType)
   , m_mediaSessionType(mediaSession)
   , m_defaultSessionId(defaultSessionId)
   , m_autoStart(autoStart)

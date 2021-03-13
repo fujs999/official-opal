@@ -215,7 +215,7 @@ OpalRFC2833Info::OpalRFC2833Info(char t, unsigned d, unsigned ts)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-OpalRFC2833Proto::OpalRFC2833Proto(const PNotifier & rx, const OpalMediaFormat & fmt)
+OpalRFC2833Proto::OpalRFC2833Proto(const Notifier & rx, const OpalMediaFormat & fmt)
   : m_baseMediaFormat(fmt)
   , m_txPayloadType(RTP_DataFrame::IllegalPayloadType)
   , m_rxPayloadType(RTP_DataFrame::IllegalPayloadType)
@@ -328,12 +328,14 @@ bool OpalRFC2833Proto::AbortTransmit()
 
 bool OpalRFC2833Proto::InternalTransmitFrame()
 {
+  // Assumes transmit mutex is already locked
+    
   if (m_rtpSession == NULL) {
     PTRACE(2, "No RTP session suitable for " << m_baseMediaFormat);
     return AbortTransmit();
   }
 
-  // if transmittter is ever in this state, then stop the duration timer
+  // if transmitter is ever in this state, then stop the duration timer
   if (m_txPayloadType == RTP_DataFrame::IllegalPayloadType) {
     PTRACE(2, "No payload type to send packet for " << m_baseMediaFormat);
     return AbortTransmit();
@@ -427,6 +429,7 @@ void OpalRFC2833Proto::TransmitTimeout(PTimer & timer, P_INT_PTR)
 OpalMediaFormat OpalRFC2833Proto::GetTxMediaFormat() const
 {
   OpalMediaFormat format = m_baseMediaFormat;
+  PWaitAndSignal mutex(m_transmitMutex);
   format.SetPayloadType(m_txPayloadType);
   OpalRFC288EventsOption * opt = format.FindOptionAs<OpalRFC288EventsOption>(OpalRFC288EventsName());
   if (PAssertNULL(opt) != NULL)
@@ -438,6 +441,7 @@ OpalMediaFormat OpalRFC2833Proto::GetTxMediaFormat() const
 OpalMediaFormat OpalRFC2833Proto::GetRxMediaFormat() const
 {
   OpalMediaFormat format = m_baseMediaFormat;
+  PWaitAndSignal mutex(m_receiveMutex);
   format.SetPayloadType(m_rxPayloadType);
   OpalRFC288EventsOption * opt = format.FindOptionAs<OpalRFC288EventsOption>(OpalRFC288EventsName());
   if (PAssertNULL(opt) != NULL)
@@ -447,7 +451,7 @@ OpalMediaFormat OpalRFC2833Proto::GetRxMediaFormat() const
 
 
 static void SetXxMediaFormat(const OpalMediaFormat & mediaFormat,
-                             RTP_DataFrame::PayloadTypes & payloadType,
+                             atomic<RTP_DataFrame::PayloadTypes> & payloadType,
                              OpalRFC2833EventsMask & events)
 {
   if (mediaFormat.IsValid()) {
@@ -465,6 +469,7 @@ static void SetXxMediaFormat(const OpalMediaFormat & mediaFormat,
 
 void OpalRFC2833Proto::SetTxMediaFormat(const OpalMediaFormat & mediaFormat)
 {
+  PWaitAndSignal mutex(m_transmitMutex);
   SetXxMediaFormat(mediaFormat, m_txPayloadType, m_txEvents);
   PTRACE(4, "Set tx pt=" << m_txPayloadType << ","
             " events=\"" << m_txEvents << "\""
@@ -474,6 +479,7 @@ void OpalRFC2833Proto::SetTxMediaFormat(const OpalMediaFormat & mediaFormat)
 
 void OpalRFC2833Proto::SetRxMediaFormat(const OpalMediaFormat & mediaFormat)
 {
+  PWaitAndSignal mutex(m_receiveMutex);
   SetXxMediaFormat(mediaFormat, m_rxPayloadType, m_rxEvents);
   PTRACE(4, "Set rx pt=" << m_rxPayloadType << ","
             " events=\"" << m_rxEvents << "\""
@@ -523,7 +529,7 @@ void OpalRFC2833Proto::OnStartReceive(char tone, unsigned timestamp)
   m_receiveTimer = 200;
 
   OpalRFC2833Info info(tone, 0, timestamp);
-  m_receiveNotifier(info, 0);
+  m_receiveNotifier(info, Started);
 }
 
 
@@ -533,7 +539,7 @@ void OpalRFC2833Proto::OnEndReceive()
   m_receiveTimer.Stop(false);
 
   OpalRFC2833Info info(m_receivedTone, m_receivedDuration/m_baseMediaFormat.GetTimeUnits(), m_receivedTimestamp);
-  m_receiveNotifier(info, 1);
+  m_receiveNotifier(info, Ended);
 }
 
 

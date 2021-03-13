@@ -165,11 +165,25 @@ static struct PluginCodec_Option const MaxAverageBitRate =
 {
   PluginCodec_IntegerOption,
   PLUGINCODEC_OPTION_MAX_BIT_RATE,
-  true,
+  false,
   PluginCodec_MinMerge,
   STRINGIZE(DEFAULT_BIT_RATE),
   MaxAverageBitRate_FMTPName,
   "",
+  0,
+  STRINGIZE(MIN_BIT_RATE),
+  STRINGIZE(MAX_BIT_RATE)
+};
+
+static struct PluginCodec_Option const TargetBitRate =
+{
+  PluginCodec_IntegerOption,
+  PLUGINCODEC_OPTION_TARGET_BIT_RATE,
+  false,
+  PluginCodec_MinMerge,
+  STRINGIZE(DEFAULT_BIT_RATE),
+  NULL,
+  NULL,
   0,
   STRINGIZE(MIN_BIT_RATE),
   STRINGIZE(MAX_BIT_RATE)
@@ -210,6 +224,7 @@ static struct PluginCodec_Option const * const MyOptions[] = {
   &PlaybackStereo,
   &CaptureStereo,
   &MaxAverageBitRate,
+  &TargetBitRate,
   &DynamicPacketLoss,
   &Complexity,
   NULL
@@ -225,7 +240,7 @@ class OpusPluginMediaFormat : public PluginCodec_AudioFormat<MY_CODEC>
     OpusPluginMediaFormat(const char * formatName, const char * rawFormat, unsigned actualSampleRate, unsigned actualChannels)
       : PluginCodec_AudioFormat<MY_CODEC>(formatName, OpusEncodingName, MyDescription,
                                            960*actualChannels*actualSampleRate/OPUS_SAMPLE_RATE,
-                                           MAX_BIT_RATE*OPUS_FRAME_MS/1000/8, // 20ms and bits to bytes
+                                           0, // Do not indicate bytesPerFrame, as highly variable
                                            OPUS_SAMPLE_RATE, MyOptions)
       , m_actualSampleRate(actualSampleRate)
       , m_actualChannels(actualChannels)
@@ -233,7 +248,7 @@ class OpusPluginMediaFormat : public PluginCodec_AudioFormat<MY_CODEC>
       m_rawFormat = rawFormat;
       m_recommendedFramesPerPacket = 1; // 20ms
       m_maxFramesPerPacket = 120/OPUS_FRAME_MS; // 120ms
-      m_maxBandwidth = MAX_BIT_RATE;
+      m_maxBandwidth = MAX_BIT_RATE; // No bytesPerFrame, so set explicitly
       m_frameTime = 20000; // Rare occasion where frame time not derived from samplesPerFrame and sampleRate
       m_flags |= PluginCodec_SetChannels(2) | PluginCodec_RTPTypeShared | PluginCodec_EmptyPayload;
     }
@@ -412,8 +427,8 @@ class OpusPluginEncoder : public OpusPluginCodec
       if (strcasecmp(optionName, UseDTX.m_name) == 0)
         return SetOptionBoolean(m_useDTX, optionValue);
 
-      if (strcasecmp(optionName, PLUGINCODEC_OPTION_TARGET_BIT_RATE) == 0)
-        return SetOptionUnsigned(m_bitRate, optionValue, 6000, 510000);
+      if (strcasecmp(optionName, TargetBitRate.m_name) == 0)
+        return SetOptionUnsigned(m_bitRate, optionValue, MIN_BIT_RATE, MAX_BIT_RATE);
 
       if (strcasecmp(optionName, Complexity.m_name) == 0)
           return SetOptionUnsigned(m_complexity, optionValue, 0, 10);

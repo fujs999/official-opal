@@ -42,6 +42,8 @@
 						<object class="wxButton" name="wxID_OK">
 							<label>OK</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="sizeritem">
@@ -51,6 +53,8 @@
 						<object class="wxButton" name="wxID_CANCEL">
 							<label>Cancel</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="spacer">
@@ -87,6 +91,8 @@
 					</font>
 					<label>Hang Up</label>
 					<default>0</default>
+					<markup>0</markup>
+					<bitmap />
 				</object>
 			</object>
 			<object class="spacer">
@@ -270,6 +276,8 @@
 						<object class="wxButton" name="wxID_OK">
 							<label>OK</label>
 							<default>1</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="spacer">
@@ -285,6 +293,8 @@
 						<object class="wxButton" name="wxID_CANCEL">
 							<label>Cancel</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="spacer">
@@ -338,6 +348,8 @@
 						<object class="wxButton" name="wxID_OK">
 							<label>OK</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="sizeritem">
@@ -347,6 +359,8 @@
 						<object class="wxButton" name="wxID_CANCEL">
 							<label>Cancel</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 				</object>
@@ -354,8 +368,8 @@
 		</object>
 	</object>
 	<object class="wxPanel" name="InCallPanel" subclass="InCallPanel">
-		<style>wxSUNKEN_BORDER|wxTAB_TRAVERSAL</style>
-		<size>610,358</size>
+		<style>wxTAB_TRAVERSAL|wxBORDER_SUNKEN</style>
+		<size>686,358</size>
 		<object class="wxBoxSizer">
 			<orient>wxHORIZONTAL</orient>
 			<object class="sizeritem">
@@ -408,7 +422,7 @@
 												<border>8</border>
 												<object class="wxGauge" name="SpeakerGauge">
 													<style>wxGA_VERTICAL|wxGA_SMOOTH</style>
-													<range>100</range>
+													<range>127</range>
 													<value>0</value>
 												</object>
 											</object>
@@ -460,7 +474,7 @@
 												<border>8</border>
 												<object class="wxGauge" name="MicrophoneGauge">
 													<style>wxGA_VERTICAL|wxGA_SMOOTH</style>
-													<range>100</range>
+													<range>127</range>
 													<value>0</value>
 												</object>
 											</object>
@@ -487,7 +501,7 @@
 										<object class="wxNotebook" name="Statistics">
 											<object class="notebookpage">
 												<label>Rx Audio</label>
-												<selected>0</selected>
+												<selected>1</selected>
 												<object class="wxPanel" name="RxAudioStatistics">
 													<style>wxTAB_TRAVERSAL</style>
 													<object class="wxBoxSizer">
@@ -1284,7 +1298,7 @@
 											</object>
 											<object class="notebookpage">
 												<label>Tx Video</label>
-												<selected>1</selected>
+												<selected>0</selected>
 												<object class="wxPanel" name="TxVideoStatistics">
 													<style>wxTAB_TRAVERSAL</style>
 													<object class="wxBoxSizer">
@@ -1817,9 +1831,12 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input1">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
-																<label>1</label>
+																<label>1\n </label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -1827,9 +1844,12 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input2">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
 																<label>2\nabc</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -1837,9 +1857,12 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input3">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
 																<label>3\ndef</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -1847,9 +1870,12 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input4">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
 																<label>4\nghi</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -1857,9 +1883,12 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input5">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
 																<label>5\njkl</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -1867,9 +1896,12 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input6">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
 																<label>6\nmno</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -1877,9 +1909,12 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input7">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
 																<label>7\npqrs</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -1887,9 +1922,12 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input8">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
 																<label>8\ntuv</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -1897,9 +1935,12 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input9">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
 																<label>9\nwxyz</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -1907,9 +1948,12 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="InputStar">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
-																<label>*</label>
+																<label>\n*\n </label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -1917,9 +1961,12 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="Input0">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
-																<label>0</label>
+																<label>\n0\n </label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -1927,20 +1974,26 @@
 															<flag></flag>
 															<border>0</border>
 															<object class="wxButton" name="InputHash">
+																<style>wxBORDER_NONE</style>
 																<size>40,40</size>
-																<label>#</label>
+																<label>\n#\n </label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 													</object>
 												</object>
 												<object class="sizeritem">
-													<option>1</option>
+													<option>0</option>
 													<flag>wxEXPAND</flag>
 													<border>0</border>
 													<object class="wxButton" name="InputFlash">
-														<label>Hook Flash</label>
+														<style>wxBORDER_NONE</style>
+														<label>\nHook Flash\n </label>
 														<default>0</default>
+														<markup>0</markup>
+														<bitmap />
 													</object>
 												</object>
 											</object>
@@ -1969,6 +2022,8 @@
 																<enabled>0</enabled>
 																<label>Wide</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -1980,6 +2035,8 @@
 																<enabled>0</enabled>
 																<label>Tight</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 													</object>
@@ -2010,6 +2067,8 @@
 																<enabled>0</enabled>
 																<label>U</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="spacer">
@@ -2027,6 +2086,8 @@
 																<enabled>0</enabled>
 																<label>L</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="spacer">
@@ -2044,6 +2105,8 @@
 																<enabled>0</enabled>
 																<label>R</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="spacer">
@@ -2061,6 +2124,8 @@
 																<enabled>0</enabled>
 																<label>D</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="spacer">
@@ -2086,6 +2151,8 @@
 																<enabled>0</enabled>
 																<label>In</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -2097,6 +2164,8 @@
 																<enabled>0</enabled>
 																<label>Out</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 													</object>
@@ -2116,13 +2185,13 @@
 							<orient>wxHORIZONTAL</orient>
 							<object class="spacer">
 								<option>2</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<size>5,20</size>
 							</object>
 							<object class="sizeritem">
 								<option>5</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<object class="wxButton" name="HangUp">
 									<font>
@@ -2134,17 +2203,19 @@
 									</font>
 									<label>Hang Up</label>
 									<default>0</default>
+									<markup>0</markup>
+									<bitmap />
 								</object>
 							</object>
 							<object class="spacer">
 								<option>1</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<size>5,20</size>
 							</object>
 							<object class="sizeritem">
 								<option>5</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<object class="wxButton" name="Hold">
 									<font>
@@ -2156,17 +2227,19 @@
 									</font>
 									<label>Hold</label>
 									<default>0</default>
+									<markup>0</markup>
+									<bitmap />
 								</object>
 							</object>
 							<object class="spacer">
 								<option>1</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<size>5,20</size>
 							</object>
 							<object class="sizeritem">
 								<option>5</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<object class="wxButton" name="Conference">
 									<enabled>0</enabled>
@@ -2179,17 +2252,19 @@
 									</font>
 									<label>Conference</label>
 									<default>0</default>
+									<markup>0</markup>
+									<bitmap />
 								</object>
 							</object>
 							<object class="spacer">
 								<option>1</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<size>5,20</size>
 							</object>
 							<object class="sizeritem">
 								<option>5</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<object class="wxButton" name="SpeakerHandset">
 									<enabled>0</enabled>
@@ -2202,11 +2277,13 @@
 									</font>
 									<label>No Handset</label>
 									<default>0</default>
+									<markup>0</markup>
+									<bitmap />
 								</object>
 							</object>
 							<object class="spacer">
 								<option>2</option>
-								<flag></flag>
+								<flag>wxEXPAND</flag>
 								<border>0</border>
 								<size>5,20</size>
 							</object>
@@ -2230,7 +2307,7 @@
 				<object class="wxNotebook" name="OptionsNotebook">
 					<object class="notebookpage">
 						<label>General</label>
-						<selected>0</selected>
+						<selected>1</selected>
 						<object class="wxPanel" name="GeneralOptions">
 							<style>wxTAB_TRAVERSAL</style>
 							<object class="wxFlexGridSizer">
@@ -2312,6 +2389,8 @@
 											<object class="wxButton" name="PlaySoundFile">
 												<label>Play</label>
 												<default>0</default>
+												<markup>0</markup>
+												<bitmap />
 											</object>
 										</object>
 										<object class="sizeritem">
@@ -2330,6 +2409,8 @@
 											<object class="wxButton" name="BrowseSoundFile">
 												<label>Browse</label>
 												<default>0</default>
+												<markup>0</markup>
+												<bitmap />
 											</object>
 										</object>
 									</object>
@@ -2659,6 +2740,8 @@
 																<style>wxBU_RIGHT</style>
 																<label>Certificate Authority:</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -2678,6 +2761,8 @@
 																<style>wxBU_RIGHT</style>
 																<label>Local Certificate:</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -2697,6 +2782,8 @@
 																<style>wxBU_RIGHT</style>
 																<label>Private Key:</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -2716,19 +2803,19 @@
 								</object>
 								<object class="sizeritem">
 									<option>0</option>
-									<flag>wxLEFT|wxRIGHT|wxTOP|wxEXPAND</flag>
+									<flag>wxEXPAND|wxLEFT|wxRIGHT|wxTOP</flag>
 									<border>12</border>
 									<object class="wxStaticBoxSizer">
 										<orient>wxHORIZONTAL</orient>
 										<label>NAT/Firewall</label>
 										<object class="sizeritem">
-											<option>0</option>
-											<flag>wxEXPAND</flag>
+											<option>1</option>
+											<flag>wxALIGN_CENTER_VERTICAL</flag>
 											<border>0</border>
 											<object class="wxBoxSizer">
 												<orient>wxHORIZONTAL</orient>
 												<object class="sizeritem">
-													<option>0</option>
+													<option>1</option>
 													<flag>wxALL|wxEXPAND</flag>
 													<border>8</border>
 													<object class="wxListBox" name="NatMethods">
@@ -2736,7 +2823,7 @@
 													</object>
 												</object>
 												<object class="sizeritem">
-													<option>0</option>
+													<option>4</option>
 													<flag>wxALIGN_CENTER_VERTICAL</flag>
 													<border>0</border>
 													<object class="wxFlexGridSizer">
@@ -2744,7 +2831,7 @@
 														<cols>2</cols>
 														<vgap>0</vgap>
 														<hgap>0</hgap>
-														<growablecols></growablecols>
+														<growablecols>1</growablecols>
 														<growablerows></growablerows>
 														<object class="spacer">
 															<option>0</option>
@@ -2763,7 +2850,7 @@
 														</object>
 														<object class="sizeritem">
 															<option>0</option>
-															<flag>wxLEFT|wxTOP|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+															<flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxLEFT|wxTOP</flag>
 															<border>8</border>
 															<object class="wxStaticText" name="label_115">
 																<label>Server:</label>
@@ -2771,8 +2858,8 @@
 															</object>
 														</object>
 														<object class="sizeritem">
-															<option>0</option>
-															<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
+															<option>1</option>
+															<flag>wxALIGN_CENTER_VERTICAL|wxEXPAND|wxRIGHT|wxTOP</flag>
 															<border>8</border>
 															<object class="wxTextCtrl" name="NatServer">
 																<value></value>
@@ -2804,7 +2891,7 @@
 											</object>
 										</object>
 										<object class="sizeritem">
-											<option>3</option>
+											<option>0</option>
 											<flag>wxALIGN_CENTER_VERTICAL|wxLEFT</flag>
 											<border>24</border>
 											<object class="wxFlexGridSizer">
@@ -2972,6 +3059,8 @@
 															<object class="wxButton" name="AddInterface">
 																<label>&lt;- Add</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="sizeritem">
@@ -2981,6 +3070,8 @@
 															<object class="wxButton" name="RemoveInterface">
 																<label>Remove -&gt;</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 													</object>
@@ -3123,6 +3214,8 @@
 													<object class="wxButton" name="TestPlayer">
 														<label>Test</label>
 														<default>0</default>
+														<markup>0</markup>
+														<bitmap />
 													</object>
 												</object>
 												<object class="sizeritem">
@@ -3151,6 +3244,8 @@
 													<object class="wxButton" name="TestRecorder">
 														<label>Test</label>
 														<default>0</default>
+														<markup>0</markup>
+														<bitmap />
 													</object>
 												</object>
 												<object class="sizeritem">
@@ -3594,396 +3689,236 @@
 					</object>
 					<object class="notebookpage">
 						<label>Video</label>
-						<selected>1</selected>
+						<selected>0</selected>
 						<object class="wxPanel" name="VideoOptions">
 							<style>wxTAB_TRAVERSAL</style>
 							<object class="wxBoxSizer">
-								<orient>wxVERTICAL</orient>
+								<orient>wxHORIZONTAL</orient>
 								<object class="sizeritem">
-									<option>0</option>
-									<flag>wxEXPAND</flag>
-									<border>5</border>
-									<object class="wxBoxSizer">
+									<option>4</option>
+									<flag>wxALL</flag>
+									<border>12</border>
+									<object class="wxStaticBoxSizer">
 										<orient>wxHORIZONTAL</orient>
+										<label>Video Capture</label>
 										<object class="sizeritem">
-											<option>4</option>
-											<flag>wxALL</flag>
-											<border>12</border>
-											<object class="wxStaticBoxSizer">
-												<orient>wxHORIZONTAL</orient>
-												<label>Video Capture</label>
+											<option>1</option>
+											<flag></flag>
+											<border>0</border>
+											<object class="wxFlexGridSizer">
+												<rows>9</rows>
+												<cols>2</cols>
+												<vgap>0</vgap>
+												<hgap>0</hgap>
+												<growablecols>1</growablecols>
+												<growablerows></growablerows>
+												<object class="sizeritem">
+													<option>0</option>
+													<flag>wxLEFT|wxTOP|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>12</border>
+													<object class="wxStaticText" name="label_35">
+														<label>Device:</label>
+														<wrap>-1</wrap>
+													</object>
+												</object>
 												<object class="sizeritem">
 													<option>1</option>
-													<flag></flag>
+													<flag>wxRIGHT|wxTOP|wxEXPAND|wxALIGN_CENTER_VERTICAL</flag>
+													<border>12</border>
+													<object class="wxComboBox" name="VideoGrabDevice">
+														<style>wxCB_DROPDOWN|wxCB_SORT</style>
+														<value></value>
+														<content />
+													</object>
+												</object>
+												<object class="sizeritem">
+													<option>0</option>
+													<flag>wxLEFT|wxTOP|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>12</border>
+													<object class="wxStaticText" name="label_36">
+														<label>Format:</label>
+														<wrap>-1</wrap>
+													</object>
+												</object>
+												<object class="sizeritem">
+													<option>0</option>
+													<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
+													<border>12</border>
+													<object class="wxChoice" name="VideoGrabFormat">
+														<selection>0</selection>
+														<content>
+															<item>PAL</item>
+															<item>NTSC</item>
+															<item>SECAM</item>
+															<item>Auto</item>
+														</content>
+													</object>
+												</object>
+												<object class="sizeritem">
+													<option>0</option>
+													<flag>wxLEFT|wxTOP|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>12</border>
+													<object class="wxStaticText" name="label_37">
+														<label>Source/Options:</label>
+														<wrap>-1</wrap>
+													</object>
+												</object>
+												<object class="sizeritem">
+													<option>1</option>
+													<flag>wxEXPAND</flag>
 													<border>0</border>
-													<object class="wxFlexGridSizer">
-														<rows>9</rows>
-														<cols>2</cols>
-														<vgap>0</vgap>
-														<hgap>0</hgap>
-														<growablecols>1</growablecols>
-														<growablerows></growablerows>
-														<object class="sizeritem">
-															<option>0</option>
-															<flag>wxLEFT|wxTOP|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-															<border>12</border>
-															<object class="wxStaticText" name="label_35">
-																<label>Device:</label>
-																<wrap>-1</wrap>
-															</object>
-														</object>
+													<object class="wxBoxSizer">
+														<orient>wxHORIZONTAL</orient>
 														<object class="sizeritem">
 															<option>1</option>
-															<flag>wxRIGHT|wxTOP|wxEXPAND|wxALIGN_CENTER_VERTICAL</flag>
+															<flag>wxTOP</flag>
 															<border>12</border>
-															<object class="wxComboBox" name="VideoGrabDevice">
-																<style>wxCB_DROPDOWN|wxCB_SORT</style>
-																<value></value>
-																<content />
-															</object>
-														</object>
-														<object class="sizeritem">
-															<option>0</option>
-															<flag>wxLEFT|wxTOP|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-															<border>12</border>
-															<object class="wxStaticText" name="label_36">
-																<label>Format:</label>
-																<wrap>-1</wrap>
-															</object>
-														</object>
-														<object class="sizeritem">
-															<option>0</option>
-															<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
-															<border>12</border>
-															<object class="wxChoice" name="VideoGrabFormat">
+															<object class="wxChoice" name="VideoGrabSource">
 																<selection>0</selection>
 																<content>
-																	<item>PAL</item>
-																	<item>NTSC</item>
-																	<item>SECAM</item>
-																	<item>Auto</item>
+																	<item>Any</item>
+																	<item>A</item>
+																	<item>B</item>
+																	<item>C</item>
 																</content>
-															</object>
-														</object>
-														<object class="sizeritem">
-															<option>0</option>
-															<flag>wxLEFT|wxTOP|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-															<border>12</border>
-															<object class="wxStaticText" name="label_37">
-																<label>Source/Options:</label>
-																<wrap>-1</wrap>
-															</object>
-														</object>
-														<object class="sizeritem">
-															<option>1</option>
-															<flag>wxEXPAND</flag>
-															<border>0</border>
-															<object class="wxBoxSizer">
-																<orient>wxHORIZONTAL</orient>
-																<object class="sizeritem">
-																	<option>1</option>
-																	<flag>wxTOP</flag>
-																	<border>12</border>
-																	<object class="wxChoice" name="VideoGrabSource">
-																		<selection>0</selection>
-																		<content>
-																			<item>Any</item>
-																			<item>A</item>
-																			<item>B</item>
-																			<item>C</item>
-																		</content>
-																	</object>
-																</object>
-																<object class="spacer">
-																	<option>0</option>
-																	<flag>wxEXPAND</flag>
-																	<border>0</border>
-																	<size>32,8</size>
-																</object>
-																<object class="sizeritem">
-																	<option>0</option>
-																	<flag>wxRIGHT|wxTOP</flag>
-																	<border>12</border>
-																	<object class="wxButton" name="TestVideoCapture">
-																		<label>Test Video</label>
-																		<default>0</default>
-																	</object>
-																</object>
-															</object>
-														</object>
-														<object class="sizeritem">
-															<option>0</option>
-															<flag>wxLEFT|wxTOP|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-															<border>12</border>
-															<object class="wxStaticText" name="label_38">
-																<style>wxALIGN_RIGHT</style>
-																<label>Frame Size:</label>
-																<wrap>-1</wrap>
-															</object>
-														</object>
-														<object class="sizeritem">
-															<option>0</option>
-															<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
-															<border>12</border>
-															<object class="wxComboBox" name="VideoGrabFrameSize">
-																<value></value>
-																<content />
-															</object>
-														</object>
-														<object class="sizeritem">
-															<option>0</option>
-															<flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxLEFT|wxTOP</flag>
-															<border>12</border>
-															<object class="wxStaticText" name="label_39">
-																<label>Frame Rate:</label>
-																<wrap>-1</wrap>
-															</object>
-														</object>
-														<object class="sizeritem">
-															<option>0</option>
-															<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
-															<border>12</border>
-															<object class="wxSpinCtrl" name="VideoGrabFrameRate">
-																<style>wxSP_ARROW_KEYS</style>
-																<value>15</value>
-																<min>0</min>
-																<max>30</max>
-															</object>
-														</object>
-														<object class="sizeritem">
-															<option>0</option>
-															<flag>wxLEFT|wxTOP|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-															<border>12</border>
-															<object class="wxStaticText" name="label_39_copy">
-																<label>Target Bit Rate:</label>
-																<wrap>-1</wrap>
-															</object>
-														</object>
-														<object class="sizeritem">
-															<option>0</option>
-															<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
-															<border>12</border>
-															<object class="wxSpinCtrl" name="VideoGrabBitRate">
-																<style>wxSP_ARROW_KEYS</style>
-																<value>128</value>
-																<min>16</min>
-																<max>4000000</max>
 															</object>
 														</object>
 														<object class="spacer">
 															<option>0</option>
-															<flag>wxLEFT|wxTOP</flag>
-															<border>12</border>
-															<size>12,12</size>
+															<flag>wxEXPAND</flag>
+															<border>0</border>
+															<size>32,8</size>
 														</object>
 														<object class="sizeritem">
-															<option>1</option>
-															<flag>wxEXPAND</flag>
-															<border>5</border>
-															<object class="wxBoxSizer">
-																<orient>wxHORIZONTAL</orient>
-																<object class="sizeritem">
-																	<option>0</option>
-																	<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
-																	<border>12</border>
-																	<object class="wxCheckBox" name="VideoGrabPreview">
-																		<label>Preview</label>
-																		<checked>0</checked>
-																	</object>
-																</object>
-																<object class="sizeritem">
-																	<option>0</option>
-																	<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
-																	<border>12</border>
-																	<object class="wxCheckBox" name="VideoFlipLocal">
-																		<label>Flip Vertical</label>
-																		<checked>0</checked>
-																	</object>
-																</object>
-																<object class="sizeritem">
-																	<option>0</option>
-																	<flag>wxALIGN_CENTER_VERTICAL|wxRIGHT|wxTOP</flag>
-																	<border>12</border>
-																	<object class="wxCheckBox" name="VideoAutoTransmit">
-																		<label>Auto Transmit</label>
-																		<checked>0</checked>
-																	</object>
-																</object>
+															<option>0</option>
+															<flag>wxRIGHT|wxTOP</flag>
+															<border>12</border>
+															<object class="wxButton" name="TestVideoCapture">
+																<label>Test Video</label>
+																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
+															</object>
+														</object>
+													</object>
+												</object>
+												<object class="sizeritem">
+													<option>0</option>
+													<flag>wxLEFT|wxTOP|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>12</border>
+													<object class="wxStaticText" name="label_38">
+														<style>wxALIGN_RIGHT</style>
+														<label>Frame Size:</label>
+														<wrap>-1</wrap>
+													</object>
+												</object>
+												<object class="sizeritem">
+													<option>0</option>
+													<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
+													<border>12</border>
+													<object class="wxComboBox" name="VideoGrabFrameSize">
+														<value></value>
+														<content />
+													</object>
+												</object>
+												<object class="sizeritem">
+													<option>0</option>
+													<flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxLEFT|wxTOP</flag>
+													<border>12</border>
+													<object class="wxStaticText" name="label_39">
+														<label>Frame Rate:</label>
+														<wrap>-1</wrap>
+													</object>
+												</object>
+												<object class="sizeritem">
+													<option>0</option>
+													<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
+													<border>12</border>
+													<object class="wxSpinCtrl" name="VideoGrabFrameRate">
+														<style>wxSP_ARROW_KEYS</style>
+														<value>15</value>
+														<min>0</min>
+														<max>30</max>
+													</object>
+												</object>
+												<object class="sizeritem">
+													<option>0</option>
+													<flag>wxLEFT|wxTOP|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+													<border>12</border>
+													<object class="wxStaticText" name="label_39_copy">
+														<label>Target Bit Rate:</label>
+														<wrap>-1</wrap>
+													</object>
+												</object>
+												<object class="sizeritem">
+													<option>0</option>
+													<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
+													<border>12</border>
+													<object class="wxSpinCtrl" name="VideoGrabBitRate">
+														<style>wxSP_ARROW_KEYS</style>
+														<value>128</value>
+														<min>16</min>
+														<max>4000000</max>
+													</object>
+												</object>
+												<object class="spacer">
+													<option>0</option>
+													<flag>wxLEFT|wxTOP</flag>
+													<border>12</border>
+													<size>12,12</size>
+												</object>
+												<object class="sizeritem">
+													<option>1</option>
+													<flag>wxEXPAND</flag>
+													<border>5</border>
+													<object class="wxBoxSizer">
+														<orient>wxHORIZONTAL</orient>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
+															<border>12</border>
+															<object class="wxCheckBox" name="VideoGrabPreview">
+																<label>Preview</label>
+																<checked>0</checked>
 															</object>
 														</object>
 														<object class="sizeritem">
 															<option>0</option>
-															<flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxBOTTOM|wxLEFT|wxTOP</flag>
+															<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
 															<border>12</border>
-															<object class="wxStaticText" name="m_staticText242">
-																<label>Watermark:</label>
-																<wrap>-1</wrap>
+															<object class="wxCheckBox" name="VideoFlipLocal">
+																<label>Flip Vertical</label>
+																<checked>0</checked>
 															</object>
 														</object>
 														<object class="sizeritem">
-															<option>1</option>
-															<flag>wxALIGN_CENTER_VERTICAL|wxBOTTOM|wxEXPAND|wxRIGHT|wxTOP</flag>
+															<option>0</option>
+															<flag>wxALIGN_CENTER_VERTICAL|wxRIGHT|wxTOP</flag>
 															<border>12</border>
-															<object class="wxComboBox" name="VideoWatermarkDevice">
-																<style>wxCB_DROPDOWN</style>
-																<value></value>
-																<content />
-															</object>
-														</object>
-													</object>
-												</object>
-											</object>
-										</object>
-										<object class="sizeritem">
-											<option>3</option>
-											<flag>wxEXPAND</flag>
-											<border>0</border>
-											<object class="wxBoxSizer">
-												<orient>wxVERTICAL</orient>
-												<object class="sizeritem">
-													<option>0</option>
-													<flag>wxRIGHT|wxTOP|wxBOTTOM|wxEXPAND</flag>
-													<border>12</border>
-													<object class="wxStaticBoxSizer">
-														<orient>wxHORIZONTAL</orient>
-														<label>Video Display</label>
-														<object class="sizeritem">
-															<option>1</option>
-															<flag>wxEXPAND</flag>
-															<border>0</border>
-															<object class="wxFlexGridSizer">
-																<rows>5</rows>
-																<cols>2</cols>
-																<vgap>0</vgap>
-																<hgap>0</hgap>
-																<growablecols></growablecols>
-																<growablerows></growablerows>
-																<object class="spacer">
-																	<option>0</option>
-																	<flag>wxLEFT|wxTOP</flag>
-																	<border>12</border>
-																	<size>72,12</size>
-																</object>
-																<object class="sizeritem">
-																	<option>0</option>
-																	<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
-																	<border>12</border>
-																	<object class="wxCheckBox" name="VideoAutoReceive">
-																		<label>Auto Receive</label>
-																		<checked>0</checked>
-																	</object>
-																</object>
-																<object class="spacer">
-																	<option>0</option>
-																	<flag>wxLEFT|wxTOP</flag>
-																	<border>12</border>
-																	<size>72,12</size>
-																</object>
-																<object class="sizeritem">
-																	<option>0</option>
-																	<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
-																	<border>12</border>
-																	<object class="wxCheckBox" name="VideoFlipRemote">
-																		<label>Flip Vertical</label>
-																		<checked>0</checked>
-																	</object>
-																</object>
-																<object class="sizeritem">
-																	<option>0</option>
-																	<flag>wxLEFT|wxTOP|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-																	<border>12</border>
-																	<object class="wxStaticText" name="label_40">
-																		<label>Min Frame Size:</label>
-																		<wrap>-1</wrap>
-																	</object>
-																</object>
-																<object class="sizeritem">
-																	<option>0</option>
-																	<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
-																	<border>12</border>
-																	<object class="wxComboBox" name="VideoMinFrameSize">
-																		<value></value>
-																		<content />
-																	</object>
-																</object>
-																<object class="sizeritem">
-																	<option>0</option>
-																	<flag>wxLEFT|wxTOP|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-																	<border>12</border>
-																	<object class="wxStaticText" name="label_60">
-																		<label>Max Frame Size:</label>
-																		<wrap>-1</wrap>
-																	</object>
-																</object>
-																<object class="sizeritem">
-																	<option>0</option>
-																	<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
-																	<border>12</border>
-																	<object class="wxComboBox" name="VideoMaxFrameSize">
-																		<value></value>
-																		<content />
-																	</object>
-																</object>
-																<object class="sizeritem">
-																	<option>0</option>
-																	<flag>wxLEFT|wxTOP|wxBOTTOM|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-																	<border>12</border>
-																	<object class="wxStaticText" name="label_60_copy">
-																		<label>Max Bit Rate:</label>
-																		<wrap>-1</wrap>
-																	</object>
-																</object>
-																<object class="sizeritem">
-																	<option>0</option>
-																	<flag>wxRIGHT|wxTOP|wxBOTTOM|wxALIGN_CENTER_VERTICAL</flag>
-																	<border>12</border>
-																	<object class="wxSpinCtrl" name="VideoMaxBitRate">
-																		<style>wxSP_ARROW_KEYS</style>
-																		<value>128</value>
-																		<min>16</min>
-																		<max>4000000</max>
-																	</object>
-																</object>
+															<object class="wxCheckBox" name="VideoAutoTransmit">
+																<label>Auto Transmit</label>
+																<checked>0</checked>
 															</object>
 														</object>
 													</object>
 												</object>
 												<object class="sizeritem">
 													<option>0</option>
-													<flag>wxRIGHT|wxEXPAND</flag>
+													<flag>wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT|wxBOTTOM|wxLEFT|wxTOP</flag>
 													<border>12</border>
-													<object class="wxStaticBoxSizer">
-														<orient>wxHORIZONTAL</orient>
-														<label>Video on Hold</label>
-														<object class="sizeritem">
-															<option>1</option>
-															<flag>wxALL</flag>
-															<border>8</border>
-															<object class="wxComboBox" name="VideoOnHold">
-																<style>wxCB_DROPDOWN</style>
-																<value></value>
-																<content />
-															</object>
-														</object>
+													<object class="wxStaticText" name="m_staticText242">
+														<label>Watermark:</label>
+														<wrap>-1</wrap>
 													</object>
 												</object>
 												<object class="sizeritem">
-													<option>0</option>
-													<flag>wxRIGHT|wxEXPAND</flag>
+													<option>1</option>
+													<flag>wxALIGN_CENTER_VERTICAL|wxBOTTOM|wxEXPAND|wxRIGHT|wxTOP</flag>
 													<border>12</border>
-													<object class="wxStaticBoxSizer">
-														<orient>wxHORIZONTAL</orient>
-														<label>Video Sent on Ring</label>
-														<object class="sizeritem">
-															<option>1</option>
-															<flag>wxALL</flag>
-															<border>8</border>
-															<object class="wxComboBox" name="VideoOnRing">
-																<style>wxCB_DROPDOWN</style>
-																<value></value>
-																<content />
-															</object>
-														</object>
+													<object class="wxComboBox" name="VideoWatermarkDevice">
+														<style>wxCB_DROPDOWN</style>
+														<value></value>
+														<content />
 													</object>
 												</object>
 											</object>
@@ -3991,32 +3926,155 @@
 									</object>
 								</object>
 								<object class="sizeritem">
-									<option>0</option>
-									<flag>wxALIGN_CENTER</flag>
-									<border>5</border>
+									<option>3</option>
+									<flag>wxEXPAND</flag>
+									<border>0</border>
 									<object class="wxBoxSizer">
-										<orient>wxHORIZONTAL</orient>
+										<orient>wxVERTICAL</orient>
 										<object class="sizeritem">
 											<option>0</option>
-											<flag>wxALIGN_CENTER_VERTICAL|wxALL</flag>
-											<border>6</border>
-											<object class="wxStaticText" name="m_staticText243">
-												<label>H.239/BFCP Extended Video:</label>
-												<wrap>-1</wrap>
+											<flag>wxRIGHT|wxTOP|wxBOTTOM|wxEXPAND</flag>
+											<border>12</border>
+											<object class="wxStaticBoxSizer">
+												<orient>wxHORIZONTAL</orient>
+												<label>Video Display</label>
+												<object class="sizeritem">
+													<option>1</option>
+													<flag>wxEXPAND</flag>
+													<border>0</border>
+													<object class="wxFlexGridSizer">
+														<rows>5</rows>
+														<cols>2</cols>
+														<vgap>0</vgap>
+														<hgap>0</hgap>
+														<growablecols></growablecols>
+														<growablerows></growablerows>
+														<object class="spacer">
+															<option>0</option>
+															<flag>wxLEFT|wxTOP</flag>
+															<border>12</border>
+															<size>72,12</size>
+														</object>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
+															<border>12</border>
+															<object class="wxCheckBox" name="VideoAutoReceive">
+																<label>Auto Receive</label>
+																<checked>0</checked>
+															</object>
+														</object>
+														<object class="spacer">
+															<option>0</option>
+															<flag>wxLEFT|wxTOP</flag>
+															<border>12</border>
+															<size>72,12</size>
+														</object>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
+															<border>12</border>
+															<object class="wxCheckBox" name="VideoFlipRemote">
+																<label>Flip Vertical</label>
+																<checked>0</checked>
+															</object>
+														</object>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxLEFT|wxTOP|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+															<border>12</border>
+															<object class="wxStaticText" name="label_40">
+																<label>Min Frame Size:</label>
+																<wrap>-1</wrap>
+															</object>
+														</object>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
+															<border>12</border>
+															<object class="wxComboBox" name="VideoMinFrameSize">
+																<value></value>
+																<content />
+															</object>
+														</object>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxLEFT|wxTOP|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+															<border>12</border>
+															<object class="wxStaticText" name="label_60">
+																<label>Max Frame Size:</label>
+																<wrap>-1</wrap>
+															</object>
+														</object>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxRIGHT|wxTOP|wxALIGN_CENTER_VERTICAL</flag>
+															<border>12</border>
+															<object class="wxComboBox" name="VideoMaxFrameSize">
+																<value></value>
+																<content />
+															</object>
+														</object>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxLEFT|wxTOP|wxBOTTOM|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
+															<border>12</border>
+															<object class="wxStaticText" name="label_60_copy">
+																<label>Max Bit Rate:</label>
+																<wrap>-1</wrap>
+															</object>
+														</object>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxRIGHT|wxTOP|wxBOTTOM|wxALIGN_CENTER_VERTICAL</flag>
+															<border>12</border>
+															<object class="wxSpinCtrl" name="VideoMaxBitRate">
+																<style>wxSP_ARROW_KEYS</style>
+																<value>128</value>
+																<min>16</min>
+																<max>4000000</max>
+															</object>
+														</object>
+													</object>
+												</object>
 											</object>
 										</object>
 										<object class="sizeritem">
 											<option>0</option>
-											<flag>wxALIGN_CENTER_VERTICAL|wxBOTTOM|wxRIGHT|wxTOP</flag>
-											<border>6</border>
-											<object class="wxChoice" name="ExtendedVideoRoles">
-												<selection>0</selection>
-												<content>
-													<item>Disable Extended Video</item>
-													<item>Allow per &apos;Content Role Mask&apos;</item>
-													<item>Force Presentation Role</item>
-													<item>Force Live Role</item>
-												</content>
+											<flag>wxRIGHT|wxEXPAND</flag>
+											<border>12</border>
+											<object class="wxStaticBoxSizer">
+												<orient>wxHORIZONTAL</orient>
+												<label>Video on Hold</label>
+												<object class="sizeritem">
+													<option>1</option>
+													<flag>wxALL</flag>
+													<border>8</border>
+													<object class="wxComboBox" name="VideoOnHold">
+														<style>wxCB_DROPDOWN</style>
+														<value></value>
+														<content />
+													</object>
+												</object>
+											</object>
+										</object>
+										<object class="sizeritem">
+											<option>0</option>
+											<flag>wxRIGHT|wxEXPAND</flag>
+											<border>12</border>
+											<object class="wxStaticBoxSizer">
+												<orient>wxHORIZONTAL</orient>
+												<label>Video Sent on Ring</label>
+												<object class="sizeritem">
+													<option>1</option>
+													<flag>wxALL</flag>
+													<border>8</border>
+													<object class="wxComboBox" name="VideoOnRing">
+														<style>wxCB_DROPDOWN</style>
+														<value></value>
+														<content />
+													</object>
+												</object>
 											</object>
 										</object>
 									</object>
@@ -4085,6 +4143,8 @@
 											<object class="wxButton" name="FaxBrowseReceiveDirectory">
 												<label>Browse</label>
 												<default>0</default>
+												<markup>0</markup>
+												<bitmap />
 											</object>
 										</object>
 									</object>
@@ -4263,7 +4323,7 @@
 											<flag>wxALL|wxEXPAND</flag>
 											<border>8</border>
 											<object class="wxListCtrl" name="Presentities">
-												<style>wxLC_REPORT|wxLC_EDIT_LABELS|wxLC_SINGLE_SEL|wxSUNKEN_BORDER</style>
+												<style>wxLC_REPORT|wxLC_EDIT_LABELS|wxLC_SINGLE_SEL|wxBORDER_SUNKEN</style>
 											</object>
 										</object>
 										<object class="sizeritem">
@@ -4285,6 +4345,8 @@
 													<object class="wxButton" name="AddPresentity">
 														<label>Add</label>
 														<default>0</default>
+														<markup>0</markup>
+														<bitmap />
 													</object>
 												</object>
 												<object class="spacer">
@@ -4301,6 +4363,8 @@
 														<enabled>0</enabled>
 														<label>Remove</label>
 														<default>0</default>
+														<markup>0</markup>
+														<bitmap />
 													</object>
 												</object>
 												<object class="spacer">
@@ -4355,7 +4419,7 @@
 													<flag>wxLEFT|wxRIGHT|wxEXPAND</flag>
 													<border>20</border>
 													<object class="wxListCtrl" name="AllCodecs">
-														<style>wxLC_REPORT|wxLC_NO_HEADER|wxLC_SORT_ASCENDING|wxSUNKEN_BORDER</style>
+														<style>wxLC_REPORT|wxLC_NO_HEADER|wxLC_SORT_ASCENDING|wxBORDER_SUNKEN</style>
 													</object>
 												</object>
 											</object>
@@ -4373,6 +4437,8 @@
 													<object class="wxButton" name="AddCodec">
 														<label>Add -&gt;</label>
 														<default>0</default>
+														<markup>0</markup>
+														<bitmap />
 													</object>
 												</object>
 												<object class="sizeritem">
@@ -4382,6 +4448,8 @@
 													<object class="wxButton" name="RemoveCodec">
 														<label>&lt;- Remove</label>
 														<default>0</default>
+														<markup>0</markup>
+														<bitmap />
 													</object>
 												</object>
 												<object class="sizeritem">
@@ -4391,6 +4459,8 @@
 													<object class="wxButton" name="MoveUpCodec">
 														<label>Move Up</label>
 														<default>0</default>
+														<markup>0</markup>
+														<bitmap />
 													</object>
 												</object>
 												<object class="sizeritem">
@@ -4400,6 +4470,8 @@
 													<object class="wxButton" name="MoveDownCodec">
 														<label>Move Down</label>
 														<default>0</default>
+														<markup>0</markup>
+														<bitmap />
 													</object>
 												</object>
 											</object>
@@ -4458,7 +4530,7 @@
 													<flag>wxBOTTOM|wxEXPAND|wxLEFT|wxRIGHT</flag>
 													<border>20</border>
 													<object class="wxListCtrl" name="CodecOptionsList">
-														<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_SORT_ASCENDING|wxSUNKEN_BORDER</style>
+														<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_SORT_ASCENDING|wxBORDER_SUNKEN</style>
 													</object>
 												</object>
 											</object>
@@ -4511,6 +4583,8 @@
 															<object class="wxButton" name="SetDefaultCodecOption">
 																<label>Set Default</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="spacer">
@@ -4526,7 +4600,7 @@
 													<flag>wxEXPAND</flag>
 													<border>0</border>
 													<object class="wxStaticText" name="CodecOptionValueError">
-														<style>wxALIGN_CENTRE</style>
+														<style>wxALIGN_CENTER_HORIZONTAL</style>
 														<label>Invalid value entered!!</label>
 														<wrap>200</wrap>
 													</object>
@@ -4585,6 +4659,8 @@
 																	<object class="wxButton" name="AddAlias">
 																		<label>&lt;- Add</label>
 																		<default>0</default>
+																		<markup>0</markup>
+																		<bitmap />
 																	</object>
 																</object>
 																<object class="sizeritem">
@@ -4594,6 +4670,8 @@
 																	<object class="wxButton" name="RemoveAlias">
 																		<label>Remove -&gt;</label>
 																		<default>0</default>
+																		<markup>0</markup>
+																		<bitmap />
 																	</object>
 																</object>
 															</object>
@@ -4618,6 +4696,8 @@
 											<object class="wxButton" name="MoreOptionsH323">
 												<label>More Options ...</label>
 												<default>0</default>
+												<markup>0</markup>
+												<bitmap />
 											</object>
 										</object>
 									</object>
@@ -4955,6 +5035,20 @@
 																<checked>0</checked>
 															</object>
 														</object>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxTOP</flag>
+															<border>6</border>
+															<object class="wxChoice" name="ExtendedVideoRoles">
+																<selection>0</selection>
+																<content>
+																	<item>Disable H.239 Extended Video</item>
+																	<item>Allow H.239 per Content Role Mask</item>
+																	<item>Force H.239 Presentation Role</item>
+																	<item>Force H.239 Live Role</item>
+																</content>
+															</object>
+														</object>
 													</object>
 												</object>
 											</object>
@@ -5076,6 +5170,8 @@
 											<object class="wxButton" name="MoreOptionsSIP">
 												<label>More Options ...</label>
 												<default>0</default>
+												<markup>0</markup>
+												<bitmap />
 											</object>
 										</object>
 									</object>
@@ -5092,7 +5188,7 @@
 											<flag>wxALL|wxEXPAND</flag>
 											<border>8</border>
 											<object class="wxListCtrl" name="Registrars">
-												<style>wxLC_REPORT|wxSUNKEN_BORDER</style>
+												<style>wxLC_REPORT|wxBORDER_SUNKEN</style>
 											</object>
 										</object>
 										<object class="sizeritem">
@@ -5114,6 +5210,8 @@
 													<object class="wxButton" name="AddRegistrar">
 														<label>Add</label>
 														<default>0</default>
+														<markup>0</markup>
+														<bitmap />
 													</object>
 												</object>
 												<object class="spacer">
@@ -5130,6 +5228,8 @@
 														<enabled>0</enabled>
 														<label>Change</label>
 														<default>0</default>
+														<markup>0</markup>
+														<bitmap />
 													</object>
 												</object>
 												<object class="spacer">
@@ -5146,6 +5246,8 @@
 														<enabled>0</enabled>
 														<label>Remove</label>
 														<default>0</default>
+														<markup>0</markup>
+														<bitmap />
 													</object>
 												</object>
 												<object class="spacer">
@@ -5162,6 +5264,8 @@
 														<enabled>0</enabled>
 														<label>Move Up</label>
 														<default>0</default>
+														<markup>0</markup>
+														<bitmap />
 													</object>
 												</object>
 												<object class="spacer">
@@ -5178,6 +5282,8 @@
 														<enabled>0</enabled>
 														<label>Move Down</label>
 														<default>0</default>
+														<markup>0</markup>
+														<bitmap />
 													</object>
 												</object>
 												<object class="spacer">
@@ -5496,6 +5602,8 @@
 															<object class="wxButton" name="AddRoute">
 																<label>Add -&gt;</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="spacer">
@@ -5511,6 +5619,8 @@
 															<object class="wxButton" name="RemoveRoute">
 																<label>&lt;- Remove</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="spacer">
@@ -5526,6 +5636,8 @@
 															<object class="wxButton" name="MoveUpRoute">
 																<label>Move Up</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="spacer">
@@ -5541,6 +5653,8 @@
 															<object class="wxButton" name="MoveDownRoute">
 																<label>Move Down</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="spacer">
@@ -5556,6 +5670,8 @@
 															<object class="wxButton" name="RestoreDefaultRoutes">
 																<label>Defaults</label>
 																<default>0</default>
+																<markup>0</markup>
+																<bitmap />
 															</object>
 														</object>
 														<object class="spacer">
@@ -5571,7 +5687,7 @@
 													<flag>wxALL|wxEXPAND</flag>
 													<border>8</border>
 													<object class="wxListCtrl" name="Routes">
-														<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER</style>
+														<style>wxLC_REPORT|wxLC_SINGLE_SEL|wxBORDER_SUNKEN</style>
 													</object>
 												</object>
 											</object>
@@ -5756,6 +5872,8 @@
 											<object class="wxButton" name="BrowseTraceFile">
 												<label>Browse</label>
 												<default>0</default>
+												<markup>0</markup>
+												<bitmap />
 											</object>
 										</object>
 									</object>
@@ -5784,6 +5902,8 @@
 						<object class="wxButton" name="wxID_OK">
 							<label>OK</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="sizeritem">
@@ -5793,6 +5913,8 @@
 						<object class="wxButton" name="wxID_CANCEL">
 							<label>Cancel</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="sizeritem">
@@ -5802,6 +5924,8 @@
 						<object class="wxButton" name="wxID_APPLY">
 							<label>Apply</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 				</object>
@@ -5888,6 +6012,8 @@
 															<enabled>0</enabled>
 															<label>Up</label>
 															<default>0</default>
+															<markup>0</markup>
+															<bitmap />
 														</object>
 													</object>
 													<object class="sizeritem">
@@ -5898,6 +6024,8 @@
 															<enabled>0</enabled>
 															<label>Down</label>
 															<default>0</default>
+															<markup>0</markup>
+															<bitmap />
 														</object>
 													</object>
 												</object>
@@ -5937,6 +6065,8 @@
 						<object class="wxButton" name="wxID_OK">
 							<label>OK</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="spacer">
@@ -5952,6 +6082,8 @@
 						<object class="wxButton" name="wxID_CANCEL">
 							<label>Cancel</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="spacer">
@@ -6034,6 +6166,8 @@
 						<object class="wxButton" name="Send">
 							<label>Send</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 				</object>
@@ -6277,6 +6411,8 @@
 						<object class="wxButton" name="wxID_OK">
 							<label>OK</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="spacer">
@@ -6292,6 +6428,8 @@
 						<object class="wxButton" name="wxID_CANCEL">
 							<label>Cancel</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="spacer">
@@ -6649,6 +6787,8 @@
 						<object class="wxButton" name="wxID_OK">
 							<label>OK</label>
 							<default>1</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="sizeritem">
@@ -6658,6 +6798,8 @@
 						<object class="wxButton" name="wxID_CANCEL">
 							<label>Cancel</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 				</object>
@@ -6739,6 +6881,8 @@
 						<object class="wxButton" name="wxID_OK">
 							<label>OK</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="spacer">
@@ -6754,6 +6898,8 @@
 						<object class="wxButton" name="wxID_CANCEL">
 							<label>Cancel</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="spacer">
@@ -6841,6 +6987,8 @@
 							</font>
 							<label>Answer</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="spacer">
@@ -6864,6 +7012,8 @@
 							</font>
 							<label>Reject</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="spacer">
@@ -7072,6 +7222,8 @@
 						<object class="wxButton" name="wxID_OK">
 							<label>OK</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="spacer">
@@ -7087,6 +7239,8 @@
 						<object class="wxButton" name="wxID_CANCEL">
 							<label>Cancel</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="spacer">
@@ -7183,6 +7337,8 @@
 						<object class="wxButton" name="wxID_OK">
 							<label>OK</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="spacer">
@@ -7198,6 +7354,8 @@
 						<object class="wxButton" name="wxID_APPLY">
 							<label>Apply</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="spacer">
@@ -7213,6 +7371,8 @@
 						<object class="wxButton" name="wxID_CANCEL">
 							<label>Cancel</label>
 							<default>0</default>
+							<markup>0</markup>
+							<bitmap />
 						</object>
 					</object>
 					<object class="spacer">

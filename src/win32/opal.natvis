@@ -10,13 +10,7 @@
   </Type>
 
   <Type Name="OpalCall">
-    <DisplayString>{{token={myToken}}}</DisplayString>
-    <Expand>
-      <Item Name="Token">myToken</Item>
-      <Item Name="A-Party">m_partyA</Item>
-      <Item Name="B-Party">m_partyB</Item>
-      <Item Name="Connections">connectionsActive</Item>
-    </Expand>
+    <DisplayString>{{token={m_token} A={m_partyA} B={m_partyB}}</DisplayString>
   </Type>
 
   <Type Name="OpalMediaFormat">

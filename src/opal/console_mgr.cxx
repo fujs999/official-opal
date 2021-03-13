@@ -39,7 +39,7 @@
 #include <rtp/srtp_session.h>
 #include <ptclib/pstun.h>
 #include <ptclib/pwavfile.h>
-
+#include <ep/localep.h>
 
 #define PTraceModule() "Console"
 
@@ -58,7 +58,7 @@ static void PrintVersion(ostream & strm)
 }
 
 
-bool OpalManagerConsole::GetCallFromArgs(PCLI::Arguments & args, PSafePtr<OpalCall> & call) const
+bool OpalManagerConsole::GetCallFromArgs(PCLI::Arguments & args, PSafePtr<OpalCall> & call)
 {
   if (GetCallCount() == 0) {
     args.WriteError("No calls active.");
@@ -66,27 +66,44 @@ bool OpalManagerConsole::GetCallFromArgs(PCLI::Arguments & args, PSafePtr<OpalCa
   }
 
   if (args.HasOption("call")) {
-    if ((call = FindCallWithLock(args.GetOptionString("call"))) != NULL)
-      return true;
-    args.WriteError("Specified token does not correspond to call.");
+    PString token = args.GetOptionString("call");
+    if (token[0] == '#') {
+      PStringArray calls = GetAllCalls();
+      PINDEX idx = token.Mid(1).AsUnsigned();
+      if (idx < 1 || idx > calls.GetSize()) {
+        args.WriteError("Invalid call index.");
+        return false;
+      }
+      token = calls[idx-1];
+    }
+
+    call = FindCallWithLock(token);
+  }
+  else if (!m_lastCallToken.empty())
+    call = FindCallWithLock(m_lastCallToken);
+  else {
+    PStringArray calls = GetAllCalls();
+    for (PINDEX i = 0; i < calls.GetSize(); ++i) {
+      if ((call = FindCallWithLock(calls[i])) != NULL)
+        break;
+    }
+  }
+
+  if (call == NULL) {
+    args.WriteError("Call no longer present.");
+    m_lastCallToken.MakeEmpty();
     return false;
   }
 
-  PStringArray calls = GetAllCalls();
-  for (PINDEX i = 0; i < calls.GetSize(); ++i) {
-    if ((call = FindCallWithLock(calls[i])) != NULL)
-      return true;
-  }
-
-  args.WriteError("Call(s) disappeared while locating.");
-  return false;
+  m_lastCallToken = call->GetToken();
+  return true;
 }
 
 
 bool OpalManagerConsole::GetStreamFromArgs(PCLI::Arguments & args,
                                            const OpalMediaType & mediaType,
                                            bool source,
-                                           PSafePtr<OpalMediaStream> & stream) const
+                                           PSafePtr<OpalMediaStream> & stream)
 {
   PSafePtr<OpalLocalConnection> connection;
   if (!GetConnectionFromArgs(args, connection))
@@ -247,6 +264,13 @@ void OpalRTPConsoleEndPoint::GetArgumentSpec(ostream & strm) const
 
 bool OpalRTPConsoleEndPoint::Initialise(PArgList & args, ostream & output, bool verbose)
 {
+  if (m_endpointDisabled || args.HasOption("no-" + m_endpoint.GetPrefixName())) {
+    if (verbose)
+      output << m_endpoint.GetPrefixName() << " protocol disabled.\n";
+    m_endpointDisabled = true;
+    return true;
+  }
+
   PStringArray cryptoSuites = args.GetOptionString(m_endpoint.GetPrefixName() + "-crypto").Lines();
   if (!cryptoSuites.IsEmpty())
     m_endpoint.SetMediaCryptoSuites(cryptoSuites);
@@ -297,7 +321,7 @@ bool OpalRTPConsoleEndPoint::Initialise(PArgList & args, ostream & output, bool 
 #if P_CLI
 void OpalRTPConsoleEndPoint::CmdInterfaces(PCLI::Arguments & args, P_INT_PTR)
 {
-  if (args.GetCount() > 0 && !m_endpoint.StartListeners(args.GetParameters())) {
+  if (args.GetCount() > 0 && !m_endpoint.StartListeners(args.GetParameters(), !args.HasOption("clear"))) {
     args.WriteError("Could not start listening on specified interfaces.");
     return;
   }
@@ -375,8 +399,11 @@ void OpalRTPConsoleEndPoint::CmdStringOption(PCLI::Arguments & args, P_INT_PTR)
 
 void OpalRTPConsoleEndPoint::AddCommands(PCLI & cli)
 {
-  cli.SetCommand(m_endpoint.GetPrefixName() & "interfaces", PCREATE_NOTIFIER(CmdInterfaces),
-                  "Set listener interfaces");
+  cli.SetCommand(PSTRSTRM(m_endpoint.GetPrefixName() << " interfaces\n" << m_endpoint.GetPrefixName() << " listeners"),
+                 PCREATE_NOTIFIER(CmdInterfaces),
+                 "Set listener interfaces, if cleared and no interfaces specified, then defaults are used.",
+                 " --clear [ <iface> ... ]",
+                 "c-clear. Clear all previous listening interfaces");
   cli.SetCommand(m_endpoint.GetPrefixName() & "crypto", PCREATE_NOTIFIER(CmdCryptoSuites),
                   "Set crypto suites in priority order",
                   " --list | [ <suite> ... ]",
@@ -451,14 +478,10 @@ bool H323ConsoleEndPoint::Initialise(PArgList & args, bool verbose, const PStrin
   ostream & output = lockedOutput;
 
   // Set up H.323
-  if (args.HasOption("no-h323")) {
-    if (verbose)
-      output << "H.323 protocol disabled.\n";
-    return true;
-  }
-
   if (!OpalRTPConsoleEndPoint::Initialise(args, output, verbose))
     return false;
+  if (m_endpointDisabled)
+    return true;
 
   if (args.HasOption("no-fast"))
     DisableFastStart(true);
@@ -759,14 +782,10 @@ bool SIPConsoleEndPoint::Initialise(PArgList & args, bool verbose, const PString
   ostream & output = lockedOutput;
 
   // Set up SIP
-  if (args.HasOption("no-sip")) {
-    if (verbose)
-      output << "SIP protocol disabled.\n";
-    return true;
-  }
-
   if (!OpalRTPConsoleEndPoint::Initialise(args, output, verbose))
     return false;
+  if (m_endpointDisabled)
+    return true;
 
   if (args.HasOption("proxy")) {
     SetProxy(args.GetOptionString("proxy"), args.GetOptionString("user"), args.GetOptionString("password"));
@@ -1646,7 +1665,7 @@ void OpalConsolePCSSEndPoint::AddCommands(PCLI & cli)
                  "[ <percent> ]", "c-call: Call token");
 
   cli.SetCommand("audio device", PCREATE_NOTIFIER(CmdChangeAudioDevice),
-                 "Set audio device for active call", "[ --call ] [ --rx | --tx ] <device>",
+                 "Set audio device for active call", "[ --call <token> ] [ --rx | --tx ] <device>",
                  "c-call: Token for call to change\n"
                  "r-rx.   Receive audio device\n"
                  "t-tx.   Transmit audio device\n");
@@ -1661,7 +1680,7 @@ void OpalConsolePCSSEndPoint::AddCommands(PCLI & cli)
                     "-channel: Channel number.\n");
 
   cli.SetCommand("video device", PCREATE_NOTIFIER(CmdChangeVideoDevice),
-                 "Set video device for active call", "[ --call ] <device>",
+                 "Set video device for active call", "[ --call <token> ] <device>",
                  "c-call: Token for call to change");
   cli.SetCommand("video open", PCREATE_NOTIFIER(CmdOpenVideoStream),
                  "Open video stream for active call with a given role. Default is \"main\" if no\n"
@@ -1906,7 +1925,7 @@ void OpalConsoleMixerEndPoint::AddCommands(PCLI &)
 
 OpalManagerConsole::OpalManagerConsole(const char * endpointPrefixes)
   : m_endpointPrefixes(PConstString(endpointPrefixes).Tokenise(" \t\n"))
-  , m_interrupted(false)
+  , m_interrupted(0)
   , m_verbose(false)
   , m_outputStream(&cout)
 {
@@ -2233,34 +2252,35 @@ bool OpalManagerConsole::Initialise(PArgList & args, bool verbose, const PString
               "RTP payload size: " << GetMaxRtpPayloadSize() << '\n';
 
 #if OPAL_PTLIB_NAT
-  PString natMethod, natServer;
+  PStringArray natMethods, natServers, natInterfaces = args.GetOptionString("nat-interface").Lines();
   if (args.HasOption("translate")) {
-    natMethod = PNatMethod_Fixed::MethodName();
-    natServer = args.GetOptionString("translate");
+    natMethods.AppendString(PNatMethod_Fixed::MethodName());
+    natServers.AppendString(args.GetOptionString("translate"));
   }
 #if P_STUN
   else if (args.HasOption("stun")) {
-    natMethod = PSTUNClient::MethodName();
-    natServer = args.GetOptionString("stun");
+    natMethods.AppendString(PSTUNClient::MethodName());
+    natServers.AppendString(args.GetOptionString("stun"));
   }
 #endif
   else if (args.HasOption("nat-method")) {
-    natMethod = args.GetOptionString("nat-method");
-    natServer = args.GetOptionString("nat-server");
+    natMethods = args.GetOptionString("nat-method").Lines();
+    natServers = args.GetOptionString("nat-server").Lines();
   }
   else if (args.HasOption("nat-server")) {
 #if P_STUN
-    natMethod = PSTUNClient::MethodName();
+    natMethods.AppendString(PSTUNClient::MethodName());
 #else
-    natMethod = PNatMethod_Fixed::MethodName();
+    natMethods.AppendString(PNatMethod_Fixed::MethodName());
 #endif
-    natServer = args.GetOptionString("nat-server");
+    natServers.AppendString(args.GetOptionString("nat-server"));
   }
 
-  if (!natMethod.IsEmpty()) {
+  for (PINDEX i = 0; i < natMethods.GetSize(); ++i) {
+    PString natMethod = natMethods[i];
     if (verbose)
       output << "Establishing " << natMethod << " ..." << flush;
-    if (SetNATServer(natMethod, natServer, true, 0, args.GetOptionString("nat-interface"))) {
+    if (SetNATServer(natMethod, natServers[i], true, 0, natInterfaces[i])) {
       if (verbose)
         output << '\n' << *GetNatMethods().GetMethodByName(natMethod) << '\n';
     }
@@ -2312,48 +2332,63 @@ bool OpalManagerConsole::Initialise(PArgList & args, bool verbose, const PString
 #if OPAL_VIDEO
   {
     unsigned prefWidth = 0, prefHeight = 0;
-    if (!PVideoFrameInfo::ParseSize(args.GetOptionString("video-size", "cif"), prefWidth, prefHeight)) {
-      output << "Invalid video size parameter." << endl;
-      return false;
+    if (args.HasOption("video-size")) {
+      if (!PVideoFrameInfo::ParseSize(args.GetOptionString("video-size"), prefWidth, prefHeight)) {
+        output << "Invalid video size parameter." << endl;
+        return false;
+      }
+      if (verbose)
+        output << "Preferred video size: " << PVideoFrameInfo::AsString(prefWidth, prefHeight) << '\n';
     }
-    if (verbose)
-      output << "Preferred video size: " << PVideoFrameInfo::AsString(prefWidth, prefHeight) << '\n';
 
     unsigned maxWidth = 0, maxHeight = 0;
-    if (!PVideoFrameInfo::ParseSize(args.GetOptionString("max-video-size", "HD1080"), maxWidth, maxHeight)) {
-      output << "Invalid maximum video size parameter." << endl;
-      return false;
+    if (args.HasOption("max-video-size")) {
+      if (!PVideoFrameInfo::ParseSize(args.GetOptionString("max-video-size"), maxWidth, maxHeight)) {
+        output << "Invalid maximum video size parameter." << endl;
+        return false;
+      }
+      if (verbose)
+        output << "Maximum video size: " << PVideoFrameInfo::AsString(maxWidth, maxHeight) << '\n';
     }
-    if (verbose)
-      output << "Maximum video size: " << PVideoFrameInfo::AsString(maxWidth, maxHeight) << '\n';
 
-    double rate = args.GetOptionString("video-rate", "30").AsReal();
-    if (rate < 1 || rate > 60) {
-      output << "Invalid video frame rate parameter." << endl;
-      return false;
+    double rate = 0;
+    if (args.HasOption("video-rate")) {
+      rate = args.GetOptionString("video-rate", "30").AsReal();
+      if (rate < 1 || rate > 60) {
+        output << "Invalid video frame rate parameter." << endl;
+        return false;
+      }
+      if (verbose)
+        output << "Video frame rate: " << rate << " fps\n";
     }
-    if (verbose)
-      output << "Video frame rate: " << rate << " fps\n";
 
-    unsigned frameTime = (unsigned)(OpalMediaFormat::VideoClockRate/rate);
-    OpalBandwidth bitrate(args.GetOptionString("video-bitrate", "1Mbps"));
-    if (bitrate < 10000) {
-      output << "Invalid video bit rate parameter." << endl;
-      return false;
+    OpalBandwidth bitrate;
+    if (args.HasOption("video-bitrate")) {
+      bitrate = args.GetOptionString("video-bitrate");
+      if (bitrate < 10000) {
+        output << "Invalid video bit rate parameter." << endl;
+        return false;
+      }
+      if (verbose)
+        output << "Video target bit rate: " << bitrate << '\n';
     }
-    if (verbose)
-      output << "Video target bit rate: " << bitrate << '\n';
 
     OpalMediaFormatList formats = OpalMediaFormat::GetAllRegisteredMediaFormats();
     for (OpalMediaFormatList::iterator it = formats.begin(); it != formats.end(); ++it) {
       if (it->GetMediaType() == OpalMediaType::Video()) {
         OpalMediaFormat format = *it;
-        format.SetOptionInteger(OpalVideoFormat::FrameWidthOption(), prefWidth);
-        format.SetOptionInteger(OpalVideoFormat::FrameHeightOption(), prefHeight);
-        format.SetOptionInteger(OpalVideoFormat::MaxRxFrameWidthOption(), maxWidth);
-        format.SetOptionInteger(OpalVideoFormat::MaxRxFrameHeightOption(), maxHeight);
-        format.SetOptionInteger(OpalVideoFormat::FrameTimeOption(), frameTime);
-        format.SetOptionInteger(OpalVideoFormat::TargetBitRateOption(), bitrate);
+        if (prefWidth > 0)
+          format.SetOptionInteger(OpalVideoFormat::FrameWidthOption(), prefWidth);
+        if (prefHeight > 0)
+          format.SetOptionInteger(OpalVideoFormat::FrameHeightOption(), prefHeight);
+        if (maxWidth > 0)
+          format.SetOptionInteger(OpalVideoFormat::MaxRxFrameWidthOption(), maxWidth);
+        if (maxHeight > 0)
+          format.SetOptionInteger(OpalVideoFormat::MaxRxFrameHeightOption(), maxHeight);
+        if (rate > 0)
+          format.SetOptionInteger(OpalVideoFormat::FrameTimeOption(), (unsigned)(OpalMediaFormat::VideoClockRate/rate));
+        if (bitrate > 0)
+          format.SetOptionInteger(OpalVideoFormat::TargetBitRateOption(), bitrate);
         OpalMediaFormat::SetRegisteredMediaFormat(format);
       }
     }
@@ -2415,9 +2450,32 @@ void OpalManagerConsole::Run()
 
 void OpalManagerConsole::EndRun(bool interrupt)
 {
-  PTRACE(2, "Shutting down " << (interrupt ? " via interrupt" : " normally"));
-  Broadcast(PSTRSTRM("\nShutting down " << PProcess::Current().GetName()
-                     << (interrupt ? " via interrupt" : " normally") << " . . . "));
+  if (interrupt)
+    ++m_interrupted;
+
+  switch (m_interrupted) {
+    case 0 :
+      PTRACE(2, "Shutting down normally");
+      Broadcast(PSTRSTRM("\nShutting down " << PProcess::Current().GetName() << " normally . . . "));
+      break;
+
+    case 1 :
+      PTRACE(2, "Shutting down via interrupt");
+      Broadcast(PSTRSTRM("\nShutting down " << PProcess::Current().GetName() << " via interrupt . . . "));
+      break;
+
+    case 2 :
+      PTRACE(2, "Second interrupted, terminating process.");
+      Broadcast(PSTRSTRM("\nInterrupted " << PProcess::Current().GetName() << " again . . . "));
+      PProcess::Current().Terminate();
+      break;
+
+    case 3 :
+      PTRACE(2, "Final interrupt, aborting process.");
+      Broadcast(PSTRSTRM("\nAborting " << PProcess::Current().GetName() << '.'));
+      std::abort();
+  }
+
 
   m_interrupted = interrupt;
   m_endRun.Signal();
@@ -2631,7 +2689,7 @@ void OpalManagerConsole::OnStartMediaPatch(OpalConnection & connection, OpalMedi
     OpalMediaStreamPtr stream(patch.GetSink());
     if (stream == NULL || &stream->GetConnection() != &connection)
       stream = &patch.GetSource();
-    stream->PrintDetail(LockedOutput(), "Started");
+    stream->PrintDetail(LockedOutput(), connection.GetCall().GetToken() + ": Started");
   }
 }
 
@@ -2649,7 +2707,7 @@ void OpalManagerConsole::OnClosedMediaStream(const OpalMediaStream & stream)
   OpalManager::OnClosedMediaStream(stream);
 
   if (m_verbose && stream.GetConnection().IsNetworkConnection())
-    stream.PrintDetail(LockedOutput(), "Stopped");
+    stream.PrintDetail(LockedOutput(), stream.GetConnection().GetCall().GetToken() + ": Stopped");
 
 #if OPAL_STATISTICS
   m_statsMutex.Wait();
@@ -2771,9 +2829,8 @@ bool OpalManagerConsole::OutputCallStatistics(ostream & strm, OpalCall & call)
       connection = otherConnection;
   }
 
-  strm << '\n' << call.GetToken() << ": call from " << call.GetPartyA() << " to " << call.GetPartyB() << "\n"
-          "  started at " << call.GetStartTime();
-  strm << '\n';
+  strm << '\n' << call.GetToken() << ": call from " << call.GetPartyA() << " to " << call.GetPartyB() <<
+          "  started at " << call.GetStartTime().AsString(PTime::LoggingFormat) << '\n';
 
   bool noStreams = true;
   for (int direction = 0; direction < 2; ++direction) {
@@ -2888,7 +2945,13 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
 
   m_cli->SetPrompt(args.GetCommandName() + "> ");
 
-#if OPAL_PTLIB_SSL
+  m_cli->SetCommand("ip tcp ports", PCREATE_NOTIFIER(CmdIpTcpPorts), "Set TCP ports to use");
+  m_cli->SetCommand("ip udp ports", PCREATE_NOTIFIER(CmdIpUdpPorts), "Set UDP ports to use, not including RTP");
+  m_cli->SetCommand("ip rtp ports", PCREATE_NOTIFIER(CmdIpRtpPorts), "Set RTP ports to use");
+  m_cli->SetCommand("ip rtp tos", PCREATE_NOTIFIER(CmdIpRtpTos), "Set RTP Type Of Service (DiffServ)");
+  m_cli->SetCommand("ip rtp size", PCREATE_NOTIFIER(CmdIpRtpSize), "Set maximum RTP packet size");
+  m_cli->SetCommand("ip qos", PCREATE_NOTIFIER(CmdIpQoS), "Set media Quality of Service");
+  #if OPAL_PTLIB_SSL
   m_cli->SetCommand("ssl", PCREATE_NOTIFIER(CmdSSL),
                     "Set SSL/TLS certificates",
                     "[ --ca <ca-dir-file> ] [ --cert <cert> ] [ --key <key> ] [ --no-create ]",
@@ -2902,10 +2965,11 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
 #if OPAL_PTLIB_NAT
   m_cli->SetCommand("nat list", PCREATE_NOTIFIER(CmdNatList),
                     "List NAT methods and server addresses");
-  m_cli->SetCommand("nat server", PCREATE_NOTIFIER(CmdNatAddress),
-                    "Set NAT server address for method, \"off\" deactivates method",
-                    "[ --interface <iface> ] <method> <address>",
-                    "I-interface: Set interface to bind NAT method");
+  m_cli->SetCommand("nat server", PCREATE_NOTIFIER(CmdNatServer),
+                    "Open NAT method, \"off\" deactivates method, \"default\" activates with default server",
+                    "[ --interface <iface> ] [ --priority <n> ] <method> { \"off\" | \"default\" | <address>",
+                    "I-interface: Set interface to bind NAT method\r"
+                    "p-priority: Set the NAT method priority");
 #endif
 
 #if PTRACING
@@ -2929,10 +2993,10 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
 #endif
 
   m_cli->SetCommand("audio codec", PCREATE_NOTIFIER(CmdAudioCodec),
-                    "Set audio codec for active call", "[ --call ] <codec>", "c-call: Token for call to change");
+                    "Set audio codec for active call", "[ --call <token> ] <codec>", "c-call: Token for call to change");
 #if OPAL_VIDEO
   m_cli->SetCommand("video codec", PCREATE_NOTIFIER(CmdVideoCodec),
-                    "Set video codec for active call", "[ --call ] <codec>", "c-call: Token for call to change");
+                    "Set video codec for active call", "[ --call <token> ] <codec>", "c-call: Token for call to change");
   m_cli->SetCommand("video default", PCREATE_NOTIFIER(CmdVideoDefault),
                     "Set default video parameters for active call",
                     "[ <options> ] [ <codec> ... ]",
@@ -2959,7 +3023,7 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
                     "i-intra.      Request Intra-Frame (key frame)\n");
   m_cli->SetCommand("video presentation", PCREATE_NOTIFIER(CmdPresentationToken),
                     "Request/release presentation token for active call",
-                    "[ --call ] [ request | release ]",
+                    "[ --call <token> ] [ request | release ]",
                     "c-call: Token for call to change");
 #endif // OPAL_VIDEO
 
@@ -2982,7 +3046,8 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
 #endif // OPAL_HAS_MIXER
 
   m_cli->SetCommand("audio vad", PCREATE_NOTIFIER(CmdSilenceDetect),
-                    "Voice Activity Detection (aka Silence Detection)", "\"on\" | \"adaptive\" | <level>");
+                    "Voice Activity Detection (aka Silence Detection)",
+                    "{ \"off\" | \"on\" | \"adaptive\" | <level> }");
   m_cli->SetCommand("audio in-band-dtmf-disable", m_disableDetectInBandDTMF, "In-band (digital filter) DTMF detection");
 
   m_cli->SetCommand("auto-start", PCREATE_NOTIFIER(CmdAutoStart),
@@ -3001,12 +3066,35 @@ bool OpalManagerCLI::Initialise(PArgList & args, bool verbose, const PString & d
                     "Get/Set codec option value. The format may be @type (e.g. @video) and all codecs of that type are set.",
                     "<format> [ <name> [ <value> ] ]");
 
-  m_cli->SetCommand("show calls", PCREATE_NOTIFIER(CmdShowCalls), "Show all active calls");
-  m_cli->SetCommand("send input", PCREATE_NOTIFIER(CmdSendUserInput), "Send user input indication",
-                    "[ --call ] <string>", "c-call: Token for call.");
+  m_cli->SetCommand("call", PCREATE_NOTIFIER(CmdCall), "Start call between two endpoints", "[ <src> ] <dest>");
+  m_cli->SetCommand("hold", PCREATE_NOTIFIER(CmdHold), "Hold call",
+                    "[ --call <token> ]", "c-call: Token for call to hold");
+  m_cli->SetCommand("retrieve", PCREATE_NOTIFIER(CmdRetrieve), "Retrieve call from hold",
+                    "[ --call <token> ]", "c-call: Token for call to retrieve");
+  m_cli->SetCommand("transfer", PCREATE_NOTIFIER(CmdTransfer), "Transfer call",
+                    "[ --call <token> ] <uri>", "c-call: Token for call to hang up");
   m_cli->SetCommand("hangup", PCREATE_NOTIFIER(CmdHangUp), "Hang up call",
-                    "[ --call ]", "c-call: Token for call to hang up");
-  m_cli->SetCommand("delay", PCREATE_NOTIFIER(CmdDelay),
+                    "[ --call <token> ]", "c-call: Token for call to hang up");
+  m_cli->SetCommand("send input", PCREATE_NOTIFIER(CmdSendUserInput), "Send user input indication",
+                    "[ --call <token> ] <string>", "c-call: Token for call.");
+  m_cli->SetCommand("wait phase", PCREATE_NOTIFIER(CmdWaitPhase),
+                    "Wait for a call to enter a particular phase",
+                    "[ options ] { \"Proceeding\" | \"Alerting\" | \"Connected\" | \"Established\" | \"Forwarding\" | \"Releasing\" }",
+                    "c-call: Token for call.\r"
+                    "n-not. Wait till call leaves the phase.\r"
+                    "t-timeout: Maximum time to wait in milliseconds");
+#if OPAL_STATISTICS
+  m_cli->SetCommand("wait packets", PCREATE_NOTIFIER(CmdWaitPackets),
+                    "Wait for media packets to arrive",
+                    "[ options ] { \"audio\" | \"video\" | <media-type> }",
+                    "c-call: Token for call.\r"
+                    "n-not. Wait till packets cease to arrive.\r"
+                    "d-deadband: Minimum time for packets arriving/ceasing.\r"
+                    "t-timeout: Maximum time to wait in milliseconds");
+#endif
+  m_cli->SetCommand("show calls", PCREATE_NOTIFIER(CmdShowCalls), "Show all active calls");
+
+  m_cli->SetCommand("delay\nsleep", PCREATE_NOTIFIER(CmdDelay),
                     "Delay for the specified number of seconds",
                     "<seconds>");
   m_cli->SetCommand("version", PCREATE_NOTIFIER(CmdVersion),
@@ -3099,6 +3187,109 @@ PCLICurses * OpalManagerCLI::CreateCLICurses()
 #endif // P_CURSES
 
 
+static int GetPortRange(PCLI::Arguments & args, unsigned & basePort, unsigned & maxPort)
+{
+  basePort = 0;
+  maxPort = 0;
+  switch (args.GetCount()) {
+    case 0 :
+      return 0;
+    case 2 :
+      maxPort = args[1].AsUnsigned();
+    case 1 :
+      basePort = args[0].AsUnsigned();
+      if (maxPort < basePort)
+        maxPort = basePort;
+  }
+  if (basePort >= 1024 && basePort < 65536 && maxPort >= 1024 && maxPort < 65536)
+    return 1;
+
+  args.Usage();
+  return -1;
+}
+
+
+void OpalManagerCLI::CmdIpTcpPorts(PCLI::Arguments & args, P_INT_PTR)
+{
+  unsigned basePort, maxPort;
+  switch (GetPortRange(args, basePort, maxPort)) {
+    case 1 :
+      SetTCPPorts(basePort, maxPort);
+    case 0 :
+      args.GetContext() << "TCP ports: " << GetTCPPortRange();
+  }
+}
+
+
+void OpalManagerCLI::CmdIpUdpPorts(PCLI::Arguments & args, P_INT_PTR)
+{
+  unsigned basePort, maxPort;
+  switch (GetPortRange(args, basePort, maxPort)) {
+    case 1 :
+      SetUDPPorts(basePort, maxPort);
+    case 0 :
+      args.GetContext() << "UDP ports: " << GetUDPPortRange();
+  }
+}
+
+
+void OpalManagerCLI::CmdIpRtpPorts(PCLI::Arguments & args, P_INT_PTR)
+{
+  unsigned basePort, maxPort;
+  switch (GetPortRange(args, basePort, maxPort)) {
+    case 1 :
+      SetRtpIpPorts(basePort, maxPort);
+    case 0 :
+      args.GetContext() << "UDP ports: " << GetRtpIpPortRange();
+  }
+}
+
+
+void OpalManagerCLI::CmdIpRtpTos(PCLI::Arguments & args, P_INT_PTR)
+{
+  if (args.GetCount() > 0) {
+    unsigned tos = args[0].AsUnsigned();
+    if (tos > 255) {
+      args.Usage();
+      return;
+    }
+    SetMediaTypeOfService(tos);
+  }
+  args.GetContext() << "RTP Type Of Service: " << GetMediaTypeOfService();
+}
+
+
+void OpalManagerCLI::CmdIpRtpSize(PCLI::Arguments & args, P_INT_PTR)
+{
+  if (args.GetCount() > 0) {
+    unsigned sz = args[0].AsUnsigned();
+    if (sz < 100 || sz > 65535) {
+      args.Usage();
+      return;
+    }
+    SetMaxRtpPayloadSize(sz);
+  }
+  args.GetContext() << "RTP maximum transmitted packet size: " << GetMaxRtpPayloadSize();
+}
+
+
+void OpalManagerCLI::CmdIpQoS(PCLI::Arguments & args, P_INT_PTR)
+{
+  switch (args.GetCount()) {
+    case 2 :
+      if (OpalMediaType(args[0]).GetDefinition() == NULL)
+        break;
+      SetMediaQoS(args[0], args[1]);
+    case 1 :
+      if (OpalMediaType(args[0]).GetDefinition() != NULL)
+        break;
+      args.GetContext() << "Media Quality of Service: " << args[0] << '=' << GetMediaQoS(args[0]);
+      return;
+  }
+  args.Usage();
+}
+
+
 #if OPAL_PTLIB_SSL
 void OpalManagerCLI::CmdSSL(PCLI::Arguments & args, P_INT_PTR)
 {
@@ -3122,36 +3313,39 @@ void OpalManagerCLI::CmdNatList(PCLI::Arguments & args, P_INT_PTR)
 {
   PCLI::Context & out = args.GetContext();
   out << std::left
-      << setw(12) << "Name" << ' '
-      << setw(10) << "State" << ' '
-      << setw(20) << "Type" << ' '
-      << setw(20) << "Server" << ' '
-      <<             "External\n";
+      << setw(12) << "Name"
+      << setw(10) << "State"
+      << setw(18) << "Interface"
+      << setw(20) << "Type"
+      << setw(18) << "External IP"
+      <<             "Server\n";
 
   for (PNatMethods::iterator it = GetNatMethods().begin(); it != GetNatMethods().end(); ++it) {
-    out << setw(12) << it->GetMethodName() << ' '
+    out << setw(12) << it->GetMethodName()
         << setw(10) << (it->IsActive() ? "Active" : "Inactive")
+        << setw(18) << it->GetInterface()
         << setw(20);
 
     PNatMethod::NatTypes type = it->GetNatType();
     if (type != PNatMethod::UnknownNat)
-      out << it->GetNatType();
+      out << type;
     else
-      out << "";
+      out << "N/A";
 
-    out << ' ' << setw(20) << it->GetServer();
-
+    out << setw(18);
     PIPSocket::Address externalAddress;
     if (it->GetExternalAddress(externalAddress))
-      out << ' ' << externalAddress;
+      out << externalAddress;
+    else
+      out << "N/A";
 
-    out << '\n';
+    out << it->GetServer() << '\n';
   }
   out << endl;
 }
 
 
-void OpalManagerCLI::CmdNatAddress(PCLI::Arguments & args, P_INT_PTR)
+void OpalManagerCLI::CmdNatServer(PCLI::Arguments & args, P_INT_PTR)
 {
   if (args.GetCount() < 2) {
     args.WriteUsage();
@@ -3164,12 +3358,6 @@ void OpalManagerCLI::CmdNatAddress(PCLI::Arguments & args, P_INT_PTR)
     return;
   }
 
-  if (args[1] *= "off") {
-    args.GetContext() << natMethod->GetMethodName() << " deactivated.";
-    natMethod->Activate(false);
-    return;
-  }
-
   PIPSocket::Address iface(PIPSocket::GetDefaultIpAny());
   if (args.HasOption("interface")) {
     iface = args.GetOptionString("interface");
@@ -3179,13 +3367,19 @@ void OpalManagerCLI::CmdNatAddress(PCLI::Arguments & args, P_INT_PTR)
     }
   }
 
-  if (!natMethod->SetServer(args[1])) {
-    args.WriteError() << natMethod->GetMethodName() << " server address invalid \"" << args[1] << '"' << endl;
+  bool activate = true;
+  PCaselessString server = args[1];
+  if (server == "default" || server == "active")
+    server = natMethod->GetServer();
+  else if (server == "off" || server == "inactive")
+    activate = false;
+  if (!SetNATServer(natMethod->GetMethodName(), server, activate, args.GetOptionString("priority").AsUnsigned(), iface.AsString())) {
+    args.WriteError() << natMethod->GetMethodName() << " could not open \"" << server << "\" on \"" << iface << '"' << endl;
     return;
   }
 
-  if (!natMethod->Open(iface)) {
-    args.WriteError() << natMethod->GetMethodName() << " could not access  \"" << natMethod->GetServer() << '"' << endl;
+  if (!activate) {
+    args.GetContext() << natMethod->GetMethodName() << " deactivated.";
     return;
   }
 
@@ -3196,7 +3390,7 @@ void OpalManagerCLI::CmdNatAddress(PCLI::Arguments & args, P_INT_PTR)
     out << " with address " << externalAddress;
   out << endl;
 }
-#endif
+#endif // OPAL_PTLIB_NAT
 
 
 #if PTRACING
@@ -3697,7 +3891,7 @@ static void CmdCodecOrderMask(OpalManager & manager, PCLI::Arguments & args, boo
       manager.SetMediaFormatMask(formats);
   }
 
-  args.GetContext() << "Codec " << (order ? "Order" : "Mask") << ": " << setfill(',') << formats << endl;
+  args.GetContext() << "Codec " << (order ? "Order" : "Mask") << ": " << setfill(',') << formats << setfill(' ') << endl;
 }
 
 
@@ -3711,6 +3905,214 @@ void OpalManagerCLI::CmdCodecMask(PCLI::Arguments & args, P_INT_PTR)
 {
   CmdCodecOrderMask(*this, args, false, args.GetCommandName().Find("select") != P_MAX_INDEX ? "!" : "");
 }
+
+
+void OpalManagerCLI::CmdCall(PCLI::Arguments & args, P_INT_PTR)
+{
+  if (args.GetCount() < 1) {
+    args.WriteUsage();
+    return;
+  }
+
+  PString from, to;
+  if (args.GetCount() == 1)
+    to = args[0];
+  else {
+    from = args[0];
+    to = args[1];
+  }
+
+  AdjustCmdCallArguments(from, to);
+
+  PSafePtr<OpalCall> call = SetUpCall(from, to);
+  if (call == NULL)
+    args.WriteError() << "Could not start call." << endl;
+  else {
+    m_lastCallToken = call->GetToken();
+    args.GetContext() << m_lastCallToken << ": Started call from \"" << call->GetPartyA() << "\" to \"" << call->GetPartyB() << '"' << endl;
+  }
+}
+
+
+void OpalManagerCLI::AdjustCmdCallArguments(PString &, PString &)
+{
+}
+
+
+void OpalManagerCLI::CmdHold(PCLI::Arguments & args, P_INT_PTR)
+{
+  PSafePtr<OpalCall> call;
+  if (!GetCallFromArgs(args, call))
+    return;
+
+  if (!call->IsEstablished())
+    args.WriteError() << "Call not yet answered." << endl;
+  else if (call->IsOnHold())
+    args.WriteError() << "Call already on hold." << endl;
+  else if (!call->Hold())
+    args.WriteError() << "Call has disappeared." << endl;
+  else
+    args.GetContext() << "Holding call with \"" << call->GetRemoteParty() << '"' << endl;
+}
+
+
+void OpalManagerCLI::CmdRetrieve(PCLI::Arguments & args, P_INT_PTR)
+{
+  PSafePtr<OpalCall> call;
+  if (!GetCallFromArgs(args, call))
+    return;
+
+  if (!call->IsOnHold())
+    args.WriteError() << "No call is not on hold." << endl;
+  else if (!call->Retrieve())
+    args.WriteError() << "Call has disappeared." << endl;
+  else
+    args.GetContext() << "Retrieving call with \"" << call->GetRemoteParty() << '"' << endl;
+}
+
+
+void OpalManagerCLI::CmdTransfer(PCLI::Arguments & args, P_INT_PTR)
+{
+  PSafePtr<OpalCall> call;
+  if (!GetCallFromArgs(args, call))
+    return;
+
+  if (!call->IsEstablished())
+    args.WriteError() << "Call not yet answered." << endl;
+  else if (!call->Transfer(args[0]))
+    args.WriteError() << "Transfer failed." << endl;
+  else
+    args.GetContext() << "Transfering call with \"" << call->GetRemoteParty() << "\" to \"" << args[0] << '"' << endl;
+}
+
+
+void OpalManagerCLI::CmdHangUp(PCLI::Arguments & args, P_INT_PTR)
+{
+  PSafePtr<OpalCall> call;
+  if (GetCallFromArgs(args, call)) {
+    args.GetContext() << call->GetToken() << ": Hanging up call from \"" << call->GetPartyA() << "\" to \"" << call->GetPartyB() << '"' << endl;
+    call->Clear();
+  }
+}
+
+
+void OpalManagerCLI::CmdSendUserInput(PCLI::Arguments & args, P_INT_PTR)
+{
+  if (args.GetCount() == 0) {
+    args.WriteUsage();
+    return;
+  }
+
+  PSafePtr<OpalLocalConnection> connection;
+  if (GetConnectionFromArgs(args, connection)) {
+    connection->OnUserInputString(args[0]);
+    args.GetContext() << connection->GetCall().GetToken() << ": Sent user input " << args[0].ToLiteral() << endl;
+  }
+}
+
+
+void OpalManagerCLI::CmdWaitPhase(PCLI::Arguments & args, P_INT_PTR)
+{
+  if (args.GetCount() == 0) {
+    args.WriteUsage();
+    return;
+  }
+
+  OpalConnection::Phases waitPhase = OpalConnection::PhasesFromString(args[0]);
+  if (waitPhase == OpalConnection::NumPhases)
+    waitPhase = OpalConnection::PhasesFromString(args[0]+"Phase");
+  if (waitPhase == OpalConnection::NumPhases) {
+    args.WriteError() << "Unknown phase: \"" << args[0] << '"' << endl;
+    return;
+  }
+
+  PSafePtr<OpalCall> call;
+  if (!GetCallFromArgs(args, call))
+    return;
+
+  call.SetSafetyMode(PSafeReference);
+
+  bool negative = args.HasOption('n');
+  args.GetContext() << call->GetToken() << ": Awaiting " << (negative ? "leaving " : "entering ") << waitPhase << endl;
+
+  PSimpleTimer timeout(args.GetOptionString("timeout", "10000").AsUnsigned());
+  do {
+    PSafePtr<OpalConnection> conn = call->GetConnection(0);
+    if (!conn) {
+      args.GetContext() << "Call disappeared." << endl;
+      return;
+    }
+
+    OpalConnection::Phases currentPhase = conn->GetPhase();
+    if (negative ? (currentPhase != waitPhase) : (currentPhase >= waitPhase))  {
+      args.GetContext() << call->GetToken() << ": Call now in " << currentPhase << endl;
+      return;
+    }
+
+    PThread::Sleep(100);
+  } while (timeout.IsRunning());
+
+  args.GetContext() << "Call never entered " << waitPhase << endl;
+}
+
+
+#if OPAL_STATISTICS
+void OpalManagerCLI::CmdWaitPackets(PCLI::Arguments & args, P_INT_PTR)
+{
+  if (args.GetCount() == 0) {
+    args.WriteUsage();
+    return;
+  }
+
+  OpalMediaType mediaType = args[0];
+  if (mediaType.GetDefinition() == NULL) {
+    args.WriteError("Unknown media type.");
+    return;
+  }
+
+  PSafePtr<OpalCall> call;
+  if (!GetCallFromArgs(args, call))
+    return;
+
+  PSafePtr<OpalConnection> connection = call->GetConnection(0);
+  if (connection == NULL)
+    return; // This really should not happen
+
+  if (!connection->IsNetworkConnection()) {
+    connection = connection->GetOtherPartyConnection();
+    if (connection == NULL)
+      return; // This really should not happen
+  }
+
+  OpalMediaStreamPtr mediaStream = connection->GetMediaStream(OpalMediaType::Audio(), false);
+  if (mediaStream == NULL) {
+    args.WriteError() << "Call has no receive " << mediaType << " stream." << endl;
+    return;
+  }
+
+  OpalMediaStatistics previous;
+  mediaStream->GetStatistics(previous);
+
+  bool negative = args.HasOption('n');
+  PTimeInterval deadband(args.GetOptionString("deadband", "100").AsUnsigned());
+  PSimpleTimer deadbandTimer = deadband;
+  PSimpleTimer timeout(args.GetOptionString("timeout", "1000").AsUnsigned());
+  bool lastState = false;
+  do {
+    OpalMediaStatistics current;
+    mediaStream->GetStatistics(current);
+    bool newState = negative ? (current.m_totalPackets == previous.m_totalPackets) : (current.m_totalPackets > previous.m_totalPackets);
+    if (newState != lastState)
+      deadbandTimer = deadband;
+    if (newState && deadbandTimer.HasExpired()) {
+      args.GetContext() << call->GetToken() << ": " << (negative ? "Packets ceased" : "Received packets") << " on " << mediaType << " stream" << endl;
+      return;
+    }
+  } while (timeout.IsRunning());
+
+  args.GetContext() << "Call never received " << mediaType << " packets" << endl;
+}
+#endif //OPAL_STATISTICS
 
 
 void OpalManagerCLI::CmdShowCalls(PCLI::Arguments & args, P_INT_PTR)
@@ -3737,35 +4139,13 @@ void OpalManagerCLI::CmdShowCalls(PCLI::Arguments & args, P_INT_PTR)
 }
 
 
-void OpalManagerCLI::CmdSendUserInput(PCLI::Arguments & args, P_INT_PTR)
-{
-  if (args.GetCount() == 0) {
-    args.WriteUsage();
-    return;
-  }
-
-  PSafePtr<OpalLocalConnection> connection;
-  if (GetConnectionFromArgs(args, connection))
-    connection->OnUserInputString(args[0]);
-}
-
-
-void OpalManagerCLI::CmdHangUp(PCLI::Arguments & args, P_INT_PTR)
-{
-  PSafePtr<OpalCall> call;
-  if (GetCallFromArgs(args, call)) {
-    args.GetContext() << "Hanging up call from " << call->GetPartyA() << " to " << call->GetPartyB() << endl;
-    call->Clear();
-  }
-}
-
-
 void OpalManagerCLI::CmdDelay(PCLI::Arguments & args, P_INT_PTR)
 {
   if (args.GetCount() < 1)
     args.WriteUsage();
   else {
-    PTimeInterval delay(0, args[0].AsUnsigned());
+    PTimeInterval delay(PTimeInterval::Seconds(args[0].AsReal()));
+    args.GetContext() << "Delaying for " << delay.AsString(3, PTimeInterval::SecondsSI) << 's' << endl;
     m_endRun.Wait(delay);
   }
 }

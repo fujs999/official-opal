@@ -227,7 +227,15 @@ PBoolean MyProcess::OnStart()
 
   if (m_manager == NULL)
     m_manager = new MyManager();
-  return m_manager->Initialise(GetArguments(), false) && PHTTPServiceProcess::OnStart();
+
+  if (!PHTTPServiceProcess::OnStart())
+    return false;
+
+  if (m_manager->Initialise(GetArguments(), false))
+    return true;
+
+  PSYSTEMLOG(Fatal, "Could not initialise from command line arguments");
+  return false;
 }
 
 
@@ -278,14 +286,24 @@ PBoolean MyProcess::Initialise(const char * initMsg)
 
   // Configure the core of the system
   PConfig cfg(params.m_section);
-  if (!m_manager->Configure(cfg, params.m_configPage))
+  if (!m_manager->Configure(cfg, params.m_configPage)) {
+    PSYSTEMLOG(Fatal, "Failed to configure system");
     return false;
+  }
 
+  params.m_configPage->Add(new PHTTPDividerField());
+  params.m_configPage->AddStringField("User Information", P_MAX_INDEX, "", "Not used by any OPAL server functions", 10, 80);
   params.m_configPage->Add(new PHTTPDividerField());
 
   // Finished the resource to add, generate HTML for it and add to name space
   PServiceHTML cfgHTML("System Parameters");
   params.m_configPage->BuildHTML(cfgHTML);
+
+  {
+    PJSON json;
+    params.m_configPage->SaveToJSON(json);
+    m_httpNameSpace.AddResource(new PHTTPString("Parameters.json", json.AsString(), PMIMEInfo::ApplicationJSON(), params.m_authority), PHTTPSpace::Overwrite);
+  }
 
 #if OPAL_PTLIB_HTTP && OPAL_PTLIB_SSL
   m_httpNameSpace.AddResource(new OpalHTTPConnector(*m_manager, "/websocket", params.m_authority), PHTTPSpace::Overwrite);
@@ -395,9 +413,12 @@ bool MyManager::ConfigureCommon(OpalEndPoint * ep,
     PSYSTEMLOG(Info, "Disabled " << cfgPrefix);
     ep->RemoveListener(NULL);
   }
-  else if (!ep->StartListeners(listeners)) {
+  else if (!ep->StartListeners(listeners, false)) {
     PSYSTEMLOG(Error, "Could not open any listeners for " << cfgPrefix);
   }
+  OpalConsoleEndPoint * cep = dynamic_cast<OpalConsoleEndPoint *>(ep);
+  if (cep != NULL)
+    cep->SetEndpointDisabled(disabled);
 
 #if OPAL_PTLIB_SSL
   PString securePrefix = normalPrefix + 's';
@@ -529,6 +550,9 @@ PBoolean MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
         m_cli->Start();
       }
     }
+#if PTRACING
+    m_outputStream = PTrace::GetStream();
+#endif
   }
 #endif //P_CLI && P_TELNET
 
@@ -631,16 +655,15 @@ PBoolean MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
           bool notSet = true;
           OpalMediaFormatList::const_iterator it;
           while ((it = all.FindFormat(wildcard, it)) != all.end()) {
-            if (const_cast<OpalMediaFormat &>(*it).SetOptionValue(option, value)) {
-              PSYSTEMLOG(Info, "Set media format \"" << *it << "\", option \"" << option << "\", to \"" << value << '"');
-              OpalMediaFormat::SetRegisteredMediaFormat(*it);
+            if (const_cast<OpalMediaFormat &>(*it).SetOptionValue(option, value) && OpalMediaFormat::SetRegisteredMediaFormat(*it)) {
+              PTRACE(3, "Set media format \"" << *it << "\" option \"" << option << "\" to \"" << value << '"');
               notSet = false;
             }
             else
-              PSYSTEMLOG(Warning, "Could not set media format \"" << *it << "\", option \"" << option << "\", to \"" << value << '"');
+              PTRACE(2, "Could not set media format \"" << *it << "\" option \"" << option << "\" to \"" << value << '"');
           }
           if (notSet) {
-            PSYSTEMLOG(Warning, "Could not set any media formats using wildcare \"" << wildcard << '"');
+            PTRACE(2, "Could not set any media formats using wildcard \"" << wildcard << '"');
             item[0].SetValue("false");
             optionsArray->SaveToConfig(cfg);
           }
@@ -727,6 +750,26 @@ PBoolean MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
   }
 #endif // P_NAT
 
+#if OPAL_IVR
+  rsrc->Add(new PHTTPDividerField());
+  PSYSTEMLOG(Info, "Configuring IVR");
+  {
+    OpalIVREndPoint * ivrEP = FindEndPointAs<OpalIVREndPoint>(OPAL_PREFIX_IVR);
+    // Set IVR protocol handler
+    ivrEP->SetDefaultVXML(rsrc->AddStringField(VXMLKey, 0, ivrEP->GetDefaultVXML(),
+                                               "Interactive Voice Response VXML script, may be a URL or the actual VXML", 10, 80));
+    ivrEP->SetCacheDir(rsrc->AddStringField(IVRCacheKey, 0, ivrEP->GetCacheDir(),
+                                            "Interactive Voice Response directory to cache Text To Speech phrases", 1, 50));
+    ivrEP->SetRecordDirectory(rsrc->AddStringField(IVRRecordDirKey, 0, ivrEP->GetRecordDirectory(),
+                                                   "Interactive Voice Response directory to save recorded messages", 1, 50));
+#if P_VXML_VIDEO
+    m_signLanguageAnalyserDLL = rsrc->AddStringField(SignLanguageAnalyserDLLKey, 0, m_signLanguageAnalyserDLL,
+                                                     "Interactive Voice Response Sign Language Library", 1, 50);
+    PVXMLSession::SetSignLanguageAnalyser(m_signLanguageAnalyserDLL);
+#endif
+  }
+#endif
+
 #if OPAL_H323
   rsrc->Add(new PHTTPDividerField());
   PSYSTEMLOG(Info, "Configuring H.323");
@@ -782,27 +825,6 @@ PBoolean MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
   m_enableCAPI = rsrc->AddBooleanField(EnableCAPIKey, m_enableCAPI, "Enable CAPI ISDN controller(s), if available");
   if (m_enableCAPI && FindEndPointAs<OpalCapiEndPoint>(OPAL_PREFIX_CAPI)->OpenControllers() == 0) {
     PSYSTEMLOG(Error, "No CAPI controllers!");
-  }
-#endif
-
-
-#if OPAL_IVR
-  rsrc->Add(new PHTTPDividerField());
-  PSYSTEMLOG(Info, "Configuring IVR");
-  {
-    OpalIVREndPoint * ivrEP = FindEndPointAs<OpalIVREndPoint>(OPAL_PREFIX_IVR);
-    // Set IVR protocol handler
-    ivrEP->SetDefaultVXML(rsrc->AddStringField(VXMLKey, 0, ivrEP->GetDefaultVXML(),
-          "Interactive Voice Response VXML script, may be a URL or the actual VXML", 10, 80));
-    ivrEP->SetCacheDir(rsrc->AddStringField(IVRCacheKey, 0, ivrEP->GetCacheDir(),
-          "Interactive Voice Response directory to cache Text To Speech phrases", 1, 50));
-    ivrEP->SetRecordDirectory(rsrc->AddStringField(IVRRecordDirKey, 0, ivrEP->GetRecordDirectory(),
-          "Interactive Voice Response directory to save recorded messages", 1, 50));
-#if P_VXML_VIDEO
-    m_signLanguageAnalyserDLL = rsrc->AddStringField(SignLanguageAnalyserDLLKey, 0, m_signLanguageAnalyserDLL,
-          "Interactive Voice Response Sign Language Library", 1, 50);
-    PVXMLSession::SetSignLanguageAnalyser(m_signLanguageAnalyserDLL);
-#endif
   }
 #endif
 
@@ -978,6 +1000,7 @@ void MyManager::OnStopMediaPatch(OpalConnection & connection, OpalMediaPatch & p
 }
 
 
+#if OPAL_HAS_MIXER
 void MyManager::StartRecordingCall(MyCall & call) const
 {
   if (!m_recordingEnabled)
@@ -986,6 +1009,7 @@ void MyManager::StartRecordingCall(MyCall & call) const
   PFilePath filepath = m_recordingTemplate;
   call.StartRecording(filepath.GetDirectory(), filepath.GetTitle(), filepath.GetType(), m_recordingOptions);
 }
+#endif //OPAL_HAS_MIXER
 
 
 ///////////////////////////////////////////////////////////////////////////////
