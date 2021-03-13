@@ -425,8 +425,8 @@ void OpalMediaPatch::RemoveSink(const OpalMediaStream & stream)
 
 OpalMediaStreamPtr OpalMediaPatch::GetSink(PINDEX i) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return lock.IsLocked() && i < m_sinks.GetSize() ? m_sinks[i].m_stream : OpalMediaStreamPtr();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return NULL);
+  return i < m_sinks.GetSize() ? m_sinks[i].m_stream : OpalMediaStreamPtr();
 }
 
 

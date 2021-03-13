@@ -767,8 +767,8 @@ bool OpalMediaTransport::SetRemoteAddress(const OpalTransportAddress &, SubChann
 
 PChannel::Errors OpalMediaTransport::GetLastError(SubChannels subchannel) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return lock.IsLocked() && (size_t)subchannel < m_subchannels.size() ? m_subchannels[subchannel].m_lastError : PChannel::NotFound;
+  P_INSTRUMENTED_LOCK_READ_ONLY(PChannel::NotOpen);
+  return (size_t)subchannel < m_subchannels.size() ? m_subchannels[subchannel].m_lastError : PChannel::NotFound;
 }
 
 
