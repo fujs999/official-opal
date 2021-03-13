@@ -1574,7 +1574,11 @@ void OpalConnection::SetLocalPartyName(const PString & name)
 
 PString OpalConnection::GetLocalPartyURL() const
 {
-  return GetPrefixName() + ':' + PURL::TranslateString(GetLocalPartyName(), PURL::LoginTranslation);
+  PString prefix = GetPrefixName();
+  PURL url(GetLocalPartyName(), prefix);
+  if (url.IsEmpty() || url.GetScheme() != prefix)
+    return PSTRSTRM(prefix << ':' << PURL::TranslateString(GetLocalPartyName(), PURL::LoginTranslation));
+  return url.AsString();
 }
 
 
