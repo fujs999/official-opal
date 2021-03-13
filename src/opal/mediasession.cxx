@@ -647,20 +647,21 @@ void OpalMediaTransport::PrintOn(ostream & strm) const
 
 PString OpalMediaTransport::GetType()
 {
-  PString type;
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
 
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  if (lock.IsLocked() && !m_subchannels.empty()) {
-    PChannel * channel = m_subchannels.front().m_channel;
-    if (channel != NULL) {
-      channel = channel->GetBaseReadChannel();
-      if (channel != NULL) {
-        type = channel->GetName();
-        type.Delete(type.Find(':'), P_MAX_INDEX);
-      }
-    }
-  }
+  if (m_subchannels.empty())
+    return PString::Empty();
 
+  PChannel * channel = m_subchannels.front().m_channel;
+  if (channel == NULL)
+    return PString::Empty();
+
+  channel = channel->GetBaseReadChannel();
+  if (channel == NULL)
+    return PString::Empty();
+
+  PString type = channel->GetName();
+  type.Delete(type.Find(':'), P_MAX_INDEX);
   return type;
 }
 
@@ -681,8 +682,9 @@ OpalTransportAddress OpalMediaTransport::GetLocalAddress(SubChannels subchannel)
 {
   OpalTransportAddress addr;
 
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  if (lock.IsLocked() && (size_t)subchannel < m_subchannels.size()) {
+  P_INSTRUMENTED_LOCK_READ_ONLY(return addr);
+
+  if ((size_t)subchannel < m_subchannels.size()) {
     addr = m_subchannels[subchannel].m_localAddress;
     addr.MakeUnique();
   }
@@ -695,8 +697,9 @@ OpalTransportAddress OpalMediaTransport::GetRemoteAddress(SubChannels subchannel
 {
   OpalTransportAddress addr;
 
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  if (lock.IsLocked() && (size_t)subchannel < m_subchannels.size()) {
+  P_INSTRUMENTED_LOCK_READ_ONLY(return addr);
+
+  if ((size_t)subchannel < m_subchannels.size()) {
     addr = m_subchannels[subchannel].m_remoteAddress;
     addr.MakeUnique();
   }
@@ -952,9 +955,7 @@ void OpalMediaTransport::Start()
   if (m_started.exchange(true))
     return;
 
-  P_INSTRUMENTED_LOCK_READ_WRITE();
-  if (!lock.IsLocked())
-    return;
+  P_INSTRUMENTED_LOCK_READ_WRITE(return);
 
   PTRACE(4, *this << "starting read theads, " << m_subchannels.size() << " sub-channels");
   for (ChannelArray::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it) {
@@ -1130,9 +1131,7 @@ bool OpalUDPMediaTransport::InternalSetRemoteAddress(const PIPSocket::AddressAnd
   if (!newAP.IsValid())
     return false;
 
-  P_INSTRUMENTED_LOCK_READ_WRITE();
-  if (!lock.IsLocked())
-    return false;
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   PUDPSocket * socket = GetSubChannelAsSocket(subchannel);
   if (socket == NULL)
@@ -1705,9 +1704,7 @@ const PCaselessString & OpalDummySession::GetSessionType() const
 
 bool OpalDummySession::Open(const PString &, const OpalTransportAddress &)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
-  if (!lock.IsLocked())
-    return false;
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   PSafePtr<OpalConnection> otherParty = m_connection.GetOtherPartyConnection();
   if (otherParty != NULL) {
@@ -1739,30 +1736,28 @@ bool OpalDummySession::Open(const PString &, const OpalTransportAddress &)
 
 bool OpalDummySession::IsOpen() const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return lock.IsLocked() && !m_localTransportAddress[e_Media].IsEmpty() && !m_remoteTransportAddress[e_Media].IsEmpty();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
+  return !m_localTransportAddress[e_Media].IsEmpty() && !m_remoteTransportAddress[e_Media].IsEmpty();
 }
 
 
 OpalTransportAddress OpalDummySession::GetLocalAddress(bool isMediaAddress) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return lock.IsLocked() ? m_localTransportAddress[isMediaAddress ? e_Media : e_Control] : OpalTransportAddress();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return OpalTransportAddress());
+  return m_localTransportAddress[isMediaAddress ? e_Media : e_Control];
 }
 
 
 OpalTransportAddress OpalDummySession::GetRemoteAddress(bool isMediaAddress) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return lock.IsLocked() ? m_remoteTransportAddress[isMediaAddress ? e_Media : e_Control] : OpalTransportAddress();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return OpalTransportAddress());
+  return m_remoteTransportAddress[isMediaAddress ? e_Media : e_Control];
 }
 
 
 bool OpalDummySession::SetRemoteAddress(const OpalTransportAddress & remoteAddress, bool isMediaAddress)
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
-  if (!lock.IsLocked())
-    return false;
+  P_INSTRUMENTED_LOCK_READ_WRITE(return false);
 
   // Some code to keep the port if new one does not have it but old did.
   PIPSocket::Address ip;
