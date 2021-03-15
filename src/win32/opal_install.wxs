@@ -7,11 +7,69 @@
     <?define PlatformProgramFilesFolder = "ProgramFilesFolder" ?>
     <?define PTLibName = "PTLib" ?>
     <?define OPALName  = "OPAL" ?>
+    <?ifndef SSLVer ?>
+        <?define SSLVer = "1_1" ?>
+    <?endif?>
+    <?ifndef SSLDir ?>
+        <?define SSLDir = "$(env.ProgramFiles)\OpenSSL-Win32\bin" ?>
+    <?endif?>
+    <?ifndef LuaDir ?>
+        <?define LuaDir = "$(env.LUA32DIR)" ?>
+    <?endif?>
+    <?ifndef V8Dir ?>
+        <?define V8Dir = "$(env.V8_DIR)\v8\out.gn\ia32.release" ?>
+    <?endif?>
+    <?ifndef SaslDir ?>
+        <?define SaslDir = "C:\Tools\bin" ?>
+    <?endif?>
+    <?ifndef LDAPDir ?>
+        <?define LDAPDir = "C:\Tools\bin" ?>
+    <?endif?>
+    <?ifndef FFMPEGDir ?>
+        <?define FFMPEGDir = "$(env.FFMPEG32DIR)\bin" ?>
+    <?endif?>
+    <?ifndef SpanDspDir ?>
+        <?define SpanDspDir = "$(env.SPANDSPDIR)\src\Release" ?>
+    <?endif?>
 <?else?>
     <?define IsWin64 = "yes" ?>
     <?define PlatformProgramFilesFolder = "ProgramFiles64Folder" ?>
     <?define PTLibName = "PTLib64" ?>
     <?define OPALName  = "OPAL64" ?>
+    <?ifndef SSLVer ?>
+        <?define SSLVer = "1_1-x64" ?>
+    <?endif?>
+    <?ifndef SSLDir ?>
+        <?define SSLDir = "$(env.ProgramW6432)\OpenSSL-Win64\bin" ?>
+    <?endif?>
+    <?ifndef LuaDir ?>
+        <?define LuaDir = "$(env.LUA64DIR)" ?>
+    <?endif?>
+    <?ifndef V8Dir ?>
+        <?define V8Dir = "$(env.V8_DIR)\v8\out.gn\x64.release" ?>
+    <?endif?>
+    <?ifndef FFMPEGDir ?>
+        <?define FFMPEGDir = "$(env.FFMPEG64DIR)\bin" ?>
+    <?endif?>
+    <?ifndef SpanDspDir ?>
+        <?define SpanDspDir = "$(env.SPANDSPDIR)\src\x64\Release" ?>
+    <?endif?>
+<?endif?>
+
+<?ifndef AVFORMATVer ?>
+    <?define AVFORMATVer = "58" ?>
+<?endif?>
+<?ifndef AVCODECVer ?>
+    <?define AVCODECVer = "58" ?>
+<?endif?>
+<?ifndef AVUTILVer ?>
+    <?define AVUTILVer = "56" ?>
+<?endif?>
+<?ifndef SWRESAMPLEVer ?>
+    <?define SWRESAMPLEVer = "3" ?>
+<?endif?>
+<?ifndef SWSCALEVer ?>
+    <?define SWSCALEVer = "5" ?>
 <?endif?>
 
 <?ifdef WxDir ?>
@@ -33,7 +91,15 @@
     <?endif?>
 <?endif?>
 
-<?define PluginReleaseDir = "$(var.OPALDir)\bin\plugins\$(var.Platform)\Release" ?>
+<?ifndef PTLibDir ?>
+    <?define PTLibDir = "$(var.ProjectDir)..\..\..\ptlib" ?>
+<?endif?>
+<?ifndef OPALDir ?>
+    <?define OPALDir = "$(var.ProjectDir)..\.." ?>
+<?endif?>
+<?ifndef PluginReleaseDir ?>
+    <?define PluginReleaseDir = "$(var.OPALDir)\bin\plugins\$(var.Platform)\Release" ?>
+<?endif?>
 
 
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
@@ -445,17 +511,17 @@
                         <Component Id='OpenSSL1'
                                    Win64="$(var.IsWin64)"
                                    Guid='*'>
-                            <File Id='LIBEAY32_DLL'
-                                  Name='LIBEAY32.DLL'
-                                  Source='$(var.SSLDir)\LIBEAY32.DLL'
+                            <File Id='LIBSSL_DLL'
+                                  Name='LIBSSL.DLL'
+                                  Source='$(var.SSLDir)\libssl-$(var.SSLVer).DLL'
                                   KeyPath='yes' />
                         </Component>
                         <Component Id='OpenSSL2'
                                    Win64="$(var.IsWin64)"
                                    Guid='*'>
-                            <File Id='SSLEAY32_DLL'
-                                  Name='SSLEAY32.DLL'
-                                  Source='$(var.SSLDir)\SSLEAY32.DLL'
+                            <File Id='LIBCRYPTO_DLL'
+                                  Name='LIBCRYPTO.DLL'
+                                  Source='$(var.SSLDir)\libcrypto-$(var.SSLVer).DLL'
                                   KeyPath='yes' />
                         </Component>
                         <?ifdef WxDir ?>
