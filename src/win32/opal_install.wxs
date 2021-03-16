@@ -512,7 +512,7 @@
                                    Win64="$(var.IsWin64)"
                                    Guid='*'>
                             <File Id='LIBSSL_DLL'
-                                  Name='LIBSSL.DLL'
+                                  Name='LIBSSL-$(var.SSLVer).DLL'
                                   Source='$(var.SSLDir)\libssl-$(var.SSLVer).DLL'
                                   KeyPath='yes' />
                         </Component>
@@ -520,7 +520,7 @@
                                    Win64="$(var.IsWin64)"
                                    Guid='*'>
                             <File Id='LIBCRYPTO_DLL'
-                                  Name='LIBCRYPTO.DLL'
+                                  Name='LIBCRYPTO-$(var.SSLVer).DLL'
                                   Source='$(var.SSLDir)\libcrypto-$(var.SSLVer).DLL'
                                   KeyPath='yes' />
                         </Component>
