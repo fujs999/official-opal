@@ -477,13 +477,6 @@ void OpalDTLSSRTPSession::SetSetUpMode(SetUpMode mode)
 }
 
 
-bool OpalDTLSSRTPSession::IsPassiveMode() const
-{
-  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
-  return m_passiveMode;
-}
-
-
 PSSLCertificateFingerprint OpalDTLSSRTPSession::GetLocalFingerprint(PSSLCertificateFingerprint::HashType hashType) const
 {
   OpalMediaTransportPtr transport = m_transport;

@@ -14,7 +14,7 @@ using::std::pair;
 
 #include <io.h>
 
-std::string GetErrorText()
+static std::string GetErrorText()
 {
   DWORD lastError = GetLastError();
   LPVOID lpMsgBuf;
@@ -25,7 +25,7 @@ std::string GetErrorText()
 }
 
 
-int gettimeofday(struct timeval *tv, struct timezone *)
+static int gettimeofday(struct timeval *tv, struct timezone *)
 {
   FILETIME ft;
   unsigned __int64 tmpres = 0;

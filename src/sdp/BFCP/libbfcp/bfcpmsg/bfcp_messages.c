@@ -230,7 +230,7 @@ bfcp_floor_id_list *bfcp_new_floor_id_list(unsigned fID, ...)
 /* Add IDs to an existing Floor ID list (last argument MUST be 0) */
 int bfcp_add_floor_id_list(bfcp_floor_id_list *list, unsigned fID, ...)
 {
-	bfcp_floor_id_list *previous, *next;
+	bfcp_floor_id_list *previous = NULL, *next;
 	va_list ap;
 	va_start(ap, fID);
 	if(!list)	/* List doesn't exist, return a with failure */
@@ -380,7 +380,7 @@ bfcp_unknown_m_error_details *bfcp_new_unknown_m_error_details_list(unsigned att
 /* Add Attributes to an existing Error Details list (for Error 4: UNKNOWN_M) (last argument MUST be 0) */
 int bfcp_add_unknown_m_error_details_list(bfcp_unknown_m_error_details *list, unsigned attribute, ...)
 {
-	bfcp_unknown_m_error_details *previous, *next;
+	bfcp_unknown_m_error_details *previous = NULL, *next;
 	va_list ap;
 	va_start(ap, attribute);
 	if(!list)	/* List doesn't exist, return a with failure */
@@ -493,7 +493,7 @@ int bfcp_list_floor_request_information(bfcp_floor_request_information *frqInfo,
 /* Add elements to an existing Floor Request Information list (last argument MUST be NULL) */
 int bfcp_add_floor_request_information_list(bfcp_floor_request_information *list, ...)
 {
-	bfcp_floor_request_information *previous, *next;
+	bfcp_floor_request_information *previous = NULL, *next;
 	va_list ap;
 	va_start(ap, list);
 	if(!list)	/* List doesn't exist, return a with failure */
@@ -585,7 +585,7 @@ int bfcp_list_floor_request_status(bfcp_floor_request_status *fRS, ...)
 /* Add elements to an existing Floor Request Status list (last argument MUST be NULL) */
 int bfcp_add_floor_request_status_list(bfcp_floor_request_status *list, ...)
 {
-	bfcp_floor_request_status *previous, *next;
+	bfcp_floor_request_status *previous = NULL, *next;
 	va_list ap;
 	va_start(ap, list);
 	if(!list)	/* List doesn't exist, return a with failure */
