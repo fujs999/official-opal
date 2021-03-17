@@ -698,20 +698,21 @@ void OpalMediaTransport::PrintOn(ostream & strm) const
 
 PString OpalMediaTransport::GetType()
 {
-  PString type;
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PString::Empty());
 
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  if (lock.IsLocked() && !m_subchannels.empty()) {
-    PChannel * channel = m_subchannels.front().m_channel;
-    if (channel != NULL) {
-      channel = channel->GetBaseReadChannel();
-      if (channel != NULL) {
-        type = channel->GetName();
-        type.Delete(type.Find(':'), P_MAX_INDEX);
-      }
-    }
-  }
+  if (m_subchannels.empty())
+    return PString::Empty();
 
+  PChannel * channel = m_subchannels.front().m_channel;
+  if (channel == NULL)
+    return PString::Empty();
+
+  channel = channel->GetBaseReadChannel();
+  if (channel == NULL)
+    return PString::Empty();
+
+  PString type = channel->GetName();
+  type.Delete(type.Find(':'), P_MAX_INDEX);
   return type;
 }
 
@@ -732,8 +733,9 @@ OpalTransportAddress OpalMediaTransport::GetLocalAddress(SubChannels subchannel)
 {
   OpalTransportAddress addr;
 
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  if (lock.IsLocked() && (size_t)subchannel < m_subchannels.size()) {
+  P_INSTRUMENTED_LOCK_READ_ONLY(return addr);
+
+  if ((size_t)subchannel < m_subchannels.size()) {
     addr = m_subchannels[subchannel].m_localAddress;
     addr.MakeUnique();
   }
@@ -746,8 +748,9 @@ OpalTransportAddress OpalMediaTransport::GetRemoteAddress(SubChannels subchannel
 {
   OpalTransportAddress addr;
 
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  if (lock.IsLocked() && (size_t)subchannel < m_subchannels.size()) {
+  P_INSTRUMENTED_LOCK_READ_ONLY(return addr);
+
+  if ((size_t)subchannel < m_subchannels.size()) {
     addr = m_subchannels[subchannel].m_remoteAddress;
     addr.MakeUnique();
   }
@@ -764,8 +767,8 @@ bool OpalMediaTransport::SetRemoteAddress(const OpalTransportAddress &, SubChann
 
 PChannel::Errors OpalMediaTransport::GetLastError(SubChannels subchannel) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return lock.IsLocked() && (size_t)subchannel < m_subchannels.size() ? m_subchannels[subchannel].m_lastError : PChannel::NotFound;
+  P_INSTRUMENTED_LOCK_READ_ONLY(return PChannel::NotOpen);
+  return (size_t)subchannel < m_subchannels.size() ? m_subchannels[subchannel].m_lastError : PChannel::NotFound;
 }
 
 
@@ -1874,8 +1877,8 @@ bool OpalDummySession::Open(const PString &, const OpalTransportAddress &)
 
 bool OpalDummySession::IsOpen() const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return lock.IsLocked() && !m_localTransportAddress[e_Media].IsEmpty() && !m_remoteTransportAddress[e_Media].IsEmpty();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
+  return !m_localTransportAddress[e_Media].IsEmpty() && !m_remoteTransportAddress[e_Media].IsEmpty();
 }
 
 

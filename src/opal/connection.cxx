@@ -1605,7 +1605,13 @@ PString OpalConnection::GetPrefixName() const
 void OpalConnection::SetLocalPartyName(const PString & name)
 {
   m_localPartyName = name;
-  m_localPartyURL = GetPrefixName() + ':' + PURL::TranslateString(GetLocalPartyName(), PURL::LoginTranslation);
+
+  PString prefix = GetPrefixName();
+  PURL url(name, prefix);
+  if (url.IsEmpty() || url.GetScheme() != prefix)
+    m_localPartyURL = PSTRSTRM(prefix << ':' << PURL::TranslateString(GetLocalPartyName(), PURL::LoginTranslation));
+  else
+    m_localPartyURL = url.AsString();
 }
 
 
@@ -1867,8 +1873,9 @@ OpalMediaFormatList OpalConnection::GetMediaFormats() const
 
 OpalMediaFormatList OpalConnection::GetLocalMediaFormats()
 {
-  P_INSTRUMENTED_LOCK_READ_WRITE();
-  if (lock.IsLocked() && m_localMediaFormats.IsEmpty()) {
+  P_INSTRUMENTED_LOCK_READ_WRITE(return OpalMediaFormatList());
+
+  if (m_localMediaFormats.IsEmpty()) {
     m_localMediaFormats = m_ownerCall.GetMediaFormats(*this);
     m_localMediaFormats.MakeUnique();
   }

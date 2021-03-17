@@ -43,6 +43,7 @@
 #include <opal/guid.h>
 #include <opal/transports.h>
 #include <ptclib/dtmf.h>
+#include <ptclib/mime.h>
 #include <ptlib/safecoll.h>
 #include <rtp/rtp.h>
 

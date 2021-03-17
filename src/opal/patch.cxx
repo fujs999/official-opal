@@ -165,8 +165,8 @@ void OpalMediaPatch::Start()
   if (CanStart()) {
     PString threadName = m_source.GetPatchThreadName();
     if (threadName.IsEmpty()) {
-      P_INSTRUMENTED_LOCK_READ_ONLY2(lock, *this);
-      if (lock.IsLocked() && !m_sinks.empty())
+      P_INSTRUMENTED_LOCK_READ_ONLY(return);
+      if (!m_sinks.empty())
         threadName = m_sinks.front().m_stream->GetPatchThreadName();
     }
     if (threadName.IsEmpty())
@@ -425,8 +425,8 @@ void OpalMediaPatch::RemoveSink(const OpalMediaStream & stream)
 
 OpalMediaStreamPtr OpalMediaPatch::GetSink(PINDEX i) const
 {
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return lock.IsLocked() && i < m_sinks.GetSize() ? m_sinks[i].m_stream : OpalMediaStreamPtr();
+  P_INSTRUMENTED_LOCK_READ_ONLY(return NULL);
+  return i < m_sinks.GetSize() ? m_sinks[i].m_stream : OpalMediaStreamPtr();
 }
 
 
@@ -892,8 +892,8 @@ bool OpalMediaPatch::DispatchFrame(RTP_DataFrame & frame)
 
   UnlockReadOnly(P_DEBUG_LOCATION);
 
-  P_INSTRUMENTED_LOCK_READ_ONLY();
-  return lock.IsLocked() && patch->DispatchFrameLocked(frame, true);
+  P_INSTRUMENTED_LOCK_READ_ONLY(return false);
+  return patch->DispatchFrameLocked(frame, true);
 }
 
 
