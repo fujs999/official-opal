@@ -98,7 +98,7 @@ static __inline__ int16_t saturate(int32_t amp)
 }
 /*- End of function --------------------------------------------------------*/
 
-#if _MSC_VER < 1928 && !defined(_M_AMD64)
+#if defined(_MSC_VER) && _MSC_VER < 1928 && !defined(_M_AMD64)
 __inline float rintf (float flt)
 {
 	_asm
