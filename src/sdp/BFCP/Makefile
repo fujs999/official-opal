@@ -27,14 +27,17 @@ else
        MAIN_PREFIXE=./bfcpsdk
 endif
 
+COMMON_CC_OPTS  = -fPIC -Wall -Werror -Wunused -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wno-varargs -Wno-enum-conversion
+COMMON_CPP_OPTS = -fPIC -Wall -Werror -Wunused  -Wno-enum-compare-switch
+
 ifeq ($(DEBUG),yes)
-       MAIN_CC_OPTS = -D__DEBUG__ -Wall -g -Werror -Wunused -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations  -fPIC
-       MAIN_CPP_OPTS = -D__DEBUG__ -Wall -g -Werror -Wunused  -fPIC
+       MAIN_CC_OPTS = -D__DEBUG__ -g $(COMMON_CC_OPTS)
+       MAIN_CPP_OPTS = -D__DEBUG__ -g $(COMMON_CPP_OPTS)
        MAIN_LIBS = -g -lpthread
        BINS_PRE=dbg
 else
-       MAIN_CC_OPTS = -Wall -O2 -Werror -Wunused -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations  -fPIC
-       MAIN_CPP_OPTS = -Wall -O2 -Werror -Wunused  -fPIC
+       MAIN_CC_OPTS = -O2 $(COMMON_CC_OPTS)
+       MAIN_CPP_OPTS = -O2 $(COMMON_CPP_OPTS)
        MAIN_LIBS = -lpthread
        BINS_PRE=rel
 endif

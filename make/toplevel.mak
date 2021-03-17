@@ -478,6 +478,16 @@ ifeq ($(OPAL_FAX), yes)
              $(ASN_SRCDIR)/t38.cxx
 endif
 
+ifeq ($(OPAL_BFCP), yes)
+  SOURCES += $(OPAL_SRCDIR)/sdp/bfcpinterface.cxx
+  BFCP_DIR = $(OPAL_SRCDIR)/sdp/BFCP
+  BFCP_LIBNAME = bfcprel
+  BFCP_LIBDIR = $(BFCP_DIR)/lib
+  LDFLAGS += -L$(BFCP_LIBDIR)
+  LIBS := -l$(BFCP_LIBNAME) $(LIBS)
+  BFCP_LIB = $(BFCP_LIBDIR)/lib$(BFCP_LIBNAME).a
+endif #OPAL_BFCP
+
 
 ###############################################################################
 
@@ -494,12 +504,12 @@ ifdef SRTP_LIB
 	$(MAKE) -C $(SRTP_DIR)
 endif
 
-ifeq ($(OPAL_BFCP), yes)   
+ifdef BFCP_LIB
   $(STATIC_LIB_FILE) : $(BFCP_LIB)	
 
   $(BFCP_LIB) :
-	$(MAKE) -C $(BFCP_DIR) lib
-endif #OPAL_BFCP
+	$(MAKE) -C $(BFCP_DIR) DEBUG=$(DEBUG_BUILD) lib
+endif #BFCP_LIB
 
 ###############################################################################
 

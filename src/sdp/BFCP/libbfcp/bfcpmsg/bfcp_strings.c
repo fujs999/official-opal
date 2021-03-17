@@ -77,12 +77,12 @@ static const struct _bfcp_primitive _cisco_primitives[] =
 
 const char* getBfcpDescPrimitive( e_bfcp_primitives p)
 {
-    if ( p >= e_primitive_FloorRequest || p <= e_primitive_GoodbyeAck )
+    if ( p >= e_primitive_FloorRequest && p <= e_primitive_GoodbyeAck )
     {
 	return _bfcp_primitives[p].description ;
     }
     
-    if ( p >= e_primitive_Cisco90 || p <= e_primitive_Cisco95 )
+    if ( p >= e_primitive_Cisco90 && p <= e_primitive_Cisco95 )
     {
 	p = p - e_primitive_Cisco90;
 	return _cisco_primitives[p].description ;
