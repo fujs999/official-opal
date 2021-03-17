@@ -4145,7 +4145,7 @@ void OpalManagerCLI::CmdDelay(PCLI::Arguments & args, P_INT_PTR)
     args.WriteUsage();
   else {
     PTimeInterval delay(PTimeInterval::Seconds(args[0].AsReal()));
-    args.GetContext() << "Delaying for " << delay.AsString(3, PTimeInterval::SecondsSI) << 's' << endl;
+    args.GetContext() << "Delaying for " << PScaleSI(delay) << endl;
     m_endRun.Wait(delay);
   }
 }
