@@ -368,6 +368,7 @@ OPAL_SIMPLE_OPTION(h323,OPAL_H323, [H.323 protocol support], [OPAL_PTLIB_ASN])
 
 dnl MSWIN_DISPLAY  iax2,IAX2 support
 dnl MSWIN_DEFINE   iax2,OPAL_IAX2
+dnl MSWIN_DEFAULT  iax2,Disabled
 OPAL_SIMPLE_OPTION(iax2,OPAL_IAX2, [IAX2 protocol support])
 
 dnl MSWIN_DISPLAY  skinny,Cisco SCCP (skinny) support
