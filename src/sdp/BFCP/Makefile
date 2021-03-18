@@ -27,8 +27,8 @@ else
        MAIN_PREFIXE=./bfcpsdk
 endif
 
-COMMON_CC_OPTS  = -fPIC -Wall -Werror -Wunused -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations -Wno-varargs -Wno-enum-conversion
-COMMON_CPP_OPTS = -fPIC -Wall -Werror -Wunused  -Wno-enum-compare-switch
+COMMON_CC_OPTS  = -fPIC -Wall -Werror -Wunused -Wstrict-prototypes -Wmissing-prototypes -Wmissing-declarations
+COMMON_CPP_OPTS = -fPIC -Wall -Werror -Wunused
 
 ifeq ($(DEBUG),yes)
        MAIN_CC_OPTS = -D__DEBUG__ -g $(COMMON_CC_OPTS)

@@ -406,7 +406,7 @@ int BFCPConnection::CloseOutgoingTransaction( BFCP_SOCKET s, bfcp_message * m )
 
 bool BFCPConnection::Client2ServerInfo::HandleRemoteRetrans( BFCPConnection * c, BFCP_SOCKET s, bfcp_message * m)
 {
-#if 0
+#if 0 // Causes problems, needs investigation
     if ( IsTransactionStart(bfcp_get_primitive(m)) )
     {
 	/*

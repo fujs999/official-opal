@@ -645,13 +645,13 @@ bool BFCP_fsm::FsmCtrlPerform(e_BFCP_ACT p_evt , s_bfcp_msg_event* p_bfcp_evt )
         }
 	else
 	{
-	     Log(INF,"FSM [%s] action NOT successful. State will not change", getBfcpFsmAct(m_bfcpFsmSt) );
-	     Log(INF,"Providing callback for event %s and status %s ", getBfcpFsmAct(p_evt), getBfcpStatus(p_bfcp_evt->Status) );
-	     if( strcmp(getBfcpFsmAct(p_evt), "FloorStatusGranted") == 0 )
-	     {
-	    	 Log(INF,"Providing callback for event %s and status %s ", getBfcpFsmAct(p_evt), getBfcpStatus(p_bfcp_evt->Status) );
-	    	 BFCPFSM_UpdatesBfcpFsmEvent( p_bfcp_evt , p_evt , m_bfcpFsmSt );
-	     }
+	    if( strcmp(getBfcpFsmAct(p_evt), "FloorStatusGranted") != 0 )
+            Log(INF,"FSM [%s] event %s and status %s NOT successful, state will not change",
+                    getBfcpFsmAct(m_bfcpFsmSt), getBfcpFsmAct(p_evt), getBfcpStatus(p_bfcp_evt->Status) );
+        else {
+	    	Log(INF,"Providing callback for event %s and status %s ", getBfcpFsmAct(p_evt), getBfcpStatus(p_bfcp_evt->Status) );
+	    	BFCPFSM_UpdatesBfcpFsmEvent( p_bfcp_evt , p_evt , m_bfcpFsmSt );
+	    }
 	}
         return Status ;
 }
