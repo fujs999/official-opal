@@ -491,20 +491,24 @@ RTP_SyncSourceId OpalRTPSession::EnableSyncSourceRtx(RTP_SyncSourceId primarySSR
   }
 
   if (primary.m_rtxSSRC != 0) {
-    if (rtxSSRC == 0 || primary.m_rtxSSRC == rtxSSRC) {
-      // Already enabled, so just update the payload type used.
       SyncSource * rtx;
-      if (GetSyncSource(primary.m_rtxSSRC, primary.m_direction, rtx))
-        rtx->m_rtxPT = rtxPT;
-      PTRACE(4, *this << "updated " << primary.m_direction << " RTX:"
+    if (rtxSSRC != 0 && primary.m_rtxSSRC != rtxSSRC)
+      RemoveSyncSource(primary.m_rtxSSRC PTRACE_PARAM(, "overwriting RTX"));
+    else {
+      if (GetSyncSource(primary.m_rtxSSRC, primary.m_direction, rtx)) {
+        // Already enabled, so just update the payload type used.
+        PTRACE_IF(3, rtx->m_rtxPT != rtxPT, *this <<
+                  "updated " << primary.m_direction << " RTX:"
                 " SSRC=" << RTP_TRACE_SRC(rtxSSRC) << ","
                 " PT=" << rtxPT << ","
                 " primary SSRC=" << RTP_TRACE_SRC(primarySSRC));
+        rtx->m_rtxPT = rtxPT;
       return primary.m_rtxSSRC;
     }
-
-    // Overwriting old secondary SSRC with new one
-    RemoveSyncSource(primary.m_rtxSSRC PTRACE_PARAM(, "overwriting RTX"));
+      PTRACE(2, *this << "linked RTX vanished:"
+                " SSRC=" << RTP_TRACE_SRC(primary.m_rtxSSRC) << ","
+                " primary SSRC=" << RTP_TRACE_SRC(primarySSRC));
+    }
   }
 
   // See if already added via https://tools.ietf.org/html/draft-ietf-avtext-rid
