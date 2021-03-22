@@ -491,20 +491,24 @@ RTP_SyncSourceId OpalRTPSession::EnableSyncSourceRtx(RTP_SyncSourceId primarySSR
   }
 
   if (primary.m_rtxSSRC != 0) {
-    if (rtxSSRC == 0 || primary.m_rtxSSRC == rtxSSRC) {
-      // Already enabled, so just update the payload type used.
-      SyncSource * rtx;
-      if (GetSyncSource(primary.m_rtxSSRC, primary.m_direction, rtx))
+    SyncSource * rtx;
+    if (rtxSSRC != 0 && primary.m_rtxSSRC != rtxSSRC)
+      RemoveSyncSource(primary.m_rtxSSRC PTRACE_PARAM(, "overwriting RTX"));
+    else {
+      if (GetSyncSource(primary.m_rtxSSRC, primary.m_direction, rtx)) {
+        // Already enabled, so just update the payload type used.
+        PTRACE_IF(3, rtx->m_rtxPT != rtxPT, *this <<
+                  "updated " << primary.m_direction << " RTX:"
+                  " SSRC=" << RTP_TRACE_SRC(rtxSSRC) << ","
+                  " PT=" << rtxPT << ","
+                  " primary SSRC=" << RTP_TRACE_SRC(primarySSRC));
         rtx->m_rtxPT = rtxPT;
-      PTRACE(4, *this << "updated " << primary.m_direction << " RTX:"
-                " SSRC=" << RTP_TRACE_SRC(rtxSSRC) << ","
-                " PT=" << rtxPT << ","
+        return primary.m_rtxSSRC;
+      }
+      PTRACE(2, *this << "linked RTX vanished:"
+                " SSRC=" << RTP_TRACE_SRC(primary.m_rtxSSRC) << ","
                 " primary SSRC=" << RTP_TRACE_SRC(primarySSRC));
-      return primary.m_rtxSSRC;
     }
-
-    // Overwriting old secondary SSRC with new one
-    RemoveSyncSource(primary.m_rtxSSRC PTRACE_PARAM(, "overwriting RTX"));
   }
 
   // See if already added via https://tools.ietf.org/html/draft-ietf-avtext-rid
@@ -1579,7 +1583,7 @@ RTP_SyncSourceId OpalRTPSession::FindBundleMediaId(const PString & id, Direction
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return 0);
   for (SyncSourceMap::iterator it = m_SSRC.begin(); it != m_SSRC.end(); ++it) {
-    if (it->second->m_direction == dir && it->second->m_bundleMediaId == id)
+    if (it->second->m_direction == dir && it->second->m_bundleMediaId == id && !it->second->IsRtx())
       return it->first;
   }
   return 0;
