@@ -173,6 +173,8 @@ bool RTP_DataFrame::AdjustHeaderSize(PINDEX newHeaderSize)
 
   if (packetSize > m_headerSize)
     memmove(theArray+m_headerSize, theArray+oldHeaderSize, packetSize-m_headerSize);
+  if (newHeaderSize > oldHeaderSize)
+    memset(theArray+oldHeaderSize, 0, newHeaderSize-oldHeaderSize);
   return true;
 }
 
