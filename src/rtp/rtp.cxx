@@ -180,6 +180,8 @@ bool RTP_DataFrame::AdjustHeaderSize(PINDEX newHeaderSize)
 
   if (packetSize > m_headerSize)
     memmove(theArray+m_headerSize, theArray+oldHeaderSize, packetSize-m_headerSize);
+  if (newHeaderSize > oldHeaderSize)
+    memset(theArray+oldHeaderSize, 0, newHeaderSize-oldHeaderSize);
   return true;
 }
 
@@ -404,7 +406,7 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
   }
 
   if (type == RFC5285_Auto)
-    type = id > MaxHeaderExtensionIdOneByte ? RFC5285_TwoByte : RFC5285_OneByte;
+    type = id > MaxHeaderExtensionIdOneByte || (oldId & 0xfff0) == 0x1000 ? RFC5285_TwoByte : RFC5285_OneByte;
 
   switch (type) {
     case RFC3550 :
