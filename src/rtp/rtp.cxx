@@ -406,7 +406,7 @@ bool RTP_DataFrame::SetHeaderExtension(unsigned id, PINDEX length, const BYTE * 
   }
 
   if (type == RFC5285_Auto)
-    type = id > MaxHeaderExtensionIdOneByte ? RFC5285_TwoByte : RFC5285_OneByte;
+    type = id > MaxHeaderExtensionIdOneByte || (oldId & 0xfff0) == 0x1000 ? RFC5285_TwoByte : RFC5285_OneByte;
 
   switch (type) {
     case RFC3550 :
