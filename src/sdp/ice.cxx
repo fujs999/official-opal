@@ -130,7 +130,13 @@ bool OpalICEMediaTransport::IsEstablished() const
 
 bool OpalICEMediaTransport::InternalRxData(SubChannels subchannel, const PBYTEArray & data)
 {
-  switch (GetICEChannel(subchannel).m_state) {
+  ChecklistState state;
+  {
+    P_INSTRUMENTED_LOCK_READ_ONLY(return false);
+    state = GetICEChannel(subchannel).m_state;
+  }
+
+  switch (state) {
     case e_Disabled :
       return OpalUDPMediaTransport::InternalRxData(subchannel, data);
 
@@ -427,7 +433,12 @@ OpalICEMediaTransport::ICEChannel::ICEChannel(OpalICEMediaTransport & owner, Sub
 PBoolean OpalICEMediaTransport::ICEChannel::Read(void * data, PINDEX size)
 {
   for (;;) {
-    SetReadTimeout(m_state <= e_Completed ? m_owner.m_mediaTimeout : m_owner.m_iceTimeout);
+    {
+      P_INSTRUMENTED_LOCK_READ_WRITE2(lock, m_owner);
+      if (!lock.IsLocked())
+        return false;
+      SetReadTimeout(m_state <= e_Completed ? m_owner.m_mediaTimeout : m_owner.m_iceTimeout);
+    }
     if (!PIndirectChannel::Read(data, size))
       return false;
     if (HandleICE(data, GetLastReadCount()))
