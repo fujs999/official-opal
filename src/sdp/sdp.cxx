@@ -618,28 +618,6 @@ void SDPCommonAttributes::SetAttribute(const PString & attr, const PString & val
   }
 
 #if OPAL_SRTP
-  if (attr *= "setup") {
-    if (value == "holdconn")
-      m_setupMode = SetupHoldConnection;
-    else if (value == "active")
-      m_setupMode = SetupActive;
-    else if (value == "passive")
-      m_setupMode = SetupPassive;
-    else if (value == "actpass")
-      m_setupMode = SetupActivePassive;
-    else
-      PTRACE(2, "Unknown parameter in setup attribute: \"" << value << '"');
-    return;
-  }
-
-  if (attr *= "connection") {
-    if (value *= "existing")
-      m_connectionMode = ConnectionExisting;
-    else if (value *= "new")
-      m_connectionMode = ConnectionNew;
-    return;
-  }
-
   if (attr *= "fingerprint") {
     if (!m_fingerprint.FromString(value)) {
       PTRACE(2, "Invalid fingerprint value: \"" << value << '"');
@@ -684,38 +662,6 @@ void SDPCommonAttributes::OutputAttributes(ostream & strm) const
     strm << "a=" << m_direction << CRLF;
 
 #if OPAL_SRTP
-  if (m_setupMode != SetupNotSet) {
-    strm << "a=setup:";
-    switch (m_setupMode.AsBits()) {
-      case SetupActive:
-        strm << "active";
-        break;
-      case SetupPassive:
-        strm << "passive";
-        break;
-      case SetupActivePassive:
-        strm << "actpass";
-        break;
-      case SetupHoldConnection:
-        strm << "holdconn";
-        break;
-      default:
-        break;
-    }
-    strm << CRLF;
-  }
-
-  switch (m_connectionMode) {
-    case ConnectionNew :
-      strm << "a=connection:new" << CRLF;
-      break;
-    case ConnectionExisting :
-      strm << "a=connection:existing" << CRLF;
-      break;
-    default :
-      break;
-  }
-
   if (m_fingerprint.IsValid())
     strm << "a=fingerprint:" << m_fingerprint.AsString() << CRLF;
 #endif
@@ -748,6 +694,8 @@ SDPMediaDescription::SDPMediaDescription()
   , m_port(0)
   , m_portCount(1)
   , m_bundleOnly(false)
+  , m_setupMode(SetupNotSet)
+  , m_connectionMode(OpalMediaSession::ConnectionNotSet)
 {
 }
 
@@ -759,6 +707,8 @@ SDPMediaDescription::SDPMediaDescription(const OpalTransportAddress & address, c
   , m_portCount(1)
   , m_mediaType(type)
   , m_bundleOnly(false)
+  , m_setupMode(SetupNotSet)
+  , m_connectionMode(OpalMediaSession::ConnectionNotSet)
 {
   PIPSocket::Address ip;
   if (m_mediaAddress.GetIpAndPort(ip, m_port))
@@ -791,6 +741,19 @@ bool SDPMediaDescription::FromSession(OpalMediaSession * session, const SDPMedia
   }
 
   SetAddresses(session->GetLocalAddress(true), session->GetLocalAddress(false));
+
+  switch (session->GetSetUpMode()) {
+    case OpalMediaSession::SetUpModeActive :
+      m_setupMode = SetupActive;
+      break;
+    case OpalMediaSession::SetUpModePassive :
+      m_setupMode = SetupPassive;
+      break;
+    default :
+      m_setupMode = SetupNotSet;
+  }
+
+  m_connectionMode = session->GetConnectionMode();
 
 #if OPAL_ICE
   if (offer != NULL ? offer->HasICE() : m_stringOptions.GetBoolean(OPAL_OPT_OFFER_ICE)) {
@@ -832,6 +795,15 @@ bool SDPMediaDescription::FromSession(OpalMediaSession * session, const SDPMedia
 
 bool SDPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSourceArray &) const
 {
+  if (m_setupMode & SetupActive)
+    session->SetSetUpMode(OpalMediaSession::SetUpModePassive); // If they are active, we are passive
+  else if (m_setupMode & SetupPassive)
+    session->SetSetUpMode(OpalMediaSession::SetUpModeActive); // If they are passive, we are active
+  else
+    session->SetSetUpMode(OpalMediaSession::SetUpModeNotSet); // Neither
+
+  session->SetConnectionMode(m_connectionMode);
+
 #if OPAL_ICE
   OpalMediaTransportPtr transport = session->GetTransport();
   if (transport != NULL) {
@@ -1086,6 +1058,36 @@ void SDPMediaDescription::SetAttribute(const PString & attr, const PString & val
     return;
   }
 
+  // RFC4145
+  if (attr *= "setup") {
+    if (value == "holdconn")
+      m_setupMode = SetupHoldConnection;
+    else if (value == "active")
+      m_setupMode = SetupActive;
+    else if (value == "passive")
+      m_setupMode = SetupPassive;
+    else if (value == "actpass")
+      m_setupMode = SetupActivePassive;
+    else
+      PTRACE(2, "Unknown parameter in setup attribute: \"" << value << '"');
+    return;
+  }
+
+  // RFC4145
+  if (attr *= "connection") {
+    if (value *= "existing")
+      m_connectionMode = OpalMediaSession::ConnectionExisting;
+    else if (value *= "new")
+      m_connectionMode = OpalMediaSession::ConnectionNew;
+    return;
+  }
+
+  // RFC4574
+  if (attr *= "label") {
+    m_label = value;
+    return;
+  }
+
 #if OPAL_ICE
   if (attr *= "candidate") {
     PNatCandidate candidate;
@@ -1226,6 +1228,44 @@ void SDPMediaDescription::OutputAttributes(ostream & strm) const
 
   if (m_simulcast.IsValid())
     strm << "a=simulcast:" << m_simulcast << CRLF;
+
+  // RFC4145
+  if (m_setupMode != SetupNotSet) {
+    strm << "a=setup:";
+    switch (m_setupMode.AsBits()) {
+      case SetupActive:
+        strm << "active";
+        break;
+      case SetupPassive:
+        strm << "passive";
+        break;
+      case SetupActivePassive:
+        strm << "actpass";
+        break;
+      case SetupHoldConnection:
+        strm << "holdconn";
+        break;
+      default:
+        break;
+    }
+    strm << CRLF;
+  }
+
+  // RFC4145
+  switch (m_connectionMode) {
+    case OpalMediaSession::ConnectionNew :
+      strm << "a=connection:new" << CRLF;
+      break;
+    case OpalMediaSession::ConnectionExisting :
+      strm << "a=connection:existing" << CRLF;
+      break;
+    default :
+      break;
+  }
+
+  // RFC4574
+  if (!m_label.IsEmpty())
+    strm << "a=label:" << m_label << CRLF;
 
 #if OPAL_ICE
   if (m_username.IsEmpty() || m_password.IsEmpty())
@@ -2703,13 +2743,6 @@ bool SDPRTPAVPMediaDescription::FromSession(OpalMediaSession * session,
   if (dltsMediaSession != NULL) {
     SetFingerprint(dltsMediaSession->GetLocalFingerprint(offer != NULL ? offer->GetFingerprint().GetHash()
                                                                        : PSSLCertificateFingerprint::HashSha1));
-
-    if (offer == NULL)
-      m_setupMode = SDPCommonAttributes::SetupActivePassive; // We are making offer, allow other side to decide
-    else if (dltsMediaSession->IsPassiveMode())
-      m_setupMode = SDPCommonAttributes::SetupPassive;
-    else
-      m_setupMode = SDPCommonAttributes::SetupActive;
   }
 #endif
 
@@ -2840,11 +2873,8 @@ bool SDPRTPAVPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSo
 
 #if OPAL_SRTP
   OpalDTLSSRTPSession* dltsMediaSession = dynamic_cast<OpalDTLSSRTPSession*>(session);
-  if (dltsMediaSession) { // DTLS
+  if (dltsMediaSession) // DTLS
     dltsMediaSession->SetRemoteFingerprint(GetFingerprint());
-    // If they are active, we are passive
-    dltsMediaSession->SetPassiveMode(m_setupMode & SDPCommonAttributes::SetupActive);
-  }
 #endif // OPAL_SRTP
 
   return SDPMediaDescription::ToSession(session, ssrcs);
@@ -3713,11 +3743,6 @@ bool SDPSessionDescription::Decode(const PStringArray & lines, const OpalMediaFo
     }
   }
 #endif // OPAL_ICE
-
-#if OPAL_SRTP
-  // Reset setup flag for session...
-  m_setupMode = SetupNotSet;
-#endif
 
   return ok && (atLeastOneValidMedia || mediaDescriptions.IsEmpty());
 }
