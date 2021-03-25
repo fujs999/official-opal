@@ -696,7 +696,7 @@ void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame
             " local=" << m_session.GetLocalAddress());
 
   m_payloadType = frame.GetPayloadType();
-  m_octets += frame.GetPayloadSize();
+  m_octets += frame.GetPacketSize() + frame.GetPaddingSize();
   m_packets++;
 
   if (frame.GetMarker())
@@ -1171,7 +1171,8 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveRetransmi
 {
   PINDEX payloadSize = frame.GetPayloadSize();
   if (payloadSize < 2) {
-    PTRACE(2, &m_session, *this << "retransmission packet too small: " << frame);
+    // Padded zero payload packets can be used as bandwidth probe
+    PTRACE_IF(2, payloadSize > 0, &m_session, *this << "retransmission packet too small: " << frame);
     return e_IgnorePacket;
   }
 
