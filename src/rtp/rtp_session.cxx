@@ -696,7 +696,7 @@ void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame
             " local=" << m_session.GetLocalAddress());
 
   m_payloadType = frame.GetPayloadType();
-  m_octets += frame.GetPacketSize() + frame.GetPaddingSize();
+  m_octets += frame.GetPayloadSize() + frame.GetPaddingSize();
   m_packets++;
 
   if (frame.GetMarker())
