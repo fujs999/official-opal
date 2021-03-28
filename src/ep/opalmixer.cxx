@@ -765,6 +765,8 @@ void OpalVideoMixer::VideoStream::InsertVideoFrame(unsigned x, unsigned y, unsig
 #undef  PTraceModule
 #define PTraceModule() "MixerEP"
 
+PURL_LEGACY_SCHEME(mcu, true, false, false, false, false, false, true, false, false, false, 0)
+
 OpalMixerEndPoint::OpalMixerEndPoint(OpalManager & manager, const char * prefix)
   : OpalLocalEndPoint(manager, prefix, false)
   , OpalMixerNodeManager(manager)
