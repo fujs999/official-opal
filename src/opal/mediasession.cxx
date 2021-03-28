@@ -1576,6 +1576,7 @@ OpalMediaSession::OpalMediaSession(const Init & init)
   , m_sessionId(init.m_sessionId)
   , m_mediaType(init.m_mediaType)
   , m_remoteBehindNAT(init.m_remoteBehindNAT)
+  , m_setupMode(OpalMediaSession::SetUpModeNotSet)
   , m_connectionMode(ConnectionNotSet)
 #if OPAL_VIDEO
   , m_videoContentRole(OpalVideoFormat::eNoRole)

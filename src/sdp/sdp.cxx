@@ -799,7 +799,7 @@ bool SDPMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSourceAr
   if (m_setupMode & SetupActive)
     session->SetSetUpMode(OpalMediaSession::SetUpModePassive); // If they are active, we are passive
   else if (m_setupMode & SetupPassive)
-    session->SetSetUpMode(OpalMediaSession::SetUpModeActive); // If they are passdive, we are active
+    session->SetSetUpMode(OpalMediaSession::SetUpModeActive); // If they are passive, we are active
   else
     session->SetSetUpMode(OpalMediaSession::SetUpModeNotSet); // Neither
 
@@ -2754,7 +2754,7 @@ bool SDPRTPAVPMediaDescription::FromSession(OpalMediaSession * session,
   if (dltsMediaSession != NULL)
     SetFingerprint(dltsMediaSession->GetLocalFingerprint(offer != NULL ? offer->GetFingerprint().GetHash()
                                                                        : PSSLCertificateFingerprint::HashSha1));
-#endif // OPAL_SRTP
+#endif
 
   return SDPMediaDescription::FromSession(session, offer, singleSSRC);
 }

@@ -165,8 +165,6 @@ class BFCPSession : public OpalMediaSession, public BFCPDescription
     virtual bool SetRemoteAddress(const OpalTransportAddress & remoteAddress, bool isMediaAddress = true);
     virtual SDPMediaDescription * CreateSDPMediaDescription();
     virtual OpalMediaStream * CreateMediaStream(const OpalMediaFormat & mediaFormat, unsigned sessionID, bool isSource);
-    virtual SetUpMode GetSetUpMode() const;
-    virtual void SetSetUpMode(SetUpMode mode);
 
   protected:
     class LibServerWrapper;
@@ -177,15 +175,13 @@ class BFCPSession : public OpalMediaSession, public BFCPDescription
     friend class LibParticipantWrapper;
     LibParticipantWrapper * m_participant;
 
-	bool m_IsPassive;
-
-	PIPAddress m_localIP;
+    PIPAddress m_localIP;
     uint16_t   m_localPort;
-	PIPAddress m_remoteIP;
+    PIPAddress m_remoteIP;
     uint16_t   m_remotePort;
 
-	bool m_clientServerStarted;
-	uint16_t m_floorOwnerID;
+    bool m_clientServerStarted;
+    uint16_t m_floorOwnerID;
 };
 
 #endif // OPAL_BFCP

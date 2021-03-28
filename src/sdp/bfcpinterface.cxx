@@ -784,7 +784,6 @@ BFCPSession::BFCPSession(const Init & init, BFCPCallback * callback)
   : OpalMediaSession(init)
   , m_server(new LibServerWrapper(*this))
   , m_participant(new LibParticipantWrapper(*this, callback))
-  , m_IsPassive(false)
   , m_localIP(PIPSocket::GetInvalidAddress())
   , m_localPort(0)
   , m_remoteIP(PIPSocket::GetInvalidAddress())
@@ -847,9 +846,10 @@ bool BFCPSession::Open(const PString & localInterface, const OpalTransportAddres
                                                           m_participant,
                                                           m_transportProto);
 
-  m_IsPassive = m_remotePort == 0;
+  bool isPassive = m_remotePort == 0;
+  SetSetUpMode(isPassive ? SetUpModePassive : SetUpModeActive);
 
-  if (m_IsPassive) {
+  if (isPassive) {
     m_floorCtrl = FloorCtrlServerOnly;
     const PIPSocket::PortRange & portRange = m_connection.GetEndPoint().GetManager().GetTCPPortRange();
     m_localPort = portRange.GetBase();
@@ -887,7 +887,7 @@ bool BFCPSession::Open(const PString & localInterface, const OpalTransportAddres
       m_connectionMode = ConnectionNew;
       if (!m_participant->m_BFCPParticipant->OpenTcpConnection(m_localIP.AsString(), m_localPort,
                                                                m_remoteIP.AsString(), m_remotePort,
-                                                               m_IsPassive ? BFCPConnectionRole::PASSIVE : BFCPConnectionRole::ACTIVE)) {
+                                                               isPassive ? BFCPConnectionRole::PASSIVE : BFCPConnectionRole::ACTIVE)) {
         PTRACE(2, "Participant connection failed ");
         return false;
       }
@@ -907,7 +907,7 @@ bool BFCPSession::Open(const PString & localInterface, const OpalTransportAddres
                                                               m_localPort + 2/* Virtual Client Port which is 2 more than that of servers*/,
                                                               m_remoteIP.AsString(),
                                                               m_localPort + BFCP_OVER_UDP_SOCKET_OFFSET,/* BFCP Server port*/
-                                                              m_IsPassive ? BFCPConnectionRole::PASSIVE : BFCPConnectionRole::ACTIVE)) {
+                                                              isPassive ? BFCPConnectionRole::PASSIVE : BFCPConnectionRole::ACTIVE)) {
         PTRACE(2, "Participant virtual connection failed ");
         return false;
       }
@@ -968,18 +968,6 @@ SDPMediaDescription * BFCPSession::CreateSDPMediaDescription()
 OpalMediaStream * BFCPSession::CreateMediaStream(const OpalMediaFormat & /*mediaFormat*/, unsigned /*sessionID*/, bool /*isSource*/)
 {
   return NULL;
-}
-
-
-OpalMediaSession::SetUpMode BFCPSession::GetSetUpMode() const
-{
-  return m_IsPassive ? SetUpModePassive : SetUpModeActive;
-}
-
-
-void BFCPSession::SetSetUpMode(SetUpMode mode)
-{
-  m_IsPassive = mode != SetUpModeActive;
 }
 
 

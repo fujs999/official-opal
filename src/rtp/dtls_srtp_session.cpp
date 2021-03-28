@@ -128,7 +128,7 @@ bool OpalDTLSMediaTransport::DTLSChannel::Read(void * buf, PINDEX size)
     }
 
     // In here, DTLSChannel::BioRead is called instead of DTLSChannel::Read
-    if (!m_transport.InternalPerformHandshake(this))
+    if (!m_transport.PerformHandshake(*this))
       return false;
 
     // Send dummy packet to trigger OnEstablished(), in case we don't get any real data
@@ -256,9 +256,9 @@ int OpalDTLSMediaTransport::DTLSChannel::BioWrite(const char * buf, int len)
 }
 
 
-OpalDTLSMediaTransport::OpalDTLSMediaTransport(const PString & name, bool passiveMode, const PSSLCertificateFingerprint& fp)
+OpalDTLSMediaTransport::OpalDTLSMediaTransport(const PString & name, OpalMediaSession::SetUpMode mode, const PSSLCertificateFingerprint& fp)
   : OpalDTLSMediaTransportParent(name)
-  , m_passiveMode(passiveMode)
+  , m_setupMode(mode)
   , m_handshakeTimeout(0, 2)
   , m_MTU(1400)
   , m_privateKey(1024)
@@ -316,9 +316,9 @@ bool OpalDTLSMediaTransport::GetKeyInfo(OpalMediaCryptoKeyInfo * keyInfo[2])
 }
 
 
-void OpalDTLSMediaTransport::SetPassiveMode(bool passive)
+void OpalDTLSMediaTransport::SetSetUpMode(OpalMediaSession::SetUpMode mode)
 {
-  m_passiveMode = passive;
+  m_setupMode = mode;
 }
 
 
@@ -343,8 +343,11 @@ bool OpalDTLSMediaTransport::SetRemoteFingerprint(const PSSLCertificateFingerpri
     return false;
 
   PTRACE(2, "Remote fingerprint changed, renegotiating DTLS");
-  for (vector<ChannelInfo>::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it)
-    InternalPerformHandshake(dynamic_cast<DTLSChannel *>(it->m_channel));
+  for (vector<ChannelInfo>::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it) {
+    DTLSChannel * channel = dynamic_cast<DTLSChannel *>(it->m_channel);
+    if (PAssert(channel != NULL, "Not a DTLS channel"))
+      PerformHandshake(*channel);
+  }
   return true;
 }
 
@@ -356,30 +359,36 @@ PSSLCertificateFingerprint OpalDTLSMediaTransport::GetRemoteFingerprint() const
 }
 
 
-bool OpalDTLSMediaTransport::InternalPerformHandshake(DTLSChannel * channel)
+bool OpalDTLSMediaTransport::PerformHandshake(DTLSChannel & channel)
 {
-  if (!PAssert(channel != NULL, "Not a DTLS channel"))
-    return false;
+  switch (m_setupMode.load()) {
+    case OpalMediaSession::SetUpModePassive:
+      if (channel.Accept())
+        break;
+
+      PTRACE(2, *this << "could not accept DTLS channel");
+      return false;
+
+    case OpalMediaSession::SetUpModeActive:
+      if (channel.Connect())
+        break;
+
+      PTRACE(2, *this << "could not connect DTLS channel");
+      return false;
+
+    default :
+      PTRACE(5, *this << "not ready to perform handshake in DTLS channel");
+      return false;
+  }
 
   PTRACE(4, "Performing handshake: timeout=" << m_handshakeTimeout);
 
-  PTimeInterval oldReadTimeout = channel->GetReadTimeout();
-  channel->SetReadTimeout(m_handshakeTimeout);
-  bool ok = PerformHandshake(*channel);
-  channel->SetReadTimeout(oldReadTimeout);
-  return ok;
-}
+  PTimeInterval oldReadTimeout = channel.GetReadTimeout();
+  channel.SetReadTimeout(m_handshakeTimeout);
+  bool ok = channel.ExecuteHandshake();
+  channel.SetReadTimeout(oldReadTimeout);
 
-
-bool OpalDTLSMediaTransport::PerformHandshake(DTLSChannel & channel)
-{
-  const bool passiveMode = m_passiveMode;
-  if (!(passiveMode ? channel.Accept() : channel.Connect())) {
-    PTRACE(2, *this << "could not " << (passiveMode ? "accept" : "connect") << " DTLS channel");
-    return false;
-  }
-
-  if (!channel.ExecuteHandshake()) {
+  if (!ok) {
     PTRACE_IF(2, channel.GetErrorCode() != PChannel::NotOpen,
               *this << "error in DTLS handshake:"
               " code=" << channel.GetErrorCode(PChannel::LastGeneralError) << ","
@@ -451,7 +460,6 @@ bool OpalRegisteredSAVPF = OpalMediaSessionFactory::RegisterAs(OpalDTLSSRTPSessi
 
 OpalDTLSSRTPSession::OpalDTLSSRTPSession(const Init & init)
   : OpalSRTPSession(init)
-  , m_passiveMode(false)
 {
 }
 
@@ -462,18 +470,20 @@ OpalDTLSSRTPSession::~OpalDTLSSRTPSession()
 }
 
 
-void OpalDTLSSRTPSession::SetSetUpMode(SetUpMode mode)
+bool OpalDTLSSRTPSession::SetSetUpMode(OpalMediaSession::SetUpMode mode)
 {
-  m_passiveMode = mode == SetUpModePassive;
-  PTRACE(4, *this << "set DTLS to " << (m_passiveMode ? "passive" : " active") << " mode");
+  bool changed =OpalSRTPSession::SetSetUpMode(mode);
+
+  PTRACE_IF(3, changed, *this << "set DTLS to " << (mode == SetUpModePassive ? "passive" : " active") << " mode");
 
   OpalMediaTransportPtr transport = m_transport;
-  if (transport == NULL)
-    return;
+  if (transport != NULL) {
+    OpalDTLSMediaTransport * dtls = dynamic_cast<OpalDTLSMediaTransport *>(&*transport);
+    if (dtls != NULL)
+      dtls->SetSetUpMode(mode);
+  }
 
-  OpalDTLSMediaTransport * dtls = dynamic_cast<OpalDTLSMediaTransport *>(&*transport);
-  if (dtls != NULL)
-    dtls->SetPassiveMode(m_passiveMode);
+  return changed;
 }
 
 
@@ -509,7 +519,7 @@ void OpalDTLSSRTPSession::SetRemoteFingerprint(const PSSLCertificateFingerprint&
 OpalMediaTransport * OpalDTLSSRTPSession::CreateMediaTransport(const PString & name)
 {
   P_INSTRUMENTED_LOCK_READ_ONLY(return NULL);
-  return new OpalDTLSMediaTransport(name, m_passiveMode, m_earlyRemoteFingerprint);
+  return new OpalDTLSMediaTransport(name, m_setupMode, m_earlyRemoteFingerprint);
 }
 
 

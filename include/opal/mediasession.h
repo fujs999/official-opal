@@ -873,8 +873,8 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
       SetUpModePassive,
       SetUpModeActive
     };
-    virtual SetUpMode GetSetUpMode() const { return SetUpModeNotSet; }
-    virtual void SetSetUpMode(SetUpMode /*mode*/) { }
+    virtual SetUpMode GetSetUpMode() const { return m_setupMode; }
+    virtual bool SetSetUpMode(SetUpMode mode) { return m_setupMode.exchange(mode) != mode; }
 
     enum ConnectionMode
     {
@@ -941,8 +941,10 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
     unsigned         m_sessionId;  // unique session ID
     OpalMediaType    m_mediaType;  // media type for session
     bool             m_remoteBehindNAT;
-    ConnectionMode   m_connectionMode;
     PStringOptions   m_stringOptions;
+
+    atomic<SetUpMode>      m_setupMode;
+    atomic<ConnectionMode> m_connectionMode;
 
     typedef std::map<unsigned, PString> GroupMediaByIndex;
     typedef std::map<PString, unsigned> GroupMediaByIdent;
