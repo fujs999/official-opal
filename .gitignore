@@ -43,6 +43,7 @@ opal.xcodeproj/xcuserdata
 /src/rtp/libsrtp/crypto/test/rand_gen
 /src/rtp/libsrtp/crypto/test/sha1_driver
 /src/rtp/libsrtp/crypto/test/stat_driver
+/src/rtp/libsrtp/include/config.h
 /src/rtp/libsrtp/test/dtls_srtp_driver
 /src/rtp/libsrtp/test/rdbx_driver
 /src/rtp/libsrtp/test/replay_driver
