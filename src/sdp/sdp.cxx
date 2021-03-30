@@ -1519,6 +1519,12 @@ PString SDPMediaDescription::GetSDPPortList() const
 
 bool SDPMediaDescription::Restriction::AnswerOffer(const OpalMediaFormatList & selectedFormats)
 {
+  m_direction = m_direction == e_Send ? e_Recv : e_Send;
+
+  // If no media formats specified then all are possible
+  if (m_mediaFormats.empty())
+    return true;
+
   for (OpalMediaFormatList::iterator it = m_mediaFormats.begin(); it != m_mediaFormats.end(); ) {
     if (selectedFormats.FindFormat(*it) != selectedFormats.end())
       ++it;
@@ -1531,8 +1537,7 @@ bool SDPMediaDescription::Restriction::AnswerOffer(const OpalMediaFormatList & s
     return false;
   }
 
-  m_direction = m_direction == e_Send ? e_Recv : e_Send;
-
+  PTRACE(4, "Common codecs in rid \"" << m_id << "\": " << m_mediaFormats);
   return true;
 }
 
