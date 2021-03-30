@@ -696,7 +696,7 @@ void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame
             " local=" << m_session.GetLocalAddress());
 
   m_payloadType = frame.GetPayloadType();
-  m_octets += frame.GetPacketSize() + frame.GetPaddingSize();
+  m_octets += frame.GetPayloadSize() + frame.GetPaddingSize();
   m_packets++;
 
   if (frame.GetMarker())
@@ -998,11 +998,13 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
     if (++m_consecutiveOutOfOrderPackets < 10) {
       PTRACE(m_consecutiveOutOfOrderPackets == 1 ? 3 : 4, &m_session,
              *this << "incorrect sequence, got " << sequenceNumber << " expected " << expectedSequenceNumber);
-      m_packetsOutOfOrder++; // Allow next layer up to deal with out of order packet
+      m_packetsOutOfOrder++;
+      return e_IgnorePacket;
     }
     else {
       PTRACE(2, &m_session, *this << "abnormal change of sequence numbers, adjusting from " << m_lastSequenceNumber << " to " << sequenceNumber);
       SetLastSequenceNumber(sequenceNumber);
+      frame.SetDiscontinuity(sequenceDelta);  // Assume we've lost some packets
     }
 
 #if OPAL_RTCP_XR
