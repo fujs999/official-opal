@@ -2606,7 +2606,7 @@ bool SDPRTPAVPMediaDescription::FromSession(OpalMediaSession * session,
       m_reducedSizeRTCP = rtpSession->UseReducedSizeRTCP();
 
       /* Get extensions we are handling, tkae into account directions where we swap around the
-         sendonly/recvonly for our answer, or levae it out if incompatible with the medi direction */
+         sendonly/recvonly for our answer, or leave it out if incompatible with the media direction */
       m_headerExtensions.clear();
       RTPHeaderExtensions extensions = rtpSession->GetHeaderExtensions();
       for (RTPHeaderExtensions::const_iterator it = extensions.begin(); it != extensions.end(); ++it) {
