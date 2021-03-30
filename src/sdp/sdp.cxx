@@ -2643,8 +2643,32 @@ bool SDPRTPAVPMediaDescription::FromSession(OpalMediaSession * session,
     m_label = rtpSession->GetLabel();
 
     if (offer != NULL) {
-      m_headerExtensions = rtpSession->GetHeaderExtensions();
       m_reducedSizeRTCP = rtpSession->UseReducedSizeRTCP();
+
+      /* Get extensions we are handling, tkae into account directions where we swap around the
+         sendonly/recvonly for our answer, or leave it out if incompatible with the media direction */
+      m_headerExtensions.clear();
+      RTPHeaderExtensions extensions = rtpSession->GetHeaderExtensions();
+      for (RTPHeaderExtensions::const_iterator it = extensions.begin(); it != extensions.end(); ++it) {
+        RTPHeaderExtensionInfo info = *it;
+        switch (it->m_direction) {
+          case RTPHeaderExtensionInfo::SendOnly :
+            if (m_direction&RecvOnly) {
+              info.m_direction = RTPHeaderExtensionInfo::RecvOnly;
+              m_headerExtensions.insert(info);
+            }
+            break;
+          case RTPHeaderExtensionInfo::RecvOnly :
+            if (m_direction&SendOnly) {
+              info.m_direction = RTPHeaderExtensionInfo::SendOnly;
+              m_headerExtensions.insert(info);
+            }
+            break;
+          default :
+            m_headerExtensions.insert(info);
+            break;
+        }
+      }
     }
     else {
       if (m_stringOptions.GetBoolean(OPAL_OPT_RTP_ABS_SEND_TIME)) {
