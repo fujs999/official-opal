@@ -248,7 +248,7 @@ class SDPCommonAttributes
 
     virtual void OutputAttributes(ostream & strm) const;
 
-#if OPAL_SRTP // DTLS
+#if OPAL_SRTP
     const PSSLCertificateFingerprint& GetFingerprint() const { return m_fingerprint; }
     void SetFingerprint(const PSSLCertificateFingerprint& fp) { m_fingerprint = fp; }
 #endif
@@ -279,17 +279,14 @@ class SDPCommonAttributes
     Direction           m_direction;
     SDPBandwidth        m_bandwidth;
     RTPHeaderExtensions m_headerExtensions;
-
 #if OPAL_SRTP // DTLS
     PSSLCertificateFingerprint m_fingerprint;
 #endif
-
 #if OPAL_ICE
     PStringSet          m_iceOptions;
     PString             m_username;
     PString             m_password;
 #endif //OPAL_ICE
-
     PStringOptions      m_stringOptions;
 };
 
@@ -710,7 +707,6 @@ class SDPApplicationMediaDescription : public SDPMediaDescription
         virtual bool FromSDP(const PString & portString);
     };
 };
-
 
 /////////////////////////////////////////////////////////
 

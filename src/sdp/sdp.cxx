@@ -42,7 +42,6 @@
 #include <rtp/srtp_session.h>
 #include <rtp/dtls_srtp_session.h>
 
-
 #define SIP_DEFAULT_SESSION_NAME    "Opal SIP Session"
 
 static const char SDPBandwidthPrefix[] = "SDP-Bandwidth-";
@@ -158,7 +157,7 @@ SDPMediaDescription * OpalVideoMediaDefinition::CreateSDPMediaDescription(const 
 {
   return new SDPVideoMediaDescription(localAddress);
 }
-#endif // OPAL_VIDEO
+#endif
 
 
 static OpalMediaType GetMediaTypeFromSDP(const PCaselessString & sdpMediaType,
@@ -2780,9 +2779,10 @@ bool SDPRTPAVPMediaDescription::FromSession(OpalMediaSession * session,
 
 #if OPAL_SRTP
   const OpalDTLSSRTPSession* dltsMediaSession = dynamic_cast<const OpalDTLSSRTPSession*>(session);
-  if (dltsMediaSession != NULL)
+  if (dltsMediaSession != NULL) {
     SetFingerprint(dltsMediaSession->GetLocalFingerprint(offer != NULL ? offer->GetFingerprint().GetHash()
                                                                        : PSSLCertificateFingerprint::HashSha1));
+  }
 #endif
 
   return SDPMediaDescription::FromSession(session, offer, singleSSRC);
