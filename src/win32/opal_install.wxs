@@ -11,25 +11,38 @@
         <?define SSLVer = "1_1" ?>
     <?endif?>
     <?ifndef SSLDir ?>
-        <?define SSLDir = "$(env.ProgramFiles)\OpenSSL-Win32\bin" ?>
+        <?ifdef env.OPENSSL32DIR ?>
+            <?define SSLDir = "$(env.OPENSSL32DIR)" ?>
+        <?else ?>
+            <?define SSLDir = "" ?>
+        <?endif?>
     <?endif?>
     <?ifndef LuaDir ?>
-        <?define LuaDir = "$(env.LUA32DIR)" ?>
+        <?ifdef env.LUA32DIR ?>
+            <?define LuaDir = "$(env.LUA32DIR)" ?>
+        <?else ?>
+            <?define LuaDir = "" ?>
+        <?endif?>
     <?endif?>
-    <?ifndef V8Dir ?>
-        <?define V8Dir = "$(env.V8_DIR)\v8\out.gn\ia32.release" ?>
-    <?endif?>
-    <?ifndef SaslDir ?>
-        <?define SaslDir = "C:\Tools\bin" ?>
-    <?endif?>
-    <?ifndef LDAPDir ?>
-        <?define LDAPDir = "C:\Tools\bin" ?>
+    <?ifndef V8SubDir ?>
+        <?define V8SubDir = "\v8\out.gn\ia32.release" ?>
     <?endif?>
     <?ifndef FFMPEGDir ?>
-        <?define FFMPEGDir = "$(env.FFMPEG32DIR)\bin" ?>
+        <?ifdef env.FFMPEG32DIR ?>
+            <?define FFMPEGDir = "$(env.FFMPEG32DIR)" ?>
+        <?else ?>
+            <?define FFMPEGDir = "" ?>
+        <?endif?>
     <?endif?>
-    <?ifndef SpanDspDir ?>
-        <?define SpanDspDir = "$(env.SPANDSPDIR)\src\Release" ?>
+    <?ifndef JPEGDir ?>
+        <?ifdef env.JPEG32DIR ?>
+            <?define JPEGDir = "$(env.JPEG32DIR)" ?>
+        <?else ?>
+            <?define JPEGDir = "" ?>
+        <?endif?>
+    <?endif?>
+    <?ifndef SpanDspSubDir ?>
+        <?define SpanDspSubDir = "\src\Release" ?>
     <?endif?>
 <?else?>
     <?define IsWin64 = "yes" ?>
@@ -40,22 +53,56 @@
         <?define SSLVer = "1_1-x64" ?>
     <?endif?>
     <?ifndef SSLDir ?>
-        <?define SSLDir = "$(env.ProgramW6432)\OpenSSL-Win64\bin" ?>
+        <?ifdef env.OPENSSL64DIR ?>
+            <?define SSLDir = "$(env.OPENSSL64DIR)" ?>
+        <?else ?>
+            <?define SSLDir = "" ?>
+        <?endif?>
     <?endif?>
     <?ifndef LuaDir ?>
-        <?define LuaDir = "$(env.LUA64DIR)" ?>
+        <?ifdef env.LUA64DIR ?>
+            <?define LuaDir = "$(env.LUA64DIR)" ?>
+        <?else ?>
+            <?define LuaDir = "" ?>
+        <?endif?>
     <?endif?>
-    <?ifndef V8Dir ?>
-        <?define V8Dir = "$(env.V8_DIR)\v8\out.gn\x64.release" ?>
+    <?ifndef V8SubDir ?>
+        <?define V8SubDir = "\v8\out.gn\x64.release" ?>
     <?endif?>
     <?ifndef FFMPEGDir ?>
-        <?define FFMPEGDir = "$(env.FFMPEG64DIR)\bin" ?>
+        <?ifdef env.FFMPEG64DIR ?>
+            <?define FFMPEGDir = "$(env.FFMPEG64DIR)" ?>
+        <?else ?>
+            <?define FFMPEGDir = "" ?>
+        <?endif?>
     <?endif?>
-    <?ifndef SpanDspDir ?>
-        <?define SpanDspDir = "$(env.SPANDSPDIR)\src\x64\Release" ?>
+    <?ifndef JPEGDir ?>
+        <?ifdef env.JPEG64DIR ?>
+            <?define JPEGDir = "$(env.JPEG64DIR)" ?>
+        <?else ?>
+            <?define JPEGDir = "" ?>
+        <?endif?>
+    <?endif?>
+    <?ifndef SpanDspSubDir ?>
+        <?define SpanDspSubDir = "\src\x64\Release" ?>
     <?endif?>
 <?endif?>
 
+<?ifndef SSLSubDir ?>
+    <?define SSLSubDir = "\bin" ?>
+<?endif?>
+
+<?ifndef V8Dir ?>
+    <?ifdef env.V8_DIR ?>
+        <?define V8Dir = "$(env.V8_DIR)" ?>
+    <?else ?>
+        <?define V8Dir = "" ?>
+    <?endif?>
+<?endif?>
+
+<?ifndef FFMPEGSubDir ?>
+    <?define FFMPEGSubDir = "\bin" ?>
+<?endif?>
 <?ifndef AVFORMATVer ?>
     <?define AVFORMATVer = "58" ?>
 <?endif?>
@@ -72,7 +119,28 @@
     <?define SWSCALEVer = "5" ?>
 <?endif?>
 
-<?ifdef WxDir ?>
+<?ifndef SpanDspDir ?>
+    <?ifdef env.SPANDSPDIR ?>
+        <?define SpanDspDir = "$(env.SPANDSPDIR)" ?>
+    <?else ?>
+        <?define SpanDspDir = "" ?>
+    <?endif?>
+<?endif?>
+
+<?ifndef WxDir ?>
+    <?ifdef env.WXDIR ?>
+        <?define WxDir = "$(env.WXDIR)" ?>
+    <?else ?>
+        <?define WxDir = "" ?>
+    <?endif?>
+<?endif?>
+<?if $(var.WxDir) != "" ?>
+    <?ifndef WxVer ?>
+        <?define WxVer = "314" ?>
+    <?endif?>
+    <?ifndef WxCustom ?>
+        <?define WxCustom = "no" ?>
+    <?endif?>
     <?if $(var.WxCustom) = "yes" ?>
         <?if $(var.Architecture) = "x86" ?>
             <?define WxPlatform  = "_custom" ?>
@@ -90,6 +158,7 @@
         <?define WxDllDir = "$(var.WxDir)\lib\vc$(var.WxPlatform)_dll" ?>
     <?endif?>
 <?endif?>
+
 
 <?ifndef PTLibDir ?>
     <?define PTLibDir = "$(var.ProjectDir)..\..\..\ptlib" ?>
@@ -271,7 +340,7 @@
                                   Source='$(var.PluginReleaseDir)\h261_vic_ptplugin.dll'
                                   KeyPath='yes' />
                         </Component>
-                        <?ifdef FFMPEGDir ?>
+                        <?if $(var.FFMPEGDir) != "" ?>
                             <Component Id='H.263'
                                       Win64="$(var.IsWin64)"
                                       Guid='*'>
@@ -293,7 +362,7 @@
                                        Guid='*'>
                                 <File Id='AVFORMAT_DLL'
                                       Name='AVFORMAT-$(var.AVFORMATVer).DLL'
-                                      Source='$(var.FFMPEGDir)\AVFORMAT-$(var.AVFORMATVer).DLL'
+                                      Source='$(var.FFMPEGDir)$(var.FFMPEGSubDir)\AVFORMAT-$(var.AVFORMATVer).DLL'
                                       KeyPath='yes' />
                             </Component>
                             <Component Id='AVCODEC'
@@ -301,7 +370,7 @@
                                       Guid='*'>
                                 <File Id='AVCODEC_DLL'
                                       Name='AVCODEC-$(var.AVCODECVer).DLL'
-                                      Source='$(var.FFMPEGDir)\AVCODEC-$(var.AVCODECVer).DLL'
+                                      Source='$(var.FFMPEGDir)$(var.FFMPEGSubDir)\AVCODEC-$(var.AVCODECVer).DLL'
                                       KeyPath='yes' />
                             </Component>
                             <Component Id='AVUTIL'
@@ -309,7 +378,7 @@
                                        Guid='*'>
                                 <File Id='AVUTIL_DLL'
                                       Name='AVUTIL-$(var.AVUTILVer).DLL'
-                                      Source='$(var.FFMPEGDir)\AVUTIL-$(var.AVUTILVer).DLL'
+                                      Source='$(var.FFMPEGDir)$(var.FFMPEGSubDir)\AVUTIL-$(var.AVUTILVer).DLL'
                                       KeyPath='yes' />
                             </Component>
                             <Component Id='SWRESAMPLE'
@@ -317,7 +386,7 @@
                                        Guid='*'>
                                 <File Id='SWRESAMPLE_DLL'
                                       Name='SWRESAMPLE-$(var.SWRESAMPLEVer).DLL'
-                                      Source='$(var.FFMPEGDir)\SWRESAMPLE-$(var.SWRESAMPLEVer).DLL'
+                                      Source='$(var.FFMPEGDir)$(var.FFMPEGSubDir)\SWRESAMPLE-$(var.SWRESAMPLEVer).DLL'
                                       KeyPath='yes' />
                             </Component>
                             <Component Id='SWSCALE'
@@ -325,7 +394,7 @@
                                        Guid='*'>
                                 <File Id='SWSCALE_DLL'
                                       Name='SWSCALE-$(var.SWSCALEVer).DLL'
-                                      Source='$(var.FFMPEGDir)\SWSCALE-$(var.SWSCALEVer).DLL'
+                                      Source='$(var.FFMPEGDir)$(var.FFMPEGSubDir)\SWSCALE-$(var.SWSCALEVer).DLL'
                                       KeyPath='yes' />
                             </Component>
                         <?endif?>
@@ -337,7 +406,7 @@
                                   Source='$(var.PluginReleaseDir)\vp8_webm_ptplugin.dll'
                                   KeyPath='yes' />
                         </Component>
-                        <?ifdef SpanDspDir ?>
+                        <?if $(var.SpanDspDir) != "" ?>
                             <Component Id='SpanDSPFax'
                                       Win64="$(var.IsWin64)"
                                       Guid='*'>
@@ -351,7 +420,7 @@
                                        Guid='*'>
                                 <File Id='SpanDSPLib_DLL'
                                       Name='libspandsp.dll'
-                                      Source='$(var.SpanDspDir)\libspandsp.dll'
+                                      Source='$(var.SpanDspDir)$(var.SpanDspSubDir)\libspandsp.dll'
                                       KeyPath='yes' />
                             </Component>
                         <?endif?>
@@ -387,73 +456,25 @@
                                   Source='$(var.PTLibDir)\lib\$(var.PTLibName).PDB'
                                   KeyPath='yes' />
                         </Component>
-                        <?ifdef ImageMagickDir ?>
-                            <Component Id='ImageMagickWand'
+                        <?if $(var.SSLDir) != "" ?>
+                            <Component Id='OpenSSL1'
                                        Win64="$(var.IsWin64)"
                                        Guid='*'>
-                                <File Id='CORE_RL_MAGICKWAND_DLL'
-                                      Name='CORE_RL_MAGICKWAND_.DLL'
-                                      Source='$(var.ImageMagickDir)\CORE_RL_MAGICKWAND_.DLL'
+                                <File Id='LIBSSL_DLL'
+                                      Name='LIBSSL-$(var.SSLVer).DLL'
+                                      Source='$(var.SSLDir)\libssl-$(var.SSLVer).DLL'
                                       KeyPath='yes' />
                             </Component>
-                            <Component Id='ImageMagickCore'
+                            <Component Id='OpenSSL2'
                                        Win64="$(var.IsWin64)"
                                        Guid='*'>
-                                <File Id='CORE_RL_MAGICKCORE_DLL'
-                                      Name='CORE_RL_MAGICKCORE_.DLL'
-                                      Source='$(var.ImageMagickDir)\CORE_RL_MAGICKCORE_.DLL'
-                                      KeyPath='yes' />
-                            </Component>
-                            <Component Id='ImageMagickBZLIB'
-                                       Win64="$(var.IsWin64)"
-                                       Guid='*'>
-                                <File Id='CORE_RL_BZLIB_DLL'
-                                      Name='CORE_RL_BZLIB_.DLL'
-                                      Source='$(var.ImageMagickDir)\CORE_RL_BZLIB_.DLL'
-                                      KeyPath='yes' />
-                            </Component>
-                            <Component Id='ImageMagickZLIB'
-                                       Win64="$(var.IsWin64)"
-                                       Guid='*'>
-                                <File Id='CORE_RL_ZLIB_DLL'
-                                      Name='CORE_RL_ZLIB_.DLL'
-                                      Source='$(var.ImageMagickDir)\CORE_RL_ZLIB_.DLL'
-                                      KeyPath='yes' />
-                            </Component>
-                            <Component Id='ImageMagickTTF'
-                                       Win64="$(var.IsWin64)"
-                                       Guid='*'>
-                                <File Id='CORE_RL_TTF_DLL'
-                                      Name='CORE_RL_TTF_.DLL'
-                                      Source='$(var.ImageMagickDir)\CORE_RL_TTF_.DLL'
-                                      KeyPath='yes' />
-                            </Component>
-                            <Component Id='ImageMagickLCMS'
-                                       Win64="$(var.IsWin64)"
-                                       Guid='*'>
-                                <File Id='CORE_RL_LCMS_DLL'
-                                      Name='CORE_RL_LCMS_.DLL'
-                                      Source='$(var.ImageMagickDir)\CORE_RL_LCMS_.DLL'
-                                      KeyPath='yes' />
-                            </Component>
-                            <Component Id='ImageMagickLQR'
-                                       Win64="$(var.IsWin64)"
-                                       Guid='*'>
-                                <File Id='CORE_RL_LQR_DLL'
-                                      Name='CORE_RL_LQR_.DLL'
-                                      Source='$(var.ImageMagickDir)\CORE_RL_LQR_.DLL'
-                                      KeyPath='yes' />
-                            </Component>
-                            <Component Id='ImageMagickGLIB'
-                                       Win64="$(var.IsWin64)"
-                                       Guid='*'>
-                                <File Id='CORE_RL_GLIB_DLL'
-                                      Name='CORE_RL_GLIB_.DLL'
-                                      Source='$(var.ImageMagickDir)\CORE_RL_GLIB_.DLL'
+                                <File Id='LIBCRYPTO_DLL'
+                                      Name='LIBCRYPTO-$(var.SSLVer).DLL'
+                                      Source='$(var.SSLDir)\libcrypto-$(var.SSLVer).DLL'
                                       KeyPath='yes' />
                             </Component>
                         <?endif?>
-                        <?ifdef LuaDir ?>
+                        <?if $(var.LuaDir) != "" ?>
                             <Component Id='Lua'
                                        Win64="$(var.IsWin64)"
                                        Guid='*'>
@@ -463,13 +484,13 @@
                                       KeyPath='yes' />
                             </Component>
                         <?endif?>
-                        <?ifdef V8Dir ?>
+                        <?if $(var.V8Dir) != "" ?>
                             <Component Id='V8_snapshot_blob'
                                        Win64="$(var.IsWin64)"
                                        Guid='*'>
                                 <File Id='V8_snapshot_blob_bin'
                                       Name='snapshot_blob.bin'
-                                      Source='$(var.V8Dir)\snapshot_blob.bin'
+                                      Source='$(var.V8Dir)$(var.V8SubDir)\snapshot_blob.bin'
                                       KeyPath='yes' />
                             </Component>
                             <Component Id='V8_natives_blob'
@@ -477,54 +498,21 @@
                                        Guid='*'>
                                 <File Id='V8_natives_blob_bin'
                                       Name='natives_blob.bin'
-                                      Source='$(var.V8Dir)\natives_blob.bin'
+                                      Source='$(var.V8Dir)$(var.V8SubDir)\natives_blob.bin'
                                       KeyPath='yes' />
                             </Component>
                         <?endif?>
-                        <?ifdef JPEGDir ?>
+                        <?if $(var.JPEGDir) != "" ?>
                             <Component Id='JPEG'
+                                       Win64="$(var.IsWin64)"
                                        Guid='*'>
                                 <File Id='JPEG_DLL'
                                       Name='JPEG62.DLL'
-                                      Source='$(var.JPEGDir)\JPEG62.DLL'
+                                      Source='$(var.JPEGDir)\bin\JPEG62.DLL'
                                       KeyPath='yes' />
                             </Component>
                         <?endif?>
-                        <?ifdef SaslDir ?>
-                            <Component Id='SASL'
-                                       Guid='*'>
-                                <File Id='SASL_DLL'
-                                      Name='LIBSASL.DLL'
-                                      Source='$(var.SaslDir)\LIBSASL.DLL'
-                                      KeyPath='yes' />
-                            </Component>
-                        <?endif?>
-                        <?ifdef LDAPDir ?>
-                            <Component Id='OpenLDAP'
-                                       Guid='*'>
-                                <File Id='OPENLDAP_DLL'
-                                      Name='OPENLDAP.DLL'
-                                      Source='$(var.LDAPDir)\OPENLDAP.DLL'
-                                      KeyPath='yes' />
-                            </Component>
-                        <?endif?>
-                        <Component Id='OpenSSL1'
-                                   Win64="$(var.IsWin64)"
-                                   Guid='*'>
-                            <File Id='LIBSSL_DLL'
-                                  Name='LIBSSL-$(var.SSLVer).DLL'
-                                  Source='$(var.SSLDir)\libssl-$(var.SSLVer).DLL'
-                                  KeyPath='yes' />
-                        </Component>
-                        <Component Id='OpenSSL2'
-                                   Win64="$(var.IsWin64)"
-                                   Guid='*'>
-                            <File Id='LIBCRYPTO_DLL'
-                                  Name='LIBCRYPTO-$(var.SSLVer).DLL'
-                                  Source='$(var.SSLDir)\libcrypto-$(var.SSLVer).DLL'
-                                  KeyPath='yes' />
-                        </Component>
-                        <?ifdef WxDir ?>
+                        <?if $(var.WxDir) != "" ?>
                             <Component Id='WxXRC'
                                        Win64="$(var.IsWin64)"
                                        Guid='*'>
@@ -640,7 +628,7 @@
             <ComponentRef Id='Opus' />
             <ComponentRef Id='Speex' />
             <ComponentRef Id='H.261' />
-            <?ifdef FFMPEGDir ?>
+            <?if $(var.FFMPEGDir) != "" ?>
                 <ComponentRef Id='H.263' />
                 <ComponentRef Id='H.264' />
                 <ComponentRef Id='MPEG4' />
@@ -651,7 +639,7 @@
                 <ComponentRef Id='SWSCALE' />
             <?endif?>
             <ComponentRef Id='VP8' />
-            <?ifdef SpanDspDir ?>
+            <?if $(var.SpanDspDir) != "" ?>
                 <ComponentRef Id='SpanDSPFax' />
                 <ComponentRef Id='SpanDSPLib' />
             <?endif?>
@@ -675,37 +663,23 @@
                  Level='1'>
             <ComponentRef Id='PTLib' />
             <ComponentRef Id='PTLibSymbols' />
-            <?ifdef ImageMagickDir ?>
-                <ComponentRef Id='ImageMagickWand' />
-                <ComponentRef Id='ImageMagickCore' />
-                <ComponentRef Id='ImageMagickBZLIB' />
-                <ComponentRef Id='ImageMagickZLIB' />
-                <ComponentRef Id='ImageMagickTTF' />
-                <ComponentRef Id='ImageMagickLCMS' />
-                <ComponentRef Id='ImageMagickLQR' />
-                <ComponentRef Id='ImageMagickGLIB' />
+            <?if $(var.SSLDir) != "" ?>
+                <ComponentRef Id='OpenSSL1' />
+                <ComponentRef Id='OpenSSL2' />
             <?endif?>
-            <?ifdef LuaDir ?>
+            <?if $(var.LuaDir) != "" ?>
                 <ComponentRef Id='Lua' />
             <?endif?>
-            <?ifdef V8Dir ?>
+            <?if $(var.V8Dir) != "" ?>
                 <ComponentRef Id='V8_snapshot_blob' />
                 <ComponentRef Id='V8_natives_blob' />
             <?endif?>
-            <?ifdef JPEGDir ?>
+            <?if $(var.JPEGDir) != "" ?>
                 <ComponentRef Id='JPEG' />
             <?endif?>
-            <?ifdef SaslDir ?>
-                <ComponentRef Id='SASL' />
-            <?endif?>
-            <?ifdef LDAPDir ?>
-                <ComponentRef Id='OpenLDAP' />
-            <?endif?>
-            <ComponentRef Id='OpenSSL1' />
-            <ComponentRef Id='OpenSSL2' />
         </Feature>
 
-        <?ifdef WxDir ?>
+        <?if $(var.WxDir) != "" ?>
             <Feature Id='WxWidgets'
                      Title="wxWidgets library"
                      AllowAdvertise="no"
