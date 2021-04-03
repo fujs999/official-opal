@@ -5,9 +5,4 @@
     <?define ProductVersion = "1.1.0" ?>
     <?define ProductManufacturer = "Vox Lucida Pty. Ltd." ?>
     <?define ProductGUID = "48bff92f-98f9-45fb-a233-db3e2c496d4a" ?>
-
-    <?define WxDir = "$(env.WXDIR)" ?>
-    <?define WxVer = "$(env.WXVER)4" ?>
-    <?define WxCustom = "no" ?>
-
 </Include>
