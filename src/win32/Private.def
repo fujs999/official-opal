@@ -90,7 +90,8 @@ EXPORTS
     vfprintf @49743 NONAME
     vsnprintf @49744 NONAME
     get_protect_trailer_length
-    remove_request_from_the_floor @18543 NONAME
+    remove_request_from_the_floor
+    _remove_request_from_the_floor
     stream_get_protect_trailer_length @18736 NONAME
     bitvector_*
     _bitvector_*
@@ -117,3 +118,8 @@ EXPORTS
     getBfcp*
     _getBfcp*
     DumpBfcpBuff
+    _DumpBfcpBuff
+    _ParticpantLog
+    __ParticpantLog
+    __ServerLog
+    _ServerLog
