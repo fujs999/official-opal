@@ -162,16 +162,16 @@ int BFCP_Participant::bfcp_destroy_bfcp_participant(st_bfcp_participant_informat
 /* Add a floor to the list of floors the participant will be aware of */
 int BFCP_Participant::bfcp_insert_floor_participant(st_bfcp_participant_information* participant, UINT16 floorID)
 {
-	if(floorID <= 0)
-		return -1;
-	if(participant == NULL)
-		participant = m_bfcp_participant_information ;
+    if(floorID <= 0)
+        return -1;
+    if(participant == NULL)
+        participant = m_bfcp_participant_information ;
 
     bfcp_floors_participant* tmp_floor = insert_floor_list(participant->pfloors,floorID, NULL);
     if ( tmp_floor ) 
         participant->pfloors = tmp_floor ;
 
-	return 0;
+    return 0;
 }
 
 /* Delete a floor from the list of floors the participant is aware of */
