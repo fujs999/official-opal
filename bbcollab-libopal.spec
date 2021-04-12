@@ -3,7 +3,7 @@
 %global version_patch  7
 %global version_oem    2
 
-%global ffmpeg_ver_el7 2.6.3-10.4.el7
+%global ffmpeg_ver_el7 4.3.1-1.6.el7
 %global ptlib_ver_el7 2.19.4.15
 %global srtp_ver_el7 2.1.0-4.3.el7
 
@@ -54,6 +54,7 @@ Summary:        Development files for %{name}
 Group:          Development/Libraries
 Requires:       %{name} = %{version}-%{release}
 Requires:       bbcollab-ptlib-devel = %{ptlib_ver_el7}
+Requires:       bbcollab-ffmpeg-devel = %{ffmpeg_ver_el7}
 Requires:       libsrtp2-devel = %{srtp_ver_el7}
 
 %description    devel
