@@ -535,6 +535,7 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
     virtual void InternalClose();
     virtual bool GarbageCollection(); // Override from PSafeObject
     virtual void InternalRxData(SubChannels subchannel, const PBYTEArray & data);
+    virtual PTimeInterval GetTimeout() const { return m_mediaTimeout; }
 
     PString       m_name;
     bool          m_remoteBehindNAT;

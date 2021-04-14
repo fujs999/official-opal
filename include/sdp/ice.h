@@ -96,6 +96,7 @@ class OpalICEMediaTransport : public OpalUDPMediaTransport
     virtual void InternalRxData(SubChannels subchannel, const PBYTEArray & data);
     virtual bool InternalOpenPinHole(PUDPSocket & socket);
     virtual PChannel * AddWrapperChannels(SubChannels subchannel, PChannel * channel);
+    virtual PTimeInterval GetTimeout() const;
 
     PString       m_localUsername;    // ICE username sent to remote
     PString       m_localPassword;    // ICE password sent to remote

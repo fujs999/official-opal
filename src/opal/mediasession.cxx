@@ -775,7 +775,7 @@ PChannel * OpalMediaTransport::GetChannel(SubChannels subchannel) const
 void OpalMediaTransport::SetMediaTimeout(const PTimeInterval & t)
 {
   m_mediaTimeout = t;
-  m_mediaTimer = t;
+  m_mediaTimer = GetTimeout();
 }
 
 
@@ -814,6 +814,10 @@ void OpalMediaTransport::ChannelInfo::ThreadMain()
 
   while (m_channel->IsOpen()) {
     PBYTEArray data(m_owner.m_packetSize);
+
+    /* Make socket timeout slightly longer (200ms) than media timeout to avoid
+        a race condition with m_mediaTimer expiring. */
+    m_channel->SetReadTimeout(m_owner.GetTimeout()+200);
 
     PTRACE(m_throttleReadPacket, &m_owner, m_owner << m_subchannel << " reading packet:"
            " sz=" << data.GetSize() << ","
@@ -856,7 +860,7 @@ void OpalMediaTransport::ChannelInfo::ThreadMain()
           if (m_owner.m_mediaTimer.IsRunning())
             PTRACE(2, &m_owner, m_owner << m_subchannel << " timed out (" << m_channel->GetReadTimeout() << "s), other subchannels running");
           else {
-            PTRACE(1, &m_owner, m_owner << m_subchannel << " timed out (" << m_owner.m_mediaTimeout << "s), closing");
+            PTRACE(1, &m_owner, m_owner << m_subchannel << " timed out (" << m_channel->GetReadTimeout() << "s), closing");
             m_owner.InternalClose();
           }
           break;
@@ -946,12 +950,15 @@ void OpalMediaTransport::InternalRxData(SubChannels subchannel, const PBYTEArray
 
   notifiers(*this, data);
 
-  m_mediaTimer = m_mediaTimeout;
+  m_mediaTimer = GetTimeout();
 }
 
 
 void OpalMediaTransport::Start()
 {
+  if (!IsOpen())
+    return;
+
   if (m_started.exchange(true))
     return;
 
@@ -994,10 +1001,6 @@ void OpalMediaTransport::AddChannel(PChannel * channel)
 
   PTRACE_CONTEXT_ID_TO(channel);
   channel = AddWrapperChannels(subchannel, channel);
-
-  /* Make socket timeout slightly longer (200ms) than media timeout to avoid
-      a race condition with m_mediaTimer expiring. */
-  channel->SetReadTimeout(m_mediaTimeout+200);
 
   m_subchannels.push_back(ChannelInfo(*this, subchannel, channel));
   PTRACE(5, "Added " << subchannel << " channel " << channel->GetName());
@@ -1392,7 +1395,7 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
     SetMinBufferSize(socket, SO_RCVBUF, session.GetMediaType() == OpalMediaType::Audio() ? 0x4000 : 0x100000);
     SetMinBufferSize(socket, SO_SNDBUF, 0x2000);
   }
-  m_mediaTimer = m_mediaTimeout;
+  m_mediaTimer = GetTimeout();
 
   m_opened = true;
   return true;
