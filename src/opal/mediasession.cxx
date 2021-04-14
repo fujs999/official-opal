@@ -1014,6 +1014,9 @@ bool OpalMediaTransport::InternalRxData(SubChannels subchannel, const PBYTEArray
 
 void OpalMediaTransport::Start()
 {
+  if (!IsOpen())
+    return;
+
   if (m_started.exchange(true))
     return;
 
