@@ -227,6 +227,11 @@ void OpalICEMediaTransport::SetCandidates(const PString & user,
       }
     }
   }
+    
+  /* With ICE we start the thread straight away, as we need to respond to STUN
+     requests before we get an answer back from the remote, which is when we
+     would usually start the read thread. */
+  Start();
 }
 
 
@@ -346,6 +351,11 @@ bool OpalICEMediaTransport::GetCandidates(PString & user,
     options += OptTrickle;
     candidates.push_back(PNatCandidate(PNatCandidate::FinalType, PNatMethod::eComponent_Unknown, LiteFoundation));
   }
+    
+  /* With ICE we start the thread straight away, as we need to respond to STUN
+     requests before we get an answer back from the remote, which is when we
+     would usually start the read thread. */
+  Start();
 
   PTRACE(3, "Getting " << candidates.size() << " candidates:"
             " local-lite=" << boolalpha << m_localLite << ","
@@ -435,9 +445,9 @@ OpalICEMediaTransport::ICEChannel::ICEChannel(OpalICEMediaTransport & owner, Sub
 }
 
 
-PTimeInterval OpalICEMediaTransport::GetTimeout() const
+PTimeInterval OpalICEMediaTransport::GetTimeout(SubChannels subchannel) const
 {
-  return GetICEState() <= e_Completed ? m_mediaTimeout : m_iceTimeout;
+  return GetICEChannel(subchannel).m_state <= e_Completed ? m_mediaTimeout : m_iceTimeout;
 }
 
 
