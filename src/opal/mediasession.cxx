@@ -838,7 +838,16 @@ PChannel * OpalMediaTransport::GetChannel(SubChannels subchannel) const
 void OpalMediaTransport::SetMediaTimeout(const PTimeInterval & t)
 {
   m_mediaTimeout = t;
-  m_mediaTimer = GetTimeout();
+
+  if (!LockReadOnly(P_DEBUG_LOCATION))
+    return;
+
+  PTimeInterval maxTimeout;
+  for (vector<ChannelInfo>::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it)
+    maxTimeout = std::max(maxTimeout, GetTimeout(it->m_subchannel));
+  UnlockReadOnly(P_DEBUG_LOCATION);
+
+  m_mediaTimer = maxTimeout;
 }
 
 
@@ -916,7 +925,7 @@ void OpalMediaTransport::ChannelInfo::ThreadMain()
 
     /* Make socket timeout slightly longer (200ms) than media timeout to avoid
         a race condition with m_mediaTimer expiring. */
-    m_channel->SetReadTimeout(m_owner.GetTimeout()+200);
+    m_channel->SetReadTimeout(m_owner.GetTimeout(m_subchannel)+200);
 
     PTRACE(m_throttleReadPacket, &m_owner, m_owner << m_subchannel << " reading packet:"
            " sz=" << data.GetSize() << ","
@@ -1052,7 +1061,7 @@ bool OpalMediaTransport::InternalRxData(SubChannels subchannel, const PBYTEArray
 
   notifiers(*this, data);
 
-  m_mediaTimer = GetTimeout();
+  SetMediaTimeout(m_mediaTimeout);
   return true;
 }
 
@@ -1397,7 +1406,6 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
   m_packetSize = manager.GetMaxRtpPacketSize();
   if (session.IsRemoteBehindNAT())
     SetRemoteBehindNAT();
-  m_mediaTimeout = session.GetStringOptions().GetVar(OPAL_OPT_MEDIA_RX_TIMEOUT, manager.GetNoMediaTimeout());
   m_maxNoTransmitTime = session.GetStringOptions().GetVar(OPAL_OPT_MEDIA_TX_TIMEOUT, manager.GetTxMediaTimeout());
 
   if (!PAssert(!localInterface.empty(), PLogicError))
@@ -1502,7 +1510,8 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
     SetMinBufferSize(socket, SO_RCVBUF, session.GetMediaType() == OpalMediaType::Audio() ? 0x4000 : 0x100000);
     SetMinBufferSize(socket, SO_SNDBUF, 0x2000);
   }
-  m_mediaTimer = GetTimeout();
+
+  SetMediaTimeout(session.GetStringOptions().GetVar(OPAL_OPT_MEDIA_RX_TIMEOUT, manager.GetNoMediaTimeout()));
 
   m_opened = true;
   return true;

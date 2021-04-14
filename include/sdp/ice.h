@@ -102,7 +102,7 @@ class OpalICEMediaTransport : public OpalUDPMediaTransport
     virtual bool InternalRxData(SubChannels subchannel, const PBYTEArray & data);
     virtual bool InternalOpenPinHole(PUDPSocket & socket);
     virtual PChannel * AddWrapperChannels(SubChannels subchannel, PChannel * channel);
-    virtual PTimeInterval GetTimeout() const;
+    virtual PTimeInterval GetTimeout(SubChannels subchannel) const;
 
     enum CandidateStates
     {
