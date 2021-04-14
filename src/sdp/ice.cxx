@@ -116,11 +116,6 @@ bool OpalICEMediaTransport::Open(OpalMediaSession & session,
   // Open the STUN server and set what credentials we have so far
   m_server.Open(GetSubChannelAsSocket(e_Data), GetSubChannelAsSocket(e_Control));
   m_server.SetCredentials(m_localUsername + ':' + m_remoteUsername, m_localPassword, PString::Empty());
-
-  /* With ICE we start the thread straight away, as we need to respond to STUN
-     requests before we get an answer back from the remote, which is when we
-     would usually start the read thread. */
-  Start();
   return true;
 }
 
@@ -303,6 +298,11 @@ void OpalICEMediaTransport::SetCandidates(const PString & user, const PString & 
     trace << PTrace::End;
   }
 #endif
+
+  /* With ICE we start the thread straight away, as we need to respond to STUN
+     requests before we get an answer back from the remote, which is when we
+     would usually start the read thread. */
+  Start();
 }
 
 
@@ -410,6 +410,11 @@ bool OpalICEMediaTransport::GetCandidates(PString & user, PString & pass, PNatCa
       candidates.push_back(PNatCandidate(PNatCandidate::FinalType, PNatMethod::eComponent_RTP, LiteFoundation, 1));
       candidates.back().m_baseTransportAddress.SetAddress(PIPSocket::GetDefaultIpAny(), 9);
   }
+
+  /* With ICE we start the thread straight away, as we need to respond to STUN
+     requests before we get an answer back from the remote, which is when we
+     would usually start the read thread. */
+  Start();
   return true;
 }
 
@@ -438,10 +443,15 @@ OpalICEMediaTransport::ICEChannel::ICEChannel(OpalICEMediaTransport & owner, Sub
 }
 
 
+PTimeInterval OpalICEMediaTransport::GetTimeout() const
+{
+  return GetICEState() <= e_Completed ? m_mediaTimeout : m_iceTimeout;
+}
+
+
 PBoolean OpalICEMediaTransport::ICEChannel::Read(void * data, PINDEX size)
 {
   for (;;) {
-    SetReadTimeout(m_owner.GetICEState() <= e_Completed ? m_owner.m_mediaTimeout : m_owner.m_iceTimeout);
     if (!PIndirectChannel::Read(data, size))
       return false;
     if (m_owner.InternalHandleICE(m_subchannel, data, GetLastReadCount()))
