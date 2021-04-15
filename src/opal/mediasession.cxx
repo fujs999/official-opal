@@ -838,7 +838,16 @@ PChannel * OpalMediaTransport::GetChannel(SubChannels subchannel) const
 void OpalMediaTransport::SetMediaTimeout(const PTimeInterval & t)
 {
   m_mediaTimeout = t;
-  m_mediaTimer = t;
+
+  if (!LockReadOnly(P_DEBUG_LOCATION))
+    return;
+
+  PTimeInterval maxTimeout;
+  for (vector<ChannelInfo>::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it)
+    maxTimeout = std::max(maxTimeout, GetTimeout(it->m_subchannel));
+  UnlockReadOnly(P_DEBUG_LOCATION);
+
+  m_mediaTimer = maxTimeout;
 }
 
 
@@ -914,6 +923,10 @@ void OpalMediaTransport::ChannelInfo::ThreadMain()
   while (m_channel->IsOpen()) {
     PBYTEArray data(m_owner.m_packetSize);
 
+    /* Make socket timeout slightly longer (200ms) than media timeout to avoid
+        a race condition with m_mediaTimer expiring. */
+    m_channel->SetReadTimeout(m_owner.GetTimeout(m_subchannel)+200);
+
     PTRACE(m_throttleReadPacket, &m_owner, m_owner << m_subchannel << " reading packet:"
            " sz=" << data.GetSize() << ","
            " timeout=" << m_channel->GetReadTimeout() << ","
@@ -955,7 +968,7 @@ void OpalMediaTransport::ChannelInfo::ThreadMain()
           if (m_owner.m_mediaTimer.IsRunning())
             PTRACE(2, &m_owner, m_owner << m_subchannel << " timed out (" << m_channel->GetReadTimeout() << "s), other subchannels running");
           else {
-            PTRACE(1, &m_owner, m_owner << m_subchannel << " timed out (" << m_owner.m_mediaTimeout << "s), closing");
+            PTRACE(1, &m_owner, m_owner << m_subchannel << " timed out (" << m_channel->GetReadTimeout() << "s), closing");
             m_owner.InternalClose();
             m_lastError = m_remoteGoneError;
           }
@@ -1048,13 +1061,16 @@ bool OpalMediaTransport::InternalRxData(SubChannels subchannel, const PBYTEArray
 
   notifiers(*this, data);
 
-  m_mediaTimer = m_mediaTimeout;
+  SetMediaTimeout(m_mediaTimeout);
   return true;
 }
 
 
 void OpalMediaTransport::Start()
 {
+  if (!IsOpen())
+    return;
+
   if (m_started.exchange(true))
     return;
 
@@ -1099,10 +1115,6 @@ void OpalMediaTransport::AddChannel(PChannel * channel)
 
   PTRACE_CONTEXT_ID_TO(channel);
   channel = AddWrapperChannels(subchannel, channel);
-
-  /* Make socket timeout slightly longer (200ms) than media timeout to avoid
-      a race condition with m_mediaTimer expiring. */
-  channel->SetReadTimeout(m_mediaTimeout+200);
 
   m_subchannels.push_back(ChannelInfo(*this, subchannel, channel));
   PTRACE(5, "Added " << subchannel << " channel " << channel->GetName());
@@ -1394,7 +1406,6 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
   m_packetSize = manager.GetMaxRtpPacketSize();
   if (session.IsRemoteBehindNAT())
     SetRemoteBehindNAT();
-  m_mediaTimeout = session.GetStringOptions().GetVar(OPAL_OPT_MEDIA_RX_TIMEOUT, manager.GetNoMediaTimeout());
   m_maxNoTransmitTime = session.GetStringOptions().GetVar(OPAL_OPT_MEDIA_TX_TIMEOUT, manager.GetTxMediaTimeout());
 
   if (!PAssert(!localInterface.empty(), PLogicError))
@@ -1499,7 +1510,8 @@ bool OpalUDPMediaTransport::Open(OpalMediaSession & session,
     SetMinBufferSize(socket, SO_RCVBUF, session.GetMediaType() == OpalMediaType::Audio() ? 0x4000 : 0x100000);
     SetMinBufferSize(socket, SO_SNDBUF, 0x2000);
   }
-  m_mediaTimer = m_mediaTimeout;
+
+  SetMediaTimeout(session.GetStringOptions().GetVar(OPAL_OPT_MEDIA_RX_TIMEOUT, manager.GetNoMediaTimeout()));
 
   m_opened = true;
   return true;
@@ -1578,6 +1590,9 @@ OpalMediaSession::OpalMediaSession(const Init & init)
   , m_remoteBehindNAT(init.m_remoteBehindNAT)
   , m_setupMode(OpalMediaSession::SetUpModeNotSet)
   , m_connectionMode(ConnectionNotSet)
+#if OPAL_VIDEO
+  , m_videoContentRole(OpalVideoFormat::eNoRole)
+#endif
 {
   PTRACE_CONTEXT_ID_FROM(init.m_connection);
   PTRACE(5, *this << "created " << this << " for " << m_mediaType);
@@ -1608,6 +1623,10 @@ void OpalMediaSession::Start()
   OpalMediaTransportPtr transport = m_transport; // This way avoids races
   if (transport != NULL)
     transport->Start();
+
+  // Once we are started, then another negotiation is "existing"
+  if (m_connectionMode == ConnectionNew)
+    m_connectionMode = ConnectionExisting;
 }
 
 

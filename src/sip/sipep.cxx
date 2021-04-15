@@ -242,17 +242,17 @@ void SIPEndPoint::AddTransport(const OpalTransportPtr & transport, KeepAliveType
 
 void SIPEndPoint::TransportThreadMain(OpalTransportPtr transport)
 {
-  PTRACE(4, "Transport read thread started.");
-
   if (transport != NULL) {
+    PTRACE(4, "Transport read thread started on " << *transport);
     do {
       HandlePDU(transport);
     } while (transport->IsGood());
 
     transport->Close();
+    PTRACE(4, "Transport read thread finished on " << *transport);
   }
-
-  PTRACE(4, "Transport read thread finished.");
+  else
+    PTRACE(4, "Transport read thread did not start");
 }
 
 
@@ -328,6 +328,18 @@ OpalTransportPtr SIPEndPoint::GetTransport(const SIPTransactionOwner & transacto
         }
         else {
           PTRACE(4, "No registrar on domain " << domain);
+          PIPAddress remoteIP;
+          if (remoteAddress.GetIpAddress(remoteIP)) {
+            PIPAddress localIP = PIPSocket::GetRouteInterfaceAddress(remoteIP);
+              for (OpalListenerList::iterator listener = m_listeners.begin(); listener != m_listeners.end(); ++listener) {
+                PIPAddress listenIP;
+                if (listener->GetProtoPrefix() == remoteAddress.GetProtoPrefix() && listener->GetLocalAddress().GetIpAddress(listenIP) && listenIP == localIP) {
+                  localInterface = localIP.AsString();
+                  PTRACE(4, "Using interface on listener " << *listener);
+                  break;
+                }
+              }
+          }
         }
       }
 

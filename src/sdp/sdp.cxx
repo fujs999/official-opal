@@ -893,6 +893,8 @@ bool SDPMediaDescription::Decode(const PStringArray & tokens)
       }
   }
 
+  SetSDPTransportType(tokens[2]);
+
   CreateSDPMediaFormats(tokens);
 
   return true;
@@ -939,8 +941,8 @@ bool SDPMediaDescription::Decode(char key, const PString & value)
       break;
 
     case 'a' : // zero or more media attribute lines
-      ParseAttribute(value);
-      break;
+    ParseAttribute(value);
+    break;
 
     default:
       PTRACE(1, "Unknown media information key " << key);
@@ -1952,6 +1954,14 @@ SDPDummyMediaDescription::SDPDummyMediaDescription(const OpalTransportAddress & 
   }
 }
 
+SDPDummyMediaDescription::SDPDummyMediaDescription(const SDPMediaDescription & from)
+  : m_tokens(4)
+{
+  m_tokens[0] = from.GetSDPMediaType();
+  m_tokens[1] = '0';
+  m_tokens[2] = from.GetSDPTransportType();
+  m_tokens[3] = from.GetSDPPortList();
+}
 
 PString SDPDummyMediaDescription::GetSDPMediaType() const
 {
@@ -3198,6 +3208,26 @@ bool SDPVideoMediaDescription::PreEncode()
 }
 
 
+bool SDPVideoMediaDescription::FromSession(OpalMediaSession * session, const SDPMediaDescription * offer, RTP_SyncSourceId ssrc)
+{
+  if (!SDPRTPAVPMediaDescription::FromSession(session, offer, ssrc))
+    return false;
+
+  m_contentRole = session->GetVideoContentRole();
+  return true;
+}
+
+
+bool SDPVideoMediaDescription::ToSession(OpalMediaSession * session, RTP_SyncSourceArray & ssrcs) const
+{
+  if (!SDPRTPAVPMediaDescription::ToSession(session, ssrcs))
+    return false;
+
+  session->SetVideoContentRole(m_contentRole);
+  return true;
+}
+
+
 SDPVideoMediaDescription::Format::Format(SDPVideoMediaDescription & parent)
   : SDPRTPAVPMediaDescription::Format(parent)
   , m_minRxWidth(0)
@@ -3418,12 +3448,6 @@ SDPApplicationMediaDescription::SDPApplicationMediaDescription(const OpalTranspo
 }
 
 
-PCaselessString SDPApplicationMediaDescription::GetSDPTransportType() const
-{
-  return OpalRTPSession::RTP_AVP();
-}
-
-
 PString SDPApplicationMediaDescription::GetSDPMediaType() const
 {
   return TypeName();
@@ -3438,7 +3462,7 @@ SDPMediaFormat * SDPApplicationMediaDescription::CreateSDPMediaFormat()
 
 bool SDPApplicationMediaDescription::Format::FromSDP(const PString & portString)
 {
-  if (portString.IsEmpty())
+  if (portString.IsEmpty() || portString == "*")
     return false;
 
   m_encodingName = portString;
@@ -3561,9 +3585,9 @@ void SDPSessionDescription::ReadFrom(istream & strm)
 
 PString SDPSessionDescription::Encode() const
 {
-  PStringStream str;
-  PrintOn(str);
-  return str;
+	PStringStream str;
+	PrintOn(str);
+	return str;
 }
 
 
