@@ -106,11 +106,6 @@ bool OpalICEMediaTransport::Open(OpalMediaSession & session,
   // Open the STUN server and set what credentials we have so far
   m_server.Open(GetSubChannelAsSocket(e_Data), GetSubChannelAsSocket(e_Control));
   m_server.SetCredentials(m_localUsername + ':' + m_remoteUsername, m_localPassword, PString::Empty());
-
-  /* With ICE we start the thread straight away, as we need to respond to STUN
-     requests before we get an answer back from the remote, which is when we
-     would usually start the read thread. */
-  Start();
   return true;
 }
 
@@ -309,6 +304,11 @@ void OpalICEMediaTransport::ICEChannel::AddRemoteCandidate(const PNatCandidate &
     for (vector<PNatCandidate>::iterator it = m_localCandidates.begin(); it != m_localCandidates.end(); ++it)
       m_checklist.push_back(CandidatePair(*it, candidate));
   }
+    
+    /* With ICE we start the thread straight away, as we need to respond to STUN
+     requests before we get an answer back from the remote, which is when we
+     would usually start the read thread. */
+    Start();
 }
 
 
@@ -399,6 +399,11 @@ bool OpalICEMediaTransport::ICEChannel::AddLocalCandidate(const OpalTransportAdd
 
   if (m_state == e_Disabled)
     m_state = e_Offering;
+    
+    /* With ICE we start the thread straight away, as we need to respond to STUN
+     requests before we get an answer back from the remote, which is when we
+     would usually start the read thread. */
+    Start();
 
   return true;
 }
@@ -430,15 +435,15 @@ OpalICEMediaTransport::ICEChannel::ICEChannel(OpalICEMediaTransport & owner, Sub
 }
 
 
+PTimeInterval OpalICEMediaTransport::GetTimeout() const
+{
+  return GetICEState() <= e_Completed ? m_mediaTimeout : m_iceTimeout;
+}
+
+
 PBoolean OpalICEMediaTransport::ICEChannel::Read(void * data, PINDEX size)
 {
   for (;;) {
-    {
-      P_INSTRUMENTED_LOCK_READ_WRITE2(lock, m_owner);
-      if (!lock.IsLocked())
-        return false;
-      SetReadTimeout(m_state <= e_Completed ? m_owner.m_mediaTimeout : m_owner.m_iceTimeout);
-    }
     if (!PIndirectChannel::Read(data, size))
       return false;
     if (HandleICE(data, GetLastReadCount()))
