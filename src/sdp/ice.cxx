@@ -309,11 +309,6 @@ void OpalICEMediaTransport::ICEChannel::AddRemoteCandidate(const PNatCandidate &
     for (vector<PNatCandidate>::iterator it = m_localCandidates.begin(); it != m_localCandidates.end(); ++it)
       m_checklist.push_back(CandidatePair(*it, candidate));
   }
-    
-    /* With ICE we start the thread straight away, as we need to respond to STUN
-     requests before we get an answer back from the remote, which is when we
-     would usually start the read thread. */
-    Start();
 }
 
 
@@ -409,11 +404,6 @@ bool OpalICEMediaTransport::ICEChannel::AddLocalCandidate(const OpalTransportAdd
 
   if (m_state == e_Disabled)
     m_state = e_Offering;
-    
-    /* With ICE we start the thread straight away, as we need to respond to STUN
-     requests before we get an answer back from the remote, which is when we
-     would usually start the read thread. */
-    Start();
 
   return true;
 }
