@@ -326,10 +326,10 @@ private:
 	    m_role = other.m_role;
 	    m_bfcp_transport = other.m_bfcp_transport;
 	   
-	    strcpy(m_remoteAddressAndPort, other.m_remoteAddressAndPort);
-	    strcpy(m_remoteAddressStr, other.m_remoteAddressAndPort);
+	    m_remoteAddressAndPort = other.m_remoteAddressAndPort;
+	    m_remoteAddressStr = other.m_remoteAddressAndPort;
 	    m_remotePort = other.m_remotePort;
-	    strcpy(m_localAddressStr, other.m_localAddressStr);
+	    m_localAddressStr = other.m_localAddressStr;
 	    m_localPort = other.m_localPort;
 	    
 	    m_localAddress = other.m_localAddress;
@@ -422,12 +422,12 @@ private:
 	
 	static int CloseSocket( BFCP_SOCKET s );
 
-	const char * GetLocalAddr() { return m_localAddressStr; }
+	const char * GetLocalAddr() { return m_localAddressStr.c_str(); }
 	UINT16	     GetLocalPort() { return m_localPort; }
 
-	const char * GetRemoteAddr() { return m_remoteAddressStr; }
+	const char * GetRemoteAddr() { return m_remoteAddressStr.c_str(); }
 	UINT16       GetRemotePort() { return m_remotePort; }
-	const char * GetRemoteAddrAndPort() { return m_remoteAddressAndPort; }
+	const char * GetRemoteAddrAndPort() { return m_remoteAddressAndPort.c_str(); }
 	
 	/**
 	 * Obtain the transport used by the main socket
@@ -469,7 +469,6 @@ private:
 	 * 
 	 **/
         static bool SetAddress(const char * addrstr, UINT16 port, struct sockaddr * addr, socklen_t & addrlen);
-	static void PrintAddress(const struct sockaddr * addr, char * p_addrstr, UINT16 & p_port);
 	
     private:
 	/* type of socket for connected transports */
@@ -477,11 +476,11 @@ private:
 	int m_bfcp_transport;
 
 	/* Socket address information */
-        char m_remoteAddressAndPort[PATH_MAX];
-	char m_remoteAddressStr[PATH_MAX];
+        std::string m_remoteAddressAndPort;
+	std::string m_remoteAddressStr;
 	UINT16 m_remotePort;
 
-	char m_localAddressStr[PATH_MAX];
+	std::string m_localAddressStr;
 	UINT16 m_localPort;
 	
 	struct sockaddr_storage m_localAddress;

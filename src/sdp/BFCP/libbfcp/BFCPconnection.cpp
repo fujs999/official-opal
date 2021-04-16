@@ -61,8 +61,7 @@ std::string GetErrorText()
 {
   std::vector<char> buf;
   buf.resize(1000);
-  strerror_r(errno, buf.data(), buf.size()-1);
-  return buf.data();
+  return strerror_r(errno, buf.data(), buf.size()-1);
 }
 
 #endif // WIN32
@@ -872,7 +871,7 @@ int BFCPConnection::Client2ServerInfo::Connect( BFCP_SOCKET s )
 
 	struct sockaddr_in *newAdd = (struct sockaddr_in *)addr;
 
-	if(inet_pton(AF_INET, m_remoteAddressStr, &newAdd->sin_addr)<=0)
+	if(inet_pton(AF_INET, GetRemoteAddr(), &newAdd->sin_addr)<=0)
 	{
 		return -3;
 	}
@@ -888,15 +887,15 @@ int BFCPConnection::Client2ServerInfo::Connect( BFCP_SOCKET s )
 	}
 }
 
-void BFCPConnection::Client2ServerInfo::PrintAddress(const sockaddr * addr, char * p_addrstr, UINT16 & p_port)
+static void PrintAddress(const sockaddr * addr, std::string & addrstr, UINT16 & p_port)
 {
    switch(addr->sa_family)
     {
 	case AF_INET:
 	{
 	    struct sockaddr_in * addrv4 = (struct sockaddr_in *) addr;
-	    
-	    inet_ntop(addr->sa_family, &addrv4->sin_addr, p_addrstr, INET_ADDRSTRLEN);
+	    char buf[INET_ADDRSTRLEN];
+	    addrstr = inet_ntop(addr->sa_family, &addrv4->sin_addr, buf, INET_ADDRSTRLEN);
 	    p_port = ntohs(addrv4->sin_port);
 	    break;
 	}
@@ -904,16 +903,14 @@ void BFCPConnection::Client2ServerInfo::PrintAddress(const sockaddr * addr, char
 	case AF_INET6:
 	{
 	    struct sockaddr_in6 * addrv6 = (struct sockaddr_in6 *) addr;
-	    
-	    inet_ntop(addr->sa_family, &addrv6->sin6_addr, p_addrstr, INET6_ADDRSTRLEN);
+	    char buf[INET6_ADDRSTRLEN];
+	    addrstr = inet_ntop(addr->sa_family, &addrv6->sin6_addr, buf, INET6_ADDRSTRLEN);
 	    p_port = ntohs(addrv6->sin6_port);
 	    break;
 	}
 	
 	default:
-	    p_addrstr[0] = 0;
-	    break;
-	
+	    break;	
     }	
 }
 
@@ -947,7 +944,7 @@ bool BFCPConnection::Client2ServerInfo::SetLocalAddress(const char * addr, UINT1
 {
     if (SetAddress( addr, port, (struct sockaddr *) &m_localAddress, m_addrlen) )
     {
-	strcpy(m_localAddressStr, addr);
+	m_localAddressStr = addr;
 	m_localPort = port;
 	return true;
     }
@@ -966,7 +963,7 @@ bool BFCPConnection::Client2ServerInfo::SetRemoteAddress(const char * addr, UINT
 {
     if (SetAddress( addr, port, (struct sockaddr *) &m_remoteAddress, m_remoteAddrLen) )
     {
-	strcpy(m_remoteAddressStr, addr);
+	m_remoteAddressStr = addr;
 	m_remotePort = port;
 	return true;
     }
@@ -980,21 +977,22 @@ void BFCPConnection::Client2ServerInfo::SetRemoteAddress(sockaddr * addr, sockle
     m_remoteAddrLen = addrlen;
     
     PrintAddress(addr, m_remoteAddressStr, m_remotePort);
+    std::ostringstream remoteAddressAndPort;
     switch(m_remoteAddress.ss_family)
     {
 	case AF_INET:
-	    sprintf(m_remoteAddressAndPort, "%s:%d", m_remoteAddressStr, m_remotePort);
+	    remoteAddressAndPort << m_remoteAddressStr << ':' << m_remotePort;
 	    break;
 	
 	case AF_INET6:
-	    sprintf(m_remoteAddressAndPort, "[%s]:%d", m_remoteAddressStr, m_remotePort);
+	    remoteAddressAndPort << '[' << m_remoteAddressStr << "]:" << m_remotePort;
 	    break;
 	
 	default:
-	    m_remoteAddressAndPort[0] = 0;
 	    break;
 	
     }
+    m_remoteAddressAndPort = remoteAddressAndPort.str();
 }
 
 void BFCPConnection::RunLoop()
@@ -1458,9 +1456,9 @@ void BFCPConnection::Client2ServerInfo::Init()
     addr->sin_addr.s_addr = INADDR_ANY;
     m_addrlen = sizeof(struct sockaddr_in);
 
-    m_remoteAddressAndPort[0] = 0;
-    m_remoteAddressStr[0] = 0;
-    m_localAddressStr[0] = 0;
+    m_remoteAddressAndPort.clear();
+    m_remoteAddressStr.clear();
+    m_localAddressStr.clear();
 
     PrintAddress((struct sockaddr *) addr, m_localAddressStr, m_localPort);
 }
@@ -1540,12 +1538,12 @@ int BFCPConnection::Client2ServerInfo::ReadData( BFCPConnection * c, BFCP_SOCKET
 	    }
 	    
 	    /* Check IP addresses */
-	    if (m_remoteAddressAndPort[0] != 0)
+	    if (!m_remoteAddressAndPort.empty())
 	    {
 		if ( ! CompareAddresses( (const struct sockaddr*) &m_remoteAddress, (const struct sockaddr *) &addr) )
 		{
-		    c->Log(ERR, "BFCP connection [%d]: dropped packet received from another IP address. %s", s,m_remoteAddressAndPort);
-		    c->Log(INF, "local is %s:%d and remote is expected to be %s", m_localAddressStr , m_localPort , m_remoteAddressAndPort);
+		    c->Log(ERR, "BFCP connection [%d]: dropped packet received from another IP address. %s", s, GetRemoteAddrAndPort());
+		    c->Log(INF, "local is %s:%d and remote is expected to be %s", GetLocalAddr() , m_localPort , GetRemoteAddrAndPort());
 		    return -2;
 		}
 	    }
@@ -1663,7 +1661,7 @@ int BFCPConnection::Client2ServerInfo::SendData( BFCPConnection * c, BFCP_SOCKET
     {
 	UINT16 trID = bfcp_get_transactionID(msg);
 	
-	if (m_remoteAddressAndPort[0] == 0)
+	if (m_remoteAddressAndPort.empty())
 	{
 	    c->Log(ERR, "UDP/BFCP Could not send msg: no destination address.");
 	    //return -2; //Don't need to return in case of UDP
@@ -1676,7 +1674,7 @@ int BFCPConnection::Client2ServerInfo::SendData( BFCPConnection * c, BFCP_SOCKET
 		return -3;
 	}
 	
-	c->Log(ERR, "FD %d Sent data to %s:%d", s, m_remoteAddressStr, m_remotePort);
+	c->Log(ERR, "FD %d Sent data to %s:%d", s, GetRemoteAddr(), m_remotePort);
 	/* record answer sent */
 	if (trID > 0)
 	{
