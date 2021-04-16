@@ -89,6 +89,10 @@ EXPORTS
     ut_next_index @49737 NONAME
     vfprintf @49743 NONAME
     vsnprintf @49744 NONAME
+    get_protect_trailer_length
+    remove_request_from_the_floor
+    _remove_request_from_the_floor
+    stream_get_protect_trailer_length @18736 NONAME
     bitvector_*
     _bitvector_*
     kiss_*
@@ -105,3 +109,17 @@ EXPORTS
     _SHA_*
     v128_*
     _v128_*
+    BFCP_*
+    _BFCP_*
+    bfcp_*
+    _bfcp_*
+    *BFCP_fsm*
+    *BFCPConnection*
+    getBfcp*
+    _getBfcp*
+    DumpBfcpBuff
+    _DumpBfcpBuff
+    _ParticpantLog
+    __ParticpantLog
+    __ServerLog
+    _ServerLog

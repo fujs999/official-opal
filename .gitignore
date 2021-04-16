@@ -33,9 +33,11 @@ opal.xcodeproj/xcuserdata
 /src/csharp/csharp_swig_wrapper.inc
 /src/java/java_swig_wrapper.inc
 /src/rtp/libsrtp/Makefile
+/src/rtp/libsrtp/libsrtp2.pc
 /src/rtp/libsrtp/doc/Makefile
 /src/rtp/libsrtp/crypto/include/config.h
 /src/rtp/libsrtp/crypto/Makefile
+/src/rtp/libsrtp/crypto/test/env
 /src/rtp/libsrtp/crypto/test/aes_calc
 /src/rtp/libsrtp/crypto/test/cipher_driver
 /src/rtp/libsrtp/crypto/test/datatypes_driver
@@ -50,6 +52,11 @@ opal.xcodeproj/xcuserdata
 /src/rtp/libsrtp/test/roc_driver
 /src/rtp/libsrtp/test/rtpw
 /src/rtp/libsrtp/test/srtp_driver
+/src/rtp/libsrtp/test/rtp_decoder
+/src/rtp/libsrtp/test/test_srtp
+!/src/sdp/BFCP/libbfcp/
+/src/sdp/BFCP/include
+/src/sdp/BFCP/Makeinclude
 /plugins/config.log
 /plugins/config.status
 /plugins/aclocal.m4

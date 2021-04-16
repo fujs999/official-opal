@@ -7,9 +7,4 @@
     <?define ProductVersion = "$(var.OPAL_VERSION)" ?>
     <?define ProductManufacturer = "Vox Lucida Pty. Ltd." ?>
     <?define ProductGUID = "56E04FF6-6AEB-4917-B8FC-6C0C1F5831F1" ?>
-
-    <?define WxDir = "$(env.WXDIR)" ?>
-    <?define WxVer = "$(env.WXVER)4" ?>
-    <?define WxCustom = "no" ?>
-
 </Include>

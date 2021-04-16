@@ -34,7 +34,7 @@
 #include <opal_config.h>
 
 #include <opal/transports.h>
-#include <opal/mediatype.h>
+#include <opal//mediafmt.h>
 #include <ptlib/notifier_ext.h>
 #include <ptclib/pjson.h>
 
@@ -582,6 +582,7 @@ class OpalMediaTransport : public PSafeObject, public OpalMediaTransportChannelT
     virtual void InternalClose();
     virtual bool GarbageCollection(); // Override from PSafeObject
     virtual bool InternalRxData(SubChannels subchannel, const PBYTEArray & data);
+    virtual PTimeInterval GetTimeout(SubChannels /*subchannel*/) const { return m_mediaTimeout; }
 
     PString       m_name;
     bool          m_remoteBehindNAT;
@@ -926,6 +927,16 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
       */
     void SetStringOptions(const PStringOptions & options) { m_stringOptions = options; }
 
+#if OPAL_VIDEO
+    /**Get the video content role for the media session.
+      */
+    OpalVideoFormat::ContentRole GetVideoContentRole() const { return m_videoContentRole; }
+
+    /**Set the video content role for the media session.
+      */
+    void SetVideoContentRole(OpalVideoFormat::ContentRole role) { m_videoContentRole = role; }
+#endif
+
   protected:
     OpalConnection & m_connection;
     unsigned         m_sessionId;  // unique session ID
@@ -945,6 +956,9 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
     };
     typedef std::map<PString, GroupMediaMaps> GroupMap;
     GroupMap m_groups;
+#if OPAL_VIDEO
+    OpalVideoFormat::ContentRole m_videoContentRole;
+#endif
 
     OpalMediaTransportPtr  m_transport;
     OpalMediaCryptoKeyList m_offeredCryptokeys;

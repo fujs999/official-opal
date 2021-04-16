@@ -117,7 +117,7 @@ OpalTransportAddress::OpalTransportAddress(const PIPSocket::Address & addr, WORD
 
 
 OpalTransportAddress::OpalTransportAddress(const PIPSocket::AddressAndPort & addr, const char * proto)
-  : PCaselessString(addr.IsValid() ? addr.AsString() : PString('*'))
+  : PCaselessString(addr.IsValid() ? addr.AsString() : (addr.GetAddress().IsValid() ? addr.GetAddress().AsString() : PString('*')))
 {
   SetInternalTransport(addr.GetPort(), proto);
 }
@@ -1255,6 +1255,9 @@ PString OpalTransportIP::GetInterface() const
         return ip.AsString();
     }
   }
+
+  if (m_localAP.GetAddress().IsValid())
+    return m_localAP.GetAddress().AsString();
 
   return PString::Empty();
 }

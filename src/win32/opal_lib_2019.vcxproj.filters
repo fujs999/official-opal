@@ -130,6 +130,9 @@
     <Filter Include="Source Files\RTP\libSRTP\Headers\Crypto">
       <UniqueIdentifier>{98bd392d-59cb-4b0c-b687-dd299f6dc44a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\SDP\libBFCP">
+      <UniqueIdentifier>{4f6d8a8f-01b7-4de3-abaf-8cdf0669f385}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\asn\h4506.cxx">
@@ -758,6 +761,42 @@
     </ClCompile>
     <ClCompile Include="..\rtp\libsrtp\crypto\cipher\aes_icm.c">
       <Filter>Source Files\RTP\libSRTP\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdp\bfcpinterface.cxx">
+      <Filter>Source Files\SDP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdp\BFCP\libbfcp\BFCP_fsm.cpp">
+      <Filter>Source Files\SDP\libBFCP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdp\BFCP\libbfcp\BFCPconnection.cpp">
+      <Filter>Source Files\SDP\libBFCP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdp\BFCP\libbfcp\bfcpmsg\bfcp_messages.c">
+      <Filter>Source Files\SDP\libBFCP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdp\BFCP\libbfcp\bfcpmsg\bfcp_messages_build.c">
+      <Filter>Source Files\SDP\libBFCP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdp\BFCP\libbfcp\bfcpmsg\bfcp_messages_parse.c">
+      <Filter>Source Files\SDP\libBFCP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdp\BFCP\libbfcp\bfcpmsg\bfcp_strings.c">
+      <Filter>Source Files\SDP\libBFCP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdp\BFCP\libbfcp\bfcpsrvctl\bfcpcli\bfcp_participant.cpp">
+      <Filter>Source Files\SDP\libBFCP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdp\BFCP\libbfcp\bfcpsrvctl\bfcpsrv\bfcp_floor_list.c">
+      <Filter>Source Files\SDP\libBFCP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdp\BFCP\libbfcp\bfcpsrvctl\bfcpsrv\bfcp_link_list.cpp">
+      <Filter>Source Files\SDP\libBFCP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdp\BFCP\libbfcp\bfcpsrvctl\bfcpsrv\bfcp_server.cpp">
+      <Filter>Source Files\SDP\libBFCP</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sdp\BFCP\libbfcp\bfcpsrvctl\bfcpsrv\bfcp_user_list.cpp">
+      <Filter>Source Files\SDP\libBFCP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

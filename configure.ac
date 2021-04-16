@@ -31,6 +31,7 @@ OPAL_SIP=yes
 OPAL_IAX2=yes
 OPAL_SKINNY=yes
 OPAL_VIDEO=yes
+OPAL_BFCP=yes
 OPAL_T38_CAPABILITY=yes
 OPAL_FAX=yes
 OPAL_HAS_H224=yes
@@ -351,9 +352,15 @@ dnl MSWIN_DISPLAY  sdp,SDP support
 dnl MSWIN_DEFINE   sdp,OPAL_SDP
 OPAL_SIMPLE_OPTION(sdp,OPAL_SDP, [SDP protocol support])
 
-dnl MSWIN_DISPLAY  sip,SIP support
-dnl MSWIN_DEFINE   sip,OPAL_SIP
-OPAL_SIMPLE_OPTION(sip,OPAL_SIP, [SIP protocol support], [OPAL_SDP])
+dnl MSWIN_DISPLAY    bfcp,BFCP support
+dnl MSWIN_IF_FEATURE bfcp,sdp
+dnl MSWIN_DEFINE     bfcp,OPAL_BFCP
+OPAL_SIMPLE_OPTION(  bfcp,OPAL_BFCP, [BFCP protocol support], [OPAL_SDP])
+
+dnl MSWIN_DISPLAY    sip,SIP support
+dnl MSWIN_IF_FEATURE sip,sdp
+dnl MSWIN_DEFINE     sip,OPAL_SIP
+OPAL_SIMPLE_OPTION(  sip,OPAL_SIP, [SIP protocol support], [OPAL_SDP])
 
 dnl MSWIN_DISPLAY  h323,H.323 support
 dnl MSWIN_DEFINE   h323,OPAL_H323
@@ -361,6 +368,7 @@ OPAL_SIMPLE_OPTION(h323,OPAL_H323, [H.323 protocol support], [OPAL_PTLIB_ASN])
 
 dnl MSWIN_DISPLAY  iax2,IAX2 support
 dnl MSWIN_DEFINE   iax2,OPAL_IAX2
+dnl MSWIN_DEFAULT  iax2,Disabled
 OPAL_SIMPLE_OPTION(iax2,OPAL_IAX2, [IAX2 protocol support])
 
 dnl MSWIN_DISPLAY  skinny,Cisco SCCP (skinny) support
@@ -619,6 +627,7 @@ MY_OUTPUT_SUMMARY(
    [                 SIPIM capability], OPAL_HAS_SIPIM,
    [                  MSRP capability], OPAL_HAS_MSRP,
    [         RFC-4103 (IM) capability], OPAL_HAS_RFC4103,
+   [                  BFCP capability], OPAL_BFCP,
    [], [],
    [                     IAX2 support], OPAL_IAX2,
    [      Cisco SCCP (skinny) support], OPAL_SKINNY,

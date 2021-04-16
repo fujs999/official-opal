@@ -42,10 +42,6 @@
 #include <ptclib/delaychan.h>
 #include <ptclib/random.h>
 
-#if !OPAL_IAX2
-#error Cannot compile without IAX2
-#endif
-
 
 typedef map<DWORD, DWORD> JitterProfileMap;
 
