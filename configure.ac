@@ -627,6 +627,7 @@ MY_OUTPUT_SUMMARY(
    [                 SIPIM capability], OPAL_HAS_SIPIM,
    [                  MSRP capability], OPAL_HAS_MSRP,
    [         RFC-4103 (IM) capability], OPAL_HAS_RFC4103,
+   [                  BFCP capability], OPAL_BFCP,
    [], [],
    [                     IAX2 support], OPAL_IAX2,
    [      Cisco SCCP (skinny) support], OPAL_SKINNY,
