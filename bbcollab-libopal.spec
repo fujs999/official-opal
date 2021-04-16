@@ -84,6 +84,7 @@ source /opt/rh/devtoolset-9/enable
         --disable-skinny \
         --disable-lid \
         --disable-t38 \
+        --disable-bfcp \
         --disable-sipim \
         --disable-script \
         --disable-mixer \
