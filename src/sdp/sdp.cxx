@@ -2376,6 +2376,17 @@ void SDPRTPAVPMediaDescription::OutputAttributes(ostream & strm) const
       }
     }
   }
+  else {
+    SsrcInfo::const_iterator it1 = m_ssrcInfo.begin();
+    if (it1 != m_ssrcInfo.end()) {
+      static const char TopLevelInfo[] = { "msid" };
+      for (PINDEX i = 0; i < PARRAYSIZE(TopLevelInfo); ++i) {
+        PStringOptions::const_iterator it2 = it1->second.find(TopLevelInfo[i]);
+        if (it2 != it1->second.end())
+          strm << "a=" << it2->first << ':' << it2->second << CRLF;
+      }
+    }
+  }
 
   // m_rtcp_fb is set via SDPRTPAVPMediaDescription::PreEncode according to various options
   OuputRTCP_FB(strm, -1, m_rtcp_fb);
