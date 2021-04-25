@@ -343,8 +343,8 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
     )
     {
       PSafePtr<ConnClass> connection;
-      for (PSafePtr<OpalConnection> iterConn(m_connectionsActive, PSafeReference); iterConn != NULL; ++iterConn) {
-        if ((connection = PSafePtrCast<OpalConnection, ConnClass>(iterConn)) != NULL && count-- == 0) {
+      for (PINDEX i = 0; i < m_connectionsActive.GetSize(); ++i) {
+        if ((connection = PSafePtrCast<OpalConnection, ConnClass>(m_connectionsActive.GetAt(i))) != NULL && count-- == 0) {
           if (!connection.SetSafetyMode(mode))
             connection.SetNULL();
           break;
@@ -712,6 +712,7 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
 
   protected:
     bool EnumerateConnections(
+      PSafeArray<OpalConnection>::iterator & it,
       PSafePtr<OpalConnection> & connection,
       PSafetyMode mode,
       const OpalConnection * skipConnection = NULL

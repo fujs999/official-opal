@@ -996,8 +996,8 @@ SIPEndPoint::RegistrarAoR * SIPEndPoint::CreateRegistrarAoR(const SIP_PDU & requ
 SIPURLList SIPEndPoint::GetRegistrarAoRs() const
 {
   SIPURLList list;
-  for (PSafePtr<RegistrarAoR> ua(m_registeredUAs); ua != NULL; ++ua)
-    list.push_back(ua->GetAoR());
+  for (RegistrarDict::const_iterator ua = m_registeredUAs.begin(); ua != m_registeredUAs.end(); ++ua)
+    list.push_back(ua->second->GetAoR());
   return list;
 }
 
@@ -1212,8 +1212,9 @@ PSafePtr<SIPConnection> SIPEndPoint::GetSIPConnectionWithLock(const PString & to
     return NULL;
   }
 
-  connection = PSafePtrCast<OpalConnection, SIPConnection>(m_connectionsActive.GetAt(0, PSafeReference));
-  while (connection != NULL) {
+  for (ConnectionDict::iterator it = m_connectionsActive.begin(); it != m_connectionsActive.end(); ++it) {
+    if ((connection = PSafePtrCast<OpalConnection, SIPConnection>(it->second)) == NULL)
+      continue;
     const SIPDialogContext & context = connection->GetDialog();
     if (context.GetCallID() == callid) {
       if (context.GetLocalTag() == to && context.GetRemoteTag() == from) {
@@ -1225,8 +1226,6 @@ PSafePtr<SIPConnection> SIPEndPoint::GetSIPConnectionWithLock(const PString & to
       PTRACE(4, "Replaces header matches callid, but not to/from tags: "
                 "to=" << context.GetLocalTag() << ", from=" << context.GetRemoteTag());
     }
-
-    ++connection;
   }
 
   if (errorCode != NULL)

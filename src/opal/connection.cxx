@@ -321,11 +321,11 @@ bool OpalConnection::GarbageCollection()
        we can do a sneaky thing by adding the transport to a collection, then when it is
        the only reference left, we remove it from the collection and clean it up in
        DeleteObjectsToBeRemoved(). */
-  for (OpalMediaTransportPtr mtp(m_mediaTransports, PSafeReference); mtp != NULL; ) {
-    if (mtp->GetSafeReferenceCount() <= 3)
-      m_mediaTransports.Remove(mtp++);
+  for (PSafeList<OpalMediaTransport>::iterator it = m_mediaTransports.begin(); it != m_mediaTransports.end(); ) {
+    if (it->GetSafeReferenceCount() <= 3)
+      m_mediaTransports.erase(it++);
     else
-      ++mtp;
+      ++it;
   }
 
   return m_mediaStreams.DeleteObjectsToBeRemoved() && m_mediaTransports.DeleteObjectsToBeRemoved();
@@ -1265,30 +1265,34 @@ OpalMediaStreamPtr OpalConnection::GetMediaStream(unsigned sessionId, bool sourc
 }
 
 
-OpalMediaStreamPtr OpalConnection::GetMediaStream(const OpalMediaType & mediaType,
-                                                  bool source,
-                                                  OpalMediaStreamPtr mediaStream) const
+OpalMediaStreamPtr OpalConnection::GetMediaStream(const OpalMediaType & mediaType, bool source) const
 {
-  if (mediaStream == NULL)
-    mediaStream = OpalMediaStreamPtr(m_mediaStreams, PSafeReference);
-  else
-    ++mediaStream;
-
-  while (mediaStream != NULL) {
-    if ((mediaType.empty() || mediaStream->GetMediaFormat().IsMediaType(mediaType)) && mediaStream->IsSource() == source)
+  for (StreamDict::const_iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
+    OpalMediaStreamPtr mediaStream = it->second;
+    if (mediaStream && (mediaType.empty() || mediaStream->GetMediaFormat().IsMediaType(mediaType)) && mediaStream->IsSource() == source)
       return mediaStream;
-    ++mediaStream;
   }
 
   return NULL;
 }
 
 
+PSafeArray<OpalMediaStream> OpalConnection::GetMediaStreams() const
+{
+  PSafeArray<OpalMediaStream> streams;
+  streams.DisallowDeleteObjects();
+  for (StreamDict::const_iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it)
+    streams.Append(it->second);
+  return streams;
+}
+
+
 #if OPAL_STATISTICS
 bool OpalConnection::GetStatistics(const OpalMediaType & mediaType, bool source, OpalMediaStatistics & statistics) const
 {
-  for (OpalMediaStreamPtr mediaStream(m_mediaStreams, PSafeReference); mediaStream != NULL; ++mediaStream) {
-    if (mediaStream->GetMediaFormat().IsMediaType(mediaType) && mediaStream->IsSource() == source) {
+  for (StreamDict::const_iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
+    OpalMediaStreamPtr mediaStream = it->second;
+    if (mediaStream != NULL && mediaStream->GetMediaFormat().IsMediaType(mediaType) && mediaStream->IsSource() == source) {
       mediaStream->GetStatistics(statistics);
       return true;
     }
@@ -1393,20 +1397,27 @@ OpalBandwidth OpalConnection::GetBandwidthUsed(OpalBandwidth::Direction dir) con
 
   switch (dir) {
     case OpalBandwidth::Rx :
-      for (stream = GetMediaStream(PString::Empty(), true); stream != NULL; ++stream)
-        used += stream->GetMediaFormat().GetUsedBandwidth();
+      for (StreamDict::const_iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
+        stream = it->second;
+        if (stream && stream->IsSource())
+          used += stream->GetMediaFormat().GetUsedBandwidth();
+      }
       break;
 
     case OpalBandwidth::Tx :
-      for (stream = GetMediaStream(PString::Empty(), false); stream != NULL; ++stream)
-        used += stream->GetMediaFormat().GetUsedBandwidth();
+      for (StreamDict::const_iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
+        stream = it->second;
+        if (stream && stream->IsSink())
+          used += stream->GetMediaFormat().GetUsedBandwidth();
+      }
       break;
 
     default :
-      for (stream = GetMediaStream(PString::Empty(), true); stream != NULL; ++stream)
-        used += stream->GetMediaFormat().GetUsedBandwidth();
-      for (stream = GetMediaStream(PString::Empty(), false); stream != NULL; ++stream)
-        used += stream->GetMediaFormat().GetUsedBandwidth();
+      for (StreamDict::const_iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
+        stream = it->second;
+        if (stream)
+          used += stream->GetMediaFormat().GetUsedBandwidth();
+      }
   }
 
   PTRACE(4, "Using " << dir << " bandwidth of " << used << " for " << *this);

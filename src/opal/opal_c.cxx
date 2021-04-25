@@ -2484,9 +2484,10 @@ void OpalManager_C::HandleUserInput(const OpalMessage & command, OpalMessageBuff
   if (!FindCall(command.m_param.m_userInput.m_callToken, response, call))
     return;
 
+  PINDEX connIdx = 0;
   PSafePtr<OpalConnection> connection = call->GetConnection(0, PSafeReadOnly);
   while (connection->IsNetworkConnection()) {
-    ++connection;
+    connection = call->GetConnection(++connIdx, PSafeReadOnly);
     if (connection == NULL) {
       response.SetError("No suitable connection for user input.");
       return;
@@ -2586,9 +2587,9 @@ void OpalManager_C::HandleTransferCall(const OpalMessage & command, OpalMessageB
     if (ep != NULL) {
       PTRACE(4, "Searching for local/network connection the same as " << *ep);
       bool isNetwork = ep->HasAttribute(OpalEndPoint::IsNetworkEndPoint);
-      connection = call->GetConnection(0);
-      while (connection != NULL && !connection->IsReleased() && isNetwork != connection->IsNetworkConnection())
-        ++connection;
+      PINDEX connIdx = 0;
+      while ((connection = call->GetConnection(connIdx)) != NULL && !connection->IsReleased() && isNetwork != connection->IsNetworkConnection())
+        ++connIdx;
     }
   }
   else {
@@ -2603,9 +2604,9 @@ void OpalManager_C::HandleTransferCall(const OpalMessage & command, OpalMessageB
       search.Delete(search.Find(':'), P_MAX_INDEX);
     search += ':';
 
-    connection = call->GetConnection(0);
-    while (connection != NULL && !connection->IsReleased() && connection->GetLocalPartyURL().NumCompare(search) != EqualTo)
-      ++connection;
+    PINDEX connIdx = 0;
+    while ((connection = call->GetConnection(connIdx)) != NULL && !connection->IsReleased() && connection->GetLocalPartyURL().NumCompare(search) != EqualTo)
+      ++connIdx;
   }
 
   if (connection != NULL)
@@ -2621,9 +2622,10 @@ void OpalManager_C::HandleMediaStream(const OpalMessage & command, OpalMessageBu
   if (!FindCall(command.m_param.m_mediaStream.m_callToken, response, call))
     return;
 
-  PSafePtr<OpalConnection> connection = call->GetConnection(0, PSafeReadOnly);
-  while (connection != NULL && connection->IsNetworkConnection())
-    ++connection;
+  PINDEX connIdx = 0;
+  PSafePtr<OpalConnection> connection;
+  while ((connection = call->GetConnection(connIdx, PSafeReadOnly)) != NULL && connection->IsNetworkConnection())
+    ++connIdx;
 
   if (connection == NULL) {
     response.SetError("No suitable connection for media stream control.");

@@ -3195,6 +3195,16 @@ PSafePtr<H323RegisteredEndPoint> H323GatekeeperServer::FindEndPointByPrefixStrin
 }
 
 
+PSafeArray<H323RegisteredEndPoint> H323GatekeeperServer::GetRegisteredEndPoints() const
+{
+  PSafeArray<H323RegisteredEndPoint> eps;
+  eps.DisallowDeleteObjects();
+  for (EndPointByID::const_iterator it = m_byIdentifier.begin(); it != m_byIdentifier.end(); ++it)
+    eps.Append(&*it->second);
+  return eps;
+}
+
+
 PSafePtr<H323RegisteredEndPoint> H323GatekeeperServer::FindDestinationEndPoint(
                                          const OpalGloballyUniqueID & id,
                                          H323GatekeeperCall::Direction direction)
@@ -3645,7 +3655,7 @@ void H323GatekeeperServer::MonitorMain(PThread &, P_INT_PTR)
 
     PTime now;
     static PTimeInterval const DiscoveredEndpointTimeout(0, 10); // RRQ must come in with this time of GRQ
-    for (PSafeDictionary<H225_AliasAddress, H323RegisteredEndPoint>::iterator it = m_discoveredEndpoints.begin(); it != m_discoveredEndpoints.end(); ) {
+    for (EndPointByAlias::iterator it = m_discoveredEndpoints.begin(); it != m_discoveredEndpoints.end(); ) {
       if (now - it->second->GetCreationTime() < DiscoveredEndpointTimeout)
         ++it;
       else {
@@ -3654,20 +3664,20 @@ void H323GatekeeperServer::MonitorMain(PThread &, P_INT_PTR)
       }
     }
 
-    for (PSafePtr<H323RegisteredEndPoint> ep = GetFirstEndPoint(PSafeReference); ep != NULL; ++ep) {
-      if (!ep->OnTimeToLive()) {
-        PTRACE(2, "RAS\tRemoving expired endpoint " << *ep);
-        RemoveEndPoint(ep);
+    for (EndPointByID::iterator it = m_byIdentifier.begin(); it != m_byIdentifier.end(); ++it) {
+      if (!it->second->OnTimeToLive()) {
+        PTRACE(2, "RAS\tRemoving expired endpoint " << *it->second);
+        RemoveEndPoint(it->second);
       }
-      if (ep->GetAliasCount() == 0) {
-        PTRACE(2, "RAS\tRemoving endpoint " << *ep << " with no aliases");
-        RemoveEndPoint(ep);
+      if (it->second->GetAliasCount() == 0) {
+        PTRACE(2, "RAS\tRemoving endpoint " << *it->second << " with no aliases");
+        RemoveEndPoint(it->second);
       }
     }
 
     m_byIdentifier.DeleteObjectsToBeRemoved();
 
-    for (PSafePtr<H323GatekeeperCall> call = GetFirstCall(PSafeReference); call != NULL; call++) {
+    for (PSafeSortedList<H323GatekeeperCall>::iterator call = m_activeCalls.begin(); call != m_activeCalls.end(); ++call) {
       if (!call->OnHeartbeat()) {
         if (m_disengageOnHearbeatFail)
           call->Disengage();

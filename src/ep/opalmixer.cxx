@@ -895,9 +895,12 @@ bool OpalMixerEndPoint::GetConferenceStates(OpalConferenceStates & states, const
   states.clear();
 
   if (name.IsEmpty()) {
-    for (PSafePtr<OpalMixerNode> node(m_nodesByUID, PSafeReadOnly); node != NULL; ++node) {
-      states.push_back(OpalConferenceState());
-      node->GetConferenceState(states.back());
+    for (NodesByUID::const_iterator it = m_nodesByUID.begin(); it != m_nodesByUID.end(); ++it) {
+      PSafePtr<OpalMixerNode> node = &*it->second;
+      if (node && node.SetSafetyMode(PSafeReadOnly)) {
+        states.push_back(OpalConferenceState());
+        node->GetConferenceState(states.back());
+      }
     }
   }
   else {
@@ -1264,8 +1267,8 @@ void OpalMixerNode::ShutDown()
 
   m_manager.OnNodeStatusChanged(*this, OpalConferenceState::Destroyed);
 
-  for (PSafePtr<OpalConnection> connection = GetFirstConnection(); connection != NULL; ++connection)
-    connection->Release();
+  for (PSafeArray<OpalConnection>::iterator it = m_connections.begin(); it != m_connections.end(); ++it)
+    it->Release();
 
   while (GetConnectionCount() > 0)
     PThread::Sleep(100);
@@ -1488,10 +1491,10 @@ bool OpalMixerNode::WritePacket(const OpalMixerMediaStream & stream, const RTP_D
 
 void OpalMixerNode::BroadcastUserInput(const OpalConnection * connection, const PString & value)
 {
-  for (PSafePtr<OpalConnection> conn(m_connections, PSafeReference); conn != NULL; ++conn) {
-    if (connection != conn)
-      conn->GetEndPoint().GetManager().QueueDecoupledEvent(
-            new PSafeWorkArg1<OpalConnection, PString>(conn, value, &OpalConnection::OnUserInputStringCallback));
+  for (PSafeArray<OpalConnection>::iterator it = m_connections.begin(); it != m_connections.end(); ++it) {
+    if (connection != &*it)
+      it->GetEndPoint().GetManager().QueueDecoupledEvent(
+            new PSafeWorkArg1<OpalConnection, PString>(&*it, value, &OpalConnection::OnUserInputStringCallback));
   }
 }
 
@@ -1515,7 +1518,7 @@ void OpalMixerNode::GetConferenceState(OpalConferenceState & state) const
     state.m_accessURI.push_back(newURI);
   }
 
-  for (PSafePtr<OpalConnection> conn(m_connections, PSafeReference); conn != NULL; ++conn) {
+  for (PSafeArray<OpalConnection>::const_iterator conn = m_connections.begin(); conn != m_connections.end(); ++conn) {
     PSafePtr<OpalConnection> other = conn->GetOtherPartyConnection();
     if (other != NULL && other->IsNetworkConnection()) {
       OpalConferenceState::User user;
@@ -2031,9 +2034,8 @@ void OpalMixerNodeManager::ShutDown()
 {
   PTRACE(4, "Destroying " << m_nodesByUID.GetSize() << '/' << m_nodesByName.GetSize() << " nodes");
 
-  PSafePtr<OpalMixerNode> node;
-  while ((node = m_nodesByUID.GetAt(0)) != NULL)
-    node->ShutDown();
+  for (NodesByUID::const_iterator it = m_nodesByUID.begin(); it != m_nodesByUID.end(); ++it)
+    it->second->ShutDown();
 
   GarbageCollection();
 }
@@ -2070,6 +2072,16 @@ void OpalMixerNodeManager::AddNode(OpalMixerNode * node)
 {
   if (node != NULL)
     m_nodesByUID.SetAt(node->GetGUID(), node);
+}
+
+
+PSafeArray<OpalMixerNode> OpalMixerNodeManager::GetNodes() const
+{
+  PSafeArray<OpalMixerNode> nodes;
+  nodes.DisallowDeleteObjects();
+  for (NodesByUID::const_iterator it = m_nodesByUID.begin(); it != m_nodesByUID.end(); ++it)
+    nodes.Append(&*it->second);
+  return nodes;
 }
 
 

@@ -2152,7 +2152,8 @@ class OpalManager : public PObject
     } m_activeCalls;
 
 #if OPAL_HAS_PRESENCE
-    PSafeDictionary<PString, OpalPresentity> m_presentities;
+    typedef PSafeDictionary<PString, OpalPresentity> PresentityDict;
+    PresentityDict m_presentities;
 #endif // OPAL_HAS_PRESENCE
 
     atomic<PINDEX> m_clearingAllCallsCount;

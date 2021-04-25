@@ -401,7 +401,7 @@ void OpalEndPoint::NewIncomingConnection(OpalListener & /*listener*/, const Opal
 PSafePtr<OpalConnection> OpalEndPoint::GetConnectionWithLock(const PString & token, PSafetyMode mode) const
 {
   if (token.IsEmpty() || token == "*")
-    return PSafePtr<OpalConnection>(m_connectionsActive, mode);
+    return m_connectionsActive.begin()->second;
 
   PSafePtr<OpalConnection> connection = m_connectionsActive.Find(token, mode);
   if (connection != NULL)
@@ -433,8 +433,11 @@ PStringList OpalEndPoint::GetAllConnections()
 {
   PStringList tokens;
 
-  for (PSafePtr<OpalConnection> connection(m_connectionsActive, PSafeReadOnly); connection != NULL; ++connection)
-    tokens.AppendString(connection->GetToken());
+  for (ConnectionDict::iterator it = m_connectionsActive.begin(); it != m_connectionsActive.end(); ++it) {
+    PSafePtr<OpalConnection> connection = it->second;
+    if (connection)
+      tokens.AppendString(connection->GetToken());
+  }
 
   return tokens;
 }

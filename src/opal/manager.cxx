@@ -455,8 +455,11 @@ void OpalManager::ShutDownEndpoints()
 #if OPAL_HAS_PRESENCE
   // Remove (and unsubscribe) all the presentities
   PTRACE(4, "Shutting down all presentities");
-  for (PSafePtr<OpalPresentity> presentity(m_presentities, PSafeReference); presentity != NULL; ++presentity)
-    presentity->Close();
+  for (PresentityDict::iterator it = m_presentities.begin(); it != m_presentities.end(); ++it) {
+    PSafePtr<OpalPresentity> presentity = it->second;
+    if (presentity.SetSafetyMode(PSafeReadWrite))
+      presentity->Close();
+  }
   m_presentities.RemoveAll();
 #endif // OPAL_HAS_PRESENCE
 
@@ -808,8 +811,8 @@ void OpalManager::InternalClearAllCalls(OpalConnection::CallEndReason reason, bo
 
   if (firstThread) {
     // Clear all the currentyl active calls
-    for (PSafePtr<OpalCall> call = m_activeCalls; call != NULL; ++call)
-      call->Clear(reason);
+    for (CallDict::iterator call = m_activeCalls.begin(); call != m_activeCalls.end(); ++call)
+      call->second->Clear(reason);
   }
 
   if (wait) {
@@ -1271,13 +1274,14 @@ bool OpalManager::SetMediaPassThrough(OpalConnection & connection1,
       gotOne = true;
   }
   else {
-    OpalMediaStreamPtr stream;
-    while ((stream = connection1.GetMediaStream(OpalMediaType(), true , stream)) != NULL) {
-      if (PassOneThrough(stream, connection2.GetMediaStream(stream->GetSessionID(), false), bypass))
+    PSafeArray<OpalMediaStream> streams1 = connection1.GetMediaStreams();
+    for (PSafeArray<OpalMediaStream>::iterator it = streams1.begin(); it != streams1.end(); ++it) {
+      if (it->IsSource() && PassOneThrough(&*it, connection2.GetMediaStream(it->GetSessionID(), false), bypass))
         gotOne = true;
     }
-    while ((stream = connection2.GetMediaStream(OpalMediaType(), true, stream)) != NULL) {
-      if (PassOneThrough(stream, connection1.GetMediaStream(stream->GetSessionID(), false), bypass))
+    PSafeArray<OpalMediaStream> streams2 = connection2.GetMediaStreams();
+    for (PSafeArray<OpalMediaStream>::iterator it = streams2.begin(); it != streams2.end(); ++it) {
+      if (it->IsSource() && PassOneThrough(&*it, connection1.GetMediaStream(it->GetSessionID(), false), bypass))
         gotOne = true;
     }
   }
@@ -1300,20 +1304,25 @@ bool OpalManager::SetMediaPassThrough(const PString & token1,
     return false;
   }
 
-  PSafePtr<OpalConnection> connection1 = call1->GetConnection(0, PSafeReadOnly);
-  while (connection1 != NULL && connection1->IsNetworkConnection() == network)
-    ++connection1;
-
-  PSafePtr<OpalConnection> connection2 = call2->GetConnection(0, PSafeReadOnly);
-  while (connection2 != NULL && connection2->IsNetworkConnection() == network)
-    ++connection2;
-
-  if (connection1 == NULL || connection2 == NULL) {
-    PTRACE(2, "SetMediaPassThrough could not complete as network connection not present in calls");
-    return false;
+  PSafePtr<OpalConnection> connection1;
+  for (PINDEX i = 0; i < call1->GetConnectionCount(); ++i) {
+    connection1 = call1->GetConnection(i, PSafeReadOnly);
+    if (!connection1 || connection1->IsNetworkConnection() == network)
+      break;
   }
 
-  return OpalManager::SetMediaPassThrough(*connection1, *connection2, bypass, sessionID);
+  PSafePtr<OpalConnection> connection2;
+  for (PINDEX i = 0; i < call2->GetConnectionCount(); ++i) {
+    connection2 = call2->GetConnection(i, PSafeReadOnly);
+    if (!connection2 || connection2->IsNetworkConnection() == network)
+      break;
+  }
+
+  if (connection1.SetSafetyMode(PSafeReadOnly) && connection2.SetSafetyMode(PSafeReadOnly))
+    return OpalManager::SetMediaPassThrough(*connection1, *connection2, bypass, sessionID);
+
+  PTRACE(2, "SetMediaPassThrough could not complete as network connection not present in calls");
+  return false;
 }
 
 
@@ -2351,8 +2360,11 @@ PStringList OpalManager::GetPresentities() const
 {
   PStringList presentities;
 
-  for (PSafePtr<OpalPresentity> presentity(m_presentities, PSafeReference); presentity != NULL; ++presentity)
-    presentities += presentity->GetAOR().AsString();
+  for (PresentityDict::const_iterator it = m_presentities.begin(); it != m_presentities.end(); ++it) {
+    PSafePtr<OpalPresentity> presentity = it->second;
+    if (presentity)
+      presentities += presentity->GetAOR().AsString();
+  }
 
   return presentities;
 }
@@ -2423,8 +2435,9 @@ bool OpalManager::Message(OpalIM & message)
 void OpalManager::OnMessageReceived(const OpalIM & message)
 {
   // find a presentity to give the message to
-  for (PSafePtr<OpalPresentity> presentity(m_presentities, PSafeReference); presentity != NULL; ++presentity) {
-    if (message.m_to == presentity->GetAOR()) {
+  for (PresentityDict::iterator it = m_presentities.begin(); it != m_presentities.end(); ++it) {
+    PSafePtr<OpalPresentity> presentity = it->second;
+    if (presentity || message.m_to == presentity->GetAOR()) {
       presentity->OnReceivedMessage(message);
       break;
     }

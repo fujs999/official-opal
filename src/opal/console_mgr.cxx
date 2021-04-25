@@ -1552,12 +1552,12 @@ void OpalConsolePCSSEndPoint::CmdOpenVideoStream(PCLI::Arguments & args, P_INT_P
 
 static OpalMediaStreamPtr FindStreamForRole(OpalRTPConnection & connection, OpalVideoFormat::ContentRole contentRole)
 {
-  OpalMediaStreamPtr stream;
-  while ((stream = connection.GetMediaStream(OpalMediaType::Video(), false, stream)) != NULL) {
-    if (stream->GetMediaFormat().GetOptionEnum(OpalVideoFormat::ContentRoleOption(), OpalVideoFormat::eNoRole) == contentRole)
-      break;
+  PSafeArray<OpalMediaStream> streams = connection.GetMediaStreams();
+  for (PSafeArray<OpalMediaStream>::iterator it = streams.begin(); it != streams.end(); ++it) {
+    if (it->IsSink() && it->GetMediaFormat().GetOptionEnum(OpalVideoFormat::ContentRoleOption(), OpalVideoFormat::eNoRole) == contentRole)
+      return &*it;
   }
-  return stream;
+  return NULL;
 }
 
 void OpalConsolePCSSEndPoint::CmdCloseVideoStream(PCLI::Arguments & args, P_INT_PTR)
@@ -1578,11 +1578,10 @@ void OpalConsolePCSSEndPoint::CmdCloseVideoStream(PCLI::Arguments & args, P_INT_
       }
     }
     else {
-      if ((stream = FindStreamForRole(*connection, OpalVideoFormat::ePresentation)) == NULL) {
-        if ((stream = connection->GetMediaStream(OpalMediaType::Video(), false, stream)) == NULL) {
-          args.WriteError("No video streams open.");
-          return;
-        }
+      if ((stream = FindStreamForRole(*connection, OpalVideoFormat::ePresentation)) == NULL &&
+          (stream = connection->GetMediaStream(OpalMediaType::Video(), false)) == NULL) {
+        args.WriteError("No video streams open.");
+        return;
       }
     }
     if (stream->Close())
@@ -2833,12 +2832,10 @@ bool OpalManagerConsole::OutputCallStatistics(ostream & strm, OpalCall & call)
           "  started at " << call.GetStartTime().AsString(PTime::LoggingFormat) << '\n';
 
   bool noStreams = true;
-  for (int direction = 0; direction < 2; ++direction) {
-    PSafePtr<OpalMediaStream> stream;
-    while ((stream = connection->GetMediaStream(OpalMediaType(), direction == 0, stream)) != NULL) {
-      if (OutputStreamStatistics(strm, *stream))
-        noStreams = false;
-    }
+  PSafeArray<OpalMediaStream> streams = connection->GetMediaStreams();
+  for (PSafeArray<OpalMediaStream>::iterator it = streams.begin(); it != streams.end(); ++it) {
+    if (OutputStreamStatistics(strm, *it))
+      noStreams = false;
   }
 
   if (noStreams)

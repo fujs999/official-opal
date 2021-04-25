@@ -159,13 +159,13 @@ PString MySIPEndPoint::OnLoadEndPointStatus(const PString & htmlBlock)
 {
   PString substitution;
 
-  for (PSafePtr<RegistrarAoR> ua(m_registeredUAs); ua != NULL; ++ua) {
+  for (RegistrarDict::iterator ua = m_registeredUAs.begin(); ua != m_registeredUAs.end(); ++ua) {
     // make a copy of the repeating html chunk
     PString insert = htmlBlock;
 
-    PServiceHTML::SpliceMacro(insert, "status EndPointIdentifier", ua->GetAoR());
+    PServiceHTML::SpliceMacro(insert, "status EndPointIdentifier", ua->second->GetAoR());
 
-    SIPURLList contacts = ua->GetContacts();
+    SIPURLList contacts = ua->second->GetContacts();
     PStringStream addresses;
     for (SIPURLList::iterator it = contacts.begin(); it != contacts.end(); ++it) {
       if (it != contacts.begin())
@@ -174,7 +174,7 @@ PString MySIPEndPoint::OnLoadEndPointStatus(const PString & htmlBlock)
     }
     PServiceHTML::SpliceMacro(insert, "status CallSignalAddresses", addresses);
 
-    PString str = "<i>Name:</i> " + ua->GetProductInfo().AsString();
+    PString str = "<i>Name:</i> " + ua->second->GetProductInfo().AsString();
     str.Replace("\t", "<BR><i>Version:</i> ");
     str.Replace("\t", " <i>Vendor:</i> ");
     PServiceHTML::SpliceMacro(insert, "status Application", str);

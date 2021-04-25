@@ -1123,7 +1123,7 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPStream(SDPMediaDescripti
 
   // If not a match already, or if we already have another, secure version, of the media session
   if (GetMediaSession(sessionId) == NULL) {
-    for (SessionMap::const_iterator it = m_sessions.begin(); it != m_sessions.end(); ++it) {
+    for (SessionMap::iterator it = m_sessions.begin(); it != m_sessions.end(); ++it) {
       if (it->second->GetSessionID() != sessionId &&
           it->second->GetMediaType() == mediaType &&
           (
