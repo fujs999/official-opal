@@ -502,20 +502,16 @@ PBoolean IAX2EndPoint::ProcessInConnectionTestAll(IAX2Frame *frame)
      source call number/dest call number is unwise */ 
 
   PString callToken;
-  {
-    PSafePtr<IAX2Connection> connection;
-    for (connection = PSafePtrCast<OpalConnection, IAX2Connection>
-	   (m_connectionsActive.GetAt(0)); 
-	 connection != NULL; 
-	 ++connection) {
-      if (connection->GetRemoteInfo().SourceCallNumber() == destCallNo) {
-	PString token(frame->GetConnectionToken());
-	callToken = connection->GetCallToken();
-	if (!token.IsEmpty()) /* token available, modify token table */ {
-	  m_mutexTokenTable.StartWrite();
-	  m_tokenTable.SetAt(token, callToken);
-	  m_mutexTokenTable.EndWrite();
-	}
+  
+  for (ConnectionDict::iterator it = m_connectionsActive.begin(); it != m_connectionsActive.end(); ++it) {
+    PSafePtr<IAX2Connection> connection = PSafePtrCast<OpalConnection, IAX2Connection>(it->second);
+    if (connection && connection->GetRemoteInfo().SourceCallNumber() == destCallNo) {
+      PString token(frame->GetConnectionToken());
+      callToken = connection->GetCallToken();
+      if (!token.IsEmpty()) /* token available, modify token table */ {
+	m_mutexTokenTable.StartWrite();
+	m_tokenTable.SetAt(token, callToken);
+	m_mutexTokenTable.EndWrite();
       }
     }
   }
