@@ -124,10 +124,12 @@ opal.xcodeproj/xcuserdata
 /plugins/audio/SILK/SILK_SDK/obj_linux_x86_64
 /plugins/audio/SILK/SILK_SDK/src/Win32
 /plugins/audio/SILK/SILK_SDK/src/x64
-/plugins/fax/fax_spandsp/spandsp-0.0.6.tar.gz
-/plugins/fax/fax_spandsp/spandsp-0.0.6/
-/plugins/fax/fax_spandsp/tiff-3.8.2.tar.gz
-/plugins/fax/fax_spandsp/tiff-3.8.2/
+/plugins/fax/fax_spandsp/spandsp*.tar.gz
+/plugins/fax/fax_spandsp/spandsp/
+/plugins/fax/fax_spandsp/tiff*.tar.gz
+/plugins/fax/fax_spandsp/tiff/
+/plugins/fax/fax_spandsp/jpeg*.tar.gz
+/plugins/fax/fax_spandsp/jpeg
 /samples/openphone/openphone.app/
 /samples/openphone/resource.cpp
 /samples/openphone/openphone.cxx
