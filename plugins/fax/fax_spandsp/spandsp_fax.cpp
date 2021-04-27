@@ -47,6 +47,7 @@
 
 extern "C" {
   #include "spandsp.h"
+  #include "spandsp/version.h"
 };
 
 
