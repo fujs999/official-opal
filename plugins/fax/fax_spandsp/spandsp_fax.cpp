@@ -79,7 +79,11 @@ static PluginCodec_LogFunction LogFunction;
       LogFunction(level, __FILE__, __LINE__, "FaxCodec", ptrace_strm.str().c_str()); \
     } else (void)0
 
+#if SPANDSP_RELEASE_DATE > 20110122
 static void SpanDSP_Message(void *, int level, const char *text)
+#else
+static void SpanDSP_Message(int level, const char *text)
+#endif
 {
   if (*text != '\0' && LogFunction != NULL) {
     // Close mapping between spandsp levels and OPAL ones, kust one tweak
@@ -98,7 +102,11 @@ static void SpanDSP_Message(void *, int level, const char *text)
 
 static void InitLogging(logging_state_t * logging, const std::string & tag)
 {
+#if SPANDSP_RELEASE_DATE > 20110122
   span_log_set_message_handler(logging, SpanDSP_Message, NULL);
+#else
+  span_log_set_message_handler(logging, SpanDSP_Message);
+#endif
 
   int level = SPAN_LOG_SHOW_SEVERITY | SPAN_LOG_SHOW_PROTOCOL | SPAN_LOG_DEBUG;
 
@@ -791,7 +799,11 @@ public:
       strm << "-1 (In progress)";
     strm << "\n"
             "Bit Rate=" << stats.bit_rate << "\n"
+#if SPANDSP_RELEASE_DATE > 20110122
             "Encoding=" << stats.type << ' ' << CompressionNames[stats.type&3] << "\n"
+#else
+            "Encoding=" << stats.encoding << ' ' << CompressionNames[stats.encoding&3] << "\n"
+#endif
             "Error Correction=" << stats.error_correcting_mode << "\n"
             "Tx Pages=" << (stats.m_receiving ? -1 : stats.pages_tx) << "\n"
             "Rx Pages=" << (stats.m_receiving ? stats.pages_rx : -1) << "\n"
@@ -924,7 +936,11 @@ class FaxTIFF : public FaxSpanDSP
 
       t30_set_supported_modems(t30state, m_supported_modems);
       t30_set_supported_image_sizes(t30state, m_supported_image_sizes);
+#if SPANDSP_RELEASE_DATE > 20110122
       t30_set_supported_bilevel_resolutions(t30state, m_supported_resolutions);
+#else
+      t30_set_supported_resolutions(t30state, m_supported_resolutions);
+#endif
       t30_set_supported_compressions(t30state, m_supported_compressions);
       t30_set_ecm_capability(t30state, m_useECM);
 
@@ -959,21 +975,33 @@ class FaxTIFF : public FaxSpanDSP
     bool IsReceiving() const { return m_receiving; }
 
 
+#if SPANDSP_RELEASE_DATE > 20110122
     static int PhaseB(void * user_data, int result)
+#else
+    static int PhaseB(t30_state_t * t30state, void * user_data, int result)
+#endif
     {
       if (user_data != NULL)
         ((FaxTIFF *)user_data)->PhaseB(result);
       return T30_ERR_OK;
     }
 
+#if SPANDSP_RELEASE_DATE > 20110122
     static int PhaseD(void * user_data, int result)
+#else
+    static int PhaseD(t30_state_t * t30state, void * user_data, int result)
+#endif
     {
       if (user_data != NULL)
         ((FaxTIFF *)user_data)->PhaseD(result);
       return T30_ERR_OK;
     }
 
+#if SPANDSP_RELEASE_DATE > 20110122
     static void PhaseE(void * user_data, int result)
+#else
+    static void PhaseE(t30_state_t * t30state, void * user_data, int result)
+#endif
     {
       if (user_data != NULL)
         ((FaxTIFF *)user_data)->PhaseE(result);
