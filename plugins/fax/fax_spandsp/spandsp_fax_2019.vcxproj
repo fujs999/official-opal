@@ -88,19 +88,19 @@
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SpanDSPFax_ptplugin</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>..\..\..\include;.\spandsp-0.0.6\src;.\tiff-3.8.2\libtiff;..\..\..\..\external\spandsp-0.0.6\src;..\..\..\..\external\tiff-3.8.2\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>..\..\..\include;.\spandsp\src;.\tiff\libtiff;..\..\..\..\external\spandsp-0.0.6\src;..\..\..\..\external\tiff-3.8.2\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>..\..\..\bin\plugins\$(Platform)\$(Configuration)\libspandsp;..\..\..\..\external\spandsp-0.0.6\src\$(Platform)\$(Configuration);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(UniversalCRT_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>..\..\..\include;.\spandsp-0.0.6\src;.\tiff-3.8.2\libtiff;..\..\..\..\external\spandsp-0.0.6\src;..\..\..\..\external\tiff-3.8.2\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>..\..\..\include;.\spandsp\src;.\tiff\libtiff;..\..\..\..\external\spandsp-0.0.6\src;..\..\..\..\external\tiff-3.8.2\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>..\..\..\bin\plugins\$(Platform)\$(Configuration)\libspandsp;..\..\..\..\external\spandsp-0.0.6\src\$(Platform)\$(Configuration);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>..\..\..\include;.\spandsp-0.0.6\src;.\tiff-3.8.2\libtiff;..\..\..\..\external\spandsp-0.0.6\src;..\..\..\..\external\tiff-3.8.2\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>..\..\..\include;.\spandsp\src;.\tiff\libtiff;..\..\..\..\external\spandsp-0.0.6\src;..\..\..\..\external\tiff-3.8.2\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>..\..\..\bin\plugins\$(Platform)\$(Configuration)\libspandsp;..\..\..\..\external\spandsp-0.0.6\src\$(Platform)\$(Configuration);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(UniversalCRT_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>..\..\..\include;.\spandsp-0.0.6\src;.\tiff-3.8.2\libtiff;..\..\..\..\external\spandsp-0.0.6\src;..\..\..\..\external\tiff-3.8.2\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>..\..\..\include;.\spandsp\src;.\tiff\libtiff;..\..\..\..\external\spandsp-0.0.6\src;..\..\..\..\external\tiff-3.8.2\libtiff;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>..\..\..\bin\plugins\$(Platform)\$(Configuration)\libspandsp;..\..\..\..\external\spandsp-0.0.6\src\$(Platform)\$(Configuration);$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

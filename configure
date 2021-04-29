@@ -13312,6 +13312,14 @@ else
 fi
 
 
+   if ${OPAL_BFCP+:} false; then :
+  $as_echo "                  BFCP capability : ${OPAL_BFCP}"
+else
+  $as_echo "                  BFCP capability : no"
+
+fi
+
+
    $as_echo ""
 
    if ${OPAL_IAX2+:} false; then :
