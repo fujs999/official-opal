@@ -481,7 +481,11 @@ endif
 ifeq ($(OPAL_BFCP), yes)
   SOURCES += $(OPAL_SRCDIR)/sdp/bfcpinterface.cxx
   BFCP_DIR = $(OPAL_SRCDIR)/sdp/BFCP
-  BFCP_LIBNAME = bfcprel
+  ifeq ($(DEBUG_BUILD),yes)
+    BFCP_LIBNAME = bfcpdbg
+  else
+    BFCP_LIBNAME = bfcprel
+  endif
   BFCP_LIBDIR = $(BFCP_DIR)/lib
   LDFLAGS += -L$(BFCP_LIBDIR)
   LIBS := -l$(BFCP_LIBNAME) $(LIBS)
