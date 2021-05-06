@@ -513,6 +513,9 @@ ifdef BFCP_LIB
 
   $(BFCP_LIB) :
 	$(MAKE) -C $(BFCP_DIR) DEBUG=$(DEBUG_BUILD) lib
+
+  internal_clean ::
+	$(MAKE) -C $(BFCP_DIR) DEBUG=$(DEBUG_BUILD) clean
 endif #BFCP_LIB
 
 ###############################################################################
