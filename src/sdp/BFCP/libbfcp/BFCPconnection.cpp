@@ -61,7 +61,8 @@ std::string GetErrorText()
 {
   std::vector<char> buf;
   buf.resize(1000);
-  return strerror_r(errno, buf.data(), buf.size()-1);
+  strerror_r(errno, buf.data(), buf.size()-1);
+  return buf.data();
 }
 
 #endif // WIN32
