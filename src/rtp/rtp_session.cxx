@@ -690,7 +690,7 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnSendData(RTP_Dat
     }
   }
 
-  frame.SetTransmitTime(); // Must be before abs-time header extension
+  frame.SetTransmitTime(now); // Must be before abs-time header extension
 
   if (rewrite == e_RewriteNothing) {
     CalculateStatistics(frame, now);
@@ -1765,6 +1765,8 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnPreReceiveData(RTP_DataFrame
       PTRACE_IF(2, m_loggedBadSSRC.insert(ssrc).second, *this << "ignoring unknown SSRC: " << setw(1) << frame);
       return e_IgnorePacket;
   }
+
+  frame.SetReceivedTime(now);
 
   return receiver->OnReceiveData(frame, e_RxFromNetwork, now);
 }

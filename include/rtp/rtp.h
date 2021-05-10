@@ -733,10 +733,14 @@ class RTP_DataFrame : public PBYTEArray
     void SetAbsoluteTime() { m_metaData.m_absoluteTime.SetCurrentTime(); }
     void SetAbsoluteTime(const PTime & t) { m_metaData.m_absoluteTime = t; }
 
-    /**Set transmit (wall clock) time of packet transmission.
+    /**Set (wall clock) time of packet transmission.
       */
-    void SetTransmitTime() { m_metaData.m_transmitTime.SetCurrentTime(); }
+    void SetTransmitTime(const PTime & when) { m_metaData.m_transmitTime = when; }
     void SetTransmitTimeNTP(uint64_t ntp) { m_metaData.m_transmitTime.SetNTP(ntp); }
+
+    /**Set (wall clock) time of packet receipt.
+      */
+    void SetReceivedTime(const PTime & when) { m_metaData.m_receivedTime = when; }
 
     /** Get sequence number discontinuity.
         If non-zero this indicates the number of packets detected as missing
