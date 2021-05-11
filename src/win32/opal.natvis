@@ -2,11 +2,11 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 
   <Type Name="OpalEndPoint">
-    <DisplayString>{{{prefixName} connections={connectionsActive}}}</DisplayString>
+    <DisplayString>{{{prefixName} connections={m_connectionsActive}}}</DisplayString>
   </Type>
 
   <Type Name="OpalConnection">
-    <DisplayString>{{{endpoint.prefixName} call={ownerCall}}}</DisplayString>
+    <DisplayString>{{{m_endpoint.m_prefixName} call={m_ownerCall}}}</DisplayString>
   </Type>
 
   <Type Name="OpalCall">
