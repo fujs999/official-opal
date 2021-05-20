@@ -371,6 +371,20 @@ static struct PluginCodec_Option const MaxNaluSize =
 #endif
 };
 
+static struct PluginCodec_Option const TemporalSpatialTradeOff =
+{
+  PluginCodec_IntegerOption,          // Option type
+  PLUGINCODEC_OPTION_TEMPORAL_SPATIAL_TRADE_OFF, // User visible name
+  false,                              // User Read/Only flag
+  PluginCodec_AlwaysMerge,            // Merge mode
+  "31",                               // Initial value
+  NULL,                               // FMTP option name
+  NULL,                               // FMTP default value
+  0,                                  // H.245 generic capability code and bit mask
+  "1",                                // Minimum value
+  "31"                                // Maximum value
+};
+
 static struct PluginCodec_Option const MediaPacketizationsH323_0 =
 {
   PluginCodec_StringOption,           // Option type
@@ -436,6 +450,7 @@ static struct PluginCodec_Option const * const MyOptionTable_0[] = {
   &H241Forced,
   &SDPForced,
   &MaxNaluSize,
+  &TemporalSpatialTradeOff,
   &PacketizationModeSDP_0,
   &MediaPacketizationsH323_0,  // Note: must be last entry
   NULL
@@ -459,6 +474,7 @@ static struct PluginCodec_Option const * const MyOptionTable_1[] = {
   &H241Forced,
   &SDPForced,
   &MaxNaluSize,
+  &TemporalSpatialTradeOff,
   &PacketizationModeSDP_1,
   &MediaPacketizationsH323_1,  // Note: must be last entry
   NULL
@@ -521,7 +537,7 @@ static void TraceCallback(void*, int welsLevel, const char* string)
   if (welsLevel <= WELS_LOG_ERROR)
     ptraceLevel = 1;
   else if (welsLevel <= WELS_LOG_WARNING)
-    ptraceLevel = 2;
+    ptraceLevel = strstr(string, "ParamValidationExt") != NULL ? 2 : 3;
   else if (welsLevel <= WELS_LOG_INFO)
     ptraceLevel = 4;
   else if (welsLevel <= WELS_LOG_DEBUG)
@@ -721,6 +737,8 @@ class H264_Encoder : public PluginVideoEncoder<MY_CODEC>
       param.iPicWidth = m_width;
       param.iPicHeight = m_height;
       param.iTargetBitrate = param.iMaxBitrate = m_maxBitRate;
+      param.iMinQp = 12; // Get warnings that this has to be between 12 an 42
+      param.iMaxQp = 11 + m_tsto;  // m_tsto is 1 to 31
       param.iRCMode = RC_BITRATE_MODE;
       param.fMaxFrameRate = (float)PLUGINCODEC_VIDEO_CLOCK/m_frameTime;
       param.uiIntraPeriod = m_keyFramePeriod;
