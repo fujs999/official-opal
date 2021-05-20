@@ -742,16 +742,14 @@ bool SDPMediaDescription::FromSession(OpalMediaSession * session, const SDPMedia
 
   SetAddresses(session->GetLocalAddress(true), session->GetLocalAddress(false));
 
-  switch (session->GetSetUpMode()) {
-    case OpalMediaSession::SetUpModeActive :
-      m_setupMode = SetupActive;
-      break;
-    case OpalMediaSession::SetUpModePassive :
-      m_setupMode = SetupPassive;
-      break;
-    default :
-      m_setupMode = SetupNotSet;
-  }
+  if (session->GetSetUpMode() == OpalMediaSession::SetUpModeNotSet)
+    m_setupMode = SetupNotSet;
+  else if (offer == NULL)
+    m_setupMode = SetupActivePassive; // We are making offer, allow other side to decide
+  else if (session->GetSetUpMode() == OpalMediaSession::SetUpModePassive)
+    m_setupMode = SetupPassive;
+  else
+    m_setupMode = SetupActive;
 
   m_connectionMode = session->GetConnectionMode();
 
