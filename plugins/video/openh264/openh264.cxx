@@ -537,7 +537,7 @@ static void TraceCallback(void*, int welsLevel, const char* string)
   if (welsLevel <= WELS_LOG_ERROR)
     ptraceLevel = 1;
   else if (welsLevel <= WELS_LOG_WARNING)
-    ptraceLevel = strstr(string, "ParamValidationExt") != NULL ? 2 : 3;
+    ptraceLevel = strstr(string, "ParamValidationExt") != NULL ? 3 : 2;
   else if (welsLevel <= WELS_LOG_INFO)
     ptraceLevel = 4;
   else if (welsLevel <= WELS_LOG_DEBUG)
@@ -736,7 +736,8 @@ class H264_Encoder : public PluginVideoEncoder<MY_CODEC>
       param.iUsageType = CAMERA_VIDEO_REAL_TIME;
       param.iPicWidth = m_width;
       param.iPicHeight = m_height;
-      param.iTargetBitrate = param.iMaxBitrate = m_maxBitRate;
+      param.iMaxBitrate = UNSPECIFIED_BIT_RATE;
+      param.iTargetBitrate = m_maxBitRate;
       param.iMinQp = 12; // Get warnings that this has to be between 12 an 42
       param.iMaxQp = 11 + m_tsto;  // m_tsto is 1 to 31
       param.iRCMode = RC_BITRATE_MODE;
