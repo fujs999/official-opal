@@ -783,8 +783,8 @@ class H264_Encoder : public PluginVideoEncoder<MY_CODEC>
       PTRACE(err == cmResultSuccess ? 3 : 1, MY_CODEC_LOG,
               errMsg[err] << " encoder:"
               " " << m_width << 'x' << m_height << '@' << std::fixed << std::setprecision(1) << param.fMaxFrameRate << ","
-              " " << param.iTargetBitrate << "bps," << ","
-              " NALU=" << m_maxNALUSize << ","
+              " " << param.iTargetBitrate << "bps,"
+              " size=" << param.uiMaxNalSize << " (" << m_maxRTPSize << "),"
               " profile=" << m_profile << ","
               " level=" << LevelInfo[m_level - 1].m_Name << '(' << m_level << "),"
               " tsto=" << m_tsto << " (" << param.iMaxQp << "),"
