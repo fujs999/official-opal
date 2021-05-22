@@ -461,6 +461,8 @@ bool OpalRegisteredSAVPF = OpalMediaSessionFactory::RegisterAs(OpalDTLSSRTPSessi
 OpalDTLSSRTPSession::OpalDTLSSRTPSession(const Init & init)
   : OpalSRTPSession(init)
 {
+  // Change default from "Not Set", DTLS must have this one or the other
+  m_setupMode = SetUpModeActive;
 }
 
 
@@ -472,7 +474,7 @@ OpalDTLSSRTPSession::~OpalDTLSSRTPSession()
 
 bool OpalDTLSSRTPSession::SetSetUpMode(OpalMediaSession::SetUpMode mode)
 {
-  bool changed =OpalSRTPSession::SetSetUpMode(mode);
+  bool changed = OpalSRTPSession::SetSetUpMode(mode);
 
   PTRACE_IF(3, changed, *this << "set DTLS to " << (mode == SetUpModePassive ? "passive" : " active") << " mode");
 
