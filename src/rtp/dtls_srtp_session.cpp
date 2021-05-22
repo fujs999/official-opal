@@ -461,7 +461,7 @@ bool OpalRegisteredSAVPF = OpalMediaSessionFactory::RegisterAs(OpalDTLSSRTPSessi
 OpalDTLSSRTPSession::OpalDTLSSRTPSession(const Init & init)
   : OpalSRTPSession(init)
 {
-  // Change default from "Not Set", DTLS must have this one or or the other
+  // Change default from "Not Set", DTLS must have this one or the other
   m_setupMode = SetUpModeActive;
 }
 
