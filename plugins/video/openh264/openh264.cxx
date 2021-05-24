@@ -811,8 +811,8 @@ class H264_Encoder : public PluginVideoEncoder<MY_CODEC>
       param.iComplexityMode = m_complexityMode;
       param.iPicWidth = m_width;
       param.iPicHeight = m_height;
-      param.iMaxBitrate = UNSPECIFIED_BIT_RATE;
-      param.iTargetBitrate = m_maxBitRate;
+      param.iMaxBitrate = m_maxBitRate;
+      param.iTargetBitrate = (int)(m_maxBitRate*95LL/100);
       param.iMinQp = 12; // Get warnings that this has to be between 12 an 42
       param.iMaxQp = 11 + m_tsto;  // m_tsto is 1 to 31
       param.iRCMode = RC_BITRATE_MODE;
@@ -839,7 +839,7 @@ class H264_Encoder : public PluginVideoEncoder<MY_CODEC>
 
         case 1 :
           param.sSpatialLayers[0].sSliceArgument.uiSliceMode = SM_SINGLE_SLICE;
-          param.uiMaxNalSize = m_maxNALUSize;
+          param.uiMaxNalSize = 0;
           break;
 
         default :
@@ -851,23 +851,22 @@ class H264_Encoder : public PluginVideoEncoder<MY_CODEC>
       m_encapsulation.SetMaxPayloadSize(m_maxRTPSize);
 
       int err = m_encoder->InitializeExt(&param);
-      switch (err) {
-        case cmResultSuccess :
-          PTRACE(4, MY_CODEC_LOG, "Initialised encoder: " << m_width <<'x' << m_height << '@' << param.fMaxFrameRate << ", "
-                 << m_maxBitRate << "bps, ""NALU=" << m_maxNALUSize << ", profile=" << m_profile << ", level=" << m_level);
-          return true;
 
-        case cmInitParaError :
-          PTRACE(1, MY_CODEC_LOG, "Invalid parameter to encoder:"
-                    " profile=" << m_profile << " level=" << LevelInfo[m_level - 1].m_Name << '(' << m_level << ")"
-                    " " << m_width << 'x' << m_height << '@' << std::fixed << std::setprecision(1) << param.fMaxFrameRate <<
-                    " br=" << m_maxBitRate << " mode=" << mode);
-          return false;
+      static const char * const errMsg[] = { "Initialised", "Invalid parameter for", "Unknown error with", "Memory error in", "Initialisation failure in" };
+      if (err < 0 || (size_t)err >= sizeof(errMsg)/sizeof(errMsg[0]))
+        err = cmUnknownReason;
 
-        default :
-          PTRACE(1, MY_CODEC_LOG, "Could not initialise encoder: error=" << err);
-          return false;
-      }
+      PTRACE(err == cmResultSuccess ? 3 : 1, MY_CODEC_LOG,
+              errMsg[err] << " encoder:"
+              " " << m_width << 'x' << m_height << '@' << std::fixed << std::setprecision(1) << param.fMaxFrameRate << ","
+              " " << param.iTargetBitrate << "bps,"
+              " size=" << param.uiMaxNalSize << " (" << m_maxRTPSize << "),"
+              " profile=" << m_profile << ","
+              " level=" << LevelInfo[m_level - 1].m_Name << '(' << m_level << "),"
+              " tsto=" << m_tsto << " (" << param.iMaxQp << "),"
+              " kfr=" << param.uiIntraPeriod << ","
+              " pkt-mode=" << mode);
+      return err == cmResultSuccess;
     }
 
 
