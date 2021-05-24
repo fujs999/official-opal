@@ -811,8 +811,8 @@ class H264_Encoder : public PluginVideoEncoder<MY_CODEC>
       param.iComplexityMode = m_complexityMode;
       param.iPicWidth = m_width;
       param.iPicHeight = m_height;
-      param.iMaxBitrate = UNSPECIFIED_BIT_RATE;
-      param.iTargetBitrate = m_maxBitRate;
+      param.iMaxBitrate = m_maxBitRate;
+      param.iTargetBitrate = (int)(m_maxBitRate*95LL/100);
       param.iMinQp = 12; // Get warnings that this has to be between 12 an 42
       param.iMaxQp = 11 + m_tsto;  // m_tsto is 1 to 31
       param.iRCMode = RC_BITRATE_MODE;
@@ -839,7 +839,7 @@ class H264_Encoder : public PluginVideoEncoder<MY_CODEC>
 
         case 1 :
           param.sSpatialLayers[0].sSliceArgument.uiSliceMode = SM_SINGLE_SLICE;
-          param.uiMaxNalSize = m_maxNALUSize;
+          param.uiMaxNalSize = 0;
           break;
 
         default :
