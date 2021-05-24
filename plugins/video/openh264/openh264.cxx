@@ -736,8 +736,8 @@ class H264_Encoder : public PluginVideoEncoder<MY_CODEC>
       param.iUsageType = CAMERA_VIDEO_REAL_TIME;
       param.iPicWidth = m_width;
       param.iPicHeight = m_height;
-      param.iMaxBitrate = UNSPECIFIED_BIT_RATE;
-      param.iTargetBitrate = m_maxBitRate;
+      param.iMaxBitrate = m_maxBitRate;
+      param.iTargetBitrate = (int)(m_maxBitRate*95LL/100);
       param.iMinQp = 12; // Get warnings that this has to be between 12 an 42
       param.iMaxQp = 11 + m_tsto;  // m_tsto is 1 to 31
       param.iRCMode = RC_BITRATE_MODE;
@@ -750,7 +750,8 @@ class H264_Encoder : public PluginVideoEncoder<MY_CODEC>
       param.sSpatialLayers[0].iVideoWidth = m_width;
       param.sSpatialLayers[0].iVideoHeight = m_height;
       param.sSpatialLayers[0].fFrameRate = param.fMaxFrameRate;
-      param.sSpatialLayers[0].iMaxSpatialBitrate = param.sSpatialLayers[0].iSpatialBitrate = m_maxBitRate;
+      param.sSpatialLayers[0].iMaxSpatialBitrate = param.iMaxBitrate;
+      param.sSpatialLayers[0].iSpatialBitrate = param.iTargetBitrate;
 
       unsigned mode = m_isH323 ? m_packetisationModeH323 : m_packetisationModeSDP;
       switch (mode) {
@@ -763,7 +764,7 @@ class H264_Encoder : public PluginVideoEncoder<MY_CODEC>
 
         case 1 :
           param.sSpatialLayers[0].sSliceArgument.uiSliceMode = SM_SINGLE_SLICE;
-          param.uiMaxNalSize = m_maxNALUSize;
+          param.uiMaxNalSize = 0;
           break;
 
         default :
