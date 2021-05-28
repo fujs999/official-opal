@@ -654,7 +654,7 @@ void SDPCommonAttributes::SetAttribute(const PString & attr, const PString & val
 #endif //OPAL_ICE
 
   // unknown attributes
-  PTRACE(2, "Unknown attribute " << attr);
+  PTRACE(3, "Unknown attribute \"" << attr << '"');
 }
 
 
