@@ -2417,8 +2417,8 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SendReport(RTP_SyncSourceId ss
 
     // Clean out old stale SSRC's
     for (SyncSourceMap::iterator it = m_SSRC.begin(); it != m_SSRC.end();) {
-      if (it->second->IsStaleReceiver(now))
-        RemoveSyncSource((it++)->first PTRACE_PARAM(, "stale"));
+      if (it->second->IsStaleReceiver(now) && RemoveSyncSource(it->first PTRACE_PARAM(, "stale")))
+        it = m_SSRC.begin();
       else
         ++it;
     }
