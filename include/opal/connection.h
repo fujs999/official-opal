@@ -1157,7 +1157,8 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     virtual OpalMediaStreamPtr OpenMediaStream(
       const OpalMediaFormat & mediaFormat, ///<  Media format to open
       unsigned sessionID,                  ///<  Session to start stream on
-      bool isSource                        ///< Stream is a source/sink
+      bool isSource,                       ///< Stream is a source/sink
+      RTP_SyncSourceId ssrc                ///<  Source within the session
     );
 
     /**Close of a media stream by session.
@@ -1240,8 +1241,9 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
        may be used to distinguish which channel to return.
       */
     OpalMediaStreamPtr GetMediaStream(
-      unsigned sessionId,  ///<  Session ID to search for.
-      bool source          ///<  Indicates the direction of stream.
+      unsigned sessionId,       ///<  Session ID to search for.
+      bool source,              ///<  Indicates the direction of stream.
+      RTP_SyncSourceId ssrc = 0 ///<  Source within the session
     ) const;
 
     /**Get a media stream.
@@ -2011,15 +2013,20 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     OpalMediaFormat       m_filterMediaFormat;
     OpalMediaFormatList   m_localMediaFormats;
 
-    struct StreamKey : PKey<uint64_t>
+    class StreamKey : public PKey<uint64_t>
     {
-      StreamKey(unsigned sessionID, bool isSource)
-        : PKey<uint64_t>(sessionID + (isSource ? 0x100000000ULL : 0x200000000ULL))
-      { }
-      StreamKey(const OpalMediaStream & stream)
-        : PKey<uint64_t>(stream.GetSessionID() + (stream.IsSource() ? 0x100000000ULL : 0x200000000ULL))
-      { }
-      PObject * Clone() const { return new StreamKey(*this); }
+        uint64_t CalculateKey(unsigned sessionID, RTP_SyncSourceId ssrc, bool isSource)
+        {
+          return sessionID | (ssrc << 16ULL) | (isSource ? 0x1000000000000ULL : 0x2000000000000ULL);
+        }
+      public:
+        StreamKey(unsigned sessionID, RTP_SyncSourceId ssrc, bool isSource)
+          : PKey<uint64_t>(CalculateKey(sessionID, ssrc, isSource))
+        { }
+        StreamKey(const OpalMediaStream & stream)
+          : PKey<uint64_t>(CalculateKey(stream.GetSessionID(), stream.GetSyncSource(), stream.IsSource()))
+        { }
+        PObject * Clone() const { return new StreamKey(*this); }
     };
     typedef PSafeDictionary<StreamKey, OpalMediaStream> StreamDict;
     StreamDict m_mediaStreams;
@@ -2107,6 +2114,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     P_REMOVE_VIRTUAL(bool,ExecuteMediaCommand(const OpalMediaCommand &,unsigned,const OpalMediaType &) const,0);
     P_REMOVE_VIRTUAL(bool,OnMediaFailed(unsigned,bool),false);
     P_REMOVE_VIRTUAL(bool,OnMediaFailed(unsigned),false);
+    P_REMOVE_VIRTUAL(OpalMediaStreamPtr,OpenMediaStream(const OpalMediaFormat&,unsigned,bool),NULL);
 };
 
 #endif // OPAL_OPAL_CONNECTION_H

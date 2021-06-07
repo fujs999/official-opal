@@ -1317,7 +1317,7 @@ void OpalSkinnyConnection::OpenSimulatedMediaChannel(const MediaInfo & info, con
     m_sessions.SetAt(info.m_sessionId, mediaSession);
   }
 
-  OpalMediaStreamPtr sinkStream = OpenMediaStream(mediaFormat, info.m_sessionId, false);
+  OpalMediaStreamPtr sinkStream = OpenMediaStream(mediaFormat, info.m_sessionId, false, 0);
   if (sinkStream == NULL)
     return;
 
