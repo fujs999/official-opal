@@ -343,7 +343,8 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     virtual OpalMediaStreamPtr OpenMediaStream(
       const OpalMediaFormat & mediaFormat, ///<  Media format to open
       unsigned sessionID,                  ///<  Session to start stream on
-      bool isSource                        ///< Stream is a source/sink
+      bool isSource,                       ///< Stream is a source/sink
+      RTP_SyncSourceId ssrc                ///<  Source within the session
     );
 
     /**Call back for closed a media stream.

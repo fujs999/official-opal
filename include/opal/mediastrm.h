@@ -367,6 +367,14 @@ class OpalMediaStream : public PSafeObject
      */
     void SetSessionID(unsigned id) { m_sessionID = id; }
 
+    /**Get the ID for the media source
+     */
+    RTP_SyncSourceId GetSyncSource() const { return m_syncSource; }
+
+    /**Set the ID for the media source
+     */
+    virtual bool SetSyncSource(RTP_SyncSourceId ssrc);
+
     /**  Get the ID associated with this stream. Used for detecting two 
       *  the streams associated with a bidirectional media channel
       */
@@ -463,6 +471,7 @@ class OpalMediaStream : public PSafeObject
 
     OpalConnection & m_connection;
     unsigned         m_sessionID;
+    RTP_SyncSourceId m_syncSource;
     WORD             m_sequenceNumber;
     PString          m_identifier;
     OpalMediaFormat  m_mediaFormat;

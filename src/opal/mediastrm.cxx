@@ -58,6 +58,7 @@
 OpalMediaStream::OpalMediaStream(OpalConnection & conn, const OpalMediaFormat & fmt, unsigned _sessionID, PBoolean isSourceStream)
   : m_connection(conn)
   , m_sessionID(_sessionID)
+  , m_syncSource(0)
   , m_sequenceNumber(0)
   , m_identifier(conn.GetCall().GetToken() + psprintf("_%u", m_sessionID))
   , m_mediaFormat(fmt)
@@ -95,12 +96,25 @@ void OpalMediaStream::PrintOn(ostream & strm) const
   strm << GetClassName() << '[' << this << "],"
        << (IsSource() ? "Source" : "Sink")
        << ',' << m_mediaFormat << ',' << m_sessionID;
+  if (m_syncSource != 0)
+    strm << ',' << m_syncSource;
 }
 
 
 PString OpalMediaStream::GetPatchThreadName() const
 {
   return PString::Empty(); // Use default
+}
+
+
+bool OpalMediaStream::SetSyncSource(RTP_SyncSourceId ssrc)
+{
+  if (m_syncSource == ssrc)
+    return false;
+
+  PTRACE(3, "Changing SSRC=" << RTP_TRACE_SRC(m_syncSource) << " to SSRC=" << RTP_TRACE_SRC(ssrc) << " on stream " << *this);
+  m_syncSource = ssrc;
+  return true;
 }
 
 
