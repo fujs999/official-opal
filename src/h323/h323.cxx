@@ -4429,10 +4429,10 @@ bool H323Connection::SwitchFaxMediaStreams(bool toT38)
 #endif // OPAL_T38_CAPABILITY
 
 
-OpalMediaStreamPtr H323Connection::OpenMediaStream(const OpalMediaFormat & mediaFormat, unsigned sessionID, bool isSource)
+OpalMediaStreamPtr H323Connection::OpenMediaStream(const OpalMediaFormat & mediaFormat, unsigned sessionID, bool isSource, RTP_SyncSourceId ssrc)
 {
   // See if already opened
-  OpalMediaStreamPtr stream = GetMediaStream(sessionID, isSource);
+  OpalMediaStreamPtr stream = GetMediaStream(sessionID, isSource, ssrc);
   if (stream != NULL && stream->IsOpen()) {
     if (stream->GetMediaFormat() == mediaFormat) {
       PTRACE(3, "H323\tOpenMediaStream (already opened) for session " << sessionID << " on " << *this);
@@ -4445,6 +4445,7 @@ OpalMediaStreamPtr H323Connection::OpenMediaStream(const OpalMediaFormat & media
         PTRACE(1, "H323\tCreateMediaStream returned NULL for session " << sessionID << " on " << *this);
         return NULL;
       }
+      stream->SetSyncSource(ssrc);
       m_mediaStreams.SetAt(*stream, stream);
 
       // Channel from other side, do RequestModeChange

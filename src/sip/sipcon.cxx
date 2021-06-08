@@ -871,7 +871,7 @@ OpalMediaStream * SIPConnection::CreateMediaStream(const OpalMediaFormat & media
 }
 
 
-OpalMediaStreamPtr SIPConnection::OpenMediaStream(const OpalMediaFormat & mediaFormat, unsigned sessionID, bool isSource)
+OpalMediaStreamPtr SIPConnection::OpenMediaStream(const OpalMediaFormat & mediaFormat, unsigned sessionID, bool isSource, RTP_SyncSourceId ssrc)
 {
   if (m_holdFromRemote && !isSource && !m_handlingINVITE) {
     PTRACE(3, "Cannot start media stream as are currently in HOLD by remote.");
@@ -879,7 +879,7 @@ OpalMediaStreamPtr SIPConnection::OpenMediaStream(const OpalMediaFormat & mediaF
   }
 
   // Make sure stream is symmetrical, if codec changed, close and re-open it
-  OpalMediaStreamPtr otherStream = GetMediaStream(sessionID, !isSource);
+  OpalMediaStreamPtr otherStream = GetMediaStream(sessionID, !isSource, ssrc);
   bool makesymmetrical = !m_symmetricOpenStream &&
                           otherStream != NULL &&
                           otherStream->IsOpen() &&
@@ -900,10 +900,10 @@ OpalMediaStreamPtr SIPConnection::OpenMediaStream(const OpalMediaFormat & mediaF
     m_symmetricOpenStream = false;
   }
 
-  OpalMediaStreamPtr oldStream = GetMediaStream(sessionID, isSource);
+  OpalMediaStreamPtr oldStream = GetMediaStream(sessionID, isSource, ssrc);
 
   // Open forward side
-  OpalMediaStreamPtr newStream = OpalRTPConnection::OpenMediaStream(mediaFormat, sessionID, isSource);
+  OpalMediaStreamPtr newStream = OpalRTPConnection::OpenMediaStream(mediaFormat, sessionID, isSource, ssrc);
   if (newStream == NULL)
     return newStream;
 
@@ -930,7 +930,7 @@ OpalMediaStreamPtr SIPConnection::OpenMediaStream(const OpalMediaFormat & mediaF
 #if OPAL_T38_CAPABILITY
       !m_ownerCall.IsSwitchingT38() &&
 #endif
-      GetMediaStream(sessionID, !isSource) == otherStream)
+      GetMediaStream(sessionID, !isSource, ssrc) == otherStream)
     PTRACE(4, "No re-INVITE to open channel as no change to streams");
   else
     SendReINVITE(PTRACE_PARAM("open channel", ) 2);
