@@ -1027,18 +1027,21 @@ bool OpalMediaPatch::Sink::WriteFrame(RTP_DataFrame & sourceFrame, bool bypassin
           stats->IncrementFrames(intraFrame);
         }
 #if PTRACING
-        ostream & log = PTRACE_BEGIN(4);
-        log << (intraFrame ? 'I' : 'P') << "-Frame detected:"
-               " SSRC=" << RTP_TRACE_SRC(ssrc) << ","
-               " ts=" << sourceFrame.GetTimestamp() << ","
-               " delay=" << setprecision(3) << stats->m_lastFrameTime.GetElapsed() << ","
-               " total=" << stats->m_totalFrames << ","
-               " key=" << stats->m_keyFrames << ",";
-        if (intraFrame) {
-          log << " last=" << stats->m_lastKeyFrameTime.GetElapsed() << ","
-                 " req=" << stats->m_lastUpdateRequestTime << ",";
+        const unsigned LogLevel = intraFrame ? 3 : 4;
+        if (PTrace::CanTrace(LogLevel)) {
+          ostream & log = PTRACE_BEGIN(LogLevel);
+          log << (intraFrame ? 'I' : 'P') << "-Frame detected:"
+                " SSRC=" << RTP_TRACE_SRC(ssrc) << ","
+                " ts=" << sourceFrame.GetTimestamp() << ","
+                " delay=" << setprecision(3) << stats->m_lastFrameTime.GetElapsed() << ","
+                " total=" << stats->m_totalFrames << ","
+                " key=" << stats->m_keyFrames << ",";
+          if (intraFrame) {
+            log << " last=" << stats->m_lastKeyFrameTime.GetElapsed() << ","
+                  " req=" << stats->m_lastUpdateRequestTime << ",";
+          }
+          log << " on " << m_patch << PTrace::End;
         }
-        log << " on " << m_patch << PTrace::End;
 #endif // PTRACING
         m_statsMutex.Signal();
     }
