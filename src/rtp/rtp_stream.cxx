@@ -57,7 +57,6 @@ OpalRTPMediaStream::OpalRTPMediaStream(OpalRTPConnection & conn,
   : OpalMediaStream(conn, mediaFormat, rtp.GetSessionID(), isSource)
   , m_rtpSession(rtp)
   , m_rewriteHeaders(true)
-  , m_syncSource(0)
   , m_notifierPriority(100)
   , m_jitterBuffer(NULL)
   , m_readTimeout(PMaxTimeInterval)
@@ -216,24 +215,20 @@ bool OpalRTPMediaStream::SetMediaPassThrough(OpalMediaStream & otherStream, bool
 }
 
 
-void OpalRTPMediaStream::SetSyncSource(RTP_SyncSourceId ssrc)
+bool OpalRTPMediaStream::SetSyncSource(RTP_SyncSourceId newSSRC)
 {
-  if (m_syncSource == ssrc)
-    return;
+  RTP_SyncSourceId oldSSRC = m_syncSource;
+  if (!OpalMediaStream::SetSyncSource(newSSRC))
+    return false;
 
-  bool adjustSession = IsOpen() && IsSource();
-  if (adjustSession) {
-      m_rtpSession.SetJitterBuffer(NULL, m_syncSource);
-      m_rtpSession.RemoveDataNotifier(m_receiveNotifier, m_syncSource);
+  if (IsOpen() && IsSource()) {
+    m_rtpSession.SetJitterBuffer(NULL, oldSSRC);
+    m_rtpSession.RemoveDataNotifier(m_receiveNotifier, oldSSRC);
+    m_rtpSession.SetJitterBuffer(m_jitterBuffer, newSSRC);
+    m_rtpSession.AddDataNotifier(m_notifierPriority, m_receiveNotifier, newSSRC);
   }
 
-  PTRACE(3, "Changing SSRC=" << RTP_TRACE_SRC(m_syncSource) << " to SSRC=" << RTP_TRACE_SRC(ssrc) << " on stream " << *this);
-  m_syncSource = ssrc;
-
-  if (adjustSession) {
-    m_rtpSession.SetJitterBuffer(m_jitterBuffer, m_syncSource);
-    m_rtpSession.AddDataNotifier(m_notifierPriority, m_receiveNotifier, m_syncSource);
-  }
+  return true;
 }
 
 
