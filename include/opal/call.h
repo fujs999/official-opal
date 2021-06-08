@@ -457,7 +457,8 @@ class OpalCall : public PSafeObject, protected OpalCallStatistics
       OpalVideoFormat::ContentRole contentRole = OpalVideoFormat::eNoRole, ///< Content role for video
 #endif
       bool transfer = false,
-      bool startPaused = false
+      bool startPaused = false,
+      RTP_SyncSourceId ssrc = 0
     );
 
     /**Select media format pair from the source/destination list.

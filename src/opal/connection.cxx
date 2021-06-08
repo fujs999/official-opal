@@ -891,14 +891,14 @@ bool OpalConnection::OnSwitchingFaxMediaStreams(bool toT38)
 #endif // OPAL_T38_CAPABILITY
 
 
-OpalMediaStreamPtr OpalConnection::OpenMediaStream(const OpalMediaFormat & mediaFormat, unsigned sessionID, bool isSource)
+OpalMediaStreamPtr OpalConnection::OpenMediaStream(const OpalMediaFormat & mediaFormat, unsigned sessionID, bool isSource, RTP_SyncSourceId ssrc)
 {
   PSafeLockReadWrite safeLock(*this);
   if (!safeLock.IsLocked())
     return NULL;
 
   // See if already opened
-  OpalMediaStreamPtr stream = GetMediaStream(sessionID, isSource);
+  OpalMediaStreamPtr stream = GetMediaStream(sessionID, isSource, ssrc);
   if (stream != NULL && stream->IsOpen()) {
     if (stream->GetMediaFormat() == mediaFormat) {
       PTRACE(3, "OpenMediaStream (already opened) for session " << sessionID << " on " << *this);
@@ -915,6 +915,7 @@ OpalMediaStreamPtr OpalConnection::OpenMediaStream(const OpalMediaFormat & media
       PTRACE(1, "CreateMediaStream returned NULL for session " << sessionID << " on " << *this);
       return NULL;
     }
+    stream->SetSyncSource(ssrc);
     m_mediaStreams.SetAt(*stream, stream);
 
     m_mediaSessionFailedMutex.Wait();
@@ -1258,9 +1259,9 @@ OpalMediaStreamPtr OpalConnection::GetMediaStream(const PString & streamID, bool
 }
 
 
-OpalMediaStreamPtr OpalConnection::GetMediaStream(unsigned sessionId, bool source) const
+OpalMediaStreamPtr OpalConnection::GetMediaStream(unsigned sessionId, bool isSource, RTP_SyncSourceId ssrc) const
 {
-  StreamDict::const_iterator it = m_mediaStreams.find(StreamKey(sessionId, source));
+  StreamDict::const_iterator it = m_mediaStreams.find(StreamKey(sessionId, ssrc, isSource));
   return it != m_mediaStreams.end() ? it->second : OpalMediaStreamPtr();
 }
 

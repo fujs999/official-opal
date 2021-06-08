@@ -606,7 +606,8 @@ PBoolean OpalCall::OpenSourceMediaStreams(OpalConnection & connection,
                               OpalVideoFormat::ContentRole contentRole,
 #endif
                                                       bool transfer,
-                                                      bool startPaused)
+                                                      bool startPaused,
+                                          RTP_SyncSourceId ssrc)
 {
   PTRACE_CONTEXT_ID_PUSH_THREAD(this);
 
@@ -627,6 +628,8 @@ PBoolean OpalCall::OpenSourceMediaStreams(OpalConnection & connection,
     traceText << mediaType << " session";
     if (sessionID != 0)
       traceText << ' ' << sessionID;
+    if (ssrc != 0)
+      traceText << ", SSRC=" << RTP_TRACE_SRC(ssrc) << ',';
     if (preselectedFormat.IsValid())
       traceText << " (" << preselectedFormat << ')';
     traceText << " on " << connection;
@@ -635,7 +638,7 @@ PBoolean OpalCall::OpenSourceMediaStreams(OpalConnection & connection,
 
   // Check if already done
   OpalMediaStreamPtr sinkStream;
-  OpalMediaStreamPtr sourceStream = connection.GetMediaStream(sessionID, true);
+  OpalMediaStreamPtr sourceStream = connection.GetMediaStream(sessionID, true, ssrc);
   if (sourceStream != NULL && !transfer) {
     OpalMediaPatchPtr patch = sourceStream->GetPatch();
     if (patch != NULL)
@@ -706,7 +709,7 @@ PBoolean OpalCall::OpenSourceMediaStreams(OpalConnection & connection,
     }
 
     // Get other media directions format so we give preference to symmetric codecs
-    OpalMediaStreamPtr otherDirection = sessionID != 0 ? otherConnection->GetMediaStream(sessionID, true)
+    OpalMediaStreamPtr otherDirection = sessionID != 0 ? otherConnection->GetMediaStream(sessionID, true, ssrc)
                                                        : otherConnection->GetMediaStream(mediaType, true);
     if (otherDirection != NULL) {
       PString priorityFormat = otherDirection->GetMediaFormat().GetName();
@@ -780,14 +783,14 @@ PBoolean OpalCall::OpenSourceMediaStreams(OpalConnection & connection,
 
     // Finally have the negotiated formats, open the streams
     if (sourceStream == NULL) {
-      sourceStream = connection.OpenMediaStream(sourceFormat, sessionID, true);
+      sourceStream = connection.OpenMediaStream(sourceFormat, sessionID, true, ssrc);
       if (sourceStream == NULL)
         return false;
       // If re-opening, need to disconnect from old patch. If new then this sets NULL to NULL.
       sourceStream->SetPatch(NULL);
     }
 
-    sinkStream = otherConnection->OpenMediaStream(sinkFormat, sessionID, false);
+    sinkStream = otherConnection->OpenMediaStream(sinkFormat, sessionID, false, ssrc);
     if (sinkStream != NULL) {
       if (!sourceStream.SetSafetyMode(PSafeReadOnly))
         return false;
