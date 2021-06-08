@@ -2017,7 +2017,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     {
         uint64_t CalculateKey(unsigned sessionID, RTP_SyncSourceId ssrc, bool isSource)
         {
-          return sessionID | (ssrc << 16ULL) | (isSource ? 0x1000000000000ULL : 0x2000000000000ULL);
+          return sessionID | (uint64_t(ssrc) << (62-32)) | (isSource ? (1ULL<<63) : (1ULL<<62));
         }
       public:
         StreamKey(unsigned sessionID, RTP_SyncSourceId ssrc, bool isSource)
