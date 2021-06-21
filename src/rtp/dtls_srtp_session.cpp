@@ -338,9 +338,18 @@ bool OpalDTLSMediaTransport::SetRemoteFingerprint(const PSSLCertificateFingerpri
   if (firstTime)
     return false;
 
-  PTRACE(2, "Remote fingerprint changed, renegotiating DTLS");
-  for (vector<ChannelInfo>::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it)
-    InternalPerformHandshake(dynamic_cast<DTLSChannel *>(it->m_channel));
+  if (IsEstablished()) {
+    PTRACE(2, "Remote fingerprint changed, renegotiating DTLS in read thread");
+    P_INSTRUMENTED_LOCK_READ_WRITE(return false);
+    for (PINDEX i = 0; i < 2; ++i)
+      m_keyInfo[i].reset();
+  }
+  else {
+    PTRACE(2, "Remote fingerprint changed, renegotiating DTLS immediately");
+    for (vector<ChannelInfo>::iterator it = m_subchannels.begin(); it != m_subchannels.end(); ++it)
+      InternalPerformHandshake(dynamic_cast<DTLSChannel *>(it->m_channel));
+  }
+
   return true;
 }
 
