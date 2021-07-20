@@ -484,6 +484,8 @@ void OpalIVRMediaStream::InternalClose()
 
 PBoolean OpalIVRMediaStream::IsSynchronous() const
 {
-  return true;
+  return IsSource();
 }
+
+
 #endif // OPAL_IVR
