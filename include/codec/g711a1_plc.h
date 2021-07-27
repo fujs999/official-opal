@@ -54,23 +54,24 @@ class OpalG711_PLC
 
     int      conceal_count;       /**< consecutive erased samples [samples] */
 
-    short  * transition_buf;      /**< buffer containing the concealed frame */
+    std::vector<short> transition_buf;      /**< buffer containing the concealed frame */
 
     int      hist_len;            /**< history buffer length [samples]*/
     int      pitch_overlapmax;    /**< maximum pitch OLA window [samples] */
 
-    short  * hist_buf;            /**< history buffer (ring buffer)*/
-    short  * tmp_buf;             /**< history buffer (ring buffer)*/
+    std::vector<short> hist_buf;            /**< history buffer (ring buffer)*/
+    std::vector<short> tmp_buf;             /**< history buffer (ring buffer)*/
 
-    short *  conceal_overlapbuf;  /**< store overlapping speech segments */
+    std::vector<short> conceal_overlapbuf;  /**< store overlapping speech segments */
 
-    double * pitch_buf;           /**< buffer for cycles of speech */
-    double * pitch_lastq;         /**< saved last quarter wavelengh */
+    std::vector<double> pitch_buf;           /**< buffer for cycles of speech */
+    std::vector<double> pitch_lastq;         /**< saved last quarter wavelengh */
 
     int      pitch_min;           /**< minimum allowed pitch. default 200 Hz [samples] */
     int      pitch_max;           /**< maximum allowed pitch. default 66 Hz [samples] */
 
-    struct channel_counters {
+    struct channel_counters
+    {
       enum modes mode;            /**< current mode of operation */
       int      conceal_count;     /**< consecutive erased samples [samples] */
       int      transition_len;    /**< length of the transition period [samples] */
@@ -80,7 +81,10 @@ class OpalG711_PLC
       int      pitch_offset;      /**< offset into pitch period [samples]*/
       int      pitch;             /**< pitch estimate [samples] */
       int      pitch_blen;        /**< current pitch buffer length [samples] */
-    } *channel;
+
+      channel_counters() { memset(this, 0, sizeof(*this)); }
+    };
+    std::vector<channel_counters> channel;
 
     int      rate;                /**< sampling rate [samples/second] */
     int      channels;            /**< number of channnels */
