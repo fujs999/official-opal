@@ -341,9 +341,16 @@ PBoolean OpalMediaStream::WritePacket(RTP_DataFrame & packet)
 
   m_timestamp = packet.GetTimestamp();
 
+  PINDEX dummy;
+  for (unsigned i = 0; i < packet.GetDiscontinuity(); ++i) {
+    if (!WriteData(NULL, 0, dummy)) {
+      PTRACE(2, "WriteData (discontinuity) failed");
+      return false;
+    }
+  }
+
   int size = packet.GetPayloadSize();
   if (size == 0) {
-    PINDEX dummy;
     if (!WriteData(NULL, 0, dummy)) {
       PTRACE(2, "WriteData (silence) failed");
       return false;
