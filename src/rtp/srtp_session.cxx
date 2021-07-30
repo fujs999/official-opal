@@ -811,11 +811,8 @@ OpalRTPSession::SendReceiveStatus OpalSRTPSession::OnReceiveControl(RTP_ControlF
 
   /* Need to have a receiver SSRC (their sender) or we can't decrypt the RTCP
      packet. Generally, the SSRC info is created on the fly (m_anyRTCP_SSRC==true),
-     unless we are using later SDP where that is disabled (m_anyRTCP_SSRC==false).
-     However, for Chrome, we have a special cases of SSRC=1 for video and 0xfa17fa17
-     for audio, neither of which they indicate in the SDP when in recvonly mode. So,
-     we force creation of those specifically. */
-  if (UseSyncSource(ssrc, e_Receiver, m_anyRTCP_SSRC || ssrc == (IsAudio() ? 0xfa17fa17 : 1)) == NULL) {
+     unless we are using later SDP where that is disabled (m_anyRTCP_SSRC==false). */
+  if (UseSyncSource(ssrc, e_Receiver, m_anyRTCP_SSRC) == NULL) {
     OPAL_SRTP_TRACE(2, e_Receiver, e_Control, ssrc, 3, "not automatically added");
     return e_IgnorePacket;
   }

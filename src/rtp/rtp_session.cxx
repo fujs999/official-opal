@@ -277,6 +277,8 @@ OpalRTPSession::SyncSource * OpalRTPSession::UseSyncSource(RTP_SyncSourceId ssrc
     else if (mode == OPAL_OPT_RTP_ALLOW_SSRC_FIRST && m_defaultSSRC[dir] == 0) {
       force = true;
     }
+    else if (ssrc == GetControlSyncSource())
+      force = true;
   }
 
   if (force && AddSyncSource(ssrc, dir) == ssrc) {
