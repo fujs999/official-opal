@@ -78,8 +78,8 @@ public class OPALJNI {
   public final static native long OpalParamGeneral_rtpTypeOfService_get(long jarg1, OpalParamGeneral jarg1_);
   public final static native void OpalParamGeneral_rtpMaxPayloadSize_set(long jarg1, OpalParamGeneral jarg1_, long jarg2);
   public final static native long OpalParamGeneral_rtpMaxPayloadSize_get(long jarg1, OpalParamGeneral jarg1_);
-  public final static native void OpalParamGeneral_minAudioJitter_set(long jarg1, OpalParamGeneral jarg1_, long jarg2);
-  public final static native long OpalParamGeneral_minAudioJitter_get(long jarg1, OpalParamGeneral jarg1_);
+  public final static native void OpalParamGeneral_minAudioJitter_set(long jarg1, OpalParamGeneral jarg1_, int jarg2);
+  public final static native int OpalParamGeneral_minAudioJitter_get(long jarg1, OpalParamGeneral jarg1_);
   public final static native void OpalParamGeneral_maxAudioJitter_set(long jarg1, OpalParamGeneral jarg1_, long jarg2);
   public final static native long OpalParamGeneral_maxAudioJitter_get(long jarg1, OpalParamGeneral jarg1_);
   public final static native void OpalParamGeneral_silenceDetectMode_set(long jarg1, OpalParamGeneral jarg1_, int jarg2);

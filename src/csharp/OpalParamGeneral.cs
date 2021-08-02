@@ -233,12 +233,12 @@ public class OpalParamGeneral : global::System.IDisposable {
     } 
   }
 
-  public uint minAudioJitter {
+  public int minAudioJitter {
     set {
       OPALPINVOKE.OpalParamGeneral_minAudioJitter_set(swigCPtr, value);
     } 
     get {
-      uint ret = OPALPINVOKE.OpalParamGeneral_minAudioJitter_get(swigCPtr);
+      int ret = OPALPINVOKE.OpalParamGeneral_minAudioJitter_get(swigCPtr);
       return ret;
     } 
   }

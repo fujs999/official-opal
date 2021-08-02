@@ -1121,23 +1121,23 @@ SWIGEXPORT unsigned int SWIGSTDCALL CSharp_OpalParamGeneral_rtpMaxPayloadSize_ge
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_OpalParamGeneral_minAudioJitter_set(void * jarg1, unsigned int jarg2) {
+SWIGEXPORT void SWIGSTDCALL CSharp_OpalParamGeneral_minAudioJitter_set(void * jarg1, int jarg2) {
   OpalParamGeneral *arg1 = (OpalParamGeneral *) 0 ;
-  unsigned int arg2 ;
+  int arg2 ;
   
   arg1 = (OpalParamGeneral *)jarg1; 
-  arg2 = (unsigned int)jarg2; 
+  arg2 = (int)jarg2; 
   if (arg1) (arg1)->m_minAudioJitter = arg2;
 }
 
 
-SWIGEXPORT unsigned int SWIGSTDCALL CSharp_OpalParamGeneral_minAudioJitter_get(void * jarg1) {
-  unsigned int jresult ;
+SWIGEXPORT int SWIGSTDCALL CSharp_OpalParamGeneral_minAudioJitter_get(void * jarg1) {
+  int jresult ;
   OpalParamGeneral *arg1 = (OpalParamGeneral *) 0 ;
-  unsigned int result;
+  int result;
   
   arg1 = (OpalParamGeneral *)jarg1; 
-  result = (unsigned int) ((arg1)->m_minAudioJitter);
+  result = (int) ((arg1)->m_minAudioJitter);
   jresult = result; 
   return jresult;
 }

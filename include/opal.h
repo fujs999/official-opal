@@ -734,14 +734,15 @@ typedef struct OpalParamGeneral {
                                            be used by some routers for simple Quality of Service control. */
   unsigned     m_rtpMaxPayloadSize;   /**< Maximum payload size for RTP packets. This may sometimes need to
                                            be set according to the MTU or the underlying network. */
-  unsigned     m_minAudioJitter;      /**< Minimum jitter time in milliseconds. For audio RTP data being
+  int          m_minAudioJitter;      /**< Minimum jitter time in milliseconds. For audio RTP data being
                                            received this sets the minimum time of the adaptive jitter buffer
                                            which smooths out irregularities in the transmission of audio
-                                           data over the Internet. */
+                                           data over the Internet. A negative value will disable the JB. */
   unsigned     m_maxAudioJitter;      /**< Maximum jitter time in milliseconds. For audio RTP data being
                                            received this sets the maximum time of the adaptive jitter buffer
                                            which smooths out irregularities in the transmission of audio
-                                           data over the Internet. */
+                                           data over the Internet. If this is less than m_minAudioJitter
+                                           then m_minAudioJitter is used. */
   OpalSilenceDetectMode m_silenceDetectMode; /**< Silence detection mode. This controls the silence
                                            detection algorithm for audio transmission: 0=no change,
                                            1=disabled, 2=fixed, 3=adaptive. */
