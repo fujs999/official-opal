@@ -1306,30 +1306,30 @@ SWIGEXPORT jlong JNICALL Java_org_opalvoip_opal_OPALJNI_OpalParamGeneral_1rtpMax
 }
 
 
-SWIGEXPORT void JNICALL Java_org_opalvoip_opal_OPALJNI_OpalParamGeneral_1minAudioJitter_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
+SWIGEXPORT void JNICALL Java_org_opalvoip_opal_OPALJNI_OpalParamGeneral_1minAudioJitter_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
   OpalParamGeneral *arg1 = (OpalParamGeneral *) 0 ;
-  unsigned int arg2 ;
+  int arg2 ;
   
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   arg1 = *(OpalParamGeneral **)&jarg1; 
-  arg2 = (unsigned int)jarg2; 
+  arg2 = (int)jarg2; 
   if (arg1) (arg1)->m_minAudioJitter = arg2;
 }
 
 
-SWIGEXPORT jlong JNICALL Java_org_opalvoip_opal_OPALJNI_OpalParamGeneral_1minAudioJitter_1get(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
-  jlong jresult = 0 ;
+SWIGEXPORT jint JNICALL Java_org_opalvoip_opal_OPALJNI_OpalParamGeneral_1minAudioJitter_1get(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  jint jresult = 0 ;
   OpalParamGeneral *arg1 = (OpalParamGeneral *) 0 ;
-  unsigned int result;
+  int result;
   
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   arg1 = *(OpalParamGeneral **)&jarg1; 
-  result = (unsigned int) ((arg1)->m_minAudioJitter);
-  jresult = (jlong)result; 
+  result = (int) ((arg1)->m_minAudioJitter);
+  jresult = (jint)result; 
   return jresult;
 }
 
