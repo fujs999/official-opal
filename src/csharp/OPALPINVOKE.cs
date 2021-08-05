@@ -400,10 +400,10 @@ class OPALPINVOKE {
   public static extern uint OpalParamGeneral_rtpMaxPayloadSize_get(global::System.Runtime.InteropServices.HandleRef jarg1);
 
   [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_OpalParamGeneral_minAudioJitter_set")]
-  public static extern void OpalParamGeneral_minAudioJitter_set(global::System.Runtime.InteropServices.HandleRef jarg1, uint jarg2);
+  public static extern void OpalParamGeneral_minAudioJitter_set(global::System.Runtime.InteropServices.HandleRef jarg1, int jarg2);
 
   [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_OpalParamGeneral_minAudioJitter_get")]
-  public static extern uint OpalParamGeneral_minAudioJitter_get(global::System.Runtime.InteropServices.HandleRef jarg1);
+  public static extern int OpalParamGeneral_minAudioJitter_get(global::System.Runtime.InteropServices.HandleRef jarg1);
 
   [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_OpalParamGeneral_maxAudioJitter_set")]
   public static extern void OpalParamGeneral_maxAudioJitter_set(global::System.Runtime.InteropServices.HandleRef jarg1, uint jarg2);
