@@ -2669,19 +2669,19 @@ bool SDPRTPAVPMediaDescription::FromSession(OpalMediaSession * session,
       }
     }
 
-    RTP_SyncSourceArray ssrcs;
-    if (singleSSRC == 0 && m_stringOptions.GetBoolean(OPAL_OPT_MULTI_SSRC))
-      ssrcs = rtpSession->GetSyncSources(OpalRTPSession::e_Sender);
-    else {
-      if (singleSSRC == 0)
-        singleSSRC = rtpSession->GetSyncSourceOut();
-      ssrcs.push_back(singleSSRC);
-      RTP_SyncSourceId rtxSSRC = rtpSession->GetRtxSyncSource(singleSSRC, OpalRTPSession::e_Sender, true);
-      if (rtxSSRC != 0)
-        ssrcs.push_back(rtxSSRC);
-    }
+    if (singleSSRC != rtpSession->GetControlSyncSource() && m_stringOptions.GetBoolean(OPAL_OPT_SDP_SSRC_INFO, true)) {
+      RTP_SyncSourceArray ssrcs;
+      if (singleSSRC == 0 && m_stringOptions.GetBoolean(OPAL_OPT_MULTI_SSRC))
+        ssrcs = rtpSession->GetSyncSources(OpalRTPSession::e_Sender);
+      else {
+        if (singleSSRC == 0)
+          singleSSRC = rtpSession->GetSyncSourceOut();
+        ssrcs.push_back(singleSSRC);
+        RTP_SyncSourceId rtxSSRC = rtpSession->GetRtxSyncSource(singleSSRC, OpalRTPSession::e_Sender, true);
+        if (rtxSSRC != 0)
+          ssrcs.push_back(rtxSSRC);
+      }
 
-    if (m_stringOptions.GetBoolean(OPAL_OPT_SDP_SSRC_INFO, true)) {
       if (offer == NULL) {
         /* If we are offerring, then make sure we linked up SSRC's for primary and "rtx"
            packets so the later flow (FID) setting works. */
