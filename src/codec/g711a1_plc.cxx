@@ -73,6 +73,7 @@ __inline double round(const double & value)
 */
 
 OpalG711_PLC::OpalG711_PLC(int rate, int channels, double pitch_low, double pitch_high)
+  : channel(channels)
 {
 #ifndef SBC_DISABLE_PTLIB
   PAssert(rate >= 8000 && rate <= 48000, PInvalidParameter);
@@ -80,9 +81,6 @@ OpalG711_PLC::OpalG711_PLC(int rate, int channels, double pitch_low, double pitc
   this->rate = rate;
 
   this->channels = channels;
-
-  this->channel = new channel_counters[channels];
-  memset(channel, 0, channels * sizeof(channel_counters));
 
 #ifndef SBC_DISABLE_PTLIB
   PAssert(pitch_high <= 1000 && pitch_high > pitch_low, PInvalidParameter);
@@ -98,9 +96,9 @@ OpalG711_PLC::OpalG711_PLC(int rate, int channels, double pitch_low, double pitc
   pitch_overlapmax = (this->pitch_max >> 2);             /* maximum channel[c].pitch OLA window */
   hist_len = (this->pitch_max * 3 + this->pitch_overlapmax);/* history buffer length*/
 
-  pitch_buf = new double[hist_len * channels];  /* buffer for cycles of speech */
-  hist_buf = new short[hist_len * channels];  /* history buffer */
-  tmp_buf = new short[pitch_overlapmax * channels];
+  pitch_buf.resize(hist_len * channels, 0);  /* buffer for cycles of speech */
+  hist_buf.resize(hist_len * channels, 0);  /* history buffer */
+  tmp_buf.resize(pitch_overlapmax * channels, 0);
 
 
   /* correlation related variables */
@@ -113,12 +111,10 @@ OpalG711_PLC::OpalG711_PLC(int rate, int channels, double pitch_low, double pitc
   printf("correlation length    %dHz\t%d\n",corr_len_ms,ms2samples(corr_len_ms));
   */
 
-  pitch_lastq = new double[pitch_overlapmax * channels];  /* saved last quarter wavelengh */
-  conceal_overlapbuf = new short[hist_len * channels];     /* store overlapping speech segments */
+  pitch_lastq.resize(pitch_overlapmax * channels, 0);  /* saved last quarter wavelengh */
+  conceal_overlapbuf.resize(hist_len * channels, 0);     /* store overlapping speech segments */
 
-  transition_buf = new short[ms2samples(TRANSITION_MAX) * channels];
-
-  memset(hist_buf, 0, hist_len * channels);
+  transition_buf.resize(ms2samples(TRANSITION_MAX) * channels, 0);
 }
 
 /** concealment destructor.
@@ -130,13 +126,6 @@ OpalG711_PLC::OpalG711_PLC(int rate, int channels, double pitch_low, double pitc
 OpalG711_PLC::~OpalG711_PLC()
 {
   //  printf("Destroy OpalG711_PLC()\n");
-  delete[] transition_buf;
-  delete[] conceal_overlapbuf;
-  delete[] pitch_buf;
-  delete[] pitch_lastq;
-  delete[] hist_buf;
-  delete[] tmp_buf;
-  delete[] channel;
 }
 
 /** Get samples from the circular channel[c].pitch buffer. Update channel[c].pitch_offset so
@@ -151,7 +140,7 @@ void OpalG711_PLC::getfespeech(short *out, int c, int sz)
     if (cnt > sz)
       cnt = sz;
     convertfs(
-	pitch_buf + channels * (hist_len - channel[c].pitch_blen + channel[c].pitch_offset),
+	pitch_buf.data() + channels * (hist_len - channel[c].pitch_blen + channel[c].pitch_offset),
 	out,
 	c,
 	cnt
@@ -238,7 +227,7 @@ int OpalG711_PLC::dofe_partly(short *out, int c, int size)
     // first erased bytes
 
 
-    convertsf(hist_buf, pitch_buf, c, hist_len); /* get history */
+    convertsf(hist_buf.data(), pitch_buf.data(), c, hist_len); /* get history */
     channel[c].pitch = findpitch(c);                         /* find channel[c].pitch */
     channel[c].pitch_overlap = this->channel[c].pitch >> 2;           /* OLA 1/4 wavelength */
     if(channel[c].pitch_overlap > pitch_overlapmax)               /* limited algorithmic delay */
@@ -256,17 +245,17 @@ int OpalG711_PLC::dofe_partly(short *out, int c, int size)
     channel[c].pitch_offset = 0;                                         /* create channel[c].pitch buffer with 1 period */
     channel[c].pitch_blen = channel[c].pitch;
     overlapadd(
-	pitch_lastq, 
-	pitch_buf + channels * (hist_len - channel[c].pitch_blen - channel[c].pitch_overlap), 
-	pitch_buf + channels * (hist_len - channel[c].pitch_overlap), 
+	pitch_lastq.data(), 
+	pitch_buf.data() + channels * (hist_len - channel[c].pitch_blen - channel[c].pitch_overlap), 
+	pitch_buf.data() + channels * (hist_len - channel[c].pitch_overlap), 
 	c,
 	channel[c].pitch_overlap
 	);
 
     /* update last 1/4 wavelength in hist_buf buffer */
     convertfs(
-	pitch_buf + channels * (hist_len - channel[c].pitch_overlap),
-	hist_buf  + channels * (hist_len - channel[c].pitch_overlap),
+	pitch_buf.data() + channels * (hist_len - channel[c].pitch_overlap),
+	hist_buf.data()  + channels * (hist_len - channel[c].pitch_overlap),
 	c,
 	channel[c].pitch_overlap
 	);
@@ -288,23 +277,23 @@ int OpalG711_PLC::dofe_partly(short *out, int c, int size)
   case LOSS_PERIOD2start: {    
     /* tail of previous channel[c].pitch estimate */
     int saveoffset = channel[c].pitch_offset;                    /* save offset for OLA */
-    getfespeech(tmp_buf, c, channel[c].pitch_overlap);                  /* continue with old pitch_buf */
+    getfespeech(tmp_buf.data(), c, channel[c].pitch_overlap);                  /* continue with old pitch_buf */
 
     /* add periods to the channel[c].pitch buffer */
     channel[c].pitch_offset = saveoffset % channel[c].pitch; // why??
     channel[c].pitch_blen += channel[c].pitch;                      /* add a period */
     overlapadd(
-	pitch_lastq, 
-	pitch_buf + channels * (hist_len - channel[c].pitch_blen - channel[c].pitch_overlap),
-	pitch_buf + channels * (hist_len - channel[c].pitch_overlap), 
+	pitch_lastq.data(), 
+	pitch_buf.data() + channels * (hist_len - channel[c].pitch_blen - channel[c].pitch_overlap),
+	pitch_buf.data() + channels * (hist_len - channel[c].pitch_overlap), 
 	c,
 	channel[c].pitch_overlap
 	);
 
     /* overlap add old pitchbuffer with new */
-    getfespeech(conceal_overlapbuf, c, channel[c].pitch_overlap);
-    overlapadds(tmp_buf, conceal_overlapbuf, conceal_overlapbuf, c, channel[c].pitch_overlap);
-    scalespeech(conceal_overlapbuf, c, channel[c].pitch_overlap);
+    getfespeech(conceal_overlapbuf.data(), c, channel[c].pitch_overlap);
+    overlapadds(tmp_buf.data(), conceal_overlapbuf.data(), conceal_overlapbuf.data(), c, channel[c].pitch_overlap);
+    scalespeech(conceal_overlapbuf.data(), c, channel[c].pitch_overlap);
     channel[c].mode = LOSS_PERIOD2overlap;
 
     // fall thru
@@ -365,35 +354,35 @@ void OpalG711_PLC::hist_savespeech(short *inout, int size)
   if(size < hist_len-pitch_overlapmax) {
     //    printf(".");
     /* make room for new signal */
-    copy(hist_buf + channels*size, hist_buf, hist_len - size);
+    copy(hist_buf.data() + channels*size, hist_buf.data(), hist_len - size);
     /* copy in the new frame */
-    copy(inout, hist_buf + channels * (hist_len - size), size);
+    copy(inout, hist_buf.data() + channels * (hist_len - size), size);
     /* copy history signal to inout buffer*/
-    copy(hist_buf + channels * (hist_len - size - pitch_overlapmax), inout, size);
+    copy(hist_buf.data() + channels * (hist_len - size - pitch_overlapmax), inout, size);
   }
   else if(size <= hist_len) {
     //    printf(";");
     /* store old signal tail */
-    copy(hist_buf + channels * (hist_len - pitch_overlapmax), tmp_buf, pitch_overlapmax);
+    copy(hist_buf.data() + channels * (hist_len - pitch_overlapmax), tmp_buf.data(), pitch_overlapmax);
     /* make room for new signal */
-    copy(hist_buf + channels * size, hist_buf, hist_len - size);
+    copy(hist_buf.data() + channels * size, hist_buf.data(), hist_len - size);
     /* copy in the new frame */
-    copy(inout, hist_buf + channels * (hist_len - size), size);
+    copy(inout, hist_buf.data() + channels * (hist_len - size), size);
     /* move data to delay frame */
     copy(inout, inout + channels * pitch_overlapmax, size - pitch_overlapmax);
     /* copy history signal */
-    copy(tmp_buf, inout, pitch_overlapmax);
+    copy(tmp_buf.data(), inout, pitch_overlapmax);
   }
   else {
     //    printf(": %d %d %d\n",size,hist_len,pitch_overlapmax);
     /* store old signal tail */
-    copy(hist_buf + channels * (hist_len - pitch_overlapmax), tmp_buf, pitch_overlapmax);
+    copy(hist_buf.data() + channels * (hist_len - pitch_overlapmax), tmp_buf.data(), pitch_overlapmax);
     /* copy in the new frame */
-    copy(inout + channels * (size - hist_len), hist_buf, hist_len);
+    copy(inout + channels * (size - hist_len), hist_buf.data(), hist_len);
     /* move data to delay frame */
     copy(inout, inout + channels * pitch_overlapmax, size - pitch_overlapmax);
     /* copy history signal */
-    copy(tmp_buf, inout, pitch_overlapmax);
+    copy(tmp_buf.data(), inout, pitch_overlapmax);
   }
 }
 
@@ -429,8 +418,8 @@ void OpalG711_PLC::addtohistory(short *s, int size)
 	  channel[c].transition_len += int(round((channel[c].conceal_count - ms2samples(TRANSITION_START))*TRANSITION_RATIO));
 	if(channel[c].transition_len > ms2samples(TRANSITION_MAX))
 	  channel[c].transition_len = ms2samples(TRANSITION_MAX);
-	getfespeech(transition_buf, c, channel[c].transition_len);
-	scalespeech(transition_buf, c, channel[c].transition_len,false);
+	getfespeech(transition_buf.data(), c, channel[c].transition_len);
+	scalespeech(transition_buf.data(), c, channel[c].transition_len,false);
 	channel[c].transition_count=0;
 
       case TRANSITION:
@@ -440,7 +429,7 @@ void OpalG711_PLC::addtohistory(short *s, int size)
 	  channel[c].mode = NOLOSS;
 	}
 	//    printf("addtohistory: s %d\tlen %d\te %d\tcnt %d\tadel %d\n",channel[c].transition_count,channel[c].transition_len, end, channel[c].conceal_count, getAlgDelay());
-	overlapaddatend(s, transition_buf + channels * channel[c].transition_count, c, channel[c].transition_count, end, channel[c].transition_len);
+	overlapaddatend(s, transition_buf.data() + channels * channel[c].transition_count, c, channel[c].transition_count, end, channel[c].transition_len);
 	channel[c].transition_count = end;
     }
   }
@@ -453,7 +442,7 @@ void OpalG711_PLC::addtohistory(short *s, int size)
 */
 void OpalG711_PLC::drop(short *s, int size)
 {
-  dofe(transition_buf,ms2samples(TRANSITION_MAX));
+  dofe(transition_buf.data(),ms2samples(TRANSITION_MAX));
   for (int c=0; c < channels; c++) {
     channel[c].transition_len = channel[c].pitch_overlap;
     channel[c].transition_count = 0;
@@ -570,9 +559,9 @@ int OpalG711_PLC::findpitch(int c)
   double  scale;    /**< scale correlation by average power */
   double  *rp;    /**< segment to match */
   /** l - pointer to first sample in last 20 msec of speech. */
-  double  *l = pitch_buf + channels * (hist_len - ms2samples(corr_len_ms));
+  double  *l = pitch_buf.data() + channels * (hist_len - ms2samples(corr_len_ms));
   /** r - points to the sample pitch_max before l. */
-  double  *r = pitch_buf + channels * (hist_len - ms2samples(corr_len_ms) - pitch_max);
+  double  *r = pitch_buf.data() + channels * (hist_len - ms2samples(corr_len_ms) - pitch_max);
 
   /* coarse search */
   rp = r;

@@ -575,8 +575,9 @@ bool OpalSDPConnection::PauseOrCloseMediaStream(OpalMediaStreamPtr & stream, boo
         PTRACE(4, "Answer SDP change pause ignored on stream " << *stream);
         return true;
       }
-      PTRACE(4, "Answer SDP change needs to " << (paused ? "pause" : "resume") << " stream " << *stream);
-      stream->InternalSetPaused(paused, false, false);
+      if (stream->InternalSetPaused(paused, false, false)) {
+        PTRACE(4, "Answer SDP change " << (paused ? "paused" : "resumed") << " stream " << *stream);
+      }
       return !paused;
     }
     PTRACE(4, "Answer SDP (format change) needs to close stream " << *stream);
@@ -1299,15 +1300,21 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPStream(SDPMediaDescripti
     }
 
     if (sendStream != NULL) {
-      // In case is new offer and remote has tweaked the streams paramters, we need to merge them
-      sendStream->UpdateMediaFormat(*m_activeFormatList.FindFormat(sendStream->GetMediaFormat()), true);
+      if ((newDirection&SDPMediaDescription::SendOnly) != 0) {
+        PTRACE(4, "Updating send stream " << *sendStream);
+
+        // In case is new offer and remote has tweaked the streams paramters, we need to merge them
+        sendStream->UpdateMediaFormat(*m_activeFormatList.FindFormat(sendStream->GetMediaFormat()), true);
+      }
 
       // Deal with more than one stream per session
       OpalRTPSession * rtpSession = dynamic_cast<OpalRTPSession *>(mediaSession);
       if (rtpSession != NULL) {
+        PString mid;
         RTP_SyncSourceId ssrc;
-        PString mid = rtpSession->GetGroupMediaId(OpalMediaSession::GetBundleGroupId(), rtpStreamIndex);
-        if (mid.empty()) {
+        if ((newDirection&SDPMediaDescription::SendOnly) == 0)
+          ssrc = rtpSession->GetControlSyncSource();
+        else if ((mid = rtpSession->GetGroupMediaId(OpalMediaSession::GetBundleGroupId(), rtpStreamIndex)).empty()) {
           if (sessionId != rtpStreamIndex)
             ssrc = rtpSession->AddSyncSource(0, OpalRTPSession::e_Sender);
           else
@@ -1316,11 +1323,10 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPStream(SDPMediaDescripti
         else if ((ssrc = rtpSession->FindBundleMediaId(mid, OpalRTPSession::e_Sender)) != 0)
           PTRACE(4, "Found existing SSRC " << RTP_TRACE_SRC(ssrc) << " on index " << rtpStreamIndex << " using BUNDLE mid \"" << mid << '"');
         else {
-          ssrc = rtpSession->GetSyncSourceOut();
-          if (!rtpSession->GetBundleMediaId(ssrc, OpalRTPSession::e_Sender).empty())
-            ssrc = rtpSession->AddSyncSource(0, OpalRTPSession::e_Sender);
+          ssrc = rtpSession->AddSyncSource(0, OpalRTPSession::e_Sender);
           rtpSession->SetBundleMediaId(mid, ssrc, OpalRTPSession::e_Sender);
         }
+        PTRACE(4, "Including BUNDLE " << rtpStreamIndex << ", mid=\"" << mid << "\", send SSRC " << RTP_TRACE_SRC(ssrc));
         bundleMergeInfo.m_sendSsrcs[rtpStreamIndex] = ssrc;
       }
     }
@@ -1350,7 +1356,9 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPStream(SDPMediaDescripti
       }
     }
 
-    if (recvStream != NULL) {
+    if ((newDirection&SDPMediaDescription::RecvOnly) != 0 && recvStream != NULL) {
+      PTRACE(4, "Updating recv stream " << *recvStream);
+
       OpalMediaFormat adjustedMediaFormat = *m_activeFormatList.FindFormat(recvStream->GetMediaFormat());
 
       // If we are sendrecv we will receive the same payload type as we transmit.
@@ -1434,7 +1442,7 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPStream(SDPMediaDescripti
   OpalMediaFormatList fec = NegotiateFECMediaFormats(*mediaSession);
   for (OpalMediaFormatList::iterator it = fec.begin(); it != fec.end(); ++it)
     localMedia->AddMediaFormat(*it);
-#endif
+#endif // OPAL_RTP_FEC
 
   PTRACE(4, "Answered offer for media type " << mediaType << ","
             " index=" << rtpStreamIndex << ","
@@ -1446,7 +1454,7 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPStream(SDPMediaDescripti
             GetMediaStream(mediaSession->GetSessionID(), true) != NULL &&
             GetMediaStream(mediaSession->GetSessionID(), false) != NULL)
       localMedia->SetLabel(mediaSession->GetSessionID());
-#endif // OPAL_BFCP
+#endif // OPAL_VIDEO
 
   return localMedia.release();
 }

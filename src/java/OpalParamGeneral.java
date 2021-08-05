@@ -188,11 +188,11 @@ public class OpalParamGeneral {
     return OPALJNI.OpalParamGeneral_rtpMaxPayloadSize_get(swigCPtr, this);
   }
 
-  public void setMinAudioJitter(long value) {
+  public void setMinAudioJitter(int value) {
     OPALJNI.OpalParamGeneral_minAudioJitter_set(swigCPtr, this, value);
   }
 
-  public long getMinAudioJitter() {
+  public int getMinAudioJitter() {
     return OPALJNI.OpalParamGeneral_minAudioJitter_get(swigCPtr, this);
   }
 

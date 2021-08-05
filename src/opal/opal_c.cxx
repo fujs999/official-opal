@@ -1667,7 +1667,9 @@ void OpalManager_C::HandleSetGeneral(const OpalMessage & command, OpalMessageBuf
 
   response->m_param.m_general.m_minAudioJitter = GetMinAudioJitterDelay();
   response->m_param.m_general.m_maxAudioJitter = GetMaxAudioJitterDelay();
-  if (command.m_param.m_general.m_minAudioJitter != 0 && command.m_param.m_general.m_maxAudioJitter != 0)
+  if (command.m_param.m_general.m_minAudioJitter < 0)
+    SetAudioJitterDelay(0, 0);
+  else if (command.m_param.m_general.m_minAudioJitter > 0)
     SetAudioJitterDelay(command.m_param.m_general.m_minAudioJitter, command.m_param.m_general.m_maxAudioJitter);
 
   if (m_apiVersion < 2)

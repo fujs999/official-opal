@@ -145,6 +145,14 @@ class OpalRTPSession : public OpalMediaSession
     friend ostream & operator<<(ostream & strm, Direction dir);
 #endif
 
+    /**Get special SSRC value used for RTCP.
+       For Chrome, there is a special cases of SSRC=1 for video and 0xfa17fa17
+       for audio, used as the sender SSRC for RTCP associated with a recvonly
+       stream. Neither of which is explicitly indicated in the SDP. We have a
+       similar problem, so use their convention too.
+     */
+    RTP_SyncSourceId GetControlSyncSource() const { return IsAudio() ? 0xfa17fa17 : 1; }
+
     /** Add a syncronisation source.
         If no call is made to this function, then the first sent/received
         RTP_DataFrame packet will set the SSRC for the session.
@@ -931,6 +939,7 @@ class OpalRTPSession : public OpalMediaSession
       int                m_rtcpJitterBufferDelay; // from extended RR
       uint64_t           m_ntpPassThrough;       // The NTP time from SR
       PTime              m_lastSenderReportTime; // Local time that SR was sent/received
+      PTime              m_lastReferencedTime;   // Local time SSRC was referenced to prevent going stale
       PTime              m_referenceReportTime;
       PTime              m_referenceReportNTP;
 
