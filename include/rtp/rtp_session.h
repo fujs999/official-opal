@@ -870,6 +870,7 @@ class OpalRTPSession : public OpalMediaSession
       int                m_rtcpJitterBufferDelay; // from extended RR
       uint64_t           m_ntpPassThrough;       // The NTP time from SR
       PTime              m_lastSenderReportTime; // Local time that SR was sent/received
+      PTime              m_lastReferencedTime;   // Local time SSRC was referenced to prevent going stale
       PTime              m_referenceReportTime;
       PTime              m_referenceReportNTP;
 
