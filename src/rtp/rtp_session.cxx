@@ -631,6 +631,7 @@ OpalRTPSession::SyncSource::SyncSource(OpalRTPSession & session, RTP_SyncSourceI
   , m_rtcpJitterBufferDelay(-1)
   , m_ntpPassThrough(0)
   , m_lastSenderReportTime(0)
+ , m_lastReferencedTime(0)
   , m_referenceReportTime(0)
   , m_referenceReportNTP(0)
   , m_statisticsCount(0)
@@ -718,6 +719,7 @@ void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame
   if (m_direction == e_Receiver) {
     unsigned expectedPackets = m_extendedSequenceNumber - m_firstSequenceNumber + 1;
     m_packetsMissing = expectedPackets - m_packets;
+    m_lastReferencedTime = now;
   }
 
   /* For audio we do not do statistics on start of talk burst as that
@@ -1910,6 +1912,7 @@ void OpalRTPSession::SyncSource::OnRxSenderReport(const RTP_SenderReport & repor
   m_reportAbsoluteTime =  report.realTimestamp;
   m_reportTimestamp = report.rtpTimestamp;
   m_lastSenderReportTime = now; // Remember when SR came in to calculate dlsr in RR when we send it
+  m_lastReferencedTime = now;
   m_senderReports++;
 }
 
@@ -2382,8 +2385,8 @@ bool OpalRTPSession::SyncSource::IsStaleReceiver(const PTime & now) const
   if (m_direction != e_Receiver)
     return false;
 
-  // Had n SR sent to us, so still active
-  if (m_lastSenderReportTime.IsValid() && (now - m_lastSenderReportTime) < m_session.m_staleReceiverTimeout)
+  // Has had some activity with this SSRC, so still active
+  if (m_lastReferencedTime.IsValid() && (now - m_lastReferencedTime) < m_session.m_staleReceiverTimeout)
       return false;
 
   // Not started yet, no RR should be sent so safe to leave for now
@@ -2652,6 +2655,10 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::OnReceiveControl(RTP_ControlFr
   PTRACE(6, *this << "OnReceiveControl - " << frame);
 
   ++m_rtcpPacketsReceived;
+
+  SyncSource * referenced;
+  if (GetSyncSource(frame.GetSenderSyncSource(), e_Receiver, referenced))
+    referenced->m_lastReferencedTime = now;
 
   do {
     switch (frame.GetPayloadType()) {
