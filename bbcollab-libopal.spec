@@ -139,4 +139,3 @@ rm -rf $RPM_BUILD_ROOT
 %changelog
 * Fri Dec 02 2016 Gavin Llewellyn <gavin.llewellyn@blackboard.com> - 3.17.1-1
 - Initial RPM release
-
