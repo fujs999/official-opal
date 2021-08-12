@@ -471,8 +471,10 @@ PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTi
     PTRACE_J(4, "Flushing initial audio packet:"
                 " SSRC=" << RTP_TRACE_SRC(newSyncSource) <<
                 " sn=" << currentSequenceNum <<
-                " ts=" << timestamp);
-    m_lastInsertTick = tick;
+                " ts=" << timestamp <<
+                " sz=" << frame.GetPayloadSize());
+    if (frame.GetPayloadSize() > 0)
+      m_lastInsertTick = tick;
     return true;
   }
 
@@ -606,7 +608,11 @@ PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTi
     m_frameCount.Signal();
   }
   else {
-    PTRACE_J(2, "Attempt to insert two RTP packets with same timestamp: " << timestamp);
+    PTRACE_J(2, "Same timestamp  :"
+                " ts=" << timestamp << ","
+                " sn=" << currentSequenceNum << ","
+                " psz=" << frame.GetPayloadSize() << ","
+                " SSRC=" << RTP_TRACE_SRC(newSyncSource));
   }
 
   return true;
