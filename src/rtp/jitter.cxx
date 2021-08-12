@@ -468,11 +468,11 @@ PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTi
 
   // Avoid issues with constant delay offset caused by initial in rush of packets
   if (m_lastSyncSource == 0 && (m_lastInsertTick == 0 || (tick - m_lastInsertTick) < 10)) {
-    PTRACE_J(4, "Flushing initial audio packet:"
-                " SSRC=" << RTP_TRACE_SRC(newSyncSource) <<
-                " sn=" << currentSequenceNum <<
-                " ts=" << timestamp <<
-                " sz=" << frame.GetPayloadSize());
+    PTRACE_J(4, "Flushing initial:"
+                " ts=" << timestamp << ","
+                " sn=" << currentSequenceNum << ","
+                " psz=" << frame.GetPayloadSize() << ","
+                " SSRC=" << RTP_TRACE_SRC(newSyncSource));
     if (frame.GetPayloadSize() > 0)
       m_lastInsertTick = tick;
     return true;
