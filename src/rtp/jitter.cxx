@@ -473,7 +473,8 @@ PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTi
                 " sn=" << currentSequenceNum << ","
                 " psz=" << frame.GetPayloadSize() << ","
                 " SSRC=" << RTP_TRACE_SRC(newSyncSource));
-    m_lastInsertTick = tick;
+    if (frame.GetPayloadSize() > 0)
+      m_lastInsertTick = tick;
     return true;
   }
 
