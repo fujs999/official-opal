@@ -107,13 +107,13 @@ PString OpalMediaStream::GetPatchThreadName() const
 }
 
 
-bool OpalMediaStream::SetSyncSource(RTP_SyncSourceId ssrc)
+bool OpalMediaStream::SetSyncSource(RTP_SyncSourceId newSSRC)
 {
-  if (m_syncSource == ssrc)
+  RTP_SyncSourceId oldSSRC = m_syncSource.exchange(newSSRC);
+  if (oldSSRC == newSSRC)
     return false;
 
-  PTRACE(3, "Changing SSRC=" << RTP_TRACE_SRC(m_syncSource) << " to SSRC=" << RTP_TRACE_SRC(ssrc) << " on stream " << *this);
-  m_syncSource = ssrc;
+  PTRACE(3, "Changing SSRC=" << RTP_TRACE_SRC(oldSSRC) << " to SSRC=" << RTP_TRACE_SRC(newSSRC) << " on stream " << *this);
   return true;
 }
 
