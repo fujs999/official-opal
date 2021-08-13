@@ -588,6 +588,16 @@ static void CheckVersion(bool encoder)
 }
 
 
+static const char * GetLevelName(unsigned h264code)
+{
+  for (size_t levelIndex = 0; levelIndex < sizeof(LevelInfo)/sizeof(LevelInfo[0])-1; ++levelIndex) {
+    if (LevelInfo[levelIndex].m_H264 == h264code)
+      return LevelInfo[levelIndex].m_Name;
+  }
+  return "<unknown>";
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 
 class H264_Encoder : public PluginVideoEncoder<MY_CODEC>
@@ -782,15 +792,15 @@ class H264_Encoder : public PluginVideoEncoder<MY_CODEC>
         err = cmUnknownReason;
 
       PTRACE(err == cmResultSuccess ? 3 : 1, MY_CODEC_LOG,
-              errMsg[err] << " encoder:"
-              " " << m_width << 'x' << m_height << '@' << std::fixed << std::setprecision(1) << param.fMaxFrameRate << ","
-              " " << param.iTargetBitrate << "bps,"
-              " size=" << param.uiMaxNalSize << " (" << m_maxRTPSize << "),"
-              " profile=" << m_profile << ","
-              " level=" << LevelInfo[m_level - 1].m_Name << '(' << m_level << "),"
-              " tsto=" << m_tsto << " (" << param.iMaxQp << "),"
-              " kfr=" << param.uiIntraPeriod << ","
-              " pkt-mode=" << mode);
+             errMsg[err] << " encoder:"
+             " " << m_width << 'x' << m_height << '@' << std::fixed << std::setprecision(1) << param.fMaxFrameRate << ","
+             " " << param.iTargetBitrate << "bps,"
+             " size=" << param.uiMaxNalSize << '(' << m_maxRTPSize << "),"
+             " profile=" << m_profile << ","
+             " level=" << GetLevelName(m_level) << '(' << m_level << "),"
+             " tsto=" << m_tsto << " (" << param.iMaxQp << "),"
+             " kfr=" << param.uiIntraPeriod << ","
+             " pkt-mode=" << mode);
       return err == cmResultSuccess;
     }
 
