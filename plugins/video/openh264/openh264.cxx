@@ -496,7 +496,7 @@ static struct PluginCodec_Option const * const MyOptionTable_0[] = {
   &H241Forced,
   &SDPForced,
   &MaxNaluSize,
-  &TemporalSpatialTradeOff,
+//  &TemporalSpatialTradeOff,
   &PacketizationModeSDP_0,
   &MediaPacketizationsH323_0,  // Note: must be last entry
   NULL
@@ -522,7 +522,7 @@ static struct PluginCodec_Option const * const MyOptionTable_1[] = {
   &H241Forced,
   &SDPForced,
   &MaxNaluSize,
-  &TemporalSpatialTradeOff,
+//  &TemporalSpatialTradeOff,
   &PacketizationModeSDP_1,
   &MediaPacketizationsH323_1,  // Note: must be last entry
   NULL
