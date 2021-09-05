@@ -212,7 +212,8 @@ void OpalIVRConnection::OnStartMediaPatch(OpalMediaPatch & patch)
   }
 
   if (!m_vxmlStarted.exchange(true))
-    StartVXML();
+    GetEndPoint().GetManager().QueueDecoupledEvent(
+          new PSafeWorkNoArg<OpalIVRConnection, bool>(this, &OpalIVRConnection::StartVXML));
 }
 
 
