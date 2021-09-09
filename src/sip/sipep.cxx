@@ -389,7 +389,7 @@ OpalTransportPtr SIPEndPoint::GetTransport(const SIPTransactionOwner & transacto
         reason = SIP_PDU::Local_TransportError;
     }
   }
-  else if (GetProxy().IsEmpty() && !transport->IsAuthenticated(transactor.GetRequestURI().GetHostName()))
+  else if (transactor.GetProxy().IsEmpty() && !transport->IsAuthenticated(transactor.GetRequestURI().GetHostName()))
     reason = SIP_PDU::Local_NotAuthenticated;
   else {
     if (transport->IsReliable())
