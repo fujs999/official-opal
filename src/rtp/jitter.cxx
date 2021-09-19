@@ -666,25 +666,28 @@ PBoolean OpalAudioJitterBuffer::ReadData(RTP_DataFrame & frame, const PTimeInter
   frame.SetPayloadType(RTP_DataFrame::CN);
   frame.SetPayloadSize(0);
 
-  if (GetCurrentJitterDelay() == 0) {
+  PWaitAndSignal mutex(m_bufferMutex);
+
+  if (m_closed)
+    return false;
+
+  if (m_currentJitterDelay == 0) {
+    m_bufferMutex.Signal();
     m_frameCount.Wait(); // Go synchronous
-    PWaitAndSignal mutex(m_bufferMutex);
-    if (m_frames.empty()) {
-        // Must have been reset, clear the semaphore.
-        m_frameCount.Reset();
-    }
+    m_bufferMutex.Wait();
+
+    if (m_closed)
+      return false;
+
+    if (m_frames.empty())
+        m_frameCount.Reset(); // Must have been reset, clear the semaphore.
     else {
       FrameMap::iterator oldestFrame = m_frames.begin();
       frame = oldestFrame->second;
       m_frames.erase(oldestFrame);
     }
-    return !m_closed;
+    return true;
   }
-
-  PWaitAndSignal mutex(m_bufferMutex);
-
-  if (m_closed)
-    return false;
 
 #if PTRACING
   PTimeInterval removalDelta;
