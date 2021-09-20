@@ -3515,6 +3515,7 @@ OpalParamSetUpCall * OpalMessagePtr::GetCallSetUp() const
 {
   switch (m_message->m_type) {
     case OpalCmdSetUpCall :
+    case OpalCmdTransferCall :
     case OpalIndProceeding :
     case OpalIndAlerting :
     case OpalIndEstablished :
