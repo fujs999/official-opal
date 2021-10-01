@@ -1935,13 +1935,16 @@ bool OpalTransportTLS::IsAuthenticated(const PString & domain) const
     return false;
   }
 
+  PString common = subject.GetCommonName();
   PString alt = cert.GetSubjectAltName();
-  PTRACE(3, "Peer certificate: alt=\"" << alt << "\", subject=\"" << subject << '"');
-
-  if (domain == (alt.IsEmpty() ? subject.GetCommonName() : alt))
+  PString checkName = alt.IsEmpty() ? common : alt;
+  if (domain == checkName) {
+    PTRACE(3, "Peer certificate: common=\"" << common << "\", alt=\"" << alt << "\", subject=\"" << subject << '"');
     return true;
+  }
 
-  PTRACE(1, "Could not authenticate certificate against " << domain);
+  PTRACE(1, "Could not authenticate domain \"" << domain << "\" against certificate:"
+            " common=\"" << common << "\", alt=\"" << alt << "\", subject=\"" << subject << '"');
   return false;
 }
 
