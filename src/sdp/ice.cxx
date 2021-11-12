@@ -535,6 +535,10 @@ bool OpalICEMediaTransport::ICEChannel::HandleICE(const void * data, PINDEX leng
 
     newCandidate.m_baseTransportAddress = ap;
     AddRemoteCandidate(newCandidate PTRACE_PARAM(, "early STUN"));
+    if (m_checklist.empty()) {
+      PTRACE(4, m_owner << m_subchannel << ", ignoring very early candidate: " << newCandidate);
+      return false;
+    }
     candidate = m_checklist.begin();
     std::advance(candidate, m_checklist.size()-1);
     PTRACE(3, m_owner << m_subchannel << ", received STUN request for unknown candidate, adding: " << newCandidate);
