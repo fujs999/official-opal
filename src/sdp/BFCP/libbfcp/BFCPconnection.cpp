@@ -61,8 +61,12 @@ std::string GetErrorText()
 {
   std::vector<char> buf;
   buf.resize(1000);
-  strerror_r(errno, buf.data(), buf.size()-1);
-  return buf.data();
+  #if (_POSIX_C_SOURCE >= 200112L) && !_GNU_SOURCE
+    int err = strerror_r(errno, buf.data(), buf.size()-1);
+    return err != 0 ? "?" : buf.data();
+  #else
+    return strerror_r(errno, buf.data(), buf.size()-1);
+  #endif
 }
 
 #endif // WIN32
