@@ -61,7 +61,7 @@ std::string GetErrorText()
 {
   std::vector<char> buf;
   buf.resize(1000);
-  #if (_POSIX_C_SOURCE >= 200112L) && !_GNU_SOURCE
+  #if defined(__APPLE__) || ((_POSIX_C_SOURCE >= 200112L) && !_GNU_SOURCE)
     int err = strerror_r(errno, buf.data(), buf.size()-1);
     return err != 0 ? "?" : buf.data();
   #else
