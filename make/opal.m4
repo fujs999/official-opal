@@ -125,7 +125,7 @@ AC_DEFUN([OPAL_SIMPLE_PLUGIN],[
    AS_IF([test -d "$4"],[
       AC_ARG_ENABLE(
          [$2],
-         [AC_HELP_STRING([--disable-$2],[disable $3])],
+         [AS_HELP_STRING([--disable-$2],[disable $3])],
          [
             AS_VAR_IF([enableval],[no],[
                HAVE_$1="no (disabled by user)"

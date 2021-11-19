@@ -11,7 +11,7 @@ AC_INIT([OPAL], m4_esyscmd([sed -n \
                             -e "s/ *#define *PATCH_VERSION *\\(.*\\)/\\1/p" \
                             version.h | tr -d '\n']))
 
-AC_PREREQ([2.65])
+AC_PREREQ([2.71])
 
 AC_CONFIG_AUX_DIR(make)
 
