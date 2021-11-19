@@ -1574,32 +1574,54 @@ Optional Features:
   --enable-graviton2      Optimise compiler for Graviton2 processor
   --enable-force32        Force 32-bit x86 build
   --disable-deprecated    Stop compiler warning about deprecated functions
-  --disable-srtp          disable SRTP protocol support
+  --disable-srtp          disable
+                          SRTP protocol support
   --enable-localsrtp      force use internal source for SRTP protocol support
-  --disable-zrtp          disable ZRTP protocol support
-  --disable-speexdsp      disable Speex DSP support
+  --disable-zrtp          disable
+                          ZRTP protocol support
+  --disable-speexdsp      disable Speex
+                          DSP support
   --enable-localspeexdsp  force use internal source for Speex DSP support
-  --disable-aec           disable accoustic echo cancellation support
-  --disable-capi          disable CAPI ISDN support
-  --disable-java          disable Java JNI support
-  --disable-csharp        disable C-sharp interface
-  --disable-ruby          disable Ruby support
-  --disable-video         disable video support
-  --disable-sdp           disable SDP protocol support
-  --disable-bfcp          disable BFCP protocol support
-  --disable-sip           disable SIP protocol support
-  --disable-h323          disable H.323 protocol support
-  --disable-iax2          disable IAX2 protocol support
-  --disable-skinny        disable Cisco SCCP (skinny) support
-  --disable-h224          disable H.224 protocol support
-  --disable-h281          disable H.281 (Far End Camera Control) protocol
+  --disable-aec           disable accoustic echo
+                          cancellation support
+  --disable-capi          disable CAPI
+                          ISDN support
+  --disable-java          disable Java
+                          JNI support
+  --disable-csharp        disable
+                          C-sharp interface
+  --disable-ruby          disable Ruby
                           support
-  --disable-t38           disable T.38 capability support
-  --disable-presence      disable presence support
-  --disable-msrp          disable MSRP support
-  --disable-sipim         disable SIPIM session support
-  --disable-rfc4103       disable RFC4103 support
-  --disable-statistics    disable statistics gathering support
+  --disable-video         disable video
+                          support
+  --disable-sdp           disable
+                          SDP protocol support
+  --disable-bfcp          disable
+                          BFCP protocol support
+  --disable-sip           disable
+                          SIP protocol support
+  --disable-h323          disable
+                          H.323 protocol support
+  --disable-iax2          disable
+                          IAX2 protocol support
+  --disable-skinny        disable Cisco SCCP (skinny)
+                          support
+  --disable-h224          disable
+                          H.224 protocol support
+  --disable-h281          disable H.281 (Far End Camera
+                          Control) protocol support
+  --disable-t38           disable
+                          T.38 capability support
+  --disable-presence      disable
+                          presence support
+  --disable-msrp          disable MSRP
+                          support
+  --disable-sipim         disable
+                          SIPIM session support
+  --disable-rfc4103       disable RFC4103
+                          support
+  --disable-statistics    disable statistics gathering
+                          support
   --disable-fax           disable T.38 FAX protocol support
   --disable-h450          disable H.450
   --disable-h460          disable H.460
@@ -1610,20 +1632,29 @@ Optional Features:
   --disable-h501          disable H.501
   --disable-t120          disable T.120
   --disable-lid           disable LID support
-  --disable-dahdi         disable DAHDI E1 support
+  --disable-dahdi         disable DAHDI
+                          E1 support
   --disable-ivr           disable IVR support
-  --disable-rfc4175       disable RFC4175 support
-  --disable-rfc2435       disable RFC2435 support (experimental)
-  --disable-g711plc       disable Packet Loss Concealment for G.711
-  --disable-rtpfec        disable RTP Forward Error Correction (incomplete and
-                          experimental!)
-  --disable-rtcpxr        disable RTCP Extended Reports support
-  --disable-mixer         disable media mixing support
-  --disable-pcss          disable PC sound system support
-  --disable-script        disable script language support
+  --disable-rfc4175       disable RFC4175
+                          support
+  --disable-rfc2435       disable RFC2435 support
+                          (experimental)
+  --disable-g711plc       disable Packet Loss Concealment for
+                          G.711
+  --disable-rtpfec        disable RTP Forward
+                          Error Correction (incomplete and experimental!)
+  --disable-rtcpxr        disable RTCP Extended Reports
+                          support
+  --disable-mixer         disable
+                          media mixing support
+  --disable-pcss          disable
+                          PC sound system support
+  --disable-script        disable
+                          script language support
   --disable-perfhack      disable Performance checking hack
   --enable-samples        enable samples build
-  --disable-plugins       disable plugin support
+  --disable-plugins       disable plugin
+                          support
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -3664,7 +3695,7 @@ case $enable_ios in #(
       target_release=`xcodebuild -showsdks | sed -n 's/.*iphonesimulator\(.*\)/\1/p' | sort | tail -n 1`
     ;; #(
   *) :
-          as_fn_error $? "Unknown iOS variant \"${enable_ios}\" - use either iphone or simulator" "$LINENO" 5
+          as_fn_error $? "Unknown iOS variant ${enable_ios} - use either iphone or simulator" "$LINENO" 5
  ;;
 esac
 
@@ -6469,8 +6500,8 @@ fi
    ;;
 
    * )
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Operating system \"$target_os\" not recognized - proceed with caution!" >&5
-printf "%s\n" "$as_me: WARNING: Operating system \"$target_os\" not recognized - proceed with caution!" >&2;}
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: Operating system $target_os not recognized - proceed with caution!" >&5
+printf "%s\n" "$as_me: WARNING: Operating system $target_os not recognized - proceed with caution!" >&2;}
    ;;
 esac
 
@@ -6566,8 +6597,8 @@ fi
       target_64bit=1
     ;; #(
   *) :
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: CPU \"$target_cpu\" not recognized - assuming 32 bit" >&5
-printf "%s\n" "$as_me: WARNING: CPU \"$target_cpu\" not recognized - assuming 32 bit" >&2;}
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: CPU $target_cpu not recognized - assuming 32 bit" >&5
+printf "%s\n" "$as_me: WARNING: CPU $target_cpu not recognized - assuming 32 bit" >&2;}
       target_64bit=0
  ;;
 esac
@@ -6612,8 +6643,8 @@ fi
 
 target=${target_os}_${target_cpu}
 
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: Platform: \"$target_os\" release \"$target_release\" on \"$target_cpu\"" >&5
-printf "%s\n" "$as_me: Platform: \"$target_os\" release \"$target_release\" on \"$target_cpu\"" >&6;}
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: Platform: $target_os release $target_release on $target_cpu" >&5
+printf "%s\n" "$as_me: Platform: $target_os release $target_release on $target_cpu" >&6;}
 
 
 
@@ -7306,7 +7337,7 @@ fi
 
           ;; #(
   *) :
-    as_fn_error $? "Unknown profile method \"$with_profiling\"" "$LINENO" 5
+    as_fn_error $? "Unknown profile method: $with_profiling" "$LINENO" 5
        ;;
 esac
 
