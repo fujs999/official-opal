@@ -11,6 +11,7 @@ BOOTSTRAP=false
 UPDATE=false
 RESTART=false
 NO_INSTALL=false
+CLEAN=false
 MAKE_TARGET="optdepend opt"
 
 while [ -n "$1" ]; do
@@ -25,6 +26,9 @@ while [ -n "$1" ]; do
 
     	"--no-install" )
     		NO_INSTALL=true
+    	;;
+    	"--clean" )
+    		CLEAN=true
     	;;
 
     	"bootstrap" )
@@ -50,7 +54,8 @@ if $USAGE; then
 	          --debug       Include debug version
 	          --restart     Restart OPAL server daemon after install
 	          --no-install  Do not install - local build only
-	          bootstrap     Do full OS install of pre-requisites and freshd ownload
+	          --clean       Clean before build, including configuration
+	          bootstrap     Do full OS install of pre-requisites and fresh download
 	          update        Do git update and rebuild
 	          buildonly     Only do build, do not do git update
 	EOM
@@ -131,6 +136,12 @@ fi
 if $NO_INSTALL; then
     export PTLIBDIR=`pwd`/ptlib
     export OPALDIR=`pwd`/opal
+fi
+
+if $CLEAN; then
+    make -C ptlib clean
+    make -C opal clean
+    rm -f ptlib/include/ptlib_config.h opal/include/opal_config.h
 fi
 
 make -C ptlib $MAKE_TARGET
