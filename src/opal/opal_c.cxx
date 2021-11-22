@@ -2969,7 +2969,7 @@ PString ConvertStringSetWithoutLastNewine(const PStringSet & set)
   return strm.Left(strm.GetLength()-1);
 }
 
-void OpalManager_C::OnPresenceChange(OpalPresentity &, std::auto_ptr<OpalPresenceInfo> info)
+void OpalManager_C::OnPresenceChange(OpalPresentity &, PAutoPtr<OpalPresenceInfo> info)
 {
   OpalMessageBuffer message(OpalIndPresenceChange);
   SET_MESSAGE_STRING(message, m_param.m_presenceStatus.m_entity,   info->m_entity.AsString());

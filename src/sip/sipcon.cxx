@@ -747,7 +747,7 @@ OpalMediaFormatList SIPConnection::GetMediaFormats() const
      after OnIncomingConnection() will fill m_remoteFormatList appropriately
      adjusted by AdjustMediaFormats() */
   if (formats.IsEmpty() && m_lastReceivedINVITE != NULL && m_lastReceivedINVITE->IsContentSDP()) {
-    std::auto_ptr<SDPSessionDescription> sdp(GetEndPoint().CreateSDP(0, 0, OpalTransportAddress()));
+    PAutoPtr<SDPSessionDescription> sdp(GetEndPoint().CreateSDP(0, 0, OpalTransportAddress()));
     sdp->SetStringOptions(m_stringOptions);
     if (sdp->Decode(m_lastReceivedINVITE->GetEntityBody(), OpalMediaFormat::GetAllRegisteredMediaFormats()))
       formats = sdp->GetMediaFormats();
@@ -3117,7 +3117,7 @@ bool SIPConnection::OnSendAnswer(SIP_PDU::StatusCodes response, bool transfer)
   if (sdp == NULL && !m_lastReceivedINVITE->GetEntityBody().IsEmpty())
     return false;
 
-  std::auto_ptr<SDPSessionDescription> sdpOut(GetEndPoint().CreateSDP(m_sdpSessionId, ++m_sdpVersion, GetDefaultSDPConnectAddress()));
+  PAutoPtr<SDPSessionDescription> sdpOut(GetEndPoint().CreateSDP(m_sdpSessionId, ++m_sdpVersion, GetDefaultSDPConnectAddress()));
   bool ok;
 
   if (sdp == NULL || sdp->GetMediaDescriptions().IsEmpty()) {

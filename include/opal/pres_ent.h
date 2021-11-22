@@ -337,10 +337,10 @@ class OpalPresentity : public PSafeObject
       const OpalPresenceInfo & info ///< Info on other presentity that changed state
     );
 
-    typedef PNotifierTemplate< std::auto_ptr<OpalPresenceInfo> > PresenceChangeNotifier;
-    #define PDECLARE_PresenceChangeNotifier(cls, fn) PDECLARE_NOTIFIER2(OpalPresentity, cls, fn, std::auto_ptr<OpalPresenceInfo>)
-    #define PDECLARE_ASYNC_PresenceChangeNotifier(cls, fn) PDECLARE_ASYNC_NOTIFIER2(OpalPresentity, cls, fn, std::auto_ptr<OpalPresenceInfo>)
-    #define PCREATE_PresenceChangeNotifier(fn) PCREATE_NOTIFIER2(fn, std::auto_ptr<OpalPresenceInfo>)
+    typedef PNotifierTemplate< PAutoPtr<OpalPresenceInfo> > PresenceChangeNotifier;
+    #define PDECLARE_PresenceChangeNotifier(cls, fn) PDECLARE_NOTIFIER2(OpalPresentity, cls, fn, PAutoPtr<OpalPresenceInfo>)
+    #define PDECLARE_ASYNC_PresenceChangeNotifier(cls, fn) PDECLARE_ASYNC_NOTIFIER2(OpalPresentity, cls, fn, PAutoPtr<OpalPresenceInfo>)
+    #define PCREATE_PresenceChangeNotifier(fn) PCREATE_NOTIFIER2(fn, PAutoPtr<OpalPresenceInfo>)
 
     /// Set the notifier for the OnPresenceChange() function.
     void SetPresenceChangeNotifier(

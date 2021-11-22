@@ -233,7 +233,7 @@ bool OpalSDPConnection::GetOfferSDP(SDPSessionDescription & offer, bool offerOpe
 
 PString OpalSDPConnection::GetOfferSDP(bool offerOpenMediaStreamsOnly)
 {
-  std::auto_ptr<SDPSessionDescription> sdp(CreateSDP(PString::Empty()));
+  PAutoPtr<SDPSessionDescription> sdp(CreateSDP(PString::Empty()));
   PTRACE_CONTEXT_ID_TO(sdp.get());
   return sdp.get() != NULL && GetOfferSDP(*sdp, offerOpenMediaStreamsOnly) ? sdp->Encode() : PString::Empty();
 }
@@ -266,8 +266,8 @@ PString OpalSDPConnection::AnswerOfferSDP(const PString & offer)
       return PString::Empty();
   }
 
-  std::auto_ptr<SDPSessionDescription> sdpIn(CreateSDP(offer));
-  std::auto_ptr<SDPSessionDescription> sdpOut(CreateSDP(PString::Empty()));
+  PAutoPtr<SDPSessionDescription> sdpIn(CreateSDP(offer));
+  PAutoPtr<SDPSessionDescription> sdpOut(CreateSDP(PString::Empty()));
   if (sdpIn.get() == NULL || sdpOut.get() == NULL)
     return PString::Empty();
 
@@ -300,7 +300,7 @@ bool OpalSDPConnection::HandleAnswerSDP(const SDPSessionDescription & answer)
 
 bool OpalSDPConnection::HandleAnswerSDP(const PString & answer)
 {
-  std::auto_ptr<SDPSessionDescription> sdp(CreateSDP(answer));
+  PAutoPtr<SDPSessionDescription> sdp(CreateSDP(answer));
   PTRACE_CONTEXT_ID_TO(sdp.get());
   return sdp.get() != NULL && HandleAnswerSDP(*sdp);
 }
@@ -1024,7 +1024,7 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPSession(SDPMediaDescript
   }
 
   // construct a new media session list 
-  std::auto_ptr<SDPMediaDescription> localMedia(mediaSession->CreateSDPMediaDescription());
+  PAutoPtr<SDPMediaDescription> localMedia(mediaSession->CreateSDPMediaDescription());
   if (localMedia.get() == NULL) {
     if (replaceSession)
       delete mediaSession; // Still born so can delete, not used anywhere
