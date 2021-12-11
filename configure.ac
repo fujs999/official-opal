@@ -287,7 +287,8 @@ OPAL_MODULE_OPTION(
 
 dnl ########################################################################
 dnl We should use SWIG if it is there
-AC_PATH_PROG(SWIG, swig)
+AC_PATH_PROGS(SWIG, [swig4.0 swig3.0 swig])
+AS_VAR_IF(SWIG,[],[AC_SUBST(OPAL_SWIG,no)],[AC_SUBST(OPAL_SWIG,["yes ($SWIG)"])])
 
 
 dnl ########################################################################
@@ -654,6 +655,7 @@ MY_OUTPUT_SUMMARY(
    [                         Presence], OPAL_HAS_PRESENCE,
    [     Statistics gathering support], OPAL_STATISTICS,
    [        Script language interface], OPAL_SCRIPT,
+   [                     SWIG support], OPAL_SWIG,
    [                     Java support], OPAL_JAVA,
    [                  C-sharp support], OPAL_CSHARP,
    [                     Ruby support], [OPAL_RUBY]dnl

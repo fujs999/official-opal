@@ -702,6 +702,7 @@ JAVA_USABLE
 JAVA_LIBS
 JAVA_CFLAGS
 JAVA_SYSTEM
+OPAL_SWIG
 SWIG
 OPAL_CAPI
 CAPI_USABLE
@@ -9121,8 +9122,10 @@ fi
 
 
 
-# Extract the first word of "swig", so it can be a program name with args.
-set dummy swig; ac_word=$2
+for ac_prog in swig4.0 swig3.0 swig
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 printf %s "checking for $ac_word... " >&6; }
 if test ${ac_cv_path_SWIG+y}
@@ -9166,6 +9169,17 @@ printf "%s\n" "no" >&6; }
 fi
 
 
+  test -n "$SWIG" && break
+done
+
+if ${SWIG:+false} :
+then :
+  OPAL_SWIG=no
+
+else $as_nop
+  OPAL_SWIG="yes ($SWIG)"
+
+fi
 
 
 
@@ -14623,6 +14637,15 @@ then :
   printf "%s\n" "        Script language interface : ${OPAL_SCRIPT}"
 else $as_nop
   printf "%s\n" "        Script language interface : no"
+
+fi
+
+
+   if test ${OPAL_SWIG+y}
+then :
+  printf "%s\n" "                     SWIG support : ${OPAL_SWIG}"
+else $as_nop
+  printf "%s\n" "                     SWIG support : no"
 
 fi
 
