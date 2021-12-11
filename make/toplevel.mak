@@ -385,6 +385,13 @@ ifneq (,$(SWIG))
     VPATH_C         += $(RUBY_SRCDIR)
     SOURCES         += $(RUBY_WRAPPER)
   endif
+  
+  ifeq ($(OPAL_CSHARP), yes)
+    CSHARP_SRCDIR      = $(OPAL_SRCDIR)/csharp
+    CSHARP_WRAPPER     = $(CSHARP_SRCDIR)/csharp_swig_wrapper.cxx
+    VPATH_CXX         += $(CSHARP_SRCDIR)
+    SOURCES           += $(CSHARP_WRAPPER)
+ endif
 endif # SWIG
 
 
@@ -512,7 +519,11 @@ ifneq (,$(SWIG))
     $(RUBY_WRAPPER): $(RUBY_SRCDIR)/opal.i $(OPAL_INCDIR)/opal.h
 	$(SWIG) -ruby -w451 -I$(OPAL_INCDIR) -o $@ $<
   endif
-
+  
+  ifeq ($(OPAL_CSHARP), yes)
+    $(CSHARP_WRAPPER): $(CSHARP_SRCDIR)/opal.i $(OPAL_INCDIR)/opal.h
+    $(SWIG) -c++ -csharp -w451 -I$(OPAL_INCDIR) -o $@ $<
+  endif
 endif
 
 
