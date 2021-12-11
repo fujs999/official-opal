@@ -522,7 +522,7 @@ ifneq (,$(SWIG))
   
   ifeq ($(OPAL_CSHARP), yes)
     $(CSHARP_WRAPPER): $(CSHARP_SRCDIR)/opal.i $(OPAL_INCDIR)/opal.h
-    $(SWIG) -c++ -csharp -w451 -I$(OPAL_INCDIR) -o $@ $<
+	$(SWIG) -c++ -csharp -w451 -I$(OPAL_INCDIR) -o $@ $<
   endif
 endif
 
