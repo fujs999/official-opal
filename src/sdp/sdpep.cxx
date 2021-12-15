@@ -1323,7 +1323,11 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPStream(SDPMediaDescripti
         else if ((ssrc = rtpSession->FindBundleMediaId(mid, OpalRTPSession::e_Sender)) != 0)
           PTRACE(4, "Found existing SSRC " << RTP_TRACE_SRC(ssrc) << " on index " << rtpStreamIndex << " using BUNDLE mid \"" << mid << '"');
         else {
-          ssrc = rtpSession->AddSyncSource(0, OpalRTPSession::e_Sender);
+          // If default sender not yet allocated to a mid, then use it,
+          // otherwise create a brand new SSRC to use
+          ssrc = rtpSession->GetSyncSourceOut();
+          if (!rtpSession->GetBundleMediaId(ssrc).empty())
+            ssrc = rtpSession->AddSyncSource(0, OpalRTPSession::e_Sender);
           rtpSession->SetBundleMediaId(mid, ssrc, OpalRTPSession::e_Sender);
         }
         PTRACE(4, "Including BUNDLE " << rtpStreamIndex << ", mid=\"" << mid << "\", send SSRC " << RTP_TRACE_SRC(ssrc));
