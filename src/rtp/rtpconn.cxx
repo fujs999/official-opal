@@ -472,6 +472,19 @@ bool OpalRTPConnection::SetSessionQoS(OpalRTPSession * /*session*/)
 
 #if OPAL_VIDEO
 
+namespace {
+  struct ByStreamIndex {
+    OpalRTPSession & m_session;
+    ByStreamIndex(OpalRTPSession & session) : m_session(session) { }
+    bool operator()(RTP_SyncSourceId ssrcA, RTP_SyncSourceId ssrcB) const
+    {
+      unsigned idxA = m_session.FindGroupMediaId(OpalMediaSession::GetBundleGroupId(), m_session.GetBundleMediaId(ssrcA));
+      unsigned idxB = m_session.FindGroupMediaId(OpalMediaSession::GetBundleGroupId(), m_session.GetBundleMediaId(ssrcB));
+      return (idxA == UINT_MAX && idxB == UINT_MAX) ? (ssrcA < ssrcB) : (idxA < idxB);
+    }
+  };
+};
+
 void OpalRTPConnection::SetUpLipSyncMediaStreams()
 {
   if (!m_stringOptions.GetBoolean(OPAL_OPT_USE_MEDIA_STREAMS, true))
@@ -488,16 +501,6 @@ void OpalRTPConnection::SetUpLipSyncMediaStreams()
   RTP_SyncSourceArray audioSSRCs = audioSession->GetSyncSources(OpalRTPSession::e_Sender);
   RTP_SyncSourceArray videoSSRCs = videoSession->GetSyncSources(OpalRTPSession::e_Sender);
 
-  struct ByStreamIndex {
-    OpalRTPSession & m_session;
-    ByStreamIndex(OpalRTPSession & session) : m_session(session) { }
-    bool operator()(RTP_SyncSourceId ssrcA, RTP_SyncSourceId ssrcB) const
-    {
-      unsigned idxA = m_session.FindGroupMediaId(OpalMediaSession::GetBundleGroupId(), m_session.GetBundleMediaId(ssrcA));
-      unsigned idxB = m_session.FindGroupMediaId(OpalMediaSession::GetBundleGroupId(), m_session.GetBundleMediaId(ssrcB));
-      return (idxA == UINT_MAX && idxB == UINT_MAX) ? (ssrcA < ssrcB) : (idxA < idxB);
-    }
-  };
   std::sort(audioSSRCs.begin(), audioSSRCs.end(), ByStreamIndex(*audioSession));
   std::sort(videoSSRCs.begin(), videoSSRCs.end(), ByStreamIndex(*videoSession));
 

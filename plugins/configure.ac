@@ -11,7 +11,7 @@ AC_INIT([OPAL-Plugins], m4_esyscmd([sed -n \
                             -e "s/ *#define *PATCH_VERSION *\\(.*\\)/\\1/p" \
                             ../version.h | tr -d '\n']))
 
-AC_PREREQ([2.66])
+AC_PREREQ([2.71])
 
 AC_CONFIG_AUX_DIR(../make)
 
@@ -25,8 +25,6 @@ dnl ########################################################################
 
 AC_CHECK_TOOL([NM], [nm])
 AC_CHECK_TOOL([LDD], [ldd])
-
-AC_HEADER_STDC()
 
 MY_CHECK_DLFCN()
 AC_SUBST(DLFCN_LIBS)
@@ -293,7 +291,7 @@ if test "x$HAVE_LIBAVCODEC" = "xyes" ; then
       ]
    )
 
-   AC_ARG_ENABLE([x264-licensed], [AC_HELP_STRING([--enable-x264-licensed],[enable commercially licensed x264])])
+   AC_ARG_ENABLE([x264-licensed], [AS_HELP_STRING([--enable-x264-licensed],[enable commercially licensed x264])])
    if test "$enable_x264_licensed" = "yes" ;  then
       X264_CFLAGS="$X264_CFLAGS -DX264_LICENSED"
       AC_SUBST(X264_HELPER, "")
@@ -419,7 +417,7 @@ dnl Output configured files
 AC_CONFIG_FILES(plugin_config.mak)
 AC_CONFIG_HEADERS(plugin_config.h)
 
-AC_OUTPUT()
+AC_OUTPUT
 
 
 dnl ########################################################################

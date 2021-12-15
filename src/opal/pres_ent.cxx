@@ -320,10 +320,11 @@ void OpalPresentity::OnPresenceChange(const OpalPresenceInfo & info)
 {
   PWaitAndSignal mutex(m_notificationMutex);
 
-  if (!m_onPresenceChangeNotifier.IsNULL()) {
-    PAutoPtr<OpalPresenceInfo> pinfo(info.CloneAs<OpalPresenceInfo>());
-    m_onPresenceChangeNotifier(*this, pinfo);
-  }
+  if (m_onPresenceChangeNotifier.IsNULL())
+    return;
+
+  PAutoPtr<OpalPresenceInfo> pinfo(info.CloneAs<OpalPresenceInfo>());
+  m_onPresenceChangeNotifier(*this, pinfo);
 }
 
 
