@@ -551,6 +551,7 @@ class SIP_PDU : public PSafeObject
       Local_TransportLost,
       Local_KeepAlive,
       Local_NotAuthenticated,
+      Local_IllegalDatagram,
 
       Information_Trying                  = 100,
       Information_Ringing                 = 180,
