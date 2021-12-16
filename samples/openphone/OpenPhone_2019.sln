@@ -63,6 +63,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtiff", "..\..\plugins\fa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libspandsp", "..\..\plugins\fax\fax_spandsp\libspandsp_2019.vcxproj", "{1CBB0077-18C5-455F-801C-0A0CE7B0BBF5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libjpeg", "..\..\plugins\fax\fax_spandsp\libjpeg_2019.vcxproj", "{2DC64A78-365E-4836-9659-807E41F42A69}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -369,6 +371,18 @@ Global
 		{1CBB0077-18C5-455F-801C-0A0CE7B0BBF5}.Release|Win32.Build.0 = Release|Win32
 		{1CBB0077-18C5-455F-801C-0A0CE7B0BBF5}.Release|x64.ActiveCfg = Release|x64
 		{1CBB0077-18C5-455F-801C-0A0CE7B0BBF5}.Release|x64.Build.0 = Release|x64
+		{2DC64A78-365E-4836-9659-807E41F42A69}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2DC64A78-365E-4836-9659-807E41F42A69}.Debug|Win32.Build.0 = Debug|Win32
+		{2DC64A78-365E-4836-9659-807E41F42A69}.Debug|x64.ActiveCfg = Debug|x64
+		{2DC64A78-365E-4836-9659-807E41F42A69}.Debug|x64.Build.0 = Debug|x64
+		{2DC64A78-365E-4836-9659-807E41F42A69}.No Trace|Win32.ActiveCfg = Debug|Win32
+		{2DC64A78-365E-4836-9659-807E41F42A69}.No Trace|Win32.Build.0 = Debug|Win32
+		{2DC64A78-365E-4836-9659-807E41F42A69}.No Trace|x64.ActiveCfg = Debug|x64
+		{2DC64A78-365E-4836-9659-807E41F42A69}.No Trace|x64.Build.0 = Debug|x64
+		{2DC64A78-365E-4836-9659-807E41F42A69}.Release|Win32.ActiveCfg = Release|Win32
+		{2DC64A78-365E-4836-9659-807E41F42A69}.Release|Win32.Build.0 = Release|Win32
+		{2DC64A78-365E-4836-9659-807E41F42A69}.Release|x64.ActiveCfg = Release|x64
+		{2DC64A78-365E-4836-9659-807E41F42A69}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -400,6 +414,7 @@ Global
 		{3D15B8FA-B919-44DC-A6F5-EE8EBB70E42E} = {03BA3CEE-5BBB-4BC1-A46C-4FA195A44FC7}
 		{401A40CD-5DB4-4E34-AC68-FA99E9FAC014} = {C04338FD-A4A4-422C-A540-FD83ABE7C180}
 		{1CBB0077-18C5-455F-801C-0A0CE7B0BBF5} = {C04338FD-A4A4-422C-A540-FD83ABE7C180}
+		{2DC64A78-365E-4836-9659-807E41F42A69} = {C04338FD-A4A4-422C-A540-FD83ABE7C180}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F8CDBED0-0ECA-4AB6-ABF3-A8B6859AAA26}
