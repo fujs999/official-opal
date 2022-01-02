@@ -32,7 +32,7 @@
 
 PCREATE_PROCESS(MyProcess);
 
-const WORD DefaultHTTPPort = 1719;
+const WORD DefaultHTTPPort = 1717;
 const WORD DefaultTelnetPort = 1718;
 static const PConstString TelnetPortKey("Console Port");
 static const PConstString AllowedOriginsKey("Allowed Origins");
