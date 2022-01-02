@@ -28,12 +28,12 @@
 
 #if OPAL_IVR
 
-class MyIVREndPoint : public OpalIVREndPoint
+class MyIVREndPoint : public OpalConsoleIVREndPoint
 {
-    PCLASSINFO(MyIVREndPoint, OpalIVREndPoint)
+    PCLASSINFO(MyIVREndPoint, OpalConsoleIVREndPoint)
 
   public:
-    MyIVREndPoint(OpalManager & manager) : OpalIVREndPoint(manager) { }
+    MyIVREndPoint(OpalManagerConsole & manager) : OpalConsoleIVREndPoint(manager) { }
 
     virtual void OnEndDialog(OpalIVRConnection & connection);
 };

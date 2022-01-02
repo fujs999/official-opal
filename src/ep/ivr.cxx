@@ -171,9 +171,11 @@ OpalIVRConnection::OpalIVRConnection(OpalCall & call,
                                      OpalConnection::StringOptions * stringOptions)
   : OpalLocalConnection(call, ep, userData, options, stringOptions, 'I')
   , endpoint(ep)
-  , P_DISABLE_MSVC_WARNINGS(4355, m_vxmlSession(*this, PFactory<PTextToSpeech>::CreateInstance(ep.GetDefaultTextToSpeech()), true))
+  , P_DISABLE_MSVC_WARNINGS(4355, m_vxmlSession(*this))
   , m_vxmlStarted(false)
 {
+  m_vxmlSession.SetTextToSpeech(ep.GetDefaultTextToSpeech());
+  m_vxmlSession.SetSpeechRecognition(ep.GetDefaultSpeechRecognition());
   SetVXML(remoteParty);
 
 #if OPAL_VIDEO

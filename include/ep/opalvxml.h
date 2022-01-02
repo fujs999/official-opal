@@ -52,11 +52,7 @@ class OpalVXMLSession : public PVXMLSession
 {
   PCLASSINFO(OpalVXMLSession, PVXMLSession);
   public:
-    OpalVXMLSession(
-      OpalIVRConnection & conn,
-      PTextToSpeech * tts = NULL,
-      PBoolean autoDelete = false
-    );
+    OpalVXMLSession(OpalIVRConnection & conn);
 
     virtual void OnEndDialog();
     virtual void OnEndSession();

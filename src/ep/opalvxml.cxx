@@ -43,14 +43,10 @@
 
 #if OPAL_IVR
 
-OpalVXMLSession::OpalVXMLSession(OpalIVRConnection & conn, PTextToSpeech * tts, PBoolean autoDelete)
-  : PVXMLSession(tts, autoDelete),
-    m_connection(conn)
+OpalVXMLSession::OpalVXMLSession(OpalIVRConnection & conn)
+  : m_connection(conn)
 {
   PTRACE_CONTEXT_ID_FROM(conn);
-
-  if (tts == NULL)
-    SetTextToSpeech(PString::Empty());
 }
 
 

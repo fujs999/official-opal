@@ -112,6 +112,8 @@ static const PConstString EnableCAPIKey("CAPI ISDN");
 static const PConstString VXMLKey("VXML Script");
 static const PConstString IVRCacheKey("TTS Cache Directory");
 static const PConstString IVRRecordDirKey("Record Message Directory");
+static const PConstString IVRTextToSpeechKey("Text To Speech Engine");
+static const PConstString IVRSpeechRecognitionKey("Speech Recognition Engine");
 static const PConstString SignLanguageAnalyserDLLKey("Sign Language Analyser DLL");
 #endif
 
@@ -762,6 +764,10 @@ PBoolean MyManager::Configure(PConfig & cfg, PConfigPage * rsrc)
                                             "Interactive Voice Response directory to cache Text To Speech phrases", 1, 50));
     ivrEP->SetRecordDirectory(rsrc->AddStringField(IVRRecordDirKey, 0, ivrEP->GetRecordDirectory(),
                                                    "Interactive Voice Response directory to save recorded messages", 1, 50));
+    ivrEP->SetDefaultTextToSpeech(rsrc->AddStringField(IVRTextToSpeechKey, 0, ivrEP->GetDefaultTextToSpeech(),
+                                                       "Interactive Voice Response Text To Speech Engine", 1, 10));
+    ivrEP->SetDefaultSpeechRecognition(rsrc->AddStringField(IVRSpeechRecognitionKey, 0, ivrEP->GetDefaultSpeechRecognition(),
+                                                            "Interactive Voice Response Speech Recognition Engine", 1, 10));
 #if P_VXML_VIDEO
     m_signLanguageAnalyserDLL = rsrc->AddStringField(SignLanguageAnalyserDLLKey, 0, m_signLanguageAnalyserDLL,
                                                      "Interactive Voice Response Sign Language Library", 1, 50);
