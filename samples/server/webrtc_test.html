@@ -140,7 +140,13 @@
 
         window.onload = function () {
             destFld = document.getElementById("dest");
-            destFld.value = "";
+            if (window.location.protocol != "https:" || window.location.hostname == "localhost" || window.location.hostname == "127.0.0.1") {
+                destFld.value = "Cannot use WebRTC on http or localhost!";
+                destFld.disabled = true;
+            }
+            else {
+                destFld.value = "";
+            }
             startBtn = document.getElementById("startBtn");
             endBtn = document.getElementById("endBtn");
         };
