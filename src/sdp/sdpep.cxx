@@ -1053,8 +1053,10 @@ bool OpalSDPConnection::OnSendAnswerSDP(const SDPSessionDescription & sdpOffer, 
         m_sessions.SetAt(sessionId, mediaSession);
       }
 
-      if (mediaDescription == NULL)
+      if (mediaDescription == NULL) {
         mediaDescription = mediaSession->CreateSDPMediaDescription();
+        mediaDescription->SetIndex(rtpStreamIndex);
+      }
       mediaDescription->FromSession(mediaSession, incomingMedia, 0);
     }
 
