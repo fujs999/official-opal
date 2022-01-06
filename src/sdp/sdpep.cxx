@@ -87,9 +87,7 @@ PStringList OpalSDPEndPoint::GetAvailableStringOptions() const
     OPAL_OPT_MULTI_SSRC
   };
 
-  PStringList list = OpalRTPEndPoint::GetAvailableStringOptions();
-  list += PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
-  return list;
+  return OpalRTPEndPoint::GetAvailableStringOptions() + PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
 }
 
 

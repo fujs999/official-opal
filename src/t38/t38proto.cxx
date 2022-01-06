@@ -602,9 +602,7 @@ PStringList OpalFaxEndPoint::GetAvailableStringOptions() const
     OPAL_T38_SWITCH_TIME
   };
 
-  PStringList list = OpalLocalEndPoint::GetAvailableStringOptions();
-  list += PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
-  return list;
+  return OpalLocalEndPoint::GetAvailableStringOptions() + PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
 }
 
 

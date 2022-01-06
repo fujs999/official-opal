@@ -813,9 +813,7 @@ PStringList OpalMixerEndPoint::GetAvailableStringOptions() const
     OPAL_OPT_CONF_OWNER
   };
 
-  PStringList list = OpalLocalEndPoint::GetAvailableStringOptions();
-  list += PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
-  return list;
+  return OpalLocalEndPoint::GetAvailableStringOptions() + PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
 }
 
 

@@ -613,9 +613,7 @@ PStringList OpalCapiEndPoint::GetAvailableStringOptions() const
     OPAL_OPT_CAPI_B_PROTO
   };
 
-  PStringList list = OpalEndPoint::GetAvailableStringOptions();
-  list += PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
-  return list;
+  return OpalEndPoint::GetAvailableStringOptions() + PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
 }
 
 
