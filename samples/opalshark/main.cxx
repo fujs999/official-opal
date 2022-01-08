@@ -832,6 +832,7 @@ struct Analyser
 {
   MyPlayer & m_player;
   bool       m_asyncUpdate;
+  wxString   m_updateInfo;
   unsigned   m_clockRate;
   bool       m_isDecoded;
   bool       m_firstPacket;
@@ -969,20 +970,22 @@ struct Analyser
     m_lastPacketTimestamp = thisTimestamp;
     m_lastFrameEnd = frameEnd;
 
-    wxString info;
-    info << m_packetNumber << '\n'
-         << PwxString(thisTime.AsString("hh:mm:ss.uuu")) << '\n'
-         << deltaMS << '\n'
-         << thisSequenceNumber << '\n'
-         << thisTimestamp << '\n'
-         << deltaTS << '\n'
-         << jitter << '\n'
-         << notes;
+    m_updateInfo << m_packetNumber << '\n'
+                 << PwxString(thisTime.AsString("hh:mm:ss.uuu")) << '\n'
+                 << deltaMS << '\n'
+                 << thisSequenceNumber << '\n'
+                 << thisTimestamp << '\n'
+                 << deltaTS << '\n'
+                 << jitter << '\n'
+                 << notes << '\n';
 
-    if (m_asyncUpdate)
-      m_player.CallAfter<MyPlayer, wxString, bool, wxString, bool>(&MyPlayer::OnAnalysisUpdate, info, true);
-    else
-      m_player.OnAnalysisUpdate(info, false);
+    if (m_updateInfo.size() > 1000) {
+      if (m_asyncUpdate)
+        m_player.CallAfter<MyPlayer, wxString, bool, wxString, bool>(&MyPlayer::OnAnalysisUpdate, m_updateInfo, true);
+      else
+        m_player.OnAnalysisUpdate(m_updateInfo, false);
+      m_updateInfo.clear();
+    }
   }
 };
 
@@ -1029,16 +1032,18 @@ void MyPlayer::OnAnalysisUpdate(wxString info, bool async)
 {
   wxStringTokenizer parser(info, wxT("\n"), wxTOKEN_RET_EMPTY_ALL);
 
-  long pos = m_analysisList->InsertItem(INT_MAX, parser.GetNextToken());
-  for (int i = 1; i < m_analysisList->GetColumnCount(); ++i)
-    m_analysisList->SetItem(pos, i, parser.GetNextToken());
+  while (parser.HasMoreTokens()) {
+    long pos = m_analysisList->InsertItem(INT_MAX, parser.GetNextToken());
+    for (int i = 1; i < m_analysisList->GetColumnCount(); ++i)
+      m_analysisList->SetItem(pos, i, parser.GetNextToken());
 
-  if (async) {
-    if (pos == 0) {
-      for (int i = 0; i < m_analysisList->GetColumnCount(); ++i)
-        m_analysisList->SetColumnWidth(i, wxLIST_AUTOSIZE_USEHEADER);
+    if (async) {
+      if (pos == 0) {
+        for (int i = 0; i < m_analysisList->GetColumnCount(); ++i)
+          m_analysisList->SetColumnWidth(i, wxLIST_AUTOSIZE_USEHEADER);
+      }
+      m_analysisList->EnsureVisible(pos);
     }
-    m_analysisList->EnsureVisible(pos);
   }
 }
 
