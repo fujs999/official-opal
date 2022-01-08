@@ -307,6 +307,7 @@ PBoolean OpalCall::OnSetUp(OpalConnection & connection)
       ok = true;
   }
 
+  PTRACE_IF(2, !ok, "OnSetUp " << connection << " has no other suitable connection.");
   return ok;
 }
 
@@ -1179,6 +1180,7 @@ bool OpalCall::EnumerateConnections(PSafeArray<OpalConnection>::iterator & it,
     ++it;
   }
 
+  connection.SetNULL();
   return false;
 }
 

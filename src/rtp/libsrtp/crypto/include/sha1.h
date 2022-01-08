@@ -106,6 +106,11 @@ static inline void srtp_sha1_final(srtp_sha1_ctx_t *ctx, uint32_t *output)
     EVP_MD_CTX_cleanup(ctx);
 }
 
+static inline void srtp_sha1_copy(srtp_sha1_ctx_t *to, srtp_sha1_ctx_t *from)
+{
+    memcpy(to, from, sizeof(srtp_sha1_ctx_t));
+}
+
 #else
 
 typedef EVP_MD_CTX *srtp_sha1_ctx_t;
@@ -129,6 +134,14 @@ static inline void srtp_sha1_final(srtp_sha1_ctx_t *ctx, uint32_t *output)
 
     EVP_DigestFinal(*ctx, (unsigned char *)output, &len);
     EVP_MD_CTX_free(*ctx);
+    *ctx = NULL;
+}
+
+static inline void srtp_sha1_copy(srtp_sha1_ctx_t *to, srtp_sha1_ctx_t *from)
+{
+    if (*to == NULL)
+        *to = EVP_MD_CTX_new();
+    EVP_MD_CTX_copy_ex(*to, *from);
 }
 #endif
 

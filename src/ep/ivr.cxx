@@ -72,9 +72,15 @@ OpalIVREndPoint::~OpalIVREndPoint()
 
 PStringList OpalIVREndPoint::GetAvailableStringOptions() const
 {
-  PStringList options = OpalLocalEndPoint::GetAvailableStringOptions();
-  options += OPAL_OPT_IVR_NATIVE_CODEC;
-  return options;
+  static char const * const StringOpts[] = {
+    OPAL_OPT_IVR_NATIVE_CODEC,
+    OPAL_OPT_IVR_TEXT_TO_SPEECH,
+    OPAL_OPT_IVR_SPEECH_RECOGNITION,
+    OPAL_OPT_IVR_RECORDING_DIR,
+    OPAL_OPT_IVR_TTS_CACHE_DIR
+  };
+
+  return OpalEndPoint::GetAvailableStringOptions() + PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
 }
 
 
@@ -170,8 +176,8 @@ OpalIVRConnection::OpalIVRConnection(OpalCall & call,
                                      unsigned int options,
                                      OpalConnection::StringOptions * stringOptions)
   : OpalLocalConnection(call, ep, userData, options, stringOptions, 'I')
-  , endpoint(ep)
-  , P_DISABLE_MSVC_WARNINGS(4355, m_vxmlSession(*this, PFactory<PTextToSpeech>::CreateInstance(ep.GetDefaultTextToSpeech()), true))
+  , m_ivrEndPoint(ep)
+  , P_DISABLE_MSVC_WARNINGS(4355, m_vxmlSession(*this))
   , m_vxmlStarted(false)
 {
   SetVXML(remoteParty);
@@ -181,7 +187,6 @@ OpalIVRConnection::OpalIVRConnection(OpalCall & call,
 #endif
 
   m_vxmlSession.SetCache(ep.GetTextToSpeechCache());
-  m_vxmlSession.SetRecordDirectory(ep.GetRecordDirectory());
 
   PTRACE(4, "Constructed");
 }
@@ -192,6 +197,22 @@ OpalIVRConnection::~OpalIVRConnection()
   PTRACE(4, "Destroyed.");
 }
 
+
+void OpalIVRConnection::OnApplyStringOptions()
+{
+  OpalLocalConnection::OnApplyStringOptions();
+  m_vxmlSession.SetTextToSpeech(m_stringOptions.GetString(OPAL_OPT_IVR_TEXT_TO_SPEECH, m_ivrEndPoint.GetDefaultTextToSpeech()));
+  m_vxmlSession.SetSpeechRecognition(m_stringOptions.GetString(OPAL_OPT_IVR_SPEECH_RECOGNITION, m_ivrEndPoint.GetDefaultSpeechRecognition()));
+  m_vxmlSession.SetRecordDirectory(m_stringOptions.GetString(OPAL_OPT_IVR_RECORDING_DIR, m_ivrEndPoint.GetRecordDirectory()));
+
+  if (m_stringOptions.Contains(OPAL_OPT_IVR_TTS_CACHE_DIR)) {
+    PDirectory dir = m_stringOptions.GetString(OPAL_OPT_IVR_TTS_CACHE_DIR);
+    if (dir != m_ivrEndPoint.GetCacheDir()) {
+      m_ttsCache.SetDirectory(dir);
+      m_vxmlSession.SetCache(m_ttsCache);
+    }
+  }
+}
 
 void OpalIVRConnection::OnStartMediaPatch(OpalMediaPatch & patch)
 {
@@ -238,7 +259,7 @@ void OpalIVRConnection::SetVXML(const PString & vxml)
 
   m_vxmlScript = vxml.Mid(prefixLength);
   if (m_vxmlScript.IsEmpty() || m_vxmlScript == "*")
-    m_vxmlScript = endpoint.GetDefaultVXML();
+    m_vxmlScript = m_ivrEndPoint.GetDefaultVXML();
   m_localPartyURL = GetPrefixName() + ':' + PURL::TranslateString(m_vxmlScript.Left(m_vxmlScript.FindOneOf("\r\n")), PURL::LoginTranslation);
 
   m_stringOptions.Merge(ExtractOptionsFromVXML(m_vxmlScript), PStringOptions::e_MergeOverwrite);
@@ -370,7 +391,7 @@ bool OpalIVRConnection::StartScript()
 
 void OpalIVRConnection::OnEndDialog()
 {
-  endpoint.OnEndDialog(*this);
+  m_ivrEndPoint.OnEndDialog(*this);
 }
 
 

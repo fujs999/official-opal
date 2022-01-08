@@ -1836,7 +1836,9 @@ void OpalConsoleIVREndPoint::GetArgumentSpec(ostream & strm) const
 {
   strm << "[Interactive Voice Response options:]"
           "-no-ivr.     Disable IVR subsystem\n"
-          "-ivr-script: The default VXML script to run\n";
+          "-ivr-script: The default VXML script to run\n"
+          "-tts:        Set the Text To Speech engine to use\n"
+          "-sr:         Set the Speech Recognition engine to use\n";
 }
 
 
@@ -1851,11 +1853,25 @@ bool OpalConsoleIVREndPoint::Initialise(PArgList & args, bool verbose, const PSt
     return true;
   }
 
-  PString vxml = args.GetOptionString("ivr-script");
-  if (!vxml.IsEmpty()) {
+  PString opt = args.GetOptionString("ivr-script");
+  if (!opt.IsEmpty()) {
     if (verbose)
-      output << "Set default IVR script: " << vxml.Left(vxml.FindOneOf("\r\n")) << '\n';
-    SetDefaultVXML(vxml);
+      output << "Set default IVR script: " << opt.Left(opt.FindOneOf("\r\n")) << '\n';
+    SetDefaultVXML(opt);
+  }
+
+  opt = args.GetOptionString("tts");
+  if (!opt.IsEmpty()) {
+    if (verbose)
+      output << "Set default IVR Text To Speech engine: " << opt << '\n';
+    SetDefaultTextToSpeech(opt);
+  }
+
+  opt = args.GetOptionString("sr");
+  if (!opt.IsEmpty()) {
+    if (verbose)
+      output << "Set default IVR Speech Recognition engine: " << opt << '\n';
+    SetDefaultSpeechRecognition(opt);
   }
 
   return true;

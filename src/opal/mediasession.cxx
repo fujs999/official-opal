@@ -837,6 +837,7 @@ PChannel * OpalMediaTransport::GetChannel(SubChannels subchannel) const
 
 void OpalMediaTransport::SetMediaTimeout(const PTimeInterval & t)
 {
+  PTRACE_IF(4, m_mediaTimeout != t, "Media timeout set to " << t);
   m_mediaTimeout = t;
 
   if (!LockReadOnly(P_DEBUG_LOCATION))
@@ -1088,6 +1089,7 @@ void OpalMediaTransport::Start()
       it->m_thread = new PThreadObj<ChannelInfo>(*it, &ChannelInfo::ThreadMain, false, threadName, PThread::HighPriority);
     }
   }
+  SetMediaTimeout(m_mediaTimeout);
 }
 
 
@@ -1303,6 +1305,8 @@ bool OpalUDPMediaTransport::InternalSetRemoteAddress(const PIPSocket::AddressAnd
     if (!InternalOpenPinHole(*socket))
       return false;
   }
+
+  SetMediaTimeout(m_mediaTimeout);
 
   if (subchannel == e_Data)
     m_established = true;

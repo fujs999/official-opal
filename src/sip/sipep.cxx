@@ -640,9 +640,7 @@ PStringList SIPEndPoint::GetAvailableStringOptions() const
     OPAL_OPT_UNSECURE_SRTP
   };
 
-  PStringList list = OpalSDPEndPoint::GetAvailableStringOptions();
-  list += PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
-  return list;
+  return OpalSDPEndPoint::GetAvailableStringOptions() + PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
 }
 
 

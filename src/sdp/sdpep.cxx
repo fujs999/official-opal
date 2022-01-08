@@ -87,9 +87,7 @@ PStringList OpalSDPEndPoint::GetAvailableStringOptions() const
     OPAL_OPT_MULTI_SSRC
   };
 
-  PStringList list = OpalRTPEndPoint::GetAvailableStringOptions();
-  list += PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
-  return list;
+  return OpalRTPEndPoint::GetAvailableStringOptions() + PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
 }
 
 
@@ -1053,8 +1051,10 @@ bool OpalSDPConnection::OnSendAnswerSDP(const SDPSessionDescription & sdpOffer, 
         m_sessions.SetAt(sessionId, mediaSession);
       }
 
-      if (mediaDescription == NULL)
+      if (mediaDescription == NULL) {
         mediaDescription = mediaSession->CreateSDPMediaDescription();
+        mediaDescription->SetIndex(rtpStreamIndex);
+      }
       mediaDescription->FromSession(mediaSession, incomingMedia, 0);
     }
 

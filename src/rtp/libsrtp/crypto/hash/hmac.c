@@ -149,7 +149,7 @@ static srtp_err_status_t srtp_hmac_init(void *statev,
 
     /* hash ipad ^ key */
     srtp_sha1_update(&state->init_ctx, ipad, 64);
-    memcpy(&state->ctx, &state->init_ctx, sizeof(srtp_sha1_ctx_t));
+    srtp_sha1_copy(&state->ctx, &state->init_ctx);
 
     return srtp_err_status_ok;
 }
@@ -158,7 +158,7 @@ static srtp_err_status_t srtp_hmac_start(void *statev)
 {
     srtp_hmac_ctx_t *state = (srtp_hmac_ctx_t *)statev;
 
-    memcpy(&state->ctx, &state->init_ctx, sizeof(srtp_sha1_ctx_t));
+    srtp_sha1_copy(&state->ctx, &state->init_ctx);
 
     return srtp_err_status_ok;
 }

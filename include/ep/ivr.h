@@ -44,8 +44,25 @@ class OpalIVRConnection;
 
 #define OPAL_IVR_PREFIX "ivr"
 
-/// IVR supports this codec type natively, defulat to none.
+/// IVR supports these codec types natively, defualt to none.
 #define OPAL_OPT_IVR_NATIVE_CODEC "IVR-Native-Codec"
+
+/// IVR Text To Speech engine name.
+#define OPAL_OPT_IVR_TEXT_TO_SPEECH "IVR-TTS"
+
+/// IVR Speech Recognition engine name.
+#define OPAL_OPT_IVR_SPEECH_RECOGNITION "IVR-SR"
+
+/// IVR recording directory.
+#define OPAL_OPT_IVR_RECORDING_DIR "IVR-Recording-Dir"
+
+/** IVR Text To Speech cache directory.
+    Note, that if this is set the shared cache between all connections in
+    OpalIVREndPoint is no longer used. Unexpected behaviour could occur if
+    multiple connections use the same directory, but not that shared cache
+    manager instance.
+  */
+#define OPAL_OPT_IVR_TTS_CACHE_DIR "IVR-Cache-Dir"
 
 
 /**Interactive Voice Response endpoint.
@@ -170,13 +187,21 @@ class OpalIVREndPoint : public OpalLocalEndPoint
       OpalIVRConnection & connection  ///< Connection with ending dialog
     );
 
-    /** Set/get the default text to speech engine used by the IVR  
+    /** Set the default text to speech engine used by the IVR  
       */
-    void SetDefaultTextToSpeech(const PString & tts)
-    { m_defaultTTS = tts; }
+    void SetDefaultTextToSpeech(const PString & tts) { m_defaultTextToSpeech = tts; }
 
-    PString GetDefaultTextToSpeech() const
-    { return m_defaultTTS; }
+    /** Get the default text to speech engine used by the IVR  
+      */
+    const PString & GetDefaultTextToSpeech() const { return m_defaultTextToSpeech; }
+
+    /** Set the default speech recognition engine used by the IVR  
+      */
+    void SetDefaultSpeechRecognition(const PString & sr) { m_defaultSpeechRecognition = sr; }
+
+    /** Get the default speech recognition engine used by the IVR  
+      */
+    const PString & GetDefaultSpeechRecognition() const { return m_defaultSpeechRecognition; }
 
     /**Get the text to speach cache directory to use.
       */
@@ -197,7 +222,8 @@ class OpalIVREndPoint : public OpalLocalEndPoint
 
   protected:
     PString        m_defaultVXML;
-    PString        m_defaultTTS;
+    PString        m_defaultTextToSpeech;
+    PString        m_defaultSpeechRecognition;
     PDECLARE_MUTEX(m_defaultsMutex);
     PVXMLCache     m_ttsCache;
     PDirectory     m_recordDirectory;
@@ -242,6 +268,9 @@ class OpalIVRConnection : public OpalLocalConnection
        to is intrinsically local.
       */
     virtual bool IsNetworkConnection() const { return false; }
+
+    /// Call back for connection to act on changed string options
+    virtual void OnApplyStringOptions();
 
     /**Call back when media stream patch thread starts.
 
@@ -332,10 +361,11 @@ class OpalIVRConnection : public OpalLocalConnection
     virtual bool StartVXML();
     virtual bool StartScript();
 
-    OpalIVREndPoint   & endpoint;
+    OpalIVREndPoint   & m_ivrEndPoint;
     PString             m_vxmlScript;
     OpalVXMLSession     m_vxmlSession;
     atomic<bool>        m_vxmlStarted;
+    PVXMLCache          m_ttsCache;
 };
 
 

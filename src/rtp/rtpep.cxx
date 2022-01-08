@@ -179,9 +179,7 @@ PStringList OpalRTPEndPoint::GetAvailableStringOptions() const
     OPAL_OPT_TRANSPORT_WIDE_CONGESTION_CONTROL
   };
 
-  PStringList list = OpalEndPoint::GetAvailableStringOptions();
-  list += PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
-  return list;
+  return OpalEndPoint::GetAvailableStringOptions() + PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
 }
 
 

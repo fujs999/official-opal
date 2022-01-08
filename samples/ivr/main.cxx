@@ -41,43 +41,43 @@ PCREATE_PROCESS(MyApp);
 
 bool MyManager::Initialise(PArgList & args, bool verbose, const PString &)
 {
-  if (!OpalManagerConsole::Initialise(args, verbose, "ivr:"))
-    return false;
-
   // Set up IVR
   MyIVREndPoint * ivr  = new MyIVREndPoint(*this);
-  ivr->SetDefaultVXML(args[0]);
+
+  if (!OpalManagerConsole::Initialise(args, verbose, "ivr:") || args.GetCount() == 0)
+    return false;
 
 #if OPAL_HAS_PCSS
   FindEndPointAs<OpalLocalEndPoint>(OPAL_PCSS_PREFIX)->SetDeferredAnswer(false);
 #endif
 
-  switch (args.GetCount()) {
-  default :
-    break;
+  ivr->SetDefaultVXML(args[0]);
 
-    case 1 :
-      *LockedOutput() << "Awaiting incoming call, using VXML \"" << args[0] << "\" ... " << flush;
-      return true;
-
-    case 2 :
-      PString token;
-      if (SetUpCall("ivr:", args[1], token)) {
-        *LockedOutput() << "Playing " << args[0] << " to " << args[1] << " ... " << flush;
-        return true;
-      }
-      *LockedOutput() << "Could not start call to \"" << args[1] << '"' << endl;
+  if (args.GetCount() == 1) {
+    *LockedOutput() << "Awaiting incoming call, using VXML \"" << args[0] << "\" ... " << flush;
+    return true;
   }
 
-  return false;
+  bool atLeastOne = false;
+  for (PINDEX i = 1; i < args.GetCount(); ++i) {
+    PString token;
+    if (SetUpCall("ivr:", args[i], token)) {
+      *LockedOutput() << "Playing " << args[0] << " to " << args[i] << " token=" << token << endl;
+      atLeastOne = true;
+    }
+    else
+      *LockedOutput() << "Could not start call to \"" << args[i] << '"' << endl;
+  }
+
+  return atLeastOne;
 }
 
 
 void MyManager::Usage(ostream & strm, const PArgList & args)
 {
   args.Usage(strm,
-             "[ options ] vxml [ url ]") << "\n"
-             "where vxml is a VXML script, a URL to a VXML script or a WAV file, or a\n"
+             "[ options ] vxml [ url ... ]") << "\n"
+             "where vxml is a VXML script, a URL to a VXML script, or a WAV file, or a\n"
              "series of commands separated by ';'."
              "\n"
              "Commands are:\n"
