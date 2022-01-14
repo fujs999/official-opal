@@ -45,7 +45,7 @@ class MyManager : public OpalManagerConsole
     PCLASSINFO(MyManager, OpalManagerConsole)
 
   public:
-    MyManager() : OpalManagerConsole(OPAL_CONSOLE_PREFIXES OPAL_PCSS_PREFIX) { }
+    MyManager() : OpalManagerConsole(OPAL_CONSOLE_PREFIXES OPAL_PCSS_PREFIX " " OPAL_IVR_PREFIX) { }
 
 #if OPAL_IVR
     virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty());
