@@ -976,7 +976,7 @@ bool SDPMediaDescription::PostDecode(Direction defaultDirection, const OpalMedia
       if (it->second.PostDecode(*this, selectedFormats))
         ++it;
       else
-        it = m_restrictions.erase(it);
+        m_restrictions.erase(it++);
     }
     PTRACE(3, m_restrictions.size() << " restrictions (rid) received.");
   }
@@ -1156,7 +1156,7 @@ bool SDPMediaDescription::PreEncode()
       if (it->second.PreEncode(it->first, m_direction, selectedFormats))
         ++it;
       else
-        it = m_restrictions.erase(it);
+        m_restrictions.erase(it++);
     }
     PTRACE(4, "Encoding " << m_restrictions.size() << " rid restrictions");
   }

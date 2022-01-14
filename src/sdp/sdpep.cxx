@@ -1414,7 +1414,7 @@ SDPMediaDescription * OpalSDPConnection::OnSendAnswerSDPStream(SDPMediaDescripti
         if (OnReceivedOfferRestriction(*incomingMedia, *localMedia, it->second))
           ++it;
         else
-          it = restrictions.erase(it);
+          restrictions.erase(it++);
       }
       PTRACE(4, restrictions.size() << " restrictions (rid) answered.");
       localMedia->SetRestrictions(restrictions);
