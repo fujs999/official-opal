@@ -472,3 +472,8 @@ void srtp_sha1_final(srtp_sha1_ctx_t *ctx, uint32_t *output)
 
     return;
 }
+
+void srtp_sha1_copy(srtp_sha1_ctx_t* to, srtp_sha1_ctx_t* from)
+{
+  memcpy(to, from, sizeof(srtp_sha1_ctx_t));
+}
