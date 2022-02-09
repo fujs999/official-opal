@@ -190,12 +190,16 @@ RTP_SyncSourceId OpalRTPSession::AddSyncSource(RTP_SyncSourceId id, Direction di
 
   P_INSTRUMENTED_LOCK_READ_WRITE(return 0);
 
+  m_SSRC[id] = CreateSyncSource(id, dir, cname);
+
   if (m_defaultSSRC[dir] == 0) {
     PTRACE(3, *this << "setting default " << dir << " (added) SSRC=" << RTP_TRACE_SRC(id));
     m_defaultSSRC[dir] = id;
   }
+  else {
+    PTRACE(4, *this << "added " << dir << " SSRC=" << RTP_TRACE_SRC(id) << ", total=" << m_SSRC.size());
+  }
 
-  m_SSRC[id] = CreateSyncSource(id, dir, cname);
   return id;
 }
 
@@ -631,7 +635,6 @@ OpalRTPSession::SyncSource::SyncSource(OpalRTPSession & session, RTP_SyncSourceI
   , m_rtcpJitterBufferDelay(-1)
   , m_ntpPassThrough(0)
   , m_lastSenderReportTime(0)
- , m_lastReferencedTime(0)
   , m_referenceReportTime(0)
   , m_referenceReportNTP(0)
   , m_statisticsCount(0)
@@ -2382,12 +2385,13 @@ bool OpalRTPSession::InternalSendReport(RTP_ControlFrame & report,
 
 bool OpalRTPSession::SyncSource::IsStaleReceiver(const PTime & now) const
 {
-  if (m_direction != e_Receiver)
-    return false;
-
   // Has had some activity with this SSRC, so still active
-  if (m_lastReferencedTime.IsValid() && (now - m_lastReferencedTime) < m_session.m_staleReceiverTimeout)
+  if ((now - m_lastReferencedTime) < m_session.m_staleReceiverTimeout)
       return false;
+
+  // Mark a sender stale if never used, and not default
+  if (m_direction != e_Receiver)
+    return m_packets == 0 && m_session.m_defaultSSRC[e_Sender] != m_sourceIdentifier;
 
   // Not started yet, no RR should be sent so safe to leave for now
   if (m_packets == 0)
