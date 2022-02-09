@@ -47,6 +47,7 @@
 #include <opal/call.h>
 #include <lids/lid.h>
 #include <ptlib/sound.h>
+#include <ptclib/random.h>
 
 
 #define PTraceModule() "Media"
@@ -60,6 +61,7 @@ OpalMediaStream::OpalMediaStream(OpalConnection & conn, const OpalMediaFormat & 
   , m_sessionID(_sessionID)
   , m_syncSource(0)
   , m_sequenceNumber(0)
+  , m_syncSourceId(0)
   , m_identifier(conn.GetCall().GetToken() + psprintf("_%u", m_sessionID))
   , m_mediaFormat(fmt)
   , m_paused(false)
@@ -323,6 +325,10 @@ PBoolean OpalMediaStream::ReadPacket(RTP_DataFrame & packet)
   if (oldSeqNumber == m_sequenceNumber)
     m_sequenceNumber++;
 
+  if (m_syncSourceId != 0)
+    packet.SetSyncSource(m_syncSourceId);
+  else if ((m_syncSourceId = packet.GetSyncSource()) == 0)
+    packet.SetSyncSource(m_syncSourceId = PRandom::Number());
   packet.SetPayloadType(m_payloadType);
   packet.SetPayloadSize(lastReadCount);
   packet.SetTimestamp(oldTimestamp); // Beginning of frame
@@ -340,6 +346,7 @@ PBoolean OpalMediaStream::WritePacket(RTP_DataFrame & packet)
     return false;
 
   m_timestamp = packet.GetTimestamp();
+  m_syncSourceId = packet.GetSyncSource();
 
   PINDEX dummy;
   for (unsigned i = 0; i < packet.GetDiscontinuity(); ++i) {

@@ -172,6 +172,8 @@ void srtp_sha1_update(srtp_sha1_ctx_t *ctx,
 
 void srtp_sha1_final(srtp_sha1_ctx_t *ctx, uint32_t output[5]);
 
+void srtp_sha1_copy(srtp_sha1_ctx_t * to, srtp_sha1_ctx_t * from);
+
 /*
  * The srtp_sha1_core function is INTERNAL to SHA-1, but it is declared
  * here because it is also used by the cipher SEAL 3.0 in its key
