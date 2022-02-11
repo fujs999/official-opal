@@ -664,7 +664,7 @@ class OpalRTPSession : public OpalMediaSession
        This is the calculated statistical variance of the interarrival
        time of received packets in milliseconds. -1 indicated no packets received.
       */
-    int GetAvgJitterTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Receiver).m_currentjitter; }
+    int GetAvgJitterTime(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Receiver).m_currentJitter; }
 
     /**Get averaged jitter time for received packets.
        This is the maximum value of jitterLevel for the session. -1 indicated no packets received.
@@ -675,7 +675,7 @@ class OpalRTPSession : public OpalMediaSession
        This is the calculated statistical variance of the interarrival
        time of received packets in milliseconds. -1 indicated no RTCP received.
       */
-    int GetJitterTimeOnRemote(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Sender).m_currentjitter; }
+    int GetJitterTimeOnRemote(RTP_SyncSourceId ssrc = 0) const { return GetSyncSource(ssrc, e_Sender).m_currentJitter; }
 
     /**Get round trip time to remote.
        This is calculated according to the RFC 3550 algorithm.
@@ -918,7 +918,7 @@ class OpalRTPSession : public OpalMediaSession
       int      m_averagePacketTime; // Milliseconds
       int      m_maximumPacketTime; // Milliseconds
       int      m_minimumPacketTime; // Milliseconds
-      int      m_currentjitter;     // Milliseconds
+      int      m_currentJitter;     // Milliseconds
       int      m_maximumJitter;     // Milliseconds
       unsigned m_markerCount;
 
