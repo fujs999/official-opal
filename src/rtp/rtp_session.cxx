@@ -480,7 +480,7 @@ OpalRTPSession::SyncSource::SyncSource(OpalRTPSession & session, RTP_SyncSourceI
   , m_averagePacketTime(-1)
   , m_maximumPacketTime(-1)
   , m_minimumPacketTime(-1)
-  , m_currentjitter(-1)
+  , m_currentJitter(-1)
   , m_maximumJitter(-1)
   , m_markerCount(0)
   , m_lastPacketTimestamp(0)
@@ -542,7 +542,7 @@ OpalRTPSession::SyncSource::~SyncSource()
     trace <<   "    average time         = " << m_averagePacketTime << "\n"
                "    maximum time         = " << m_maximumPacketTime << "\n"
                "    minimum time         = " << m_minimumPacketTime << "\n"
-               "    last jitter          = " << m_currentjitter << "\n"
+               "    last jitter          = " << m_currentJitter << "\n"
                "    max jitter           = " << m_maximumJitter
           << PTrace::End;
   }
@@ -609,9 +609,9 @@ void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame
     localDiff *= m_session.m_timeUnits; // Convert to timestamp units
     long variance = localDiff > remoteDiff ? (localDiff - remoteDiff) : (remoteDiff - localDiff);
     m_jitterAccum += variance - ((m_jitterAccum + (1 << (JitterRoundingGuardBits - 1))) >> JitterRoundingGuardBits);
-    m_currentjitter = (m_jitterAccum >> JitterRoundingGuardBits) / m_session.m_timeUnits;
-    if (m_maximumJitter < m_currentjitter)
-      m_maximumJitter = m_currentjitter;
+    m_currentJitter = (m_jitterAccum >> JitterRoundingGuardBits) / m_session.m_timeUnits;
+    if (m_maximumJitter < m_currentJitter)
+      m_maximumJitter = m_currentJitter;
   }
 
   if (++m_statisticsCount < (m_direction == e_Receiver ? m_session.GetRxStatisticsInterval()
@@ -648,7 +648,7 @@ void OpalRTPSession::SyncSource::CalculateStatistics(const RTP_DataFrame & frame
     trace <<     " avgTime=" << m_averagePacketTime <<
                  " maxTime=" << m_maximumPacketTime <<
                  " minTime=" << m_minimumPacketTime <<
-                 " jitter=" << m_currentjitter <<
+                 " jitter=" << m_currentJitter <<
                  " maxJitter=" << m_maximumJitter
           << PTrace::End;
   }
@@ -904,8 +904,10 @@ OpalRTPSession::SendReceiveStatus OpalRTPSession::SyncSource::OnReceiveData(RTP_
   if (m_metrics != NULL) {
     m_metrics->OnPacketReceived();
     OpalJitterBuffer * jb = GetJitterBuffer();
-    if (jb != NULL)
+    if (jb != NULL && jb->GetMinJitterDelay() > 0)
       m_metrics->SetJitterDelay(jb->GetCurrentJitterDelay() / m_session.m_timeUnits);
+    else
+      m_metrics->SetJitterDelay(m_currentJitter);
   }
 #endif
 
@@ -1608,9 +1610,9 @@ void OpalRTPSession::SyncSource::OnRxReceiverReport(const RTP_ReceiverReport & r
   PTRACE_IF(m_throttleInvalidLost, (unsigned)m_packetsMissing > m_packets, &m_session,
             m_session << "remote indicated packet loss (" << m_packetsMissing << ")"
             " larger than number of packets we sent (" << m_packets << ')' << m_throttleInvalidLost);
-  m_currentjitter = (report.jitter + m_session.m_timeUnits / 2)/m_session.m_timeUnits;
-  if (m_maximumJitter < m_currentjitter)
-    m_maximumJitter = m_currentjitter;
+  m_currentJitter = (report.jitter + m_session.m_timeUnits / 2)/m_session.m_timeUnits;
+  if (m_maximumJitter < m_currentJitter)
+    m_maximumJitter = m_currentJitter;
 
 #if OPAL_RTCP_XR
   if (m_metrics != NULL)
@@ -2264,7 +2266,7 @@ void OpalRTPSession::SyncSource::GetStatistics(OpalMediaStatistics & statistics)
   statistics.m_minimumPacketTime = m_minimumPacketTime;
   statistics.m_averagePacketTime = m_averagePacketTime;
   statistics.m_maximumPacketTime = m_maximumPacketTime;
-  statistics.m_averageJitter     = m_currentjitter;
+  statistics.m_averageJitter     = m_currentJitter;
   statistics.m_maximumJitter     = m_maximumJitter;
   if (m_packets > 0)
     statistics.m_lastPacketRTP   = m_lastPacketTimestamp;

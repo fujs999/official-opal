@@ -472,6 +472,8 @@ RTCP_XR_Metrics::TimePeriod RTCP_XR_Metrics::CreateTimePeriod(PeriodType type, c
   newPeriod.duration = endTimestamp - beginTimestamp;
 
   m_timePeriods.push_back(newPeriod);
+  if (m_timePeriods.size() > 1000)
+    m_timePeriods.pop_front();
 
   return newPeriod;
 }
@@ -486,6 +488,8 @@ RTCP_XR_Metrics::IdPeriod RTCP_XR_Metrics::CreateIdPeriod(const PTime & beginTim
   newPeriod.duration = endTimestamp - beginTimestamp;
 
   m_idPeriods.push_back(newPeriod);
+  if (m_idPeriods.size() > 1000)
+    m_idPeriods.pop_front();
 
   return newPeriod;
 }
@@ -542,6 +546,8 @@ RTCP_XR_Metrics::IePeriod RTCP_XR_Metrics::CreateIePeriod(const RTCP_XR_Metrics:
   }
   /* Insert the new period on the list */
   m_iePeriods.push_back(newPeriod);
+  if (m_iePeriods.size() > 1000)
+    m_iePeriods.pop_back();
 
   return newPeriod;
 }
