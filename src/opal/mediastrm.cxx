@@ -334,17 +334,18 @@ PBoolean OpalMediaStream::WritePacket(RTP_DataFrame & packet)
   m_timestamp = packet.GetTimestamp();
   m_syncSourceId = packet.GetSyncSource();
 
-  PINDEX dummy;
+  PINDEX written;
   for (unsigned i = 0; i < packet.GetDiscontinuity(); ++i) {
-    if (!WriteData(NULL, 0, dummy)) {
+    if (!WriteData(NULL, 0, written)) {
       PTRACE(2, "WriteData (discontinuity) failed");
       return false;
     }
+    PTRACE(4, "WriteData (" << written << " bytes) for discontinuity: " << setw(-1) << packet);
   }
 
   int size = packet.GetPayloadSize();
   if (size == 0) {
-    if (!WriteData(NULL, 0, dummy)) {
+    if (!WriteData(NULL, 0, written)) {
       PTRACE(2, "WriteData (silence) failed");
       return false;
     }
@@ -354,7 +355,6 @@ PBoolean OpalMediaStream::WritePacket(RTP_DataFrame & packet)
     const BYTE * ptr = packet.GetPayloadPtr();
 
     while (size > 0) {
-      PINDEX written;
       if (!WriteData(ptr, size, written)) {
         PTRACE(2, "WriteData failed, size=" << size << ", written=" << written);
         return false;
