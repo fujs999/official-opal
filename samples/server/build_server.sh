@@ -2,7 +2,7 @@
 
 set -e
 
-MINOR_VERSION=18
+MINOR_VERSION=20
 INSTALLDIR=/usr/local
 export PKG_CONFIG_PATH=$INSTALLDIR/lib/pkgconfig
 
@@ -107,19 +107,7 @@ if $BOOTSTRAP; then
     echo "========================================================================"
     git clone -b v2_$MINOR_VERSION $GIT_PATH/ptlib
     echo "========================================================================"
-    echo "Configuring PTLib to install to $INSTALLDIR"
-    cd ptlib
-    make "CONFIG_PARMS=--prefix=$INSTALLDIR" config
-    git checkout configure
-    cd ..
-
     git clone -b v3_$MINOR_VERSION $GIT_PATH/opal
-    echo "========================================================================"
-    echo "Configuring OPAL to install to $INSTALLDIR"
-    cd opal
-    make "CONFIG_PARMS=--prefix=$INSTALLDIR" config
-    git checkout configure plugins/configure
-    cd ..
 fi
 
 if $UPDATE; then
@@ -144,9 +132,28 @@ if $CLEAN; then
     rm -f ptlib/include/ptlib_config.h opal/include/opal_config.h
 fi
 
+if $BOOTSTRAP; then
+    echo "========================================================================"
+    echo "Configuring PTLib to install to $INSTALLDIR"
+    cd ptlib
+    make "CONFIG_PARMS=--prefix=$INSTALLDIR" config
+    git checkout configure
+    cd ..
+fi
+
 make -C ptlib $MAKE_TARGET
 echo "----------------------------------------"
 $NO_INSTALL || sudo -E make -C ptlib install
+
+if $BOOTSTRAP; then
+    echo "========================================================================"
+    echo "Configuring OPAL to install to $INSTALLDIR"
+    cd opal
+    make "CONFIG_PARMS=--prefix=$INSTALLDIR" config
+    git checkout configure plugins/configure
+    cd ..
+fi
+
 echo "========================================================================"
 make -C opal $MAKE_TARGET
 echo "----------------------------------------"
