@@ -1258,9 +1258,11 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
       */
     OpalMediaStreamPtr GetMediaStream(
       const OpalMediaType & mediaType,    ///<  Media type to search for.
-      bool source,                        ///<  Indicates the direction of stream.
-      OpalMediaStreamPtr previous = NULL  ///< Previous stream to start search from
+      bool source                         ///<  Indicates the direction of stream.
     ) const;
+
+    /// Get all media streams for connection
+    PSafeArray<OpalMediaStream> GetMediaStreams() const;
 
 #if OPAL_STATISTICS
     /// Get media statistics of the type, and of the specifed direction.

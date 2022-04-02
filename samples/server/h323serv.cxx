@@ -267,7 +267,8 @@ PString MyGatekeeperServer::OnLoadEndPointStatus(const PString & htmlBlock)
 {
   PString substitution;
 
-  for (PSafePtr<H323RegisteredEndPoint> ep = GetFirstEndPoint(PSafeReadOnly); ep != NULL; ep++) {
+  PSafeArray<H323RegisteredEndPoint> eps = GetRegisteredEndPoints();
+  for (PSafeArray<H323RegisteredEndPoint>::iterator ep = eps.begin(); ep != eps.end(); ++ep) {
     // make a copy of the repeating html chunk
     PString insert = htmlBlock;
 

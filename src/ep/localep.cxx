@@ -421,9 +421,10 @@ PBoolean OpalLocalConnection::SetConnected()
 bool OpalLocalConnection::HoldRemote(bool placeOnHold)
 {
   if (m_endpoint.WillPauseTransmitMediaOnHold()) {
-    OpalMediaStreamPtr stream;
-    while ((stream = GetMediaStream(OpalMediaType(), true, stream)) != NULL)
-      stream->InternalSetPaused(placeOnHold, false, false);
+    for (StreamDict::iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
+      if (it->second->IsSource())
+        it->second->InternalSetPaused(placeOnHold, false, false);
+    }
   }
 
   return true;

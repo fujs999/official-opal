@@ -286,18 +286,6 @@ class H323PeerElement : public H323_AnnexG
     ) const;
   //@}
 
-    PSafePtr<H323PeerElementDescriptor> GetFirstDescriptor(
-      PSafetyMode mode = PSafeReference
-    ) { return PSafePtr<H323PeerElementDescriptor>(descriptors, mode); }
-
-    PSafePtr<H323PeerElementServiceRelationship> GetFirstLocalServiceRelationship(
-      PSafetyMode mode = PSafeReference
-    ) { return PSafePtr<H323PeerElementServiceRelationship>(localServiceRelationships, mode); }
-
-    PSafePtr<H323PeerElementServiceRelationship> GetFirstRemoteServiceRelationship(
-      PSafetyMode mode = PSafeReference
-    ) { return PSafePtr<H323PeerElementServiceRelationship>(remoteServiceRelationships, mode); }
-
     void SetLocalName(const PString & name);
     PString GetLocalName() const;
 

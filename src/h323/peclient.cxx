@@ -254,29 +254,27 @@ void H323PeerElement::MonitorMain(PThread &, P_INT_PTR)
     // refresh and retry remote service relationships by sending new ServiceRequests
     PTime now;
     PTime nextExpireTime = now + ServiceRequestRetryTime*1000;
-    {
-      for (PSafePtr<H323PeerElementServiceRelationship> sr = GetFirstRemoteServiceRelationship(PSafeReadOnly); sr != NULL; sr++) {
+    for (PSafeSortedList<H323PeerElementServiceRelationship>::iterator sr = remoteServiceRelationships.begin(); sr != remoteServiceRelationships.end(); ++sr) {
 
-        if (now >= sr->m_expireTime) {
-          PTRACE(3, "PeerElement\tRenewing service relationship " << sr->m_serviceID << "before expiry");
-          ServiceRequestByID(sr->m_serviceID);
-        }
-
-        // get minimum sleep time for next refresh or retry
-        if (sr->m_expireTime < nextExpireTime)
-          nextExpireTime = sr->m_expireTime;
+      if (now >= sr->m_expireTime) {
+        PTRACE(3, "PeerElement\tRenewing service relationship " << sr->m_serviceID << "before expiry");
+        ServiceRequestByID(sr->m_serviceID);
       }
+
+      // get minimum sleep time for next refresh or retry
+      if (sr->m_expireTime < nextExpireTime)
+        nextExpireTime = sr->m_expireTime;
     }
 
     // expire local service relationships we have not received ServiceRequests for
     {
-      for (PSafePtr<H323PeerElementServiceRelationship> sr = GetFirstLocalServiceRelationship(PSafeReadOnly); sr != NULL; sr++) {
+      for (PSafeSortedList<H323PeerElementServiceRelationship>::iterator sr = localServiceRelationships.begin(); sr != localServiceRelationships.end(); ++sr) {
 
         // check to see if expired or needs refresh scheduled
         PTime expireTime = sr->m_expireTime + 1000 * ServiceRequestGracePeriod;
         if (now >= expireTime) {
           PTRACE(2, "PeerElement\tService relationship " << sr->m_serviceID << "expired");
-          localServiceRelationships.Remove(sr);
+          localServiceRelationships.erase(sr);
           {
             PWaitAndSignal m(localPeerListMutex);
             localServiceOrdinals -= sr->m_ordinal;
@@ -288,19 +286,17 @@ void H323PeerElement::MonitorMain(PThread &, P_INT_PTR)
     }
 
     // if any descriptor needs updating, then spawn a thread to do it
-    {
-      for (PSafePtr<H323PeerElementDescriptor> descriptor = GetFirstDescriptor(PSafeReadOnly); descriptor != NULL; descriptor++) {
-        PWaitAndSignal m(localPeerListMutex);
-        if (
-            (descriptor->state != H323PeerElementDescriptor::Clean) || 
-            (
-             (descriptor->creator >= RemoteServiceRelationshipOrdinal) && 
-              !localServiceOrdinals.Contains(descriptor->creator)
-             )
-            ) {
-          PThread::Create(PCREATE_NOTIFIER(UpdateAllDescriptors), 0, PThread::AutoDeleteThread, PThread::NormalPriority, "UpdateDescriptors");
-          break;
-        }
+    for (PSafeSortedList<H323PeerElementDescriptor>::iterator descriptor = descriptors.begin(); descriptor != descriptors.end(); ++descriptor) {
+      PWaitAndSignal m(localPeerListMutex);
+      if (
+          (descriptor->state != H323PeerElementDescriptor::Clean) || 
+          (
+            (descriptor->creator >= RemoteServiceRelationshipOrdinal) && 
+            !localServiceOrdinals.Contains(descriptor->creator)
+            )
+          ) {
+        PThread::Create(PCREATE_NOTIFIER(UpdateAllDescriptors), 0, PThread::AutoDeleteThread, PThread::NormalPriority, "UpdateDescriptors");
+        break;
       }
     }
 
@@ -321,7 +317,7 @@ void H323PeerElement::UpdateAllDescriptors(PThread &, P_INT_PTR)
 {
   PTRACE(4, "PeerElement\tDescriptor update thread started");
 
-  for (PSafePtr<H323PeerElementDescriptor> descriptor = GetFirstDescriptor(PSafeReadWrite); descriptor != NULL; descriptor++) {
+  for (PSafeSortedList<H323PeerElementDescriptor>::iterator descriptor = descriptors.begin(); descriptor != descriptors.end(); ++descriptor) {
     PWaitAndSignal m(localPeerListMutex);
 
     // delete any descriptors which belong to service relationships that are now gone
@@ -332,7 +328,7 @@ void H323PeerElement::UpdateAllDescriptors(PThread &, P_INT_PTR)
        )
       descriptor->state = H323PeerElementDescriptor::Deleted;
 
-    UpdateDescriptor(descriptor);
+    UpdateDescriptor(&*descriptor);
   }
 
   monitorTickle.Signal();
@@ -362,9 +358,10 @@ PBoolean H323PeerElement::SetOnlyServiceRelationship(const PString & peer, PBool
     return true;
   }
 
-  for (PSafePtr<H323PeerElementServiceRelationship> sr = GetFirstRemoteServiceRelationship(PSafeReadOnly); sr != NULL; sr++)
+  for (PSafeSortedList<H323PeerElementServiceRelationship>::iterator sr = remoteServiceRelationships.begin(); sr != remoteServiceRelationships.end(); ++sr) {
     if (sr->m_peer != peer)
       RemoveServiceRelationship(sr->m_peer);
+  }
 
   return AddServiceRelationship(peer, keepTrying);
 }
@@ -450,7 +447,7 @@ PBoolean H323PeerElement::RemoveServiceRelationship(const H323TransportAddress &
 PBoolean H323PeerElement::RemoveAllServiceRelationships()
 {
   // if a service relationship exists for this peer, then reconfirm it
-  for (PSafePtr<H323PeerElementServiceRelationship> sr = GetFirstRemoteServiceRelationship(PSafeReadOnly); sr != NULL; sr++)
+  for (PSafeSortedList<H323PeerElementServiceRelationship>::iterator sr = remoteServiceRelationships.begin(); sr != remoteServiceRelationships.end(); ++sr)
     RemoveServiceRelationship(sr->m_peer);
 
   return true;
@@ -539,7 +536,7 @@ H323PeerElement::Error H323PeerElement::ServiceRequestByAddr(const H323Transport
   OnAddServiceRelationship(peer);
 
   // mark all descriptors as needing an update
-  for (PSafePtr<H323PeerElementDescriptor> descriptor = GetFirstDescriptor(PSafeReadWrite); descriptor != NULL; descriptor++) {
+  for (PSafeSortedList<H323PeerElementDescriptor>::iterator descriptor = descriptors.begin(); descriptor != descriptors.end(); ++descriptor) {
     if (descriptor->state == H323PeerElementDescriptor::Clean)
       descriptor->state = H323PeerElementDescriptor::Dirty;
   }
@@ -1040,9 +1037,8 @@ PBoolean H323PeerElement::UpdateDescriptor(H323PeerElementDescriptor * descripto
   else
     descriptor->state = H323PeerElementDescriptor::Clean;
 
-  for (PSafePtr<H323PeerElementServiceRelationship> sr = GetFirstRemoteServiceRelationship(PSafeReadOnly); sr != NULL; sr++) {
+  for (PSafeSortedList<H323PeerElementServiceRelationship>::iterator sr = remoteServiceRelationships.begin(); sr != remoteServiceRelationships.end(); ++sr)
     SendUpdateDescriptorByID(sr->m_serviceID, descriptor, updateType);
-  }
 
   if (descriptor->state == H323PeerElementDescriptor::Deleted)
     descriptors.Remove(descriptor);
@@ -1214,7 +1210,7 @@ PBoolean H323PeerElement::AccessRequest(const H225_AliasAddress & searchAlias,
   // try each service relationship in turn
   POrdinalSet peersTried;
 
-  for (PSafePtr<H323PeerElementServiceRelationship> sr = GetFirstRemoteServiceRelationship(PSafeReadOnly); sr != NULL; sr++) {
+  for (PSafeSortedList<H323PeerElementServiceRelationship>::iterator sr = remoteServiceRelationships.begin(); sr != remoteServiceRelationships.end(); ++sr) {
 
     // create the request
     H501PDU request;

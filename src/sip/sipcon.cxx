@@ -403,7 +403,7 @@ void SIPConnection::OnReleased()
   }
 
   PTRACE(3, "Cancelling " << m_forkedInvitations.GetSize() << " invitations.");
-  for (PSafePtr<SIPTransaction> invitation(m_forkedInvitations, PSafeReference); invitation != NULL; ++invitation) {
+  for (PSafeArray<SIPTransaction>::iterator invitation = m_forkedInvitations.begin(); invitation != m_forkedInvitations.end(); ++invitation) {
     /* If we never even received a "100 Trying" from a remote, then just abort
        the transaction, do not wait, it is probably on an interface that the
        remote is not physically on, otherwise we have to CANCEL and wait. */
@@ -414,7 +414,7 @@ void SIPConnection::OnReleased()
   }
 
   // Abort the queued up re-INVITEs we never got a chance to send.
-  for (PSafePtr<SIPTransaction> invitation(m_pendingInvitations, PSafeReference); invitation != NULL; ++invitation)
+  for (PSafeArray<SIPTransaction>::iterator invitation = m_pendingInvitations.begin(); invitation != m_pendingInvitations.end(); ++invitation)
     invitation->Abort();
 
   // Remove all the references to the transactions so garbage can be collected
@@ -535,8 +535,8 @@ bool SIPConnection::TransferConnection(const PString & remoteParty)
 
   PTRACE(3, "Consultation transfer of " << *this << " to " << remoteParty);
 
-  for (PSafePtr<OpalConnection> connection = call->GetConnection(0); connection != NULL; ++connection) {
-    PSafePtr<SIPConnection> sip = PSafePtrCast<OpalConnection, SIPConnection>(connection);
+  for (PINDEX i = 0; i < call->GetConnectionCount(); ++i) {
+    PSafePtr<SIPConnection> sip = call->GetConnectionAs<SIPConnection>(i);
     if (sip != NULL) {
       m_consultationTransferToken = sip->GetToken();
       return ConsultationTransfer(*sip, referSubMode, false);
@@ -1421,17 +1421,13 @@ void SIPConnection::OnTransactionFailed(SIPTransaction & transaction)
 
   PTRACE(4, "Checking for all forked INVITEs failing.");
   bool allFailed = true;
-  {
-    // The connection stays alive unless all INVITEs have failed
-    PSafePtr<SIPTransaction> invitation(m_forkedInvitations, PSafeReference);
-    while (invitation != NULL) {
-      if (invitation == &transaction)
-        m_forkedInvitations.Remove(invitation++);
-      else {
-        if (!invitation->IsFailed())
-          allFailed = false;
-        ++invitation;
-      }
+  for (PSafeArray<SIPTransaction>::iterator invitation = m_forkedInvitations.begin(); invitation != m_forkedInvitations.end(); ) {
+    if (&*invitation == &transaction)
+      m_forkedInvitations.erase(invitation++);
+    else {
+      if (!invitation->IsFailed())
+        allFailed = false;
+      ++invitation;
     }
   }
 
@@ -1554,8 +1550,8 @@ bool SIPConnection::OnReceivedResponseToINVITE(SIPTransaction & transaction, SIP
 
   // See if this is an initial INVITE or a re-INVITE
   bool reInvite = true;
-  for (PSafePtr<SIPTransaction> invitation(m_forkedInvitations, PSafeReference); invitation != NULL; ++invitation) {
-    if (invitation == &transaction) {
+  for (PSafeArray<SIPTransaction>::iterator invitation = m_forkedInvitations.begin(); invitation != m_forkedInvitations.end(); ++invitation) {
+    if (&*invitation == &transaction) {
       reInvite = false;
       break;
     }
@@ -1644,8 +1640,8 @@ bool SIPConnection::OnReceivedResponseToINVITE(SIPTransaction & transaction, SIP
       m_sessions.MoveFrom(sessionsInTransaction);
 
     // Have a positive response to the INVITE, so cancel all the other invitations sent.
-    for (PSafePtr<SIPTransaction> invitation(m_forkedInvitations, PSafeReference); invitation != NULL; ++invitation) {
-      if (invitation != &transaction)
+    for (PSafeArray<SIPTransaction>::iterator invitation = m_forkedInvitations.begin(); invitation != m_forkedInvitations.end(); ++invitation) {
+      if (&*invitation != &transaction)
         invitation->Cancel();
     }
 
@@ -2203,7 +2199,7 @@ void SIPConnection::OnReceivedResponse(SIPTransaction & transaction, SIP_PDU & r
   if (GetPhase() < ConnectedPhase) {
     // Final check to see if we have forked INVITEs still running, don't
     // release connection until all of them have failed.
-    for (PSafePtr<SIPTransaction> invitation(m_forkedInvitations, PSafeReference); invitation != NULL; ++invitation) {
+    for (PSafeArray<SIPTransaction>::iterator invitation = m_forkedInvitations.begin(); invitation != m_forkedInvitations.end(); ++invitation) {
       if (invitation->IsProceeding())
         return;
       // If we have not even got a 1xx from the remote for this forked INVITE,

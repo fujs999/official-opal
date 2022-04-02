@@ -3019,11 +3019,13 @@ PSafePtr<OpalConnection> MyManager::GetNetworkConnection(PSafetyMode mode)
   if (m_activeCall == NULL)
     return NULL;
 
-  PSafePtr<OpalConnection> connection = m_activeCall->GetConnection(0, PSafeReference);
-  while (connection != NULL && !connection->IsNetworkConnection())
-    ++connection;
+  for (PINDEX i = 0; i < m_activeCall->GetConnectionCount(); ++i) {
+    PSafePtr<OpalConnection> connection = m_activeCall->GetConnection(i, PSafeReference);
+    if (connection != NULL && connection->IsNetworkConnection() && connection.SetSafetyMode(mode))
+      return connection;
+  }
 
-  return connection.SetSafetyMode(mode) ? connection : NULL;
+  return NULL;
 }
 
 
@@ -3619,9 +3621,11 @@ PBoolean MyManager::CreateVideoOutputDevice(const OpalConnection & connection,
                                             PBoolean & autoDelete)
 {
   unsigned openChannelCount = 0;
-  OpalMediaStreamPtr mediaStream;
-  while ((mediaStream = connection.GetMediaStream(OpalMediaType::Video(), preview, mediaStream)) != NULL)
-    ++openChannelCount;
+  PSafeArray<OpalMediaStream> mediaStreams = connection.GetMediaStreams();
+  for (PSafeArray<OpalMediaStream>::iterator it = mediaStreams.begin(); it != mediaStreams.end(); ++it) {
+    if (it->IsSource() == preview)
+      ++openChannelCount;
+  }
 
   if (preview && !(openChannelCount > 0 ? m_SecondaryVideoGrabPreview : m_VideoGrabPreview))
     return false;

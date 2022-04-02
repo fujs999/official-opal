@@ -1270,11 +1270,9 @@ class H323GatekeeperServer : public H323TransactionServer
       PSafetyMode mode = PSafeReference
     );
 
-    /**Get first endpoint for enumeration.
+    /**Get registered endpoints for enumeration.
       */
-    PSafePtr<H323RegisteredEndPoint> GetFirstEndPoint(
-      PSafetyMode mode = PSafeReference
-    ) { return PSafePtr<H323RegisteredEndPoint>(m_byIdentifier, mode); }
+    PSafeArray<H323RegisteredEndPoint> GetRegisteredEndPoints() const;
   //@}
 
     PSafePtr<H323RegisteredEndPoint> FindDestinationEndPoint(
@@ -1355,12 +1353,6 @@ class H323GatekeeperServer : public H323TransactionServer
       H323GatekeeperCall::Direction direction,
       PSafetyMode mode = PSafeReference
     );
-
-    /**Get first endpoint for enumeration.
-      */
-    PSafePtr<H323GatekeeperCall> GetFirstCall(
-      PSafetyMode mode = PSafeReference
-    ) { return PSafePtr<H323GatekeeperCall>(m_activeCalls, mode); }
   //@}
 
   /**@name Routing operations */
@@ -1765,9 +1757,11 @@ class H323GatekeeperServer : public H323TransactionServer
     H323PeerElement * m_peerElement;
 #endif
 
-    PSafeDictionary<H225_AliasAddress, H323RegisteredEndPoint> m_discoveredEndpoints;
+    typedef PSafeDictionary<H225_AliasAddress, H323RegisteredEndPoint> EndPointByAlias;
+    EndPointByAlias m_discoveredEndpoints;
 
-    PSafeDictionary<PString, H323RegisteredEndPoint> m_byIdentifier;
+    typedef PSafeDictionary<PString, H323RegisteredEndPoint> EndPointByID;
+    EndPointByID m_byIdentifier;
 
     class StringMap : public PString {
         PCLASSINFO(StringMap, PString);

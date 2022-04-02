@@ -225,7 +225,7 @@ void OpalIVRConnection::OnStartMediaPatch(OpalMediaPatch & patch)
 {
   OpalLocalConnection::OnStartMediaPatch(patch);
 
-  for (StreamDict::const_iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
+  for (StreamDict::iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
     OpalMediaStreamPtr mediaStream = it->second;
     if (mediaStream != NULL && !mediaStream->IsEstablished()) {
       PTRACE(4, "Delayed starting VXML, not yet established " << *mediaStream);

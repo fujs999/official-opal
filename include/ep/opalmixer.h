@@ -501,12 +501,9 @@ class OpalMixerNodeManager
       */
     void AddNode(OpalMixerNode * node);
 
-    /**Get the first node.
-       The active nodes may be enumerated by the ++ operator on the PSafePtr.
+    /**Get the nodes.
       */
-    PSafePtr<OpalMixerNode> GetFirstNode(
-      PSafetyMode mode = PSafeReference ///< Lock mode for returned pointer
-    ) const { return PSafePtr<OpalMixerNode>(m_nodesByUID, mode); }
+    PSafeArray<OpalMixerNode> GetNodes() const;
 
     /**Find a new node.
        This will search for the mixer node using GUID and then name.
@@ -573,9 +570,10 @@ class OpalMixerNodeManager
 
   protected:
     OpalManager & m_manager;
-
-    PSafeDictionary<PGloballyUniqueID, OpalMixerNode> m_nodesByUID;
-    PSafeDictionary<PString, OpalMixerNode>           m_nodesByName;
+    typedef PSafeDictionary<PGloballyUniqueID, OpalMixerNode> NodesByUID;
+    NodesByUID m_nodesByUID;
+    typedef PSafeDictionary<PString, OpalMixerNode> NodesByName;
+    NodesByName m_nodesByName;
 };
 
 
@@ -1260,15 +1258,17 @@ class OpalMixerNode : public PSafeObject
     /**Get first connection in the connections list as type.
       */
     template <class Subclass>
-    PSafePtr<Subclass> GetFirstConnectionAs(
+    PSafePtr<Subclass> GetConnectionAs(
+      PINDEX idx,
       PSafetyMode mode = PSafeReference
-    ) const { return PSafePtr<Subclass>(m_connections, mode); }
+    ) const { return m_connections.GetAt(idx, mode); }
 
     /**Get first connection in the connections list.
       */
-    PSafePtr<OpalConnection> GetFirstConnection(
+    PSafePtr<OpalConnection> GetConnection(
+      PINDEX idx,
       PSafetyMode mode = PSafeReference
-    ) const { return GetFirstConnectionAs<OpalConnection>(mode); }
+    ) const { return m_connections.GetAt(idx, mode); }
 
     /**Get the raw audio accumulation buffer.
      */
