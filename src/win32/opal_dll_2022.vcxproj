@@ -353,7 +353,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </None>
-    <CustomBuild Include="opald_2019_x86.dtf">
+    <CustomBuild Include="opald_2022_x86.dtf">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='No Trace|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='No Trace|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -367,7 +367,7 @@ MergeSym -I "..\..\..\ptlib;$(PTLIBDIR)" -x "lib\$(Platform)\$(ConfigurationName
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
     </CustomBuild>
-    <CustomBuild Include="opaln_2019_x86.dtf">
+    <CustomBuild Include="opaln_2022_x86.dtf">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -389,7 +389,7 @@ MergeSym -I "..\..\..\ptlib;$(PTLIBDIR)" -x "lib\$(Platform)\$(ConfigurationName
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='No Trace|x64'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
     </CustomBuild>
-    <CustomBuild Include="opal_2019_x86.dtf">
+    <CustomBuild Include="opal_2022_x86.dtf">
       <Message Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Merging symbols ...</Message>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)$(TargetName).def;%(Outputs)</Outputs>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(OutDir)opals.lib;$(ProjectDir)Private.def;%(AdditionalInputs)</AdditionalInputs>
@@ -403,7 +403,7 @@ MergeSym -I "..\..\..\ptlib;$(PTLIBDIR)" -x "lib\$(Platform)\$(ConfigurationName
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
     </CustomBuild>
-    <CustomBuild Include="opald_2019_x64.dtf">
+    <CustomBuild Include="opald_2022_x64.dtf">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='No Trace|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
@@ -417,7 +417,7 @@ MergeSym -I "..\..\..\ptlib;$(PTLIBDIR)" -x "lib\$(Platform)\$(ConfigurationName
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </CustomBuild>
-    <CustomBuild Include="opaln_2019_x64.dtf">
+    <CustomBuild Include="opaln_2022_x64.dtf">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
@@ -430,7 +430,7 @@ MergeSym -I "..\..\..\ptlib;$(PTLIBDIR)" -x "lib\$(Platform)\$(ConfigurationName
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </CustomBuild>
-    <CustomBuild Include="opal_2019_x64.dtf">
+    <CustomBuild Include="opal_2022_x64.dtf">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='No Trace|x64'">true</ExcludedFromBuild>
       <FileType>Document</FileType>
@@ -446,10 +446,10 @@ MergeSym -I "..\..\..\ptlib;$(PTLIBDIR)" -x "lib\$(Platform)\$(ConfigurationName
     <None Include="Private.def" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\ptlib\src\ptlib\msos\PTLib_2019.vcxproj">
+    <ProjectReference Include="..\..\..\ptlib\src\ptlib\msos\PTLib_2022.vcxproj">
       <Project>{85f4f26a-1a5d-4685-a48a-448102c5c5bc}</Project>
     </ProjectReference>
-    <ProjectReference Include="opal_lib_2019.vcxproj">
+    <ProjectReference Include="opal_lib_2022.vcxproj">
       <Project>{11fb12b5-b5eb-4dff-bd6f-2a0bdf187c22}</Project>
     </ProjectReference>
   </ItemGroup>

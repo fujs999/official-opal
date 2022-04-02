@@ -3,51 +3,51 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29519.181
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenPhone", "OpenPhone_2019.vcxproj", "{56E04FF6-6AEB-4917-B8FC-6C0C1F5831F1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenPhone", "OpenPhone_2022.vcxproj", "{56E04FF6-6AEB-4917-B8FC-6C0C1F5831F1}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PTLib Static", "..\..\..\ptlib\src\ptlib\msos\Console_2019.vcxproj", "{D11E1C9D-406C-4D7C-8F37-913C0BFD9E0D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PTLib Static", "..\..\..\ptlib\src\ptlib\msos\Console_2022.vcxproj", "{D11E1C9D-406C-4D7C-8F37-913C0BFD9E0D}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PTLib DLL", "..\..\..\ptlib\src\ptlib\msos\PTLib_2019.vcxproj", "{85F4F26A-1A5D-4685-A48A-448102C5C5BC}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PTLib DLL", "..\..\..\ptlib\src\ptlib\msos\PTLib_2022.vcxproj", "{85F4F26A-1A5D-4685-A48A-448102C5C5BC}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OPAL Static", "..\..\src\win32\opal_lib_2019.vcxproj", "{11FB12B5-B5EB-4DFF-BD6F-2A0BDF187C22}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OPAL Static", "..\..\src\win32\opal_lib_2022.vcxproj", "{11FB12B5-B5EB-4DFF-BD6F-2A0BDF187C22}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OPAL DLL", "..\..\src\win32\opal_dll_2019.vcxproj", "{B2830E08-B1F1-492F-8849-F3D8461E450F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OPAL DLL", "..\..\src\win32\opal_dll_2022.vcxproj", "{B2830E08-B1F1-492F-8849-F3D8461E450F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Video - H.261 (Vic)", "..\..\plugins\video\H.261-vic\h261vic_2019.vcxproj", "{4A1B92CB-CA8E-4511-A1D5-B0A322FDE67C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Video - H.261 (Vic)", "..\..\plugins\video\H.261-vic\h261vic_2022.vcxproj", "{4A1B92CB-CA8E-4511-A1D5-B0A322FDE67C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - GSM 06.10", "..\..\plugins\audio\GSM0610\gsm0610_2019.vcxproj", "{E6897206-9765-4B73-9A98-DAC5787814CE}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - GSM 06.10", "..\..\plugins\audio\GSM0610\gsm0610_2022.vcxproj", "{E6897206-9765-4B73-9A98-DAC5787814CE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - GSM-AMR", "..\..\plugins\audio\gsm-amr\gsmamr_2019.vcxproj", "{92E9FA1E-2925-42FD-8226-A07CBD237E18}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - GSM-AMR", "..\..\plugins\audio\gsm-amr\gsmamr_2022.vcxproj", "{92E9FA1E-2925-42FD-8226-A07CBD237E18}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - iLBC", "..\..\plugins\audio\iLBC\ilbccodec_2019.vcxproj", "{F1C13640-A056-4280-B1C6-6582E5890B89}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - iLBC", "..\..\plugins\audio\iLBC\ilbccodec_2022.vcxproj", "{F1C13640-A056-4280-B1C6-6582E5890B89}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - Speex", "..\..\plugins\audio\Speex\Speex_2019.vcxproj", "{02AFB070-A9D5-4FB7-A041-311722C9F8D4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - Speex", "..\..\plugins\audio\Speex\Speex_2022.vcxproj", "{02AFB070-A9D5-4FB7-A041-311722C9F8D4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Video - H.263-1998 (FFMPEG)", "..\..\plugins\video\H.263-1998\h263_2019.vcxproj", "{E75AF717-C8A6-40E7-82CB-80D67CE01611}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Video - H.263-1998 (FFMPEG)", "..\..\plugins\video\H.263-1998\h263_2022.vcxproj", "{E75AF717-C8A6-40E7-82CB-80D67CE01611}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpanDSP Fax Codec", "..\..\plugins\fax\fax_spandsp\spandsp_fax_2019.vcxproj", "{D875EC01-6BBF-48EE-93F8-800BD6D76443}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SpanDSP Fax Codec", "..\..\plugins\fax\fax_spandsp\spandsp_fax_2022.vcxproj", "{D875EC01-6BBF-48EE-93F8-800BD6D76443}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - G.722.2", "..\..\plugins\audio\G.722.2\G.722.2_2019.vcxproj", "{B68CA250-5801-4F0C-87CD-BB9A73FA934A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - G.722.2", "..\..\plugins\audio\G.722.2\G.722.2_2022.vcxproj", "{B68CA250-5801-4F0C-87CD-BB9A73FA934A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Video - MPEG4 part 2 (FFMPEG)", "..\..\plugins\video\MPEG4-ffmpeg\mpeg_2019.vcxproj", "{D96E9539-B594-4C4B-8782-33A54D990F5F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Video - MPEG4 part 2 (FFMPEG)", "..\..\plugins\video\MPEG4-ffmpeg\mpeg_2022.vcxproj", "{D96E9539-B594-4C4B-8782-33A54D990F5F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenPhoneInstaller", "OpenPhoneInstaller_2019.vcxproj", "{AE1C39FC-A03D-4947-9127-ABE9FE7EDF3A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenPhoneInstaller", "OpenPhoneInstaller_2022.vcxproj", "{AE1C39FC-A03D-4947-9127-ABE9FE7EDF3A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio  - G.722", "..\..\plugins\audio\G722\G722_2019.vcxproj", "{B247D5F5-2052-4BBD-9A7D-1AD3749A3BC3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio  - G.722", "..\..\plugins\audio\G722\G722_2022.vcxproj", "{B247D5F5-2052-4BBD-9A7D-1AD3749A3BC3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - G.722.1", "..\..\plugins\audio\G.722.1\G.722.1_2019.vcxproj", "{3C127609-B3A6-47FD-9B94-8FD2CB2D6623}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - G.722.1", "..\..\plugins\audio\G.722.1\G.722.1_2022.vcxproj", "{3C127609-B3A6-47FD-9B94-8FD2CB2D6623}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - G.726", "..\..\plugins\audio\G726\G726_2019.vcxproj", "{269DA9EF-526D-46DE-AA69-D39EFBCB29C0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - G.726", "..\..\plugins\audio\G726\G726_2022.vcxproj", "{269DA9EF-526D-46DE-AA69-D39EFBCB29C0}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Video - VP8 (WebM)", "..\..\plugins\video\VP8-WebM\vp8_webm_2019.vcxproj", "{F663F1B8-24D5-4BAA-8A3C-E76A5AC619D4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Video - VP8 (WebM)", "..\..\plugins\video\VP8-WebM\vp8_webm_2022.vcxproj", "{F663F1B8-24D5-4BAA-8A3C-E76A5AC619D4}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - Opus", "..\..\plugins\audio\Opus\OpusCodec_2019.vcxproj", "{8FD8CFC0-086C-4B92-9F17-F28FB71869DD}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - Opus", "..\..\plugins\audio\Opus\OpusCodec_2022.vcxproj", "{8FD8CFC0-086C-4B92-9F17-F28FB71869DD}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - iSAC", "..\..\plugins\audio\iSAC\isaccodec_2019.vcxproj", "{851A8648-5021-4FC3-ACED-40D2802D9C5E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Audio - iSAC", "..\..\plugins\audio\iSAC\isaccodec_2022.vcxproj", "{851A8648-5021-4FC3-ACED-40D2802D9C5E}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opus", "..\..\plugins\audio\Opus\opus\win32\VS2019\opus.vcxproj", "{219EC965-228A-1824-174D-96449D05F88A}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Video - H.264 (Cisco OpenH264)", "..\..\plugins\video\openh264\openh264_2019.vcxproj", "{E513A4F2-5341-4CAE-A643-D47975AE291C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Video - H.264 (Cisco OpenH264)", "..\..\plugins\video\openh264\openh264_2022.vcxproj", "{E513A4F2-5341-4CAE-A643-D47975AE291C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Codecs", "Codecs", "{03BA3CEE-5BBB-4BC1-A46C-4FA195A44FC7}"
 EndProject
@@ -59,11 +59,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Video", "Video", "{3D15B8FA
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{53671095-4D8F-4E2A-8150-B9837A969828}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtiff", "..\..\plugins\fax\fax_spandsp\libtiff_2019.vcxproj", "{401A40CD-5DB4-4E34-AC68-FA99E9FAC014}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtiff", "..\..\plugins\fax\fax_spandsp\libtiff_2022.vcxproj", "{401A40CD-5DB4-4E34-AC68-FA99E9FAC014}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libspandsp", "..\..\plugins\fax\fax_spandsp\libspandsp_2019.vcxproj", "{1CBB0077-18C5-455F-801C-0A0CE7B0BBF5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libspandsp", "..\..\plugins\fax\fax_spandsp\libspandsp_2022.vcxproj", "{1CBB0077-18C5-455F-801C-0A0CE7B0BBF5}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libjpeg", "..\..\plugins\fax\fax_spandsp\libjpeg_2019.vcxproj", "{2DC64A78-365E-4836-9659-807E41F42A69}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libjpeg", "..\..\plugins\fax\fax_spandsp\libjpeg_2022.vcxproj", "{2DC64A78-365E-4836-9659-807E41F42A69}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

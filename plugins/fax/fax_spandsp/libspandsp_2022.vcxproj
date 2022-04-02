@@ -488,10 +488,10 @@ copy "$(ProjectDir)spandsp\src\msvc\spandsp.h" "$(ProjectDir)spandsp\src\spandsp
     <ClInclude Include="spandsp\src\spandsp\version.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="libjpeg_2019.vcxproj">
+    <ProjectReference Include="libjpeg_2022.vcxproj">
       <Project>{2dc64a78-365e-4836-9659-807e41f42a69}</Project>
     </ProjectReference>
-    <ProjectReference Include="libtiff_2019.vcxproj">
+    <ProjectReference Include="libtiff_2022.vcxproj">
       <Project>{401a40cd-5db4-4e34-ac68-fa99e9fac014}</Project>
     </ProjectReference>
   </ItemGroup>
