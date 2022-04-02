@@ -186,6 +186,13 @@ OpalIVRConnection::OpalIVRConnection(OpalCall & call,
   m_autoStartInfo[OpalMediaType::Video()] = OpalMediaType::DontOffer;
 #endif
 
+#if OPAL_PTLIB_SSL
+  OpalManager & manager = m_endpoint.GetManager();
+  m_vxmlSession.SetSSLCredentials(manager.GetSSLCertificateAuthorityFiles(),
+                                  manager.GetSSLCertificateFile(),
+                                  manager.GetSSLPrivateKeyFile());
+#endif
+
   m_vxmlSession.SetCache(ep.GetTextToSpeechCache());
 
   PTRACE(4, "Constructed");
