@@ -316,7 +316,7 @@ OpalManager::OpalManager()
 #endif
   , m_rtpIpPorts(5000, 5999)
 #if OPAL_PTLIB_SSL
-  , m_caFiles(PProcess::Current().GetHomeDirectory() + "certificates")
+  , m_caFiles("*") // Use default
   , m_certificateFile(PProcess::Current().GetHomeDirectory() + "opal_certificate.pem")
   , m_privateKeyFile(PProcess::Current().GetHomeDirectory() + "opal_private_key.pem")
   , m_autoCreateCertificate(true)
