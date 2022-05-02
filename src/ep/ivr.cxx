@@ -273,6 +273,17 @@ void OpalIVRConnection::SetVXML(const PString & vxml)
 }
 
 
+static PStringToString * MakeRedirectInfo(const PString & uri)
+{
+  PStringToString * redirect =  new PStringToString;
+  redirect->SetAt("uri", uri);
+  redirect->SetAt("pi", "Unknown");
+  redirect->SetAt("si", "Unknown");
+  redirect->SetAt("reason", "Unknown");
+  return redirect;
+}
+
+
 PBoolean OpalIVRConnection::StartVXML()
 {
   if (m_vxmlScript.IsEmpty())
@@ -282,27 +293,36 @@ PBoolean OpalIVRConnection::StartVXML()
   if (!mutex.IsLocked())
     return false;
 
-  PURL remoteURL = GetRemotePartyURL();
-  m_vxmlSession.SetVar("session.connection.local.uri", GetLocalPartyURL());
-  m_vxmlSession.SetVar("session.connection.local.dnis", GetCalledPartyNumber());
-  m_vxmlSession.SetVar("session.connection.remote.ani", GetRemotePartyNumber());
-  m_vxmlSession.SetVar("session.connection.calltoken", GetCall().GetToken());
-  m_vxmlSession.SetVar("session.connection.remote.uri", remoteURL);
-  m_vxmlSession.SetVar("session.connection.remote.ip", remoteURL.GetHostName());
-  m_vxmlSession.SetVar("session.connection.remote.port", remoteURL.GetPort());
-
+  PArray<PStringToString> redirects;
   PSafePtr<OpalConnection> network = GetOtherPartyConnection();
   if (network != NULL) {
-    PString redirect = network->GetRedirectingParty();
-    m_vxmlSession.SetVar("session.connection.redirect.uri", redirect);
-
-    if (!OpalIsE164(redirect)) {
-      redirect = PURL(redirect).GetUserName();
-      if (!OpalIsE164(redirect))
-        redirect.MakeEmpty();
-    }
-    m_vxmlSession.SetVar("session.connection.redirect.ani", redirect);
+    PURL redirectingParty(network->GetRedirectingParty(), "tel");
+    if (!redirectingParty.IsEmpty())
+      redirects.Append(MakeRedirectInfo(redirectingParty));
   }
+
+  redirects.Append(MakeRedirectInfo(GetCalledPartyURL()));
+
+  PStringToString aai;
+  aai.SetAt("callToken", GetCall().GetToken());
+
+  PURL remoteURL = GetRemotePartyURL();
+  m_vxmlSession.SetConnectionVars(
+    GetLocalPartyURL(),
+    remoteURL,
+    remoteURL.GetScheme(),
+    "Unknown",
+    redirects,
+    aai,
+    IsOriginating()
+  );
+
+  // These are for backward compatibility
+  m_vxmlSession.SetVar("session.connection.local.dnis", GetCalledPartyNumber());
+  m_vxmlSession.SetVar("session.connection.remote.ani", GetRemotePartyNumber());
+  m_vxmlSession.SetVar("session.connection.remote.ip", remoteURL.GetHostName());
+  m_vxmlSession.SetVar("session.connection.remote.port", remoteURL.GetPort());
+  m_vxmlSession.SetVar("session.connection.calltoken", GetCall().GetToken());
 
   return m_vxmlSession.Load(m_vxmlScript) || StartScript();
 }

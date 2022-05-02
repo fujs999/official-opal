@@ -2641,12 +2641,18 @@ void SIPConnection::OnReceivedNOTIFY(SIP_PDU & request)
 
   PStringToString info;
   PCaselessString state = mime.GetSubscriptionState(info);
-  m_referOfRemoteState = state != "terminated" ? eReferNotifyConfirmed : eNoRemoteRefer;
   info.SetAt("party", "B"); // We are B party in consultation transfer
   info.SetAt("Refer-To", m_sentReferTo);
   info.SetAt("state", state);
   info.SetAt("code", psprintf("%u", code));
-  info.SetAt("result", m_referOfRemoteState != eNoRemoteRefer ? "progress" : (code < 300 ? "success" : "failed"));
+  if (state != "terminated") {
+    m_referOfRemoteState = eReferNotifyConfirmed;
+    info.SetAt("result", "progress");
+  }
+  else {
+    m_referOfRemoteState = eNoRemoteRefer;
+    info.SetAt("result", code < 300 ? "success" : "failed");
+  }
 
   if (OnTransferNotify(info, this))
     return;
@@ -2812,7 +2818,17 @@ void SIPConnection::OnReceivedBYE(SIP_PDU & request)
   response->Send();
 
   m_releaseMethod = ReleaseWithNothing;
-  
+
+  if (m_referOfRemoteState != eNoRemoteRefer) {
+    m_referOfRemoteState = eNoRemoteRefer;
+    PStringToString info;
+    info.SetAt("party", "B"); // We are B party in consultation transfer
+    info.SetAt("Refer-To", m_sentReferTo);
+    info.SetAt("state", "terminated");
+    info.SetAt("result", "success");
+    OnTransferNotify(info, this);
+  }
+
   if (IsReleased()) {
     PTRACE(2, "Already released " << *this);
     return;
