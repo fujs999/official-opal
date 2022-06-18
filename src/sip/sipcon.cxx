@@ -2978,7 +2978,7 @@ void SIPConnection::OnReceivedRedirection(SIP_PDU & response)
   }
 
   for (PStringOptions::iterator it = m_stringOptions.begin(); it != m_stringOptions.end(); ++it)
-    whereTo.SetParamVar(OPAL_URL_PARAM_PREFIX + it->first, it->second);
+    whereTo.SetParamVar(OPAL_URL_PARAM_PREFIX + it->first, it->second, false);
   if (!m_dialog.GetProxy().IsEmpty())
     whereTo.SetParamVar(OPAL_PROXY_PARAM, m_dialog.GetProxy());
   PTRACE(3, "Received redirect to " << whereTo);
