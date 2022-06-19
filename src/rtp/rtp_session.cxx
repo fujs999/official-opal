@@ -1904,7 +1904,11 @@ __inline PTimeInterval abs(const PTimeInterval & i) { return i < 0 ? -i : i; }
 
 void OpalRTPSession::SyncSource::OnRxSenderReport(const RTP_SenderReport & report, const PTime & now)
 {
-  PAssert(m_direction == e_Receiver, PLogicError);
+  if (m_direction != e_Receiver) {
+    PTRACE(2, &m_session, m_session << "OnRxSenderReport: unexpected use of local sender SSRC as remote sender");
+    return;
+  }
+
   PTRACE(m_throttleRxSR, &m_session, m_session << "OnRxSenderReport: " << report << m_throttleRxSR);
 
   PTRACE_IF(2, m_reportAbsoluteTime.IsValid() && m_lastSenderReportTime.IsValid() && report.realTimestamp.IsValid() &&
