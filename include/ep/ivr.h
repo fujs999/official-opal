@@ -205,28 +205,28 @@ class OpalIVREndPoint : public OpalLocalEndPoint
 
     /**Get the text to speach cache directory to use.
       */
-    const PDirectory & GetCacheDir() const { return m_ttsCache.GetDirectory(); }
+    const PDirectory & GetCacheDir() const { return m_ttsCache->GetDirectory(); }
 
     /**Set the text to speach cache directory to use.
       */
     void SetCacheDir(
       const PDirectory & dir
-    ) { m_ttsCache.SetDirectory(dir); }
+    ) { m_ttsCache->SetDirectory(dir); }
 
     void SetRecordDirectory(const PDirectory & dir) { m_recordDirectory = dir; }
     const PDirectory & GetRecordDirectory() const   { return m_recordDirectory; }
   //@}
 
     // Allow users to override cache algorithm
-    virtual PVXMLCache & GetTextToSpeechCache() { return m_ttsCache; }
+    virtual PVXMLSession::CachePtr & GetTextToSpeechCache() { return m_ttsCache; }
 
   protected:
-    PString        m_defaultVXML;
-    PString        m_defaultTextToSpeech;
-    PString        m_defaultSpeechRecognition;
-    PDECLARE_MUTEX(m_defaultsMutex);
-    PVXMLCache     m_ttsCache;
-    PDirectory     m_recordDirectory;
+    PString                m_defaultVXML;
+    PString                m_defaultTextToSpeech;
+    PString                m_defaultSpeechRecognition;
+    PDECLARE_MUTEX(        m_defaultsMutex);
+    PVXMLSession::CachePtr m_ttsCache;
+    PDirectory             m_recordDirectory;
 
   private:
     P_REMOVE_VIRTUAL(OpalIVRConnection *, CreateConnection(OpalCall &,const PString &,void *,const PString &,OpalConnection::StringOptions *),0);
@@ -361,11 +361,11 @@ class OpalIVRConnection : public OpalLocalConnection
     virtual bool StartVXML();
     virtual bool StartScript();
 
-    OpalIVREndPoint   & m_ivrEndPoint;
-    PString             m_vxmlScript;
-    OpalVXMLSession     m_vxmlSession;
-    atomic<bool>        m_vxmlStarted;
-    PVXMLCache          m_ttsCache;
+    OpalIVREndPoint      & m_ivrEndPoint;
+    PString                m_vxmlScript;
+    OpalVXMLSession        m_vxmlSession;
+    atomic<bool>           m_vxmlStarted;
+    PVXMLSession::CachePtr m_ttsCache;
 };
 
 
