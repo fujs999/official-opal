@@ -57,12 +57,18 @@ class OpalIVRConnection;
 #define OPAL_OPT_IVR_RECORDING_DIR "IVR-Recording-Dir"
 
 /** IVR Text To Speech cache directory.
-    Note, that if this is set the shared cache between all connections in
-    OpalIVREndPoint is no longer used. Unexpected behaviour could occur if
-    multiple connections use the same directory, but not that shared cache
-    manager instance.
+    Note, that if this is set to a different directory to the shared cache
+    between all connections in OpalIVREndPoint, then that shared cache is no
+    longer used. Unexpected behaviour could occur if multiple connections use
+    the same directory, but not that shared cache manager instance.
   */
 #define OPAL_OPT_IVR_TTS_CACHE_DIR "IVR-Cache-Dir"
+
+/** IVR properties of the form IVR-Property=<name>:<value>.
+    For example IVR-Property=documentmaxage:0
+    Multiple properties can be set via the option being added multiple times.
+ */
+#define OPAL_OPT_IVR_PROPERTY "IVR-Property"
 
 
 /**Interactive Voice Response endpoint.

@@ -78,7 +78,8 @@ PStringList OpalIVREndPoint::GetAvailableStringOptions() const
     OPAL_OPT_IVR_TEXT_TO_SPEECH,
     OPAL_OPT_IVR_SPEECH_RECOGNITION,
     OPAL_OPT_IVR_RECORDING_DIR,
-    OPAL_OPT_IVR_TTS_CACHE_DIR
+    OPAL_OPT_IVR_TTS_CACHE_DIR,
+    OPAL_OPT_IVR_PROPERTY
   };
 
   return OpalEndPoint::GetAvailableStringOptions() + PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
@@ -221,6 +222,13 @@ void OpalIVRConnection::OnApplyStringOptions()
       m_ttsCache->SetDirectory(dir);
       m_vxmlSession.SetCache(m_ttsCache);
     }
+  }
+
+  PStringArray properties = m_stringOptions.GetString(OPAL_OPT_IVR_PROPERTY).Lines();
+  for (PINDEX i = 0; i < properties.GetSize(); ++i) {
+    PString name, value;
+    properties[i].Split(':', name, value, PString::SplitDefaultToBefore|PString::SplitTrimBefore);
+    m_vxmlSession.SetProperty(name, value, true);
   }
 }
 
