@@ -49,6 +49,7 @@
 
 OpalIVREndPoint::OpalIVREndPoint(OpalManager & mgr, const char * prefix)
   : OpalLocalEndPoint(mgr, prefix, false)
+  , m_ttsCache(new PVXMLCache())
 {
   SetDefaultVXML("<?xml version=\"1.0\"?>\n"
                 "<vxml version=\"1.0\">\n"
@@ -77,7 +78,8 @@ PStringList OpalIVREndPoint::GetAvailableStringOptions() const
     OPAL_OPT_IVR_TEXT_TO_SPEECH,
     OPAL_OPT_IVR_SPEECH_RECOGNITION,
     OPAL_OPT_IVR_RECORDING_DIR,
-    OPAL_OPT_IVR_TTS_CACHE_DIR
+    OPAL_OPT_IVR_TTS_CACHE_DIR,
+    OPAL_OPT_IVR_PROPERTY
   };
 
   return OpalEndPoint::GetAvailableStringOptions() + PStringList(PARRAYSIZE(StringOpts), StringOpts, true);
@@ -215,9 +217,18 @@ void OpalIVRConnection::OnApplyStringOptions()
   if (m_stringOptions.Contains(OPAL_OPT_IVR_TTS_CACHE_DIR)) {
     PDirectory dir = m_stringOptions.GetString(OPAL_OPT_IVR_TTS_CACHE_DIR);
     if (dir != m_ivrEndPoint.GetCacheDir()) {
-      m_ttsCache.SetDirectory(dir);
+      if (m_ttsCache == NULL)
+        m_ttsCache = new PVXMLCache();
+      m_ttsCache->SetDirectory(dir);
       m_vxmlSession.SetCache(m_ttsCache);
     }
+  }
+
+  PStringArray properties = m_stringOptions.GetString(OPAL_OPT_IVR_PROPERTY).Lines();
+  for (PINDEX i = 0; i < properties.GetSize(); ++i) {
+    PString name, value;
+    properties[i].Split(':', name, value, PString::SplitDefaultToBefore|PString::SplitTrimBefore);
+    m_vxmlSession.SetProperty(name, value, true);
   }
 }
 
