@@ -110,13 +110,15 @@ PBoolean OpalRTPMediaStream::Open()
     m_rtpSession.AddDataNotifier(m_notifierPriority, m_receiveNotifier, m_syncSource);
     PTRACE(4, "Opening source stream " << *this << " jb=" << *m_jitterBuffer);
   }
-  else if (m_syncSource == 0) {
-    m_syncSource = m_rtpSession.GetSyncSourceOut();
-    PTRACE(4, "Opening sink stream " << *this << " primary SSRC=" << RTP_TRACE_SRC(m_syncSource));
-  }
   else {
-    m_rtpSession.AddSyncSource(m_syncSource, OpalRTPSession::e_Sender);
-    PTRACE(4, "Opening sink stream " << *this << " added SSRC=" << RTP_TRACE_SRC(m_syncSource));
+    RTP_SyncSourceId ssrc = 0;
+    if (m_syncSource.compare_exchange_strong(ssrc, m_rtpSession.GetSyncSourceOut())) {
+      PTRACE(4, "Opening sink stream " << *this << " primary SSRC=" << RTP_TRACE_SRC(m_syncSource));
+    }
+    else {
+      m_rtpSession.AddSyncSource(ssrc, OpalRTPSession::e_Sender);
+      PTRACE(4, "Opening sink stream " << *this << " added SSRC=" << RTP_TRACE_SRC(ssrc));
+    }
   }
 
 #if OPAL_VIDEO

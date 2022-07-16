@@ -473,7 +473,6 @@ class OpalMediaStream : public PSafeObject
     unsigned         m_sessionID;
     atomic<RTP_SyncSourceId> m_syncSource;
     WORD             m_sequenceNumber;
-    RTP_SyncSourceId m_syncSourceId;
     PString          m_identifier;
     OpalMediaFormat  m_mediaFormat;
     atomic<bool>     m_paused;

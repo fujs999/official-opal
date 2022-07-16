@@ -61,7 +61,6 @@ OpalMediaStream::OpalMediaStream(OpalConnection & conn, const OpalMediaFormat & 
   , m_sessionID(_sessionID)
   , m_syncSource(0)
   , m_sequenceNumber(0)
-  , m_syncSourceId(0)
   , m_identifier(conn.GetCall().GetToken() + psprintf("_%u", m_sessionID))
   , m_mediaFormat(fmt)
   , m_paused(false)
@@ -115,7 +114,7 @@ bool OpalMediaStream::SetSyncSource(RTP_SyncSourceId newSSRC)
   if (oldSSRC == newSSRC)
     return false;
 
-  PTRACE(3, "Changing SSRC=" << RTP_TRACE_SRC(oldSSRC) << " to SSRC=" << RTP_TRACE_SRC(newSSRC) << " on stream " << *this);
+  m_connection.InternalOnMediaStreamSyncSourceChanged(*this, oldSSRC);
   return true;
 }
 
@@ -325,10 +324,13 @@ PBoolean OpalMediaStream::ReadPacket(RTP_DataFrame & packet)
   if (oldSeqNumber == m_sequenceNumber)
     m_sequenceNumber++;
 
-  if (m_syncSourceId != 0)
-    packet.SetSyncSource(m_syncSourceId);
-  else if ((m_syncSourceId = packet.GetSyncSource()) == 0)
-    packet.SetSyncSource(m_syncSourceId = PRandom::Number());
+  RTP_SyncSourceId ssrc = 0;
+  if (m_syncSource.compare_exchange_strong(ssrc, packet.GetSyncSource())) {
+    m_syncSource.compare_exchange_strong(ssrc, PRandom::Number());
+    m_connection.InternalOnMediaStreamSyncSourceChanged(*this, 0);
+    ssrc = m_syncSource;
+  }
+  packet.SetSyncSource(ssrc);
   packet.SetPayloadType(m_payloadType);
   packet.SetPayloadSize(lastReadCount);
   packet.SetTimestamp(oldTimestamp); // Beginning of frame
@@ -346,7 +348,7 @@ PBoolean OpalMediaStream::WritePacket(RTP_DataFrame & packet)
     return false;
 
   m_timestamp = packet.GetTimestamp();
-  m_syncSourceId = packet.GetSyncSource();
+  SetSyncSource(packet.GetSyncSource());
 
   PINDEX written;
   for (unsigned i = 0; i < packet.GetDiscontinuity(); ++i) {

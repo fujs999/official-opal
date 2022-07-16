@@ -1984,6 +1984,10 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
     bool InternalOnConnected();
     bool InternalOnEstablished();
     void InternalSetAsOriginating();
+    void InternalOnMediaStreamSyncSourceChanged(
+      OpalMediaStream & mediaStream,
+      RTP_SyncSourceId oldSSRC
+    );
 
     bool InternalRelease(CallEndReason reason);
     void InternalOnReleased();
