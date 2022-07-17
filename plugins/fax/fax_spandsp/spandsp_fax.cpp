@@ -1358,7 +1358,6 @@ class TIFF_PCM : public FaxTIFF, public FaxPCM
     {
       if (m_faxState != NULL) {
         t30_terminate(fax_get_t30_state(m_faxState)); //to call PhaseE with audio Fax
-        fax_release(m_faxState);
         fax_free(m_faxState);
         PTRACE(3, m_tag << " Closed TIFF_PCM/SpanDSP");
       }
