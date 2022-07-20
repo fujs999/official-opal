@@ -964,7 +964,8 @@ class OpalMediaSession : public PSafeObject, public OpalMediaTransportChannelTyp
     OpalMediaCryptoKeyList m_offeredCryptokeys;
 
   private:
-    OpalMediaSession(const OpalMediaSession & other) : PSafeObject(other), m_connection(other.m_connection) { }
+    OpalMediaSession(const OpalMediaSession & other)
+      : PSafeObject(other), m_connection(other.m_connection), m_sessionId(0), m_remoteBehindNAT(false), m_videoContentRole() { }
     void operator=(const OpalMediaSession &) { }
 
     P_REMOVE_VIRTUAL(bool, Open(const PString &), false);

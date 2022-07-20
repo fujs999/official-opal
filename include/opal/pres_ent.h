@@ -612,7 +612,8 @@ class OpalPresentityWithCommandThread : public OpalPresentity
 class OpalPresentityCommand {
   public:
     OpalPresentityCommand(bool responseNeeded = false) 
-      : m_responseNeeded(responseNeeded)
+      : m_sequence(0)
+      , m_responseNeeded(responseNeeded)
     { }
     virtual ~OpalPresentityCommand() { }
 

@@ -527,7 +527,7 @@ class OpalListener : public PObject
     ThreadMode     m_threadMode;
 
   private:
-    OpalListener(const OpalListener & other) : PObject(other), m_endpoint(other.m_endpoint) { }
+    OpalListener(const OpalListener & other) : PObject(other), m_endpoint(other.m_endpoint), m_thread(NULL), m_threadMode() { }
     void operator=(const OpalListener &) { }
 
   friend class OpalHTTPConnector;
@@ -1043,7 +1043,7 @@ class OpalTransport : public PSafeObject
     atomic<unsigned> m_referenceCount;
 
   private:
-    OpalTransport(const OpalTransport & other) : PSafeObject(other), m_endpoint(other.m_endpoint), m_referenceCount(0) { }
+    OpalTransport(const OpalTransport & other) : PSafeObject(other), m_endpoint(other.m_endpoint), m_channel(NULL), m_thread(NULL), m_referenceCount(0) { }
     void operator=(const OpalTransport &) { }
 };
 

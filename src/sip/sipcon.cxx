@@ -319,7 +319,8 @@ void SIPConnection::OnApplyStringOptions()
 
 bool SIPConnection::GarbageCollection()
 {
-  return CleanPendingTransactions() & OpalSDPConnection::GarbageCollection();
+  bool done = CleanPendingTransactions();
+  return OpalSDPConnection::GarbageCollection() && done;
 }
 
 
