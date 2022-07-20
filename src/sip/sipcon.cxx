@@ -456,20 +456,22 @@ void SIPConnection::OnReleased()
   AbortPendingTransactions();
 
   // We have a REFER in progress, wait for a while to get status indication
-  if (m_referOfRemoteState == eReferNotifyConfirmed) {
+  if (m_referOfRemoteState != eNoRemoteRefer) {
     PTRACE(4, "Waiting for indication REFER completed on " << *this);
-    PSimpleTimer timeout = m_sipEndpoint.GetInviteTimeout();
+    PSimpleTimer timeout = m_sipEndpoint.GetPduCleanUpTimeout();
     while (m_referOfRemoteState == eReferNotifyConfirmed && timeout.IsRunning())
       PThread::Sleep(250);
 
-    if (m_referOfRemoteState == eReferNotifyConfirmed && PAssert(LockReadWrite(), PLogicError)) {
-      PTRACE(2, "Timed out waiting for indication REFER completed on " << *this);
+    if (m_referOfRemoteState != eNoRemoteRefer && PAssert(LockReadWrite(), PLogicError)) {
+      PTRACE_IF(2, m_referOfRemoteState == eReferNotifyConfirmed,
+                "Timed out waiting for indication REFER completed on " << *this);
+      m_referOfRemoteState = eNoRemoteRefer;
       PStringToString info;
       info.SetAt("result", "blind");
       info.SetAt("party", "B");
       info.SetAt("Refer-To", m_sentReferTo);
+      info.SetAt("state", "aborted");
       OnTransferNotify(info, this);
-
       UnlockReadWrite();
     }
   }
@@ -2823,16 +2825,6 @@ void SIPConnection::OnReceivedBYE(SIP_PDU & request)
   response->Send();
 
   m_releaseMethod = ReleaseWithNothing;
-
-  if (m_referOfRemoteState != eNoRemoteRefer) {
-    m_referOfRemoteState = eNoRemoteRefer;
-    PStringToString info;
-    info.SetAt("party", "B"); // We are B party in consultation transfer
-    info.SetAt("Refer-To", m_sentReferTo);
-    info.SetAt("state", "terminated");
-    info.SetAt("result", "success");
-    OnTransferNotify(info, this);
-  }
 
   if (IsReleased()) {
     PTRACE(2, "Already released " << *this);
