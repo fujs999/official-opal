@@ -212,7 +212,7 @@ MY_MODULE_OPTION(
          [],
          [-lavcodec],
          [#include <libavcodec/avcodec.h>],
-         [avcodec_version()],
+         [avcodec_register_all()],
          [
             HAVE_LIBAVCODEC=yes
             LIBAVCODEC_LIBS="$LIBAVCODEC_LIBS $LIBAVUTIL_LIBS $LIBSWRESAMPLE_LIBS"
