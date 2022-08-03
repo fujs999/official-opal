@@ -1,0 +1,30 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(lldb) Launch conopal",
+            "type": "cppdbg",
+            "request": "launch",
+            "osx": {
+                "program": "${workspaceFolder}/samples/console/obj_Darwin_x86_64_d/conopal",
+                "additionalSOLibSearchPath": "${workspaceFolder}/lib_Darwin_x86_64;{workspaceFolder}/../ptlib/lib_Darwin_x86_64"
+            },
+            "linux": {
+                "program": "${workspaceFolder}/samples/console/obj_linux_x86_64_d/conopal",
+                "additionalSOLibSearchPath": "${workspaceFolder}/lib_linux_x86_64;{workspaceFolder}/../ptlib/lib_linux_x86_64"
+            },
+            "program": "",
+            "args": [
+                "--tui"
+            ],
+            "visualizerFile": "${workspaceFolder}/../ptlib/include/ptlib/msos/ptlib.natvis",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "externalConsole": true,
+            "MIMode": "lldb"
+        }
+    ]
+}

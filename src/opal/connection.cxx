@@ -916,7 +916,6 @@ OpalMediaStreamPtr OpalConnection::OpenMediaStream(const OpalMediaFormat & media
       return NULL;
     }
     stream->SetSyncSource(ssrc);
-    m_mediaStreams.SetAt(*stream, stream);
 
     m_mediaSessionFailedMutex.Wait();
     m_mediaSessionFailed.erase(sessionID*2 + isSource);
@@ -924,8 +923,9 @@ OpalMediaStreamPtr OpalConnection::OpenMediaStream(const OpalMediaFormat & media
   }
 
   if (stream->Open()) {
+    m_mediaStreams.SetAt(*stream, stream);
     if (OnOpenMediaStream(*stream)) {
-      PTRACE(3, "Opened " << (isSource ? "source" : "sink") << " stream " << stream->GetID() << " with format " << mediaFormat);
+      PTRACE(3, "Opened stream " << *stream << " with format " << mediaFormat);
       return stream;
     }
     PTRACE(2, "OnOpenMediaStream failed for " << mediaFormat << ", closing " << *stream);
@@ -938,6 +938,14 @@ OpalMediaStreamPtr OpalConnection::OpenMediaStream(const OpalMediaFormat & media
   m_mediaStreams.RemoveAt(*stream);
 
   return NULL;
+}
+
+
+void OpalConnection::InternalOnMediaStreamSyncSourceChanged(OpalMediaStream & mediaStream,
+                                                            RTP_SyncSourceId oldSSRC)
+{
+  m_mediaStreams.Move(StreamKey(mediaStream.GetSessionID(), oldSSRC, mediaStream.IsSource()), mediaStream);
+  PTRACE(3, "Changing from SSRC=" << RTP_TRACE_SRC(oldSSRC) << " on stream " << mediaStream);
 }
 
 
@@ -1262,7 +1270,18 @@ OpalMediaStreamPtr OpalConnection::GetMediaStream(const PString & streamID, bool
 OpalMediaStreamPtr OpalConnection::GetMediaStream(unsigned sessionId, bool isSource, RTP_SyncSourceId ssrc) const
 {
   StreamDict::const_iterator it = m_mediaStreams.find(StreamKey(sessionId, ssrc, isSource));
-  return it != m_mediaStreams.end() ? it->second : OpalMediaStreamPtr();
+  if (it != m_mediaStreams.end())
+    return it->second;
+
+  if (ssrc == 0) {
+    for (it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
+      OpalMediaStreamPtr mediaStream = it->second;
+      if (mediaStream != NULL && mediaStream->GetSessionID() == sessionId && mediaStream->IsSource() == isSource)
+        return mediaStream;
+    }
+  }
+
+  return OpalMediaStreamPtr();
 }
 
 

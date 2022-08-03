@@ -157,3 +157,5 @@ opal.xcodeproj/xcuserdata
 /samples/fax/results
 rpmbuild/
 nbproject/private/
+/samples/ivr/cache
+.vscode/*.log

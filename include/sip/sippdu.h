@@ -1549,7 +1549,10 @@ class SIPMessage : public SIPTransaction
     {
       Params()
         : m_contentType("text/plain;charset=UTF-8")
-      { 
+#if OPAL_HAS_IM
+        , m_messageId(0)
+#endif
+      {
         m_expire = 3600; // Try to get mesage through for an hour
       }
 

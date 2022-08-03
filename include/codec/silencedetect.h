@@ -228,7 +228,7 @@ class OpalSilenceDetector : public PObject
     };
 
   private:
-    OpalSilenceDetector(const OpalSilenceDetector &) { }
+    OpalSilenceDetector(const OpalSilenceDetector &) : m_data(NULL) { }
     void operator=(const OpalSilenceDetector &) { }
 
   protected:
