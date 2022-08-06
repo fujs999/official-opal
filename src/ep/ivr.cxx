@@ -79,6 +79,7 @@ PStringList OpalIVREndPoint::GetAvailableStringOptions() const
     OPAL_OPT_IVR_SPEECH_RECOGNITION,
     OPAL_OPT_IVR_RECORDING_DIR,
     OPAL_OPT_IVR_TTS_CACHE_DIR,
+    OPAL_OPT_IVR_PROXY,
     OPAL_OPT_IVR_PROPERTY
   };
 
@@ -213,6 +214,8 @@ void OpalIVRConnection::OnApplyStringOptions()
   m_vxmlSession.SetTextToSpeech(m_stringOptions.GetString(OPAL_OPT_IVR_TEXT_TO_SPEECH, m_ivrEndPoint.GetDefaultTextToSpeech()));
   m_vxmlSession.SetSpeechRecognition(m_stringOptions.GetString(OPAL_OPT_IVR_SPEECH_RECOGNITION, m_ivrEndPoint.GetDefaultSpeechRecognition()));
   m_vxmlSession.SetRecordDirectory(m_stringOptions.GetString(OPAL_OPT_IVR_RECORDING_DIR, m_ivrEndPoint.GetRecordDirectory()));
+
+  m_vxmlSession.SetProxy(m_stringOptions.GetString(OPAL_OPT_IVR_PROXY));
 
   if (m_stringOptions.Contains(OPAL_OPT_IVR_TTS_CACHE_DIR)) {
     PDirectory dir = m_stringOptions.GetString(OPAL_OPT_IVR_TTS_CACHE_DIR);

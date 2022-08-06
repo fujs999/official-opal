@@ -64,6 +64,10 @@ class OpalIVRConnection;
   */
 #define OPAL_OPT_IVR_TTS_CACHE_DIR "IVR-Cache-Dir"
 
+/** HTTP proxy to use for IVR VXML scripts.
+ */
+#define OPAL_OPT_IVR_PROXY "IVR-Proxy"
+
 /** IVR properties of the form IVR-Property=<name>:<value>.
     For example IVR-Property=documentmaxage:0
     Multiple properties can be set via the option being added multiple times.
