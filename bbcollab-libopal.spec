@@ -3,7 +3,7 @@
 %global version_patch  7
 %global version_oem    4
 
-%global ffmpeg_ver_el7 4.3.1-1.6.el7
+%global ffmpeg_ver_el7 4.3.1-1.13.el7
 %global ptlib_ver_el7 2.19.4.17
 %global srtp_ver_el7 2.1.0-4.3.el7
 
