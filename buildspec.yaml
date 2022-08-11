@@ -1,0 +1,23 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - yum update --assumeyes
+      - yum install --assumeyes sudo rpmdevtools yum-utils
+      - echo "[${REPO}]" > /etc/yum.repos.d/${REPO}.repo
+      - echo "name=${REPO}" >> /etc/yum.repos.d/${REPO}.repo
+      - echo "baseurl=https://citc-artifacts.s3.amazonaws.com/yum/amzn2/${REPO}/" >> /etc/yum.repos.d/${REPO}.repo
+      - echo "gpgcheck=false" >> /etc/yum.repos.d/${REPO}.repo
+      - yum-builddep --assumeyes ${SPECFILE}
+  pre_build:
+    commands:
+      - chown -R codebuild-user:codebuild-user .
+      - chmod +x rpmbuild.sh
+  build:
+    commands:
+      - sudo --preserve-env --user=codebuild-user ./rpmbuild.sh
+artifacts:
+  files:
+    - '**/*.rpm'
+  base-directory: /home/codebuild-user/rpmbuild
