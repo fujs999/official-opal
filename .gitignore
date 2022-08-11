@@ -11,6 +11,7 @@ obj/
 obj_*/
 ipch/
 .vs/
+.vscode/*.log
 .libs/
 .deps/
 *.o

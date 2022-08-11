@@ -1,0 +1,9 @@
+[mcu-release]
+name=mcu-release
+baseurl=https://citc-artifacts.s3.amazonaws.com/yum/amzn2/mcu-release/
+gpgcheck=false
+
+[mcu-develop]
+name=mcu-develop
+baseurl=https://citc-artifacts.s3.amazonaws.com/yum/amzn2/mcu-develop/
+gpgcheck=false
