@@ -11,7 +11,7 @@ WORKDIR /home/rpmbuild
 # Add yum repositories needed for our builds
 RUN yum install -y epel-release centos-release-scl-rh && yum clean all
 # Install large/common dependencies (to avoid delays upon later cache invalidation)
-RUN yum install -y --setopt=tsflags=nodocs devtoolset-9-gcc devtoolset-9-gcc-c++ && yum clean all
+RUN yum install -y --setopt=tsflags=nodocs devtoolset-9-gcc devtoolset-9-gcc-c++ devtoolset-9-libtsan-devel && yum clean all
 RUN yum install -y ImageMagick-devel openssl-devel && yum clean all
 # Configure our own yum repos
 COPY mcu-el7.repo /etc/yum.repos.d/
@@ -29,8 +29,7 @@ RUN sed --in-place 's/centos\/7\//centos\/7.8.2003\//'            /etc/yum.repos
 # Install standard dependencies referenced by the spec file
 RUN mkdir /tmp/std-deps \
     && touch /tmp/std-deps/placeholder \
-    && yum-builddep --exclude='bbcollab-*' --exclude='bbrtc-*' --exclude='boost164-devel' \
-                    --exclude='libsrtp2-devel' --exclude='opus-devel' --tolerant \
+    && yum-builddep --exclude='collab-*' --exclude='opus-devel' --tolerant \
                     -y --downloadonly --downloaddir=/tmp/std-deps ${SPECFILE} \
     && ([ -z "$(ls -A /tmp/std-deps/*.rpm)" ] || yum install -y /tmp/std-deps/*.rpm) \
     && yum clean all

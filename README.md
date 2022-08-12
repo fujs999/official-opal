@@ -47,10 +47,10 @@ the build number component should be missing.
 
 For example:
 
-    bbcollab-libopal-3.17.4.15-2.55.el7.x86_64.rpm
+    collab-libopal-3.17.4.15-2.55.el7.x86_64.rpm
     package          ver       rel      arch
 
-* Package: bbcollab-libopal
+* Package: collab-libopal
 * Version: 3.17.4.15 (Open source 3.17.4, plus 15 patches)
 * Release: 2.55.el7 (Release branch build, Jenkins build number: 55, Dist tag: el7)
 * Arch: x86_64

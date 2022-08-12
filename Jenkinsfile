@@ -1,110 +1,111 @@
 #!groovy
 
-def s3_publish(String rpms, String repo, String dist = 'el7', String arch = 'x86_64', dockerfile = 'publish.Dockerfile') {
-  def local_path = './local_repo'
-  def s3_path = "s3://citc-artifacts/yum/${dist}/${repo}/"
-  echo "Publishing ${rpms} (${arch}) to ${s3_path}"
-  if (!fileExists(file: dockerfile)) {
-    sh """
-      echo 'FROM amazon/aws-cli' > ${dockerfile}
-      echo 'RUN yum install --assumeyes yum-utils createrepo' >> ${dockerfile}
-    """
-  }
-  lock('aws-s3-citc-artifacts') {
-    withAWS(credentials: 'aws-dev', region: 'us-east-1') {
-      docker.build("s3-publish:${BUILD_TAG.replaceAll('%2F', '-')}", "-f ${dockerfile} .").inside("--entrypoint=''") {
-        sh """
-          aws s3 sync --no-progress --acl public-read ${s3_path} ${local_path}
-          repomanage --keep=5 --old ${local_path} | xargs rm -f no_such_file_as_this_to_prevent_error
-          mv ${rpms}/${arch}/* ${local_path}/base/
-          createrepo --update ${local_path}
-          aws s3 sync --no-progress --acl public-read --delete ${local_path} ${s3_path}
-        """
-      }
-    }
-  }
-}
+@Library('collab-jenkins-library') _
 
-def tag_release(String spec_file) {
-  env.SPEC_FILE = spec_file
-  env.GIT_PATH = GIT_URL.replace('https://', '')
-  env.RELEASE_TAG = "${BRANCH_NAME.replaceAll('release/', '')}-2.${BUILD_NUMBER}"
-  echo "Tagging ${env.RELEASE_TAG}"
-  withCredentials([usernamePassword(credentialsId: 'github-app-class-collab', passwordVariable: 'GIT_TOKEN', usernameVariable: 'GIT_USER')]) {
-    sh '''
-      major=`sed -n 's/%global *version_major *//p' $SPEC_FILE`
-      minor=`sed -n 's/%global *version_minor *//p' $SPEC_FILE`
-      patch=`sed -n 's/%global *version_patch *//p' $SPEC_FILE`
-      oem=`  sed -n 's/%global *version_oem *//p'   $SPEC_FILE`
-      git tag \$major.\$minor.\$patch.\$oem-2.$BUILD_NUMBER
-      git tag $RELEASE_TAG
-      git push --tags "https://$GIT_USER:$GIT_TOKEN@$GIT_PATH"
-    '''
-  }
-}
+env.SPECFILE = 'libopal.spec'
+def job_name = "${JOB_NAME.replaceAll('%2F', '_')}"
+def build_name = "${job_name}/${BUILD_NUMBER}"
 
 pipeline {
-  agent any
-
-  options {
-    buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '200', numToKeepStr: '200')
-  }
-
+  agent none
   stages {
-    stage('package-el7') {
-      // Build environment is defined by the Dockerfile
-      agent {
-        dockerfile {
-          filename 'el7.Dockerfile'
-          additionalBuildArgs  '--build-arg SPECFILE=bbcollab-libopal.spec'
-          customWorkspace "${JOB_NAME.replaceAll('%2F', '_')}"
+    stage('matrix') {
+      failFast true
+      matrix {
+        axes {
+          axis {
+            name 'DIST'
+            values 'el7', 'amzn2'
+          }
+          axis {
+            name 'REPO'
+            values 'mcu-develop', 'mcu-release', 'mcu-release-tsan'
+          }
+          axis {
+            name 'ARCH'
+            values 'x86_64', 'aarch64'
+          }
         }
-      }
-      steps {
-        // Copy RPM dependencies to the workspace for fingerprinting (see Dockerfile)
-        sh 'cp -r /tmp/build-deps .'
-        sh './rpmbuild.sh'
-      }
-      post {
-        success {
-          fingerprint 'build-deps/*.rpm'
-          archiveArtifacts artifacts: 'rpmbuild/**/*', fingerprint: true
-        }
-      }
-    }
-    
-    stage('publish') {
-      when {
-        beforeAgent true
-        anyOf {
-          branch 'develop'
-          branch 'release/*'
-        }
-      }
-      steps {
-        unarchive mapping:['rpmbuild/' : '.']
-        script {
-          s3_publish 'rpmbuild/RPMS', BRANCH_NAME == 'develop' ? 'mcu-develop' : 'mcu-release'
-        }
-      }
-      post {
-        success {
-          script {
-            if (BRANCH_NAME == 'develop') {
-              build job: "/mcu/develop", quietPeriod: 60, wait: false
+        when {
+          anyOf {
+            allOf {
+              branch 'develop'
+              expression { return REPO == 'mcu-develop' }
+            }
+            allOf {
+              branch 'release/*'
+              expression { return REPO != 'mcu-develop' }
             }
           }
         }
-      }
-    }
-
-    stage('tag-release') {
-      when {
-        branch 'release/*'
-      }
-      steps {
-        script {
-          tag_release 'bbcollab-libopal.spec'
+        excludes {
+          exclude {
+            axis {
+              name 'DIST'
+              values 'el7'
+            }
+            axis {
+              name 'ARCH'
+              values 'aarch64'
+            }
+          }
+          exclude {
+            axis {
+              name 'DIST'
+              values 'amzn2'
+            }
+            axis {
+              name 'REPO'
+              values 'mcu-release-tsan'
+            }
+          }
+        }
+        stages {
+          stage('package') {
+            agent {
+              dockerfile {
+                additionalBuildArgs "--build-arg SPECFILE=${env.SPECFILE}"
+              }
+            }
+            environment {
+              HOME = "${WORKSPACE}/${DIST}-${REPO}"
+            }
+            steps {
+              script {
+                sh 'mkdir -p $HOME'
+                if (DIST == 'el7') {
+                  sh " ./rpmbuild.sh --with=${REPO.replace('mcu-release-','')}"
+                }
+                else {
+                  awsCodeBuild \
+                      region: env.AWS_REGION, sourceControlType: 'jenkins', \
+                      credentialsId: 'aws-codebuild', credentialsType: 'jenkins', sseAlgorithm: 'AES256', \
+                      cloudWatchLogsStatusOverride: 'ENABLED', cloudWatchLogsGroupNameOverride: 'bbrtc-codebuild', \
+                      cloudWatchLogsStreamNameOverride: "${job_name}/${ARCH}", \
+                      artifactTypeOverride: 'S3', artifactLocationOverride: 'bbrtc-codebuild', \
+                      artifactNameOverride: 'rpmbuild', artifactPathOverride: build_name, \
+                      downloadArtifacts: 'true', downloadArtifactsRelativePath: '.', \
+                      envVariables: "[ { BUILD_NUMBER, ${BUILD_NUMBER} }, { BRANCH_NAME, ${BRANCH_NAME} }, { SPECFILE, ${env.SPECFILE} } ]", \
+                      projectName: "BbRTC-${ARCH}"
+                  sh "mv ${build_name}/rpmbuild ${HOME}/"
+                }
+              }
+            }
+            post {
+              success {
+                archiveArtifacts artifacts: "${DIST}-${REPO}/rpmbuild/RPMS/**/*", fingerprint: true
+              }
+            }
+          }
+          stage('publish') {
+            agent { label 'master' }
+            steps {
+              unarchive mapping:["${DIST}-${REPO}/rpmbuild/RPMS/" : '.']
+              script {
+                stageYumPublish rpms: "${DIST}-${REPO}/rpmbuild/RPMS/", dist: DIST, repo: REPO, arch: ARCH
+              }
+            }
+          }
         }
       }
     }
@@ -115,10 +116,10 @@ pipeline {
       slackSend color: "good", message: "SUCCESS: <${currentBuild.absoluteUrl}|${currentBuild.fullDisplayName}>"
     }
     failure {
-      slackSend color: "danger", message: "FAILURE: <${currentBuild.absoluteUrl}|${currentBuild.fullDisplayName}>"
+      slackSend color: "danger", message: "@channel FAILURE: <${currentBuild.absoluteUrl}|${currentBuild.fullDisplayName}>"
     }
     unstable {
-      slackSend color: "warning", message: "UNSTABLE: <${currentBuild.absoluteUrl}|${currentBuild.fullDisplayName}>"
+      slackSend color: "warning", message: "@channel UNSTABLE: <${currentBuild.absoluteUrl}|${currentBuild.fullDisplayName}>"
     }
   }
 }

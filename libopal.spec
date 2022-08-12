@@ -1,11 +1,11 @@
 %global version_major  3
 %global version_minor  19
 %global version_patch  7
-%global version_oem    4
+%global version_oem    3
 
-%global ffmpeg_ver_el7 4.3.1-1.6.el7
-%global ptlib_ver_el7 2.19.4.16-2.25.el7
-%global srtp_ver_el7 2.1.0-4.3.el7
+%global ffmpeg_ver 4.3.1-1.39
+%global srtp_ver   2.1.0-4.18
+%global ptlib_ver  2.19.4.16-2.35
 
 # Branch ID should be 0 for local builds/PRs
 # Jenkins builds should use 1 for develop, 2 for master (release builds)
@@ -23,7 +23,7 @@
 %define _use_internal_dependency_generator 0
 %define __find_requires %{SOURCE1}
 
-Name:           bbcollab-libopal
+Name:           collab-libopal
 Version:        %{version_major}.%{version_minor}.%{version_patch}.%{version_oem}
 Release:        %{branch_id}%{?jenkins_release}%{?dist}
 Summary:        OpalVOIP library
@@ -31,20 +31,21 @@ Summary:        OpalVOIP library
 Group:          System Environment/Libraries
 License:        MPL 1.0
 URL:            http://www.opalvoip.org/
-Source0:        zsdk-opal.src.tgz
-Source1:        bbcollab-filter-requires.sh
+Source0:        source.tgz
+Source1:        filter-requires.sh
 
-BuildRequires:  devtoolset-9-gcc-c++
-BuildRequires:  bbcollab-ptlib-devel = %{ptlib_ver_el7}
-BuildRequires:  bbcollab-ffmpeg-devel = %{ffmpeg_ver_el7}
-BuildRequires:  libsrtp2-devel = %{srtp_ver_el7}
+BuildRequires:  collab-ffmpeg-devel = %{ffmpeg_ver}%{?dist}
+BuildRequires:  collab-libsrtp2-devel = %{srtp_ver}%{?dist}
+BuildRequires:  collab-ptlib-devel = %{ptlib_ver}%{?dist}
 
+BuildRequires:  which
 BuildRequires:  opus-devel
 BuildRequires:  speex-devel
 BuildRequires:  libtheora-devel
 BuildRequires:  libvpx-devel
-BuildRequires:  which
+%ifarch x86_64
 BuildRequires:  x264-devel
+%endif
 
 %description
 OpalVOIP library
@@ -53,9 +54,9 @@ OpalVOIP library
 Summary:        Development files for %{name}
 Group:          Development/Libraries
 Requires:       %{name} = %{version}-%{release}
-Requires:       bbcollab-ptlib-devel = %{ptlib_ver_el7}
-Requires:       bbcollab-ffmpeg-devel = %{ffmpeg_ver_el7}
-Requires:       libsrtp2-devel = %{srtp_ver_el7}
+Requires:       collab-ffmpeg-devel = %{ffmpeg_ver}%{?dist}
+Requires:       collab-libsrtp2-devel = %{srtp_ver}%{?dist}
+Requires:       collab-ptlib-devel = %{ptlib_ver}%{?dist}
 
 %description    devel
 The %{name}-devel package contains libraries and header files for
@@ -77,8 +78,18 @@ developing applications that use %{name}.
 
 
 %build
+%if "%{?dist}" == ".el7"
 source /opt/rh/devtoolset-9/enable
-%configure --enable-localspeexdsp \
+%endif
+%ifarch aarch64
+%define arch_arg --enable-graviton2 --disable-x264
+%endif
+%if %{?_with_tsan:1}%{!?_with_tsan:0}
+%define tsan_arg --enable-sanitize-thread
+%endif
+./configure %{?tsan_arg} %{?arch_arg} \
+        --enable-cpp14 \
+        --enable-localspeexdsp \
         --disable-h323 \
         --disable-iax2 \
         --disable-skinny \
@@ -90,19 +101,27 @@ source /opt/rh/devtoolset-9/enable
         --disable-mixer \
         --disable-presence \
         --disable-g.722.1 \
-        --enable-cpp14 \
+        --disable-g.722.2 \
+        --disable-isac \
+        --disable-iLBC \
+        --disable-silk \
+        --prefix=%{_prefix} \
+        --libdir=%{_libdir} \
         OPAL_MAJOR=%{version_major} \
         OPAL_MINOR=%{version_minor} \
         OPAL_STAGE=%{opal_stage} \
         OPAL_PATCH=%{version_patch} \
         OPAL_OEM=%{version_oem}
+make $(pwd)/revision.h
 make %{?_smp_mflags} REVISION_FILE= OPAL_FILE_VERSION=%{version} all
 
 
 %install
+%if "%{?dist}" == ".el7"
 source /opt/rh/devtoolset-9/enable
+%endif
 rm -rf $RPM_BUILD_ROOT
-make install DESTDIR=$RPM_BUILD_ROOT OPAL_FILE_VERSION=%{version}
+make DESTDIR=$RPM_BUILD_ROOT OPAL_FILE_VERSION=%{version} install
 find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 
