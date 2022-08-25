@@ -12,10 +12,13 @@ if [[ -z "$SPECFILE" ]]
 then SPECFILE=*.spec   # Expecting only one!
 fi
 
-BUILD_ARGS=(--define='_smp_mflags -j4')
+BUILD_ARGS=(--define='_smp_mflags -j2')
 
-if [[ $BRANCH_NAME ]]
-then BUILD_ARGS+=(--define="branch_name ${BRANCH_NAME}")
+if [[ "$BRANCH_NAME" == release/* ]] || [[ "$BRANCH_NAME" == "main" ]]
+then BUILD_ARGS+=(--define="branch_id 2")
+elif [[ "$BRANCH_NAME" == "develop" ]]
+then BUILD_ARGS+=(--define="branch_id 1")
+else BUILD_ARGS+=(--define="branch_id 0")
 fi
 
 if [[ $BUILD_NUMBER ]]

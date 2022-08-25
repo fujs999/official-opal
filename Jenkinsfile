@@ -15,7 +15,7 @@ pipeline {
         script {
           docker.build(
             "el7_builder:${build_tag}",
-            "--build-arg SPECFILE=${spec_file} --build-arg BRANCH_NAME=${BRANCH_NAME} --file el7.Dockerfile ."
+            "--build-arg SPECFILE=${spec_file} --build-arg REPO=${BRANCH_NAME=='develop' ? 'mcu-develop' : 'mcu-release'} --file el7.Dockerfile ."
           )
         }
       }
@@ -27,11 +27,11 @@ pipeline {
         axes {
           axis {
             name 'DIST'
-            values 'el7', 'amzn2'
+            values 'el7' //, 'amzn2'
           }
           axis {
             name 'REPO'
-            values 'mcu-release', 'mcu-release-tsan', 'mcu-release-asan'
+            values 'mcu-develop', 'mcu-release' //, 'mcu-release-tsan', 'mcu-release-asan'
           }
           axis {
             name 'ARCH'
@@ -83,7 +83,7 @@ pipeline {
                 if (DIST == 'el7') {
                   docker.build(
                     "el7_builder:${build_tag}-${REPO}",
-                    "--build-arg SPECFILE=${spec_file} --build-arg REPO=${REPO} --build-arg BRANCH_NAME=${BRANCH_NAME} --file el7.Dockerfile ."
+                    "--build-arg SPECFILE=${spec_file} --build-arg REPO=${REPO} --file el7.Dockerfile ."
                   ).inside() {
                     sh "SPECFILE=${spec_file} ./rpmbuild.sh --define='repo ${REPO}'"
                   }
@@ -119,7 +119,6 @@ pipeline {
             }
           }
         }
->>>>>>> release/20.21
       }
     }
   }

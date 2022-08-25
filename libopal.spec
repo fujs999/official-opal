@@ -3,37 +3,6 @@
 %global version_patch  7
 %global version_oem    3
 
-# Branch ID should be 0 for local builds/PRs
-# Library ID should be 2
-# The values "tsan" and "asan" are used for thread/address sanitizer
-%{!?branch_name: %global branch_name local}
-
-%if "%{?repo}" == "mcu-release-tsan"
-%define library_id tsan
-%define branch_id  tsan
-%global code_status AlphaCode
-%else
-%if "%{?repo}" == "mcu-release-asan"
-%define library_id asan
-%define branch_id  asan
-%global code_status AlphaCode
-%else
-%define library_id 2
-%if "%{branch_name}" == "local"
-%define branch_id  0
-%global code_status AlphaCode
-%else
-%if "%{branch_name}" == "develop"
-%define branch_id  1
-%global code_status BetaCode
-%else
-%define branch_id  2
-%global code_status ReleaseCode
-%endif
-%endif
-%endif
-%endif
-
 %global ffmpeg_version       4.3.1
 %global ffmpeg_build         70
 %global srtp_version         2.1.0
@@ -43,16 +12,13 @@
 %global ptlib_version        2.19.4.16
 %global ptlib_build          59
 
-%if "%{branch_name}" == "local" || "%{branch_name}" == "develop"
-%global ffmpeg_full_version  %{ffmpeg_version}
-%global srtp_full_version    %{srtp_version}
-%global ptlib_full_version   %{ptlib_version}
-%global opus_full_version    %{opus_version}
-%else
-%global ffmpeg_full_version  %{ffmpeg_version}-%{library_id}.%{ffmpeg_build}%{?dist}
+%global ffmpeg_full_version  %{ffmpeg_version}-2.%{ffmpeg_build}%{?dist}
 %global srtp_full_version    %{srtp_version}-2.%{srtp_build}%{?dist}
 %global opus_full_version    %{opus_version}-2.%{opus_build}%{?dist}
-%global ptlib_full_version   %{ptlib_version}-%{library_id}.%{ptlib_build}%{?dist}
+%if "%{?repo}" == "mcu-develop"
+%global ptlib_full_version   %{ptlib_version}-1
+%else
+%global ptlib_full_version   %{ptlib_version}-2.%{ptlib_build}%{?dist}
 %endif
 
 

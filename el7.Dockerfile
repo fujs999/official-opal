@@ -19,9 +19,6 @@ RUN yum install --assumeyes --setopt=tsflags=nodocs \
 # Add tools needed for RPM building and dealing with yum repositories
 RUN yum install --assumeyes rpmdevtools yum-utils && yum clean all
 
-# Configure our own yum repos
-COPY mcu-el7.repo /etc/yum.repos.d/
-
 # Uncomment if you want to install some local dependencies instead of using Nexus yum repos
 #COPY build-deps /tmp/build-deps/
 #RUN yum install -y /tmp/build-deps/*.rpm && yum clean all
@@ -42,19 +39,20 @@ RUN mkdir /tmp/std-deps \
     && ([ -z "$(ls -A /tmp/std-deps/*.rpm)" ] || yum install --assumeyes /tmp/std-deps/*.rpm) \
     && yum clean all
 
-# Invalidate Docker cache if our yum repo metadata has changed (don't care about standard repos)
-ADD https://citc-artifacts.s3.amazonaws.com/yum/el7/mcu-develop/repodata/repomd.xml /tmp/mcu-develop.xml
-ADD https://citc-artifacts.s3.amazonaws.com/yum/el7/mcu-release/repodata/repomd.xml /tmp/mcu-release.xml
-ADD https://citc-artifacts.s3.amazonaws.com/yum/el7/mcu-release-tsan/repodata/repomd.xml /tmp/mcu-release-tsan.xml
-ADD https://citc-artifacts.s3.amazonaws.com/yum/el7/mcu-release-asan/repodata/repomd.xml /tmp/mcu-release-asan.xml
+ARG REPO="mcu-develop"
 
-ARG REPO="local"
-ARG BRANCH_NAME="local"
+RUN echo "[${REPO}]" > /etc/yum.repos.d/${REPO}.repo && \
+    echo "name=${REPO}" >> /etc/yum.repos.d/${REPO}.repo && \
+    echo "baseurl=https://citc-artifacts.s3.amazonaws.com/yum/el7/${REPO}/" >> /etc/yum.repos.d/${REPO}.repo && \
+    echo "gpgcheck=false" >> /etc/yum.repos.d/${REPO}.repo
+
+# Invalidate Docker cache if our yum repo metadata has changed (don't care about standard repos)
+ADD https://citc-artifacts.s3.amazonaws.com/yum/el7/${REPO}/repodata/repomd.xml /tmp/${REPO}.xml
 
 # Download internal dependencies referenced by the spec file
 RUN mkdir /tmp/build-deps \
     && touch /tmp/build-deps/placeholder \
-    && yum-builddep --assumeyes --downloadonly --downloaddir=/tmp/build-deps --define="repo ${REPO}" --define="branch_name ${BRANCH_NAME}" ${SPECFILE} \
+    && yum-builddep --assumeyes --downloadonly --downloaddir=/tmp/build-deps --define="repo ${REPO}" ${SPECFILE} \
     && yum clean all
 
 
