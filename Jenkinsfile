@@ -2,13 +2,25 @@
 
 @Library('collab-jenkins-library') _
 
-env.SPECFILE = 'libopal.spec'
-def job_name = "${JOB_NAME.replaceAll('%2F', '_')}"
-def build_name = "${job_name}/${BUILD_NUMBER}"
+def spec_file = 'libopal.spec'
+def job_name = JOB_NAME.replaceAll('%2F', '_')
+def build_tag = BUILD_TAG.replaceAll('%2F', '-')
 
 pipeline {
-  agent none
+  agent any
   stages {
+    stage('el7-builder') {
+      // This avoids the matrix trying to build the common parts of the docker image in parallel
+      steps {
+        script {
+          docker.build(
+            "el7_builder:${build_tag}",
+            "--build-arg SPECFILE=${spec_file} --build-arg BRANCH_NAME=${BRANCH_NAME} --file el7.Dockerfile ."
+          )
+        }
+      }
+    }
+
     stage('matrix') {
       failFast true
       matrix {
@@ -19,7 +31,7 @@ pipeline {
           }
           axis {
             name 'REPO'
-            values 'mcu-develop', 'mcu-release', 'mcu-release-tsan'
+            values 'mcu-release', 'mcu-release-tsan', 'mcu-release-asan'
           }
           axis {
             name 'ARCH'
@@ -56,25 +68,25 @@ pipeline {
             }
             axis {
               name 'REPO'
-              values 'mcu-release-tsan'
+              values 'mcu-release-tsan', 'mcu-release-asan'
             }
           }
         }
+        environment {
+          HOME = "${WORKSPACE}/${DIST}-${REPO}"
+        }
         stages {
           stage('package') {
-            agent {
-              dockerfile {
-                additionalBuildArgs "--build-arg SPECFILE=${env.SPECFILE}"
-              }
-            }
-            environment {
-              HOME = "${WORKSPACE}/${DIST}-${REPO}"
-            }
             steps {
               script {
                 sh 'mkdir -p $HOME'
                 if (DIST == 'el7') {
-                  sh " ./rpmbuild.sh --with=${REPO.replace('mcu-release-','')}"
+                  docker.build(
+                    "el7_builder:${build_tag}-${REPO}",
+                    "--build-arg SPECFILE=${spec_file} --build-arg REPO=${REPO} --build-arg BRANCH_NAME=${BRANCH_NAME} --file el7.Dockerfile ."
+                  ).inside() {
+                    sh "SPECFILE=${spec_file} ./rpmbuild.sh --define='repo ${REPO}'"
+                  }
                 }
                 else {
                   awsCodeBuild \
@@ -83,11 +95,12 @@ pipeline {
                       cloudWatchLogsStatusOverride: 'ENABLED', cloudWatchLogsGroupNameOverride: 'bbrtc-codebuild', \
                       cloudWatchLogsStreamNameOverride: "${job_name}/${ARCH}", \
                       artifactTypeOverride: 'S3', artifactLocationOverride: 'bbrtc-codebuild', \
-                      artifactNameOverride: 'rpmbuild', artifactPathOverride: build_name, \
+                      artifactNameOverride: 'rpmbuild', artifactPathOverride: build_tag, \
                       downloadArtifacts: 'true', downloadArtifactsRelativePath: '.', \
-                      envVariables: "[ { BUILD_NUMBER, ${BUILD_NUMBER} }, { BRANCH_NAME, ${BRANCH_NAME} }, { SPECFILE, ${env.SPECFILE} } ]", \
+                      envVariables: "[ { BUILD_NUMBER, ${BUILD_NUMBER} }, { BRANCH_NAME, ${BRANCH_NAME} }, { SPECFILE, ${spec_file} } ]", \
                       projectName: "BbRTC-${ARCH}"
-                  sh "mv ${build_name}/rpmbuild ${HOME}/"
+                  sh "mkdir -p ${HOME}/rpmbuild/RPMS/${ARCH}"
+                  sh "mv ${build_tag}/rpmbuild/RPMS/${ARCH}/* ${HOME}/rpmbuild/RPMS/${ARCH}"
                 }
               }
             }
@@ -98,15 +111,15 @@ pipeline {
             }
           }
           stage('publish') {
-            agent { label 'master' }
             steps {
               unarchive mapping:["${DIST}-${REPO}/rpmbuild/RPMS/" : '.']
               script {
-                stageYumPublish rpms: "${DIST}-${REPO}/rpmbuild/RPMS/", dist: DIST, repo: REPO, arch: ARCH
+                stageYumPublish rpms: "${HOME}/rpmbuild/RPMS", dist: DIST, repo: REPO, arch: ARCH, local_path: "${HOME}/yum"
               }
             }
           }
         }
+>>>>>>> release/20.21
       }
     }
   }

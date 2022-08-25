@@ -3,14 +3,58 @@
 %global version_patch  7
 %global version_oem    3
 
-%global ffmpeg_ver 4.3.1-1.39
-%global srtp_ver   2.1.0-4.18
-%global ptlib_ver  2.19.4.16-2.35
-
 # Branch ID should be 0 for local builds/PRs
-# Jenkins builds should use 1 for develop, 2 for master (release builds)
-%{!?branch_id: %global branch_id 0}
-%{!?opal_stage: %global opal_stage -alpha}
+# Library ID should be 2
+# The values "tsan" and "asan" are used for thread/address sanitizer
+%{!?branch_name: %global branch_name local}
+
+%if "%{?repo}" == "mcu-release-tsan"
+%define library_id tsan
+%define branch_id  tsan
+%global code_status AlphaCode
+%else
+%if "%{?repo}" == "mcu-release-asan"
+%define library_id asan
+%define branch_id  asan
+%global code_status AlphaCode
+%else
+%define library_id 2
+%if "%{branch_name}" == "local"
+%define branch_id  0
+%global code_status AlphaCode
+%else
+%if "%{branch_name}" == "develop"
+%define branch_id  1
+%global code_status BetaCode
+%else
+%define branch_id  2
+%global code_status ReleaseCode
+%endif
+%endif
+%endif
+%endif
+
+%global ffmpeg_version       4.3.1
+%global ffmpeg_build         70
+%global srtp_version         2.1.0
+%global srtp_build           31
+%global opus_version         1.3.1
+%global opus_build           9
+%global ptlib_version        2.19.4.16
+%global ptlib_build          59
+
+%if "%{branch_name}" == "local" || "%{branch_name}" == "develop"
+%global ffmpeg_full_version  %{ffmpeg_version}
+%global srtp_full_version    %{srtp_version}
+%global ptlib_full_version   %{ptlib_version}
+%global opus_full_version    %{opus_version}
+%else
+%global ffmpeg_full_version  %{ffmpeg_version}-%{library_id}.%{ffmpeg_build}%{?dist}
+%global srtp_full_version    %{srtp_version}-2.%{srtp_build}%{?dist}
+%global opus_full_version    %{opus_version}-2.%{opus_build}%{?dist}
+%global ptlib_full_version   %{ptlib_version}-%{library_id}.%{ptlib_build}%{?dist}
+%endif
+
 
 # Disable the separate debug package and automatic stripping, as detailed here:
 # http://fedoraproject.org/wiki/How_to_create_an_RPM_package
@@ -34,18 +78,21 @@ URL:            http://www.opalvoip.org/
 Source0:        source.tgz
 Source1:        filter-requires.sh
 
-BuildRequires:  collab-ffmpeg-devel = %{ffmpeg_ver}%{?dist}
-BuildRequires:  collab-libsrtp2-devel = %{srtp_ver}%{?dist}
-BuildRequires:  collab-ptlib-devel = %{ptlib_ver}%{?dist}
+BuildRequires:  collab-ffmpeg-devel = %{ffmpeg_full_version}
+BuildRequires:  collab-libsrtp2-devel = %{srtp_full_version}
+BuildRequires:  collab-opus-devel = %{opus_full_version}
+BuildRequires:  collab-ptlib-devel = %{ptlib_full_version}
 
 BuildRequires:  which
-BuildRequires:  opus-devel
+BuildRequires:  which
 BuildRequires:  speex-devel
 BuildRequires:  libtheora-devel
 BuildRequires:  libvpx-devel
-%ifarch x86_64
-BuildRequires:  x264-devel
-%endif
+
+Requires:       collab-ffmpeg = %{ffmpeg_full_version}
+Requires:       collab-libsrtp2 = %{srtp_full_version}
+Requires:       collab-opus = %{opus_full_version}
+Requires:       collab-ptlib = %{ptlib_full_version}
 
 %description
 OpalVOIP library
@@ -54,9 +101,9 @@ OpalVOIP library
 Summary:        Development files for %{name}
 Group:          Development/Libraries
 Requires:       %{name} = %{version}-%{release}
-Requires:       collab-ffmpeg-devel = %{ffmpeg_ver}%{?dist}
-Requires:       collab-libsrtp2-devel = %{srtp_ver}%{?dist}
-Requires:       collab-ptlib-devel = %{ptlib_ver}%{?dist}
+Requires:       collab-ffmpeg-devel = %{ffmpeg_full_version}
+Requires:       collab-libsrtp2-devel = %{srtp_full_version}
+Requires:       collab-ptlib-devel = %{ptlib_full_version}
 
 %description    devel
 The %{name}-devel package contains libraries and header files for
@@ -74,7 +121,7 @@ developing applications that use %{name}.
 
 
 %prep
-%setup -q -c -n zsdk-opal
+%setup -q -c -n opal
 
 
 %build
@@ -84,10 +131,13 @@ source /opt/rh/devtoolset-9/enable
 %ifarch aarch64
 %define arch_arg --enable-graviton2 --disable-x264
 %endif
-%if %{?_with_tsan:1}%{!?_with_tsan:0}
+%if "%{?repo}" == "mcu-release-tsan"
 %define tsan_arg --enable-sanitize-thread
 %endif
-./configure %{?tsan_arg} %{?arch_arg} \
+%if "%{?repo}" == "mcu-release-asan"
+%define asan_arg --enable-sanitize-address
+%endif
+./configure %{?arch_arg} %{?tsan_arg} %{?asan_arg} \
         --enable-cpp14 \
         --enable-localspeexdsp \
         --disable-h323 \

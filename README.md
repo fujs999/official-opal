@@ -1,4 +1,4 @@
-# zsdk-opal: Opal VOIP library
+# libopal: Opal VOIP library
 
 ## Building
 

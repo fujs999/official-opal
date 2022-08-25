@@ -3,6 +3,7 @@ version: 0.2
 phases:
   install:
     commands:
+      - yum update --assumeyes
       - yum install --assumeyes sudo rpmdevtools yum-utils
       - cp mcu-amzn2.repo /etc/yum.repos.d/
       - yum-builddep --assumeyes ${SPECFILE}
@@ -16,4 +17,4 @@ phases:
 artifacts:
   files:
     - '**/*.rpm'
-  base-directory: rpmbuild
+  base-directory: /home/codebuild-user/rpmbuild

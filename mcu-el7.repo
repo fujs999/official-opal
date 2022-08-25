@@ -7,3 +7,13 @@ gpgcheck=false
 name=mcu-develop
 baseurl=https://citc-artifacts.s3.amazonaws.com/yum/el7/mcu-develop/
 gpgcheck=false
+
+[mcu-tsan]
+name=mcu-tsan
+baseurl=https://citc-artifacts.s3.amazonaws.com/yum/el7/mcu-release-tsan/
+gpgcheck=false
+
+[mcu-asan]
+name=mcu-asan
+baseurl=https://citc-artifacts.s3.amazonaws.com/yum/el7/mcu-release-asan/
+gpgcheck=false
