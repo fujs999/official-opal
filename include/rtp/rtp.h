@@ -136,7 +136,7 @@ class RTP_ControlFrame : public PBYTEArray
     PayloadTypes GetPayloadType() const { return (PayloadTypes)GetAt(m_compoundOffset+1); }
     void         SetPayloadType(PayloadTypes pt);
 
-    PINDEX GetPayloadSize() const { return 4*(PINDEX)GetAs<PUInt16b>(m_compoundOffset+2); }
+    PINDEX GetPayloadSize() const;
     bool   SetPayloadSize(PINDEX sz);
 
     BYTE * GetPayloadPtr() const;

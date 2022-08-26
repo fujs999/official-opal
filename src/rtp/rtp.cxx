@@ -828,6 +828,15 @@ void RTP_ControlFrame::SetPayloadType(PayloadTypes pt)
 }
 
 
+PINDEX RTP_ControlFrame::GetPayloadSize() const
+{
+  PINDEX size = 4*(PINDEX)GetAs<PUInt16b>(m_compoundOffset+2);
+  if (size + m_compoundOffset + 4 > m_packetSize)
+    size = m_packetSize - m_compoundOffset - 4; // Get whatever was left in malformed packet
+  return size;
+}
+
+
 bool RTP_ControlFrame::SetPayloadSize(PINDEX sz)
 {
   m_payloadSize = sz;
