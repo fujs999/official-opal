@@ -9,11 +9,11 @@
 %{!?version_stage: %global version_stage AlphaCode}
 
 %global ffmpeg_version       4.3.1
-%global ffmpeg_build         72
+%global ffmpeg_build         74
 %global srtp_version         2.1.0
-%global srtp_build           34
+%global srtp_build           35
 %global opus_version         1.3.1
-%global opus_build           11
+%global opus_build           12
 %global ptlib_version        2.19.4.18
 %global ptlib_build          69
 
