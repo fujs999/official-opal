@@ -3,23 +3,23 @@
 %global version_patch  7
 %global version_oem    6
 
+%global ffmpeg_version 4.3.1
+%global ffmpeg_build   2.74
+
+%global srtp_version   2.1.0
+%global srtp_build           2.35
+
+%global opus_version   1.3.1
+%global opus_build     2.13
+
+%global ptlib_version  2.19.4.18
+%global ptlib_build    2.70
+
+
 # Branch ID should be 0 for local builds/PRs
 # Jenkins builds should use 1 for develop, 2 for master (release builds)
 %{!?branch_id:     %global branch_id     0}
 %{!?version_stage: %global version_stage AlphaCode}
-
-%global ffmpeg_version       4.3.1
-%global ffmpeg_build         2.74
-
-%global srtp_version         2.1.0
-%global srtp_build           2.35
-
-%global opus_version         1.3.1
-%global opus_build           2.13
-
-%global ptlib_version        2.19.4.19
-%global ptlib_build          1.1
-
 
 # Disable the separate debug package and automatic stripping, as detailed here:
 # http://fedoraproject.org/wiki/How_to_create_an_RPM_package
@@ -31,6 +31,7 @@
 # See https://fedoraproject.org/wiki/PackagingDrafts/FilteringAutomaticDependencies
 %define _use_internal_dependency_generator 0
 %define __find_requires %{SOURCE1}
+
 
 Name:           collab-libopal
 Version:        %{version_major}.%{version_minor}.%{version_patch}.%{version_oem}
