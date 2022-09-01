@@ -13,7 +13,7 @@
 %global srtp_version         2.1.0
 %global srtp_build           35
 %global opus_version         1.3.1
-%global opus_build           12
+%global opus_build           13
 %global ptlib_version        2.19.4.19
 %global ptlib_build          1
 
