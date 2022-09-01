@@ -15,10 +15,9 @@ fi
 BUILD_ARGS=(--define='_smp_mflags -j2')
 
 if [[ "$BRANCH_NAME" == release/* ]] || [[ "$BRANCH_NAME" == "main" ]]
-then BUILD_ARGS+=(--define="branch_id 2")
+then BUILD_ARGS+=(--define="branch_id 2" --define="version_stage ReleaseCode")
 elif [[ "$BRANCH_NAME" == "develop" ]]
-then BUILD_ARGS+=(--define="branch_id 1")
-else BUILD_ARGS+=(--define="branch_id 0")
+then BUILD_ARGS+=(--define="branch_id 1" --define="version_stage BetaCode")
 fi
 
 if [[ $BUILD_NUMBER ]]

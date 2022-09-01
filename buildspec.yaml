@@ -5,7 +5,10 @@ phases:
     commands:
       - yum update --assumeyes
       - yum install --assumeyes sudo rpmdevtools yum-utils
-      - cp mcu-amzn2.repo /etc/yum.repos.d/
+      - echo "[${REPO}]" > /etc/yum.repos.d/${REPO}.repo
+      - echo "name=${REPO}" >> /etc/yum.repos.d/${REPO}.repo
+      - echo "baseurl=https://citc-artifacts.s3.amazonaws.com/yum/amzn2/${REPO}/" >> /etc/yum.repos.d/${REPO}.repo
+      - echo "gpgcheck=false" >> /etc/yum.repos.d/${REPO}.repo
       - yum-builddep --assumeyes ${SPECFILE}
   pre_build:
     commands:

@@ -27,11 +27,11 @@ pipeline {
         axes {
           axis {
             name 'DIST'
-            values 'el7' //, 'amzn2'
+            values 'el7', 'amzn2'
           }
           axis {
             name 'REPO'
-            values 'mcu-develop', 'mcu-release' //, 'mcu-release-tsan', 'mcu-release-asan'
+            values 'mcu-develop', 'mcu-release', 'mcu-release-tsan', 'mcu-release-asan'
           }
           axis {
             name 'ARCH'
@@ -85,7 +85,7 @@ pipeline {
                     "el7_builder:${build_tag}-${REPO}",
                     "--build-arg SPECFILE=${spec_file} --build-arg REPO=${REPO} --file el7.Dockerfile ."
                   ).inside() {
-                    sh "SPECFILE=${spec_file} ./rpmbuild.sh --define='repo ${REPO}'"
+                    sh "SPECFILE=${spec_file} ./rpmbuild.sh --define='REPO ${REPO}'"
                   }
                 }
                 else {
@@ -97,7 +97,7 @@ pipeline {
                       artifactTypeOverride: 'S3', artifactLocationOverride: 'bbrtc-codebuild', \
                       artifactNameOverride: 'rpmbuild', artifactPathOverride: build_tag, \
                       downloadArtifacts: 'true', downloadArtifactsRelativePath: '.', \
-                      envVariables: "[ { BUILD_NUMBER, ${BUILD_NUMBER} }, { BRANCH_NAME, ${BRANCH_NAME} }, { SPECFILE, ${spec_file} } ]", \
+                      envVariables: "[ { BUILD_NUMBER, ${BUILD_NUMBER} }, { BRANCH_NAME, ${BRANCH_NAME} }, { REPO, ${REPO} }, { SPECFILE, ${spec_file} } ]", \
                       projectName: "BbRTC-${ARCH}"
                   sh "mkdir -p ${HOME}/rpmbuild/RPMS/${ARCH}"
                   sh "mv ${build_tag}/rpmbuild/RPMS/${ARCH}/* ${HOME}/rpmbuild/RPMS/${ARCH}"

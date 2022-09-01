@@ -25,12 +25,12 @@ RUN yum install --assumeyes rpmdevtools yum-utils && yum clean all
 
 
 FROM base AS depsolver
-ARG SPECFILE
-COPY ${SPECFILE} .
-
 # Temporary fix for broken centos repo
 RUN sed --in-place 's/centos\/7\//centos\/7.8.2003\//'            /etc/yum.repos.d/CentOS-SCLo-scl-rh.repo && \
     sed --in-place 's/centos\/\$releasever\//centos\/7.8.2003\//' /etc/yum.repos.d/CentOS-Sources.repo
+
+ARG SPECFILE
+COPY ${SPECFILE} .
 
 # Install standard dependencies referenced by the spec file
 RUN mkdir /tmp/std-deps \
@@ -39,12 +39,13 @@ RUN mkdir /tmp/std-deps \
     && ([ -z "$(ls -A /tmp/std-deps/*.rpm)" ] || yum install --assumeyes /tmp/std-deps/*.rpm) \
     && yum clean all
 
-ARG REPO="mcu-develop"
+ARG REPO
 
 RUN echo "[${REPO}]" > /etc/yum.repos.d/${REPO}.repo && \
     echo "name=${REPO}" >> /etc/yum.repos.d/${REPO}.repo && \
     echo "baseurl=https://citc-artifacts.s3.amazonaws.com/yum/el7/${REPO}/" >> /etc/yum.repos.d/${REPO}.repo && \
-    echo "gpgcheck=false" >> /etc/yum.repos.d/${REPO}.repo
+    echo "gpgcheck=false" >> /etc/yum.repos.d/${REPO}.repo && \
+    cat /etc/yum.repos.d/${REPO}.repo
 
 # Invalidate Docker cache if our yum repo metadata has changed (don't care about standard repos)
 ADD https://citc-artifacts.s3.amazonaws.com/yum/el7/${REPO}/repodata/repomd.xml /tmp/${REPO}.xml
@@ -52,7 +53,7 @@ ADD https://citc-artifacts.s3.amazonaws.com/yum/el7/${REPO}/repodata/repomd.xml 
 # Download internal dependencies referenced by the spec file
 RUN mkdir /tmp/build-deps \
     && touch /tmp/build-deps/placeholder \
-    && yum-builddep --assumeyes --downloadonly --downloaddir=/tmp/build-deps --define="repo ${REPO}" ${SPECFILE} \
+    && yum-builddep --assumeyes --downloadonly --downloaddir=/tmp/build-deps --define="REPO ${REPO}" ${SPECFILE} \
     && yum clean all
 
 
