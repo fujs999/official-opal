@@ -9,22 +9,16 @@
 %{!?version_stage: %global version_stage AlphaCode}
 
 %global ffmpeg_version       4.3.1
-%global ffmpeg_build         74
-%global srtp_version         2.1.0
-%global srtp_build           35
-%global opus_version         1.3.1
-%global opus_build           13
-%global ptlib_version        2.19.4.19
-%global ptlib_build          1
+%global ffmpeg_build         2.74
 
-%global ffmpeg_full_version  %{ffmpeg_version}-2.%{ffmpeg_build}%{?dist}
-%global srtp_full_version    %{srtp_version}-2.%{srtp_build}%{?dist}
-%global opus_full_version    %{opus_version}-2.%{opus_build}%{?dist}
-%if "%{?REPO}" == "mcu-develop"
-%global ptlib_full_version   %{ptlib_version}
-%else
-%global ptlib_full_version   %{ptlib_version}-2.%{ptlib_build}%{?dist}
-%endif
+%global srtp_version         2.1.0
+%global srtp_build           2.35
+
+%global opus_version         1.3.1
+%global opus_build           2.13
+
+%global ptlib_version        2.19.4.19
+%global ptlib_build          1.1
 
 
 # Disable the separate debug package and automatic stripping, as detailed here:
@@ -48,6 +42,18 @@ License:        MPL 1.0
 URL:            http://www.opalvoip.org/
 Source0:        source.tgz
 Source1:        filter-requires.sh
+
+%if "%{?REPO}" == "mcu-develop"
+%global ffmpeg_full_version  %{ffmpeg_version}
+%global srtp_full_version    %{srtp_version}
+%global opus_full_version    %{opus_version}
+%global ptlib_full_version   %{ptlib_version}
+%else
+%global ffmpeg_full_version  %{ffmpeg_version}-%{ffmpeg_build}%{?dist}
+%global srtp_full_version    %{srtp_version}-%{srtp_build}%{?dist}
+%global opus_full_version    %{opus_version}-%{opus_build}%{?dist}
+%global ptlib_full_version   %{ptlib_version}-%{ptlib_build}%{?dist}
+%endif
 
 BuildRequires:  collab-ffmpeg-devel = %{ffmpeg_full_version}
 BuildRequires:  collab-libsrtp2-devel = %{srtp_full_version}

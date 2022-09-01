@@ -43,7 +43,6 @@ pipeline {
             allOf {
               branch 'develop'
               expression { return REPO == 'mcu-develop' }
-              expression { return DIST == 'el7' }
             }
             allOf {
               branch 'release/*'
