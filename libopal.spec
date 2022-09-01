@@ -14,8 +14,8 @@
 %global srtp_build           35
 %global opus_version         1.3.1
 %global opus_build           12
-%global ptlib_version        2.19.4.18
-%global ptlib_build          69
+%global ptlib_version        2.19.4.19
+%global ptlib_build          1
 
 %global ffmpeg_full_version  %{ffmpeg_version}-2.%{ffmpeg_build}%{?dist}
 %global srtp_full_version    %{srtp_version}-2.%{srtp_build}%{?dist}
