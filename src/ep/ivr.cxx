@@ -126,7 +126,7 @@ static OpalConnection::StringOptions ExtractOptionsFromVXML(const PString & vxml
   OpalConnection::StringOptions options;
 
   PString vxmlSource = vxml;
-  PURL url(vxml);
+  PURL url(vxml, NULL);
   if (!url.IsEmpty())
     url.LoadResource(vxmlSource);
   else {
