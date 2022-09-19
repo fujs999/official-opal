@@ -125,6 +125,30 @@ public class OpalParamProtocol {
     return OPALJNI.OpalParamProtocol_protocolMessageIdentifiers_get(swigCPtr, this);
   }
 
+  public void setCaFiles(String value) {
+    OPALJNI.OpalParamProtocol_caFiles_set(swigCPtr, this, value);
+  }
+
+  public String getCaFiles() {
+    return OPALJNI.OpalParamProtocol_caFiles_get(swigCPtr, this);
+  }
+
+  public void setCertificate(String value) {
+    OPALJNI.OpalParamProtocol_certificate_set(swigCPtr, this, value);
+  }
+
+  public String getCertificate() {
+    return OPALJNI.OpalParamProtocol_certificate_get(swigCPtr, this);
+  }
+
+  public void setPrivateKey(String value) {
+    OPALJNI.OpalParamProtocol_privateKey_set(swigCPtr, this, value);
+  }
+
+  public String getPrivateKey() {
+    return OPALJNI.OpalParamProtocol_privateKey_get(swigCPtr, this);
+  }
+
   public OpalParamProtocol() {
     this(OPALJNI.new_OpalParamProtocol(), true);
   }

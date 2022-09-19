@@ -312,7 +312,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_OPAL_C_API_VERSION_get() {
   int jresult ;
   int result;
   
-  result = (int)(42);
+  result = (int)(43);
   jresult = result; 
   return jresult;
 }
@@ -2195,6 +2195,93 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_OpalParamProtocol_protocolMessageIdentifier
   
   arg1 = (OpalParamProtocol *)jarg1; 
   result = (char *) ((arg1)->m_protocolMessageIdentifiers);
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_OpalParamProtocol_caFiles_set(void * jarg1, char * jarg2) {
+  OpalParamProtocol *arg1 = (OpalParamProtocol *) 0 ;
+  char *arg2 = (char *) 0 ;
+  
+  arg1 = (OpalParamProtocol *)jarg1; 
+  arg2 = (char *)jarg2; 
+  {
+    if (arg2) {
+      arg1->m_caFiles = (char const *) (new char[strlen((const char *)arg2)+1]);
+      strcpy((char *)arg1->m_caFiles, (const char *)arg2);
+    } else {
+      arg1->m_caFiles = 0;
+    }
+  }
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_OpalParamProtocol_caFiles_get(void * jarg1) {
+  char * jresult ;
+  OpalParamProtocol *arg1 = (OpalParamProtocol *) 0 ;
+  char *result = 0 ;
+  
+  arg1 = (OpalParamProtocol *)jarg1; 
+  result = (char *) ((arg1)->m_caFiles);
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_OpalParamProtocol_certificate_set(void * jarg1, char * jarg2) {
+  OpalParamProtocol *arg1 = (OpalParamProtocol *) 0 ;
+  char *arg2 = (char *) 0 ;
+  
+  arg1 = (OpalParamProtocol *)jarg1; 
+  arg2 = (char *)jarg2; 
+  {
+    if (arg2) {
+      arg1->m_certificate = (char const *) (new char[strlen((const char *)arg2)+1]);
+      strcpy((char *)arg1->m_certificate, (const char *)arg2);
+    } else {
+      arg1->m_certificate = 0;
+    }
+  }
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_OpalParamProtocol_certificate_get(void * jarg1) {
+  char * jresult ;
+  OpalParamProtocol *arg1 = (OpalParamProtocol *) 0 ;
+  char *result = 0 ;
+  
+  arg1 = (OpalParamProtocol *)jarg1; 
+  result = (char *) ((arg1)->m_certificate);
+  jresult = SWIG_csharp_string_callback((const char *)result); 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_OpalParamProtocol_privateKey_set(void * jarg1, char * jarg2) {
+  OpalParamProtocol *arg1 = (OpalParamProtocol *) 0 ;
+  char *arg2 = (char *) 0 ;
+  
+  arg1 = (OpalParamProtocol *)jarg1; 
+  arg2 = (char *)jarg2; 
+  {
+    if (arg2) {
+      arg1->m_privateKey = (char const *) (new char[strlen((const char *)arg2)+1]);
+      strcpy((char *)arg1->m_privateKey, (const char *)arg2);
+    } else {
+      arg1->m_privateKey = 0;
+    }
+  }
+}
+
+
+SWIGEXPORT char * SWIGSTDCALL CSharp_OpalParamProtocol_privateKey_get(void * jarg1) {
+  char * jresult ;
+  OpalParamProtocol *arg1 = (OpalParamProtocol *) 0 ;
+  char *result = 0 ;
+  
+  arg1 = (OpalParamProtocol *)jarg1; 
+  result = (char *) ((arg1)->m_privateKey);
   jresult = SWIG_csharp_string_callback((const char *)result); 
   return jresult;
 }

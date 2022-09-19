@@ -154,6 +154,36 @@ public class OpalParamProtocol : global::System.IDisposable {
     } 
   }
 
+  public string caFiles {
+    set {
+      OPALPINVOKE.OpalParamProtocol_caFiles_set(swigCPtr, value);
+    } 
+    get {
+      string ret = OPALPINVOKE.OpalParamProtocol_caFiles_get(swigCPtr);
+      return ret;
+    } 
+  }
+
+  public string certificate {
+    set {
+      OPALPINVOKE.OpalParamProtocol_certificate_set(swigCPtr, value);
+    } 
+    get {
+      string ret = OPALPINVOKE.OpalParamProtocol_certificate_get(swigCPtr);
+      return ret;
+    } 
+  }
+
+  public string privateKey {
+    set {
+      OPALPINVOKE.OpalParamProtocol_privateKey_set(swigCPtr, value);
+    } 
+    get {
+      string ret = OPALPINVOKE.OpalParamProtocol_privateKey_get(swigCPtr);
+      return ret;
+    } 
+  }
+
   public OpalParamProtocol() : this(OPALPINVOKE.new_OpalParamProtocol(), true) {
   }
 

@@ -2141,6 +2141,22 @@ void OpalManager_C::HandleSetProtocol(const OpalMessage & command, OpalMessageBu
       sipEP->SetProtocolMessageIdentifiers(command.m_param.m_protocol.m_protocolMessageIdentifiers);
   }
 #endif
+
+  if (m_apiVersion < 43)
+    return;
+
+#if P_SSL
+  SET_MESSAGE_STRING(response, m_param.m_protocol.m_caFiles, ep->GetSSLCertificateAuthorityFiles());
+  SET_MESSAGE_STRING(response, m_param.m_protocol.m_certificate, ep->GetSSLCertificateFile());
+  SET_MESSAGE_STRING(response, m_param.m_protocol.m_privateKey, ep->GetSSLPrivateKeyFile());
+
+  if (command.m_param.m_protocol.m_caFiles != NULL)
+    ep->SetSSLCertificateAuthorityFiles(command.m_param.m_protocol.m_caFiles);
+  if (command.m_param.m_protocol.m_certificate != NULL)
+    ep->SetSSLCertificateFile(command.m_param.m_protocol.m_certificate);
+  if (command.m_param.m_protocol.m_privateKey != NULL)
+    ep->SetSSLPrivateKeyFile(command.m_param.m_protocol.m_privateKey);
+#endif
 }
 
 

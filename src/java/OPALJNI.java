@@ -166,6 +166,12 @@ public class OPALJNI {
   public final static native long OpalParamProtocol_maxSizeUDP_get(long jarg1, OpalParamProtocol jarg1_);
   public final static native void OpalParamProtocol_protocolMessageIdentifiers_set(long jarg1, OpalParamProtocol jarg1_, String jarg2);
   public final static native String OpalParamProtocol_protocolMessageIdentifiers_get(long jarg1, OpalParamProtocol jarg1_);
+  public final static native void OpalParamProtocol_caFiles_set(long jarg1, OpalParamProtocol jarg1_, String jarg2);
+  public final static native String OpalParamProtocol_caFiles_get(long jarg1, OpalParamProtocol jarg1_);
+  public final static native void OpalParamProtocol_certificate_set(long jarg1, OpalParamProtocol jarg1_, String jarg2);
+  public final static native String OpalParamProtocol_certificate_get(long jarg1, OpalParamProtocol jarg1_);
+  public final static native void OpalParamProtocol_privateKey_set(long jarg1, OpalParamProtocol jarg1_, String jarg2);
+  public final static native String OpalParamProtocol_privateKey_get(long jarg1, OpalParamProtocol jarg1_);
   public final static native long new_OpalParamProtocol();
   public final static native void delete_OpalParamProtocol(long jarg1);
   public final static native String OPAL_MWI_EVENT_PACKAGE_get();

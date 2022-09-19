@@ -131,6 +131,75 @@ public:
 typedef std::list<OpalConferenceState> OpalConferenceStates;
 
 
+/**@name Networking and NAT Management */
+class OpalCertificateInfo
+{
+#if OPAL_PTLIB_SSL
+  public:
+    OpalCertificateInfo(bool withDefaults = false);
+
+    /** Apply the SSL certificates/key for SSL based calls, e.g. sips or h323s
+        This function loads the certificates and keys for use by a OpalListener
+        or OpalTransport on the \p endpoint parameter. It allows for embedded
+        certificates and keys, while the default behaviour loads the
+        certificates and keys from files pointed to by member variables.
+
+        Note that a listener must have a cert/key and may have CA directory/list
+        for bi-directional authentication. A transport should have the CA
+        directory/list set, and if missing then no server authentication is
+        performed. Similarly if a transport may have an optional cert/key for
+        bi-directional authentication.
+      */
+    virtual bool ApplySSLCredentials(
+      const OpalEndPoint & ep,  ///< Endpoint transport is based on.
+      PSSLContext & context,    ///< Context on which to set certificates
+      bool create               ///< Create self signed cert/key if required
+    ) const;
+
+    /**Get the default CA filenames (';' separated) or dirctory for CA file.
+      */
+    const PString & GetSSLCertificateAuthorityFiles() const { return m_caFiles; }
+
+    /**Set the default CA filename
+      */
+    void SetSSLCertificateAuthorityFiles(const PString & files) { m_caFiles = files; }
+
+    /**Get the default local certificate filename
+      */
+    const PString & GetSSLCertificateFile() const { return m_certificateFile; }
+
+    /**Set the default local certificate filename
+      */
+    void SetSSLCertificateFile(const PString & file) { m_certificateFile = file; }
+
+    /**Get the default local private key filename
+      */
+    const PString & GetSSLPrivateKeyFile() const { return m_privateKeyFile; }
+
+    /**Set the default local private key filename
+      */
+    void SetSSLPrivateKeyFile(const PString & file) { m_privateKeyFile = file; }
+
+    /**Set flag to auto-create a self signed root certificate and private key.
+     */
+    void SetSSLAutoCreateCertificate(bool yes) { m_autoCreateCertificate = yes; }
+
+    /**Get flag to auto-create a self signed root certificate and private key.
+     */
+    bool GetSSLAutoCreateCertificate() const { return m_autoCreateCertificate; }
+
+  protected:
+    PString   m_caFiles;
+    PFilePath m_certificateFile;
+    PFilePath m_privateKeyFile;
+    bool      m_autoCreateCertificate;
+#else
+  public:
+    OpalCertificateInfo(bool withDefaults = false) { }
+#endif // OPAL_PTLIB_SSL
+};
+
+
 /**This class is the central manager for OPAL.
    The OpalManager embodies the root of the tree of objects that constitute an
    OPAL system. It contains all of the endpoints that make up the system. Other
@@ -147,7 +216,7 @@ typedef std::list<OpalConferenceState> OpalConferenceStates;
    create a descendant of the OpalManager and override virtual functions there
    to get all the indications it needs.
  */
-class OpalManager : public PObject
+class OpalManager : public PObject, public OpalCertificateInfo
 {
     PCLASSINFO(OpalManager, PObject);
   public:
@@ -1467,60 +1536,6 @@ class OpalManager : public PObject
   //@}
 
 
-  /**@name Networking and NAT Management */
-  //@{
-#if OPAL_PTLIB_SSL
-    /** Apply the SSL certificates/key for SSL based calls, e.g. sips or h323s
-        This function loads the certificates and keys for use by a OpalListener
-        or OpalTransport on the \p endpoint parameter. It allows for embedded
-        certificates and keys, while the default behaviour loads the
-        certificates and keys from files pointed to by member variables.
-
-        Note that a listener must have a cert/key and may have CA directory/list
-        for bi-directional authentication. A transport should have the CA
-        directory/list set, and if missing then no server authentication is
-        performed. Similarly if a transport may have an optional cert/key for
-        bi-directional authentication.
-      */
-    virtual bool ApplySSLCredentials(
-      const OpalEndPoint & ep,  ///< Endpoint transport is based on.
-      PSSLContext & context,    ///< Context on which to set certificates
-      bool create               ///< Create self signed cert/key if required
-    ) const;
-
-    /**Get the default CA filenames (';' separated) or dirctory for CA file.
-      */
-    const PString & GetSSLCertificateAuthorityFiles() const { return m_caFiles; }
-
-    /**Set the default CA filename
-      */
-    void SetSSLCertificateAuthorityFiles(const PString & files) { m_caFiles = files; }
-
-    /**Get the default local certificate filename
-      */
-    const PString & GetSSLCertificateFile() const { return m_certificateFile; }
-
-    /**Set the default local certificate filename
-      */
-    void SetSSLCertificateFile(const PString & file) { m_certificateFile = file; }
-
-    /**Get the default local private key filename
-      */
-    const PString & GetSSLPrivateKeyFile() const { return m_privateKeyFile; }
-
-    /**Set the default local private key filename
-      */
-    void SetSSLPrivateKeyFile(const PString & file) { m_privateKeyFile = file; }
-
-    /**Set flag to auto-create a self signed root certificate and private key.
-     */
-    void SetSSLAutoCreateCertificate(bool yes) { m_autoCreateCertificate = yes; }
-
-    /**Get flag to auto-create a self signed root certificate and private key.
-     */
-    bool GetSSLAutoCreateCertificate() const { return m_autoCreateCertificate; }
-#endif
-
     /**Determine if the address is "local", ie does not need any address
        translation (fixed or via STUN) to access.
 
@@ -2120,13 +2135,6 @@ class OpalManager : public PObject
 
     PIPSocket::PortRange m_tcpPorts, m_udpPorts, m_rtpIpPorts;
     
-#if OPAL_PTLIB_SSL
-    PString   m_caFiles;
-    PFilePath m_certificateFile;
-    PFilePath m_privateKeyFile;
-    bool      m_autoCreateCertificate;
-#endif
-
 #if OPAL_PTLIB_NAT
     PNatMethods * m_natMethods;
     PDECLARE_InterfaceNotifier(OpalManager, OnInterfaceChange);

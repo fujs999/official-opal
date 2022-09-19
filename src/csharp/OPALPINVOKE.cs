@@ -663,6 +663,24 @@ class OPALPINVOKE {
   [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_OpalParamProtocol_protocolMessageIdentifiers_get")]
   public static extern string OpalParamProtocol_protocolMessageIdentifiers_get(global::System.Runtime.InteropServices.HandleRef jarg1);
 
+  [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_OpalParamProtocol_caFiles_set")]
+  public static extern void OpalParamProtocol_caFiles_set(global::System.Runtime.InteropServices.HandleRef jarg1, string jarg2);
+
+  [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_OpalParamProtocol_caFiles_get")]
+  public static extern string OpalParamProtocol_caFiles_get(global::System.Runtime.InteropServices.HandleRef jarg1);
+
+  [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_OpalParamProtocol_certificate_set")]
+  public static extern void OpalParamProtocol_certificate_set(global::System.Runtime.InteropServices.HandleRef jarg1, string jarg2);
+
+  [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_OpalParamProtocol_certificate_get")]
+  public static extern string OpalParamProtocol_certificate_get(global::System.Runtime.InteropServices.HandleRef jarg1);
+
+  [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_OpalParamProtocol_privateKey_set")]
+  public static extern void OpalParamProtocol_privateKey_set(global::System.Runtime.InteropServices.HandleRef jarg1, string jarg2);
+
+  [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_OpalParamProtocol_privateKey_get")]
+  public static extern string OpalParamProtocol_privateKey_get(global::System.Runtime.InteropServices.HandleRef jarg1);
+
   [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_new_OpalParamProtocol")]
   public static extern global::System.IntPtr new_OpalParamProtocol();
 

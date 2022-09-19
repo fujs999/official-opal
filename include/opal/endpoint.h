@@ -62,7 +62,7 @@ class OpalMediaStream;
    so as all basic operations are passed to the OpalManager so only that class
    need be subclassed.
  */
-class OpalEndPoint : public PObject
+class OpalEndPoint : public PObject, public OpalCertificateInfo
 {
     PCLASSINFO(OpalEndPoint, PObject);
   public:

@@ -294,7 +294,8 @@ ostream & operator<<(ostream & strm, const OpalProductInfo & info)
 /////////////////////////////////////////////////////////////////////////////
 
 OpalManager::OpalManager()
-  : m_productInfo(OpalProductInfo::Default())
+  : OpalCertificateInfo(true)
+  , m_productInfo(OpalProductInfo::Default())
   , m_defaultUserName(PProcess::Current().GetUserName())
   , m_defaultDisplayName(m_defaultUserName)
   , m_rtpPayloadSizeMax(1400) // RFC879 recommends 576 bytes, but that is ancient history, 99.999% of the time 1400+ bytes is used.
@@ -315,12 +316,6 @@ OpalManager::OpalManager()
   , m_dtlsTimeout(0, 3)           // Seconds
 #endif
   , m_rtpIpPorts(5000, 5999)
-#if OPAL_PTLIB_SSL
-  , m_caFiles("*") // Use default
-  , m_certificateFile(PProcess::Current().GetHomeDirectory() + "opal_certificate.pem")
-  , m_privateKeyFile(PProcess::Current().GetHomeDirectory() + "opal_private_key.pem")
-  , m_autoCreateCertificate(true)
-#endif
 #if OPAL_PTLIB_NAT
   , m_natMethods(new PNatMethods(true))
   , m_onInterfaceChange(PCREATE_InterfaceNotifier(OnInterfaceChange))
@@ -1926,9 +1921,20 @@ void OpalManager::SetDefaultDisplayName(const PString & name, bool updateAll)
 
 
 #if OPAL_PTLIB_SSL
-bool OpalManager::ApplySSLCredentials(const OpalEndPoint & /*ep*/,
-                                    PSSLContext & context,
-                                    bool create) const
+OpalCertificateInfo::OpalCertificateInfo(bool withDefaults)
+  : m_caFiles("*") // Use default
+  , m_autoCreateCertificate(true)
+{
+  if (withDefaults) {
+    m_certificateFile = PProcess::Current().GetHomeDirectory() + "opal_certificate.pem";
+    m_privateKeyFile = PProcess::Current().GetHomeDirectory() + "opal_private_key.pem";
+  }
+}
+
+
+bool OpalCertificateInfo::ApplySSLCredentials(const OpalEndPoint & /*ep*/,
+                                              PSSLContext & context,
+                                              bool create) const
 {
   return context.SetCredentials(m_caFiles, m_certificateFile, m_privateKeyFile, create && m_autoCreateCertificate);
 }
