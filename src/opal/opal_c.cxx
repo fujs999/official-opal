@@ -1881,7 +1881,7 @@ void OpalManager_C::HandleSetGeneral(const OpalMessage & command, OpalMessageBuf
   SET_MESSAGE_STRING(response, m_param.m_general.m_caFiles, GetSSLCertificateAuthorityFiles());
   SET_MESSAGE_STRING(response, m_param.m_general.m_certificate, GetSSLCertificateFile());
   SET_MESSAGE_STRING(response, m_param.m_general.m_privateKey, GetSSLPrivateKeyFile());
-  response->m_param.m_general.m_autoCreateCertificate = m_autoCreateCertificate ? 1 : 2;
+  response->m_param.m_general.m_autoCreateCertificate = m_autoCreateCertificate ? 2 : 1;
 
   if (command.m_param.m_general.m_caFiles != NULL)
     SetSSLCertificateAuthorityFiles(command.m_param.m_general.m_caFiles);
@@ -2149,6 +2149,7 @@ void OpalManager_C::HandleSetProtocol(const OpalMessage & command, OpalMessageBu
   SET_MESSAGE_STRING(response, m_param.m_protocol.m_caFiles, ep->GetSSLCertificateAuthorityFiles());
   SET_MESSAGE_STRING(response, m_param.m_protocol.m_certificate, ep->GetSSLCertificateFile());
   SET_MESSAGE_STRING(response, m_param.m_protocol.m_privateKey, ep->GetSSLPrivateKeyFile());
+  response->m_param.m_protocol.m_autoCreateCertificate = ep->GetSSLAutoCreateCertificate() ? 2 : 1;
 
   if (command.m_param.m_protocol.m_caFiles != NULL)
     ep->SetSSLCertificateAuthorityFiles(command.m_param.m_protocol.m_caFiles);
@@ -2156,6 +2157,8 @@ void OpalManager_C::HandleSetProtocol(const OpalMessage & command, OpalMessageBu
     ep->SetSSLCertificateFile(command.m_param.m_protocol.m_certificate);
   if (command.m_param.m_protocol.m_privateKey != NULL)
     ep->SetSSLPrivateKeyFile(command.m_param.m_protocol.m_privateKey);
+  if (command.m_param.m_protocol.m_autoCreateCertificate > 0)
+    SetSSLAutoCreateCertificate(command.m_param.m_protocol.m_autoCreateCertificate == 1);
 #endif
 }
 

@@ -149,6 +149,14 @@ public class OpalParamProtocol {
     return OPALJNI.OpalParamProtocol_privateKey_get(swigCPtr, this);
   }
 
+  public void setAutoCreateCertificate(long value) {
+    OPALJNI.OpalParamProtocol_autoCreateCertificate_set(swigCPtr, this, value);
+  }
+
+  public long getAutoCreateCertificate() {
+    return OPALJNI.OpalParamProtocol_autoCreateCertificate_get(swigCPtr, this);
+  }
+
   public OpalParamProtocol() {
     this(OPALJNI.new_OpalParamProtocol(), true);
   }

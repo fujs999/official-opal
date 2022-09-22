@@ -184,6 +184,16 @@ public class OpalParamProtocol : global::System.IDisposable {
     } 
   }
 
+  public uint autoCreateCertificate {
+    set {
+      OPALPINVOKE.OpalParamProtocol_autoCreateCertificate_set(swigCPtr, value);
+    } 
+    get {
+      uint ret = OPALPINVOKE.OpalParamProtocol_autoCreateCertificate_get(swigCPtr);
+      return ret;
+    } 
+  }
+
   public OpalParamProtocol() : this(OPALPINVOKE.new_OpalParamProtocol(), true) {
   }
 

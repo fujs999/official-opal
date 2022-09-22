@@ -2287,6 +2287,28 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_OpalParamProtocol_privateKey_get(void * jar
 }
 
 
+SWIGEXPORT void SWIGSTDCALL CSharp_OpalParamProtocol_autoCreateCertificate_set(void * jarg1, unsigned int jarg2) {
+  OpalParamProtocol *arg1 = (OpalParamProtocol *) 0 ;
+  unsigned int arg2 ;
+  
+  arg1 = (OpalParamProtocol *)jarg1; 
+  arg2 = (unsigned int)jarg2; 
+  if (arg1) (arg1)->m_autoCreateCertificate = arg2;
+}
+
+
+SWIGEXPORT unsigned int SWIGSTDCALL CSharp_OpalParamProtocol_autoCreateCertificate_get(void * jarg1) {
+  unsigned int jresult ;
+  OpalParamProtocol *arg1 = (OpalParamProtocol *) 0 ;
+  unsigned int result;
+  
+  arg1 = (OpalParamProtocol *)jarg1; 
+  result = (unsigned int) ((arg1)->m_autoCreateCertificate);
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT void * SWIGSTDCALL CSharp_new_OpalParamProtocol() {
   void * jresult ;
   OpalParamProtocol *result = 0 ;

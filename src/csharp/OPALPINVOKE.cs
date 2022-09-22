@@ -681,6 +681,12 @@ class OPALPINVOKE {
   [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_OpalParamProtocol_privateKey_get")]
   public static extern string OpalParamProtocol_privateKey_get(global::System.Runtime.InteropServices.HandleRef jarg1);
 
+  [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_OpalParamProtocol_autoCreateCertificate_set")]
+  public static extern void OpalParamProtocol_autoCreateCertificate_set(global::System.Runtime.InteropServices.HandleRef jarg1, uint jarg2);
+
+  [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_OpalParamProtocol_autoCreateCertificate_get")]
+  public static extern uint OpalParamProtocol_autoCreateCertificate_get(global::System.Runtime.InteropServices.HandleRef jarg1);
+
   [global::System.Runtime.InteropServices.DllImport("OPAL", EntryPoint="CSharp_new_OpalParamProtocol")]
   public static extern global::System.IntPtr new_OpalParamProtocol();
 
