@@ -232,8 +232,8 @@
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\win32\opal_lib_2022.vcxproj">
-      <Project>{11fb12b5-b5eb-4dff-bd6f-2a0bdf187c22}</Project>
+    <ProjectReference Include="..\..\src\win32\opal_dll_2022.vcxproj">
+      <Project>{b2830e08-b1f1-492f-8849-f3d8461e450f}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

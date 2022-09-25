@@ -1985,6 +1985,19 @@ void OpalManager_C::HandleSetProtocol(const OpalMessage & command, OpalMessageBu
 #endif
     }
 
+    if (m_apiVersion < 23)
+      return;
+
+    PStringStream strm;
+    strm << GetDefaultConnectionOptions();
+    SET_MESSAGE_STRING(response, m_param.m_protocol.m_defaultOptions, strm);
+    if (!IsNullString(command.m_param.m_protocol.m_defaultOptions)) {
+      OpalConnection::StringOptions newOptions;
+      strm = command.m_param.m_protocol.m_defaultOptions;
+      strm >> newOptions;
+      SetDefaultConnectionOptions(newOptions);
+    }
+
     return;
   }
 

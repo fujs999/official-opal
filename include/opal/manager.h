@@ -1760,6 +1760,9 @@ class OpalManager : public PObject, public OpalCertificateInfo
       const OpalConnection::StringOptions & stringOptions
     ) { m_defaultConnectionOptions = stringOptions; }
 
+    const OpalConnection::StringOptions & GetDefaultConnectionOptions() const
+    { return m_defaultConnectionOptions; }
+
 #if OPAL_VIDEO
 
     //

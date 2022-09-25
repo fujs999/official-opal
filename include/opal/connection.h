@@ -139,6 +139,22 @@ class PURL;
 #define OPAL_OPT_VIDUP_METHOD_DEFAULT     3
 
 
+  // Note the following should be identical to PHTTP::HttpProxyKey etc
+
+/** HTTP proxy URL to use for (possible) HTTP operations in connection.
+ */
+#define OPAL_OPT_HTTP_PROXY "Http-Proxy"
+
+/** HTTPS proxy URL to use (possible) HTTP operations in connection.
+ */
+#define OPAL_OPT_HTTPS_PROXY "Https-Proxy"
+
+/** A comma or space separated list of hosts/domains to not use proxy in
+   (possible) HTTP operations for connection.
+ */
+#define OPAL_OPT_NO_PROXY "No-Proxy"
+
+
 
 /*! \page pageOpalConnections Connection handling in the OPAL library
 

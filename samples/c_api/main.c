@@ -231,6 +231,7 @@ int InitialiseOPAL()
   command.m_param.m_protocol.m_userName = "robertj";
   command.m_param.m_protocol.m_displayName = "Robert Jongbloed";
   command.m_param.m_protocol.m_interfaceAddresses = "*";
+  //scommand.m_param.m_protocol.m_defaultOptions = "Http-Proxy=http://192.168.1.10";
 
   if ((response = MySendCommand(&command, "Could not set protocol options")) == NULL)
     return 0;
@@ -318,7 +319,7 @@ static void HandleMessages(unsigned timeout)
                message->m_param.m_incomingCall.m_remoteAddress,
                message->m_param.m_incomingCall.m_calledAddress,
                message->m_param.m_incomingCall.m_localAddress);
-        if (CurrentCallToken == NULL) {
+        if (CurrentCallToken == NULL || strncmp(message->m_param.m_incomingCall.m_calledAddress, "ivr:", 4) == 0) {
           memset(&command, 0, sizeof(command));
           command.m_type = OpalCmdAnswerCall;
           command.m_param.m_answerCall.m_callToken = message->m_param.m_incomingCall.m_callToken;
@@ -616,7 +617,7 @@ int DoPlay(const char * to, const char * file)
 
   printf("Playing %s to %s\n", file, to);
 
-  PlayScript = (char *)malloc(1000);
+  PlayScript = (char *)malloc(1000); // Yes, this leaks, don't care!
   snprintf(PlayScript, 999,
            "ivr:<?xml version=\"1.0\"?>"
            "<vxml version=\"1.0\">"
@@ -627,6 +628,10 @@ int DoPlay(const char * to, const char * file)
 
   memset(&command, 0, sizeof(command));
   command.m_type = OpalCmdSetUpCall;
+  if (strncmp(to, "pc:", 3) == 0) {
+    command.m_param.m_callSetUp.m_partyA = PlayScript;
+    PlayScript = NULL;
+  }
   command.m_param.m_callSetUp.m_partyB = to;
   if ((response = MySendCommand(&command, "Could not make call")) == NULL)
     return 0;

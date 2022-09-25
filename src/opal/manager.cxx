@@ -381,6 +381,10 @@ OpalManager::OpalManager()
   PInterfaceMonitor::GetInstance().AddNotifier(m_onInterfaceChange);
 #endif
 
+  PAssert(PHTTP::HttpProxyKey() == OPAL_OPT_HTTP_PROXY, PUnsupportedFeature);
+  PAssert(PHTTP::HttpsProxyKey() == OPAL_OPT_HTTPS_PROXY, PUnsupportedFeature);
+  PAssert(PHTTP::NoProxyKey() == OPAL_OPT_NO_PROXY, PUnsupportedFeature);
+
   PTRACE(4, "Created manager, OPAL version " << OpalGetVersion());
 }
 
