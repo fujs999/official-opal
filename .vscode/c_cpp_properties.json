@@ -4,11 +4,11 @@
         {
             "name": "Mac",
             "includePath": [
-                "${workspaceFolder}/lib_Darwin_x86_64/include/",
+                "${workspaceFolder}/lib_Darwin_*/include/",
                 "${workspaceFolder}/include/**",
-                "${workspaceFolder}/../ptlib/lib_Darwin_x86_64/include/",
+                "${workspaceFolder}/../ptlib/lib_Darwin_*/include/",
                 "${workspaceFolder}/../ptlib/include/**",
-                "/usr/local/include/**"
+                "/opt/homebrew/include/**"
             ],
             "macFrameworkPath": [
                 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"
@@ -16,7 +16,8 @@
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c11",
             "cppStandard": "c++17",
-            "intelliSenseMode": "clang-x64"
+            "intelliSenseMode": "clang-x64",
+            "configurationProvider": "ms-vscode.makefile-tools"
         },
         {
             "name": "Linux",
