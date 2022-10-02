@@ -848,6 +848,7 @@ ac_subst_files=''
 ac_user_opts='
 enable_option_checking
 enable_ios
+enable_cpp03
 enable_cpp11
 enable_cpp14
 enable_cpp17
@@ -1569,6 +1570,7 @@ Optional Features:
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-ios=iphone|simulator
                           enable iOS support
+  --enable-cpp03          Enable C++03 build
   --enable-cpp11          Enable C++11 build
   --enable-cpp14          Enable C++14 build
   --enable-cpp17          Enable C++17 build
@@ -3366,9 +3368,6 @@ ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-
-
 
 
 
@@ -5289,6 +5288,51 @@ printf "%s\n" "no" >&6; }
 fi
 
 
+# Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_PKG_CONFIG+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKG_CONFIG="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+printf "%s\n" "$PKG_CONFIG" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+
 
 
   # Find a good install program.  We prefer a C program (faster),
@@ -6281,7 +6325,14 @@ ARFLAGS="rc"
 
 
 
-CPLUSPLUS_STD="-std=c++03"
+CPLUSPLUS_STD="-std=c++11"
+
+# Check whether --enable-cpp03 was given.
+if test ${enable_cpp03+y}
+then :
+  enableval=$enable_cpp03; CPLUSPLUS_STD="-std=c++03"
+
+fi
 
 # Check whether --enable-cpp11 was given.
 if test ${enable_cpp11+y}
@@ -6353,8 +6404,8 @@ else $as_nop
   as_fn_error $? "Unable to determine iOS release number" "$LINENO" 5
 fi
 
-      CPPFLAGS="-mmacosx-version-min=$target_release $CPPFLAGS"
-      LDFLAGS="-mmacosx-version-min=$target_release $LDFLAGS"
+      CPPFLAGS="-mmacosx-version-min=$target_release $CPPFLAGS -I/opt/homebrew/include"
+      LDFLAGS="-mmacosx-version-min=$target_release $LDFLAGS -L/opt/homebrew/lib"
       LIBS="-framework AVFoundation -framework CoreVideo -framework CoreMedia -framework AudioUnit $LIBS"
    ;;
 
@@ -6576,7 +6627,12 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
     ;; #(
   arm*) :
 
-      target_64bit=0
+      if test "x$target_os" = xDarwin
+then :
+  target_64bit=1
+else $as_nop
+  target_64bit=0
+fi
     ;; #(
   aarch64*) :
 
@@ -7381,7 +7437,6 @@ fi
 
 
 
-
 OPAL_H323=yes
 OPAL_SDP=yes
 OPAL_SIP=yes
@@ -8002,12 +8057,13 @@ then :
 if test ${with_srtp_dir+y}
 then :
   withval=$with_srtp_dir;
-                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using directory $withval for SRTP protocol support" >&5
+                     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using directory $withval for SRTP protocol support" >&5
 printf "%s\n" "$as_me: Using directory $withval for SRTP protocol support" >&6;}
-                  SRTP_CFLAGS="-I$withval/include "
-                  SRTP_LIBS="-L$withval/lib -lsrtp2"
+                     SRTP_CFLAGS="-I$withval/include "
+                     SRTP_LIBS="-L$withval/lib -lsrtp2"
 
 else $as_nop
+
 
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libsrtp2 " >&5
@@ -8067,18 +8123,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$SRTP_PKG_ERRORS" >&5
 
-
-                     SRTP_CFLAGS=""
-                     SRTP_LIBS="-lsrtp2"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     SRTP_CFLAGS=""
-                     SRTP_LIBS="-lsrtp2"
-
+	usable=no
 
 else
 	SRTP_CFLAGS=$pkg_cv_SRTP_CFLAGS
@@ -8086,20 +8136,12 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $SRTP_CFLAGS"
    LIBS="$SRTP_LIBS $LIBS"
-   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for SRTP protocol support usability" >&5
-printf %s "checking for SRTP protocol support usability... " >&6; }
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for SRTP usability" >&5
+printf %s "checking for SRTP usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <srtp2/srtp.h>
@@ -8109,6 +8151,7 @@ main (void)
 
       srtp_crypto_policy_t p;
       p.cipher_key_len = SRTP_MASTER_KEY_LEN;
+
 
   ;
   return 0;
@@ -8131,13 +8174,20 @@ printf "%s\n" "$usable" >&6; }
    if test "x$usable" = "xyes"
 then :
 
+            mod_name=`echo "libsrtp2 " | cut -d ' ' -f 1`
+            SRTP_CPPFLAGS=`$PKG_CONFIG --cflags-only-I $mod_name`
+            SRTP_CXXFLAGS=`$PKG_CONFIG --cflags-only-other $mod_name`
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $SRTP_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $SRTP_CFLAGS" >&6;}
-      CPPFLAGS="$SRTP_CFLAGS $CPPFLAGS"
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $SRTP_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $SRTP_CPPFLAGS" >&6;}
+      CPPFLAGS="$SRTP_CPPFLAGS $CPPFLAGS"
 
 
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $SRTP_CXXFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $SRTP_CXXFLAGS" >&6;}
+      CXXFLAGS="$SRTP_CXXFLAGS $CXXFLAGS"
 
 
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $SRTP_LIBS" >&5
@@ -8152,8 +8202,14 @@ else $as_nop
 fi
 
 
+fi
+
+
+
+
 
 fi
+
 
 
             if test "x$usable" = xno
@@ -8293,12 +8349,13 @@ then :
 if test ${with_zrtp_dir+y}
 then :
   withval=$with_zrtp_dir;
-                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using directory $withval for ZRTP protocol support" >&5
+                     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using directory $withval for ZRTP protocol support" >&5
 printf "%s\n" "$as_me: Using directory $withval for ZRTP protocol support" >&6;}
-                  ZRTP_CFLAGS="-I$withval/include "
-                  ZRTP_LIBS="-L$withval/lib -lzrtpi -lbn"
+                     ZRTP_CFLAGS="-I$withval/include "
+                     ZRTP_LIBS="-L$withval/lib -lzrtpi -lbn"
 
 else $as_nop
+
 
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libzrtp" >&5
@@ -8358,18 +8415,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$ZRTP_PKG_ERRORS" >&5
 
-
-                     ZRTP_CFLAGS=""
-                     ZRTP_LIBS="-lzrtpi -lbn"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     ZRTP_CFLAGS=""
-                     ZRTP_LIBS="-lzrtpi -lbn"
-
+	usable=no
 
 else
 	ZRTP_CFLAGS=$pkg_cv_ZRTP_CFLAGS
@@ -8377,20 +8428,12 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $ZRTP_CFLAGS"
    LIBS="$ZRTP_LIBS $LIBS"
-   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ZRTP protocol support usability" >&5
-printf %s "checking for ZRTP protocol support usability... " >&6; }
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ZRTP usability" >&5
+printf %s "checking for ZRTP usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <zrtp/zrtp.h>
@@ -8398,6 +8441,7 @@ int
 main (void)
 {
 ;
+
 
   ;
   return 0;
@@ -8420,13 +8464,20 @@ printf "%s\n" "$usable" >&6; }
    if test "x$usable" = "xyes"
 then :
 
+            mod_name=`echo "libzrtp" | cut -d ' ' -f 1`
+            ZRTP_CPPFLAGS=`$PKG_CONFIG --cflags-only-I $mod_name`
+            ZRTP_CXXFLAGS=`$PKG_CONFIG --cflags-only-other $mod_name`
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $ZRTP_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $ZRTP_CFLAGS" >&6;}
-      CPPFLAGS="$ZRTP_CFLAGS $CPPFLAGS"
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $ZRTP_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $ZRTP_CPPFLAGS" >&6;}
+      CPPFLAGS="$ZRTP_CPPFLAGS $CPPFLAGS"
 
 
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $ZRTP_CXXFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $ZRTP_CXXFLAGS" >&6;}
+      CXXFLAGS="$ZRTP_CXXFLAGS $CXXFLAGS"
 
 
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $ZRTP_LIBS" >&5
@@ -8441,8 +8492,14 @@ else $as_nop
 fi
 
 
+fi
+
+
+
+
 
 fi
+
 
 
 
@@ -8561,12 +8618,13 @@ then :
 if test ${with_speexdsp_dir+y}
 then :
   withval=$with_speexdsp_dir;
-                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using directory $withval for Speex DSP support" >&5
+                     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using directory $withval for Speex DSP support" >&5
 printf "%s\n" "$as_me: Using directory $withval for Speex DSP support" >&6;}
-                  SPEEXDSP_CFLAGS="-I$withval/include "
-                  SPEEXDSP_LIBS="-L$withval/lib -lspeexdsp"
+                     SPEEXDSP_CFLAGS="-I$withval/include "
+                     SPEEXDSP_LIBS="-L$withval/lib -lspeexdsp"
 
 else $as_nop
+
 
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for speexdsp " >&5
@@ -8626,18 +8684,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$SPEEXDSP_PKG_ERRORS" >&5
 
-
-                     SPEEXDSP_CFLAGS=""
-                     SPEEXDSP_LIBS="-lspeexdsp"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     SPEEXDSP_CFLAGS=""
-                     SPEEXDSP_LIBS="-lspeexdsp"
-
+	usable=no
 
 else
 	SPEEXDSP_CFLAGS=$pkg_cv_SPEEXDSP_CFLAGS
@@ -8645,20 +8697,12 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $SPEEXDSP_CFLAGS"
    LIBS="$SPEEXDSP_LIBS $LIBS"
-   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Speex DSP support usability" >&5
-printf %s "checking for Speex DSP support usability... " >&6; }
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for SPEEXDSP usability" >&5
+printf %s "checking for SPEEXDSP usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <speex/speex_echo.h>
@@ -8666,6 +8710,7 @@ int
 main (void)
 {
 speex_echo_state_init(0, 0)
+
   ;
   return 0;
 }
@@ -8687,13 +8732,20 @@ printf "%s\n" "$usable" >&6; }
    if test "x$usable" = "xyes"
 then :
 
+            mod_name=`echo "speexdsp " | cut -d ' ' -f 1`
+            SPEEXDSP_CPPFLAGS=`$PKG_CONFIG --cflags-only-I $mod_name`
+            SPEEXDSP_CXXFLAGS=`$PKG_CONFIG --cflags-only-other $mod_name`
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $SPEEXDSP_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $SPEEXDSP_CFLAGS" >&6;}
-      CPPFLAGS="$SPEEXDSP_CFLAGS $CPPFLAGS"
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $SPEEXDSP_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $SPEEXDSP_CPPFLAGS" >&6;}
+      CPPFLAGS="$SPEEXDSP_CPPFLAGS $CPPFLAGS"
 
 
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $SPEEXDSP_CXXFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $SPEEXDSP_CXXFLAGS" >&6;}
+      CXXFLAGS="$SPEEXDSP_CXXFLAGS $CXXFLAGS"
 
 
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $SPEEXDSP_LIBS" >&5
@@ -8708,8 +8760,14 @@ else $as_nop
 fi
 
 
+fi
+
+
+
+
 
 fi
+
 
 
             if test "x$usable" = xno
@@ -8946,12 +9004,13 @@ then :
 if test ${with_capi_dir+y}
 then :
   withval=$with_capi_dir;
-                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using directory $withval for CAPI ISDN support" >&5
+                     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using directory $withval for CAPI ISDN support" >&5
 printf "%s\n" "$as_me: Using directory $withval for CAPI ISDN support" >&6;}
-                  CAPI_CFLAGS="-I$withval/include "
-                  CAPI_LIBS="-L$withval/lib -lcapi"
+                     CAPI_CFLAGS="-I$withval/include "
+                     CAPI_LIBS="-L$withval/lib -lcapi"
 
 else $as_nop
+
 
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for capi20" >&5
@@ -9011,18 +9070,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$CAPI_PKG_ERRORS" >&5
 
-
-                     CAPI_CFLAGS=""
-                     CAPI_LIBS="-lcapi"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     CAPI_CFLAGS=""
-                     CAPI_LIBS="-lcapi"
-
+	usable=no
 
 else
 	CAPI_CFLAGS=$pkg_cv_CAPI_CFLAGS
@@ -9030,20 +9083,12 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $CAPI_CFLAGS"
    LIBS="$CAPI_LIBS $LIBS"
-   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for CAPI ISDN support usability" >&5
-printf %s "checking for CAPI ISDN support usability... " >&6; }
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for CAPI usability" >&5
+printf %s "checking for CAPI usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <capi20.h>
@@ -9051,6 +9096,7 @@ int
 main (void)
 {
 capi20_release(0)
+
 
   ;
   return 0;
@@ -9073,13 +9119,20 @@ printf "%s\n" "$usable" >&6; }
    if test "x$usable" = "xyes"
 then :
 
+            mod_name=`echo "capi20" | cut -d ' ' -f 1`
+            CAPI_CPPFLAGS=`$PKG_CONFIG --cflags-only-I $mod_name`
+            CAPI_CXXFLAGS=`$PKG_CONFIG --cflags-only-other $mod_name`
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $CAPI_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $CAPI_CFLAGS" >&6;}
-      CPPFLAGS="$CAPI_CFLAGS $CPPFLAGS"
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $CAPI_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $CAPI_CPPFLAGS" >&6;}
+      CPPFLAGS="$CAPI_CPPFLAGS $CPPFLAGS"
 
 
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $CAPI_CXXFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $CAPI_CXXFLAGS" >&6;}
+      CXXFLAGS="$CAPI_CXXFLAGS $CXXFLAGS"
 
 
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $CAPI_LIBS" >&5
@@ -9094,8 +9147,14 @@ else $as_nop
 fi
 
 
+fi
+
+
+
+
 
 fi
+
 
 
 
@@ -9256,12 +9315,13 @@ then :
 if test ${with_java_dir+y}
 then :
   withval=$with_java_dir;
-                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using directory $withval for Java JNI support" >&5
+                     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using directory $withval for Java JNI support" >&5
 printf "%s\n" "$as_me: Using directory $withval for Java JNI support" >&6;}
-                  JAVA_CFLAGS="-I$withval/include "
-                  JAVA_LIBS="-L$withval/lib -ljdk"
+                     JAVA_CFLAGS="-I$withval/include "
+                     JAVA_LIBS="-L$withval/lib -ljdk"
 
 else $as_nop
+
 
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for openjdk" >&5
@@ -9321,18 +9381,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$JAVA_PKG_ERRORS" >&5
 
-
-                     JAVA_CFLAGS=""
-                     JAVA_LIBS="-ljdk"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     JAVA_CFLAGS=""
-                     JAVA_LIBS="-ljdk"
-
+	usable=no
 
 else
 	JAVA_CFLAGS=$pkg_cv_JAVA_CFLAGS
@@ -9340,20 +9394,12 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $JAVA_CFLAGS"
    LIBS="$JAVA_LIBS $LIBS"
-   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Java JNI support usability" >&5
-printf %s "checking for Java JNI support usability... " >&6; }
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for JAVA usability" >&5
+printf %s "checking for JAVA usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <jni.h>
@@ -9361,6 +9407,7 @@ int
 main (void)
 {
 JNIEnv * env
+
 
   ;
   return 0;
@@ -9383,13 +9430,20 @@ printf "%s\n" "$usable" >&6; }
    if test "x$usable" = "xyes"
 then :
 
+            mod_name=`echo "openjdk" | cut -d ' ' -f 1`
+            JAVA_CPPFLAGS=`$PKG_CONFIG --cflags-only-I $mod_name`
+            JAVA_CXXFLAGS=`$PKG_CONFIG --cflags-only-other $mod_name`
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $JAVA_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $JAVA_CFLAGS" >&6;}
-      CPPFLAGS="$JAVA_CFLAGS $CPPFLAGS"
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $JAVA_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $JAVA_CPPFLAGS" >&6;}
+      CPPFLAGS="$JAVA_CPPFLAGS $CPPFLAGS"
 
 
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $JAVA_CXXFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $JAVA_CXXFLAGS" >&6;}
+      CXXFLAGS="$JAVA_CXXFLAGS $CXXFLAGS"
 
 
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $JAVA_LIBS" >&5
@@ -9404,8 +9458,14 @@ else $as_nop
 fi
 
 
+fi
+
+
+
+
 
 fi
+
 
 
 
@@ -9570,12 +9630,13 @@ then :
 if test ${with_ruby_dir+y}
 then :
   withval=$with_ruby_dir;
-                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using directory $withval for Ruby support" >&5
+                     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using directory $withval for Ruby support" >&5
 printf "%s\n" "$as_me: Using directory $withval for Ruby support" >&6;}
-                  RUBY_CFLAGS="-I$withval/include `ruby -e 'puts $:.join(" -I")'`"
-                  RUBY_LIBS="-L$withval/lib -lruby"
+                     RUBY_CFLAGS="-I$withval/include `ruby -e 'puts $:.join(" -I")'`"
+                     RUBY_LIBS="-L$withval/lib -lruby"
 
 else $as_nop
+
 
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ruby" >&5
@@ -9635,18 +9696,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$RUBY_PKG_ERRORS" >&5
 
-
-                     RUBY_CFLAGS="`ruby -e 'puts $:.join(" -I")'`"
-                     RUBY_LIBS="-lruby"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     RUBY_CFLAGS="`ruby -e 'puts $:.join(" -I")'`"
-                     RUBY_LIBS="-lruby"
-
+	usable=no
 
 else
 	RUBY_CFLAGS=$pkg_cv_RUBY_CFLAGS
@@ -9654,20 +9709,12 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $RUBY_CFLAGS"
    LIBS="$RUBY_LIBS $LIBS"
-   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Ruby support usability" >&5
-printf %s "checking for Ruby support usability... " >&6; }
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for RUBY usability" >&5
+printf %s "checking for RUBY usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <ruby.h>
@@ -9675,6 +9722,7 @@ int
 main (void)
 {
 JNIEnv * env
+
 
   ;
   return 0;
@@ -9697,13 +9745,20 @@ printf "%s\n" "$usable" >&6; }
    if test "x$usable" = "xyes"
 then :
 
+            mod_name=`echo "ruby" | cut -d ' ' -f 1`
+            RUBY_CPPFLAGS=`$PKG_CONFIG --cflags-only-I $mod_name`
+            RUBY_CXXFLAGS=`$PKG_CONFIG --cflags-only-other $mod_name`
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $RUBY_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $RUBY_CFLAGS" >&6;}
-      CPPFLAGS="$RUBY_CFLAGS $CPPFLAGS"
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $RUBY_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $RUBY_CPPFLAGS" >&6;}
+      CPPFLAGS="$RUBY_CPPFLAGS $CPPFLAGS"
 
 
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $RUBY_CXXFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $RUBY_CXXFLAGS" >&6;}
+      CXXFLAGS="$RUBY_CXXFLAGS $CXXFLAGS"
 
 
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $RUBY_LIBS" >&5
@@ -9718,8 +9773,14 @@ else $as_nop
 fi
 
 
+fi
+
+
+
+
 
 fi
+
 
 
 
@@ -11659,12 +11720,13 @@ then :
 if test ${with_dahdi_dir+y}
 then :
   withval=$with_dahdi_dir;
-                  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using directory $withval for DAHDI E1 support" >&5
+                     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Using directory $withval for DAHDI E1 support" >&5
 printf "%s\n" "$as_me: Using directory $withval for DAHDI E1 support" >&6;}
-                  DAHDI_CFLAGS="-I$withval/include "
-                  DAHDI_LIBS="-L$withval/lib -ltonezone"
+                     DAHDI_CFLAGS="-I$withval/include "
+                     DAHDI_LIBS="-L$withval/lib -ltonezone"
 
 else $as_nop
+
 
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for dahdi" >&5
@@ -11724,18 +11786,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$DAHDI_PKG_ERRORS" >&5
 
-
-                     DAHDI_CFLAGS=""
-                     DAHDI_LIBS="-ltonezone"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     DAHDI_CFLAGS=""
-                     DAHDI_LIBS="-ltonezone"
-
+	usable=no
 
 else
 	DAHDI_CFLAGS=$pkg_cv_DAHDI_CFLAGS
@@ -11743,20 +11799,12 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $DAHDI_CFLAGS"
    LIBS="$DAHDI_LIBS $LIBS"
-   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for DAHDI E1 support usability" >&5
-printf %s "checking for DAHDI E1 support usability... " >&6; }
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for DAHDI usability" >&5
+printf %s "checking for DAHDI usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <dahdi/user.h>
@@ -11764,6 +11812,7 @@ int
 main (void)
 {
 ;
+
   ;
   return 0;
 }
@@ -11785,13 +11834,20 @@ printf "%s\n" "$usable" >&6; }
    if test "x$usable" = "xyes"
 then :
 
+            mod_name=`echo "dahdi" | cut -d ' ' -f 1`
+            DAHDI_CPPFLAGS=`$PKG_CONFIG --cflags-only-I $mod_name`
+            DAHDI_CXXFLAGS=`$PKG_CONFIG --cflags-only-other $mod_name`
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $DAHDI_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $DAHDI_CFLAGS" >&6;}
-      CPPFLAGS="$DAHDI_CFLAGS $CPPFLAGS"
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $DAHDI_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $DAHDI_CPPFLAGS" >&6;}
+      CPPFLAGS="$DAHDI_CPPFLAGS $CPPFLAGS"
 
 
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $DAHDI_CXXFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $DAHDI_CXXFLAGS" >&6;}
+      CXXFLAGS="$DAHDI_CXXFLAGS $CXXFLAGS"
 
 
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $DAHDI_LIBS" >&5
@@ -11806,8 +11862,14 @@ else $as_nop
 fi
 
 
+fi
+
+
+
+
 
 fi
+
 
 
 
