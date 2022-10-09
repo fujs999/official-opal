@@ -68,8 +68,8 @@
     <_ProjectFileVersion>14.0.25431.1</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>..\..\..\bin\plugins\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
-    <IntDir>$(OutDir)</IntDir>
+    <OutDir>..\..\..\bin\plugins\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)$(ProjectName)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
@@ -78,8 +78,8 @@
     <TargetName>spandsp</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>..\..\..\bin\plugins\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
-    <IntDir>$(OutDir)</IntDir>
+    <OutDir>..\..\..\bin\plugins\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)$(ProjectName)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
@@ -88,8 +88,8 @@
     <TargetName>spandsp</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>..\..\..\bin\plugins\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
-    <IntDir>$(OutDir)</IntDir>
+    <OutDir>..\..\..\bin\plugins\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)$(ProjectName)\</IntDir>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
     <CodeAnalysisRuleAssemblies />
@@ -97,8 +97,8 @@
     <TargetName>spandsp</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>..\..\..\bin\plugins\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
-    <IntDir>$(OutDir)</IntDir>
+    <OutDir>..\..\..\bin\plugins\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(OutDir)$(ProjectName)\</IntDir>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRules />
     <CodeAnalysisRuleAssemblies />
@@ -129,7 +129,8 @@
     </Link>
     <PreBuildEvent>
       <Command>if exist "$(ProjectDir)spandsp" exit 0
-cscript /nologo "$(ProjectDir)..\..\..\make\downloader.vbs" GetUnzip http://files.freeswitch.org/downloads/libs/spandsp-3.0.0-6ec23e5a7e.tar.gz "$(ProjectDir)"
+cscript /nologo "$(ProjectDir)..\..\..\make\downloader.vbs" GetUnzip https://github.com/freeswitch/spandsp/archive/refs/heads/master.zip "$(ProjectDir)"
+move $(ProjectDir)master\spandsp-master $(ProjectDir)spandsp
 copy "$(ProjectDir)spandsp\src\msvc\config.h" "$(ProjectDir)spandsp\src\config.h"
 copy "$(ProjectDir)spandsp\src\msvc\spandsp.h" "$(ProjectDir)spandsp\src\spandsp.h"</Command>
       <Message>Downloading SpanDSP</Message>
@@ -159,7 +160,8 @@ copy "$(ProjectDir)spandsp\src\msvc\spandsp.h" "$(ProjectDir)spandsp\src\spandsp
     </Link>
     <PreBuildEvent>
       <Command>if exist "$(ProjectDir)spandsp" exit 0
-cscript /nologo "$(ProjectDir)..\..\..\make\downloader.vbs" GetUnzip http://files.freeswitch.org/downloads/libs/spandsp-3.0.0-6ec23e5a7e.tar.gz "$(ProjectDir)"
+cscript /nologo "$(ProjectDir)..\..\..\make\downloader.vbs" GetUnzip https://github.com/freeswitch/spandsp/archive/refs/heads/master.zip "$(ProjectDir)"
+move $(ProjectDir)master\spandsp-master $(ProjectDir)spandsp
 copy "$(ProjectDir)spandsp\src\msvc\config.h" "$(ProjectDir)spandsp\src\config.h"
 copy "$(ProjectDir)spandsp\src\msvc\spandsp.h" "$(ProjectDir)spandsp\src\spandsp.h"</Command>
       <Message>Downloading SpanDSP</Message>
@@ -189,7 +191,8 @@ copy "$(ProjectDir)spandsp\src\msvc\spandsp.h" "$(ProjectDir)spandsp\src\spandsp
     </Link>
     <PreBuildEvent>
       <Command>if exist "$(ProjectDir)spandsp" exit 0
-cscript /nologo "$(ProjectDir)..\..\..\make\downloader.vbs" GetUnzip http://files.freeswitch.org/downloads/libs/spandsp-3.0.0-6ec23e5a7e.tar.gz "$(ProjectDir)"
+cscript /nologo "$(ProjectDir)..\..\..\make\downloader.vbs" GetUnzip https://github.com/freeswitch/spandsp/archive/refs/heads/master.zip "$(ProjectDir)"
+move $(ProjectDir)master\spandsp-master $(ProjectDir)spandsp
 copy "$(ProjectDir)spandsp\src\msvc\config.h" "$(ProjectDir)spandsp\src\config.h"
 copy "$(ProjectDir)spandsp\src\msvc\spandsp.h" "$(ProjectDir)spandsp\src\spandsp.h"</Command>
       <Message>Downloading SpanDSP</Message>
@@ -219,7 +222,8 @@ copy "$(ProjectDir)spandsp\src\msvc\spandsp.h" "$(ProjectDir)spandsp\src\spandsp
     </Link>
     <PreBuildEvent>
       <Command>if exist "$(ProjectDir)spandsp" exit 0
-cscript /nologo "$(ProjectDir)..\..\..\make\downloader.vbs" GetUnzip http://files.freeswitch.org/downloads/libs/spandsp-3.0.0-6ec23e5a7e.tar.gz "$(ProjectDir)"
+cscript /nologo "$(ProjectDir)..\..\..\make\downloader.vbs" GetUnzip https://github.com/freeswitch/spandsp/archive/refs/heads/master.zip "$(ProjectDir)"
+move $(ProjectDir)master\spandsp-master $(ProjectDir)spandsp
 copy "$(ProjectDir)spandsp\src\msvc\config.h" "$(ProjectDir)spandsp\src\config.h"
 copy "$(ProjectDir)spandsp\src\msvc\spandsp.h" "$(ProjectDir)spandsp\src\spandsp.h"</Command>
       <Message>Downloading SpanDSP</Message>
