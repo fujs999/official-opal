@@ -3,7 +3,7 @@
 set PLATFORM=x64
 set CONFIGURATION=Release
 set PTLIBPLUGINDIR=..\..\bin\plugins\%PLATFORM%\%CONFIGURATION%
-PATH=%PATH%;%PTLIBPLUGINDIR%;..\..\lib;..\..\..\ptlib\lib;%EXTERNALDIR%\Lua-win64;%EXTERNALDIR%\ffmpeg-win64-dev\bin;%EXTERNALDIR%\aws-sdk-cpp\out\install\x64-Debug\bin;C:\Program Files\OpenSSL-Win64\bin
+if "%PATH:..\..\..\ptlib\lib=nothing%"=="%PATH%" PATH=%PTLIBPLUGINDIR%;..\..\lib;..\..\..\ptlib\lib;%EXTERNALDIR%\Lua-win64;%EXTERNALDIR%\ffmpeg-win64-dev\bin;%EXTERNALDIR%\aws-sdk-cpp\out\install\x64-Debug\bin;C:\Program Files\OpenSSL-Win64\bin;%PATH%
 set FAXOPAL="..\..\bin\Fax Application\%PLATFORM%\%CONFIGURATION%\faxopal.exe"
 if not exist %FAXOPAL% (
 	echo "No executable available for faxopal: %FAXOPAL%"
@@ -21,7 +21,7 @@ set RESULT_DIR=.\results
 if not exist %RESULT_DIR% mkdir %RESULT_DIR%
 
 set RESULT_PREFIX=%RESULT_DIR%\%1%_%2%_%3%_
-IF NOT "%4"=="" set RESULT_PREFIX=%RESULT_PREFIX%%4%_
+if not "%4"=="" set RESULT_PREFIX=%RESULT_PREFIX%%4%_
 
 set TX_ARG=--output %RESULT_PREFIX%tx.log
 set RX_ARG=--output %RESULT_PREFIX%rx.log
