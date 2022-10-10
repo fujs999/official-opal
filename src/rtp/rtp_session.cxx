@@ -160,7 +160,7 @@ OpalRTPSession::~OpalRTPSession()
 RTP_SyncSourceId OpalRTPSession::AddSyncSource(RTP_SyncSourceId id, Direction dir, const char * cname)
 {
   OpalMediaTransportPtr transport = m_transport;
-  if (PAssertNULL(transport) == NULL)
+  if (transport == NULL)
     return 0;
 
   if (id == 0)
