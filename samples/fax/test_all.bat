@@ -27,3 +27,5 @@ call test_fax.bat h323 t38  t38  slow
 call test_fax.bat h323 g711 t38  slow
 call test_fax.bat h323 t38  g711 slow
 call test_fax.bat h323 g711 g711 slow
+
+pause
