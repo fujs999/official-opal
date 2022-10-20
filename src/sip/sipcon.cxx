@@ -470,7 +470,7 @@ void SIPConnection::OnReleased()
       info.SetAt("result", "blind");
       info.SetAt("party", "B");
       info.SetAt("Refer-To", m_sentReferTo);
-      info.SetAt("state", "aborted");
+      info.SetAt("state", "terminated;reason=x-no-final-notify");
       OnTransferNotify(info, this);
       UnlockReadWrite();
     }
