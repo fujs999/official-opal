@@ -7,7 +7,7 @@ if [ `whoami` != root ]; then
    exit 1
 fi
 
-VERSION=2.1.1
+VERSION=2.3.0
 LIBCVER=6
 
 LIBDIR=/usr/local/lib
@@ -15,6 +15,12 @@ LIBDIR=/usr/local/lib
 case `uname -sm` in
    Linux*x86_64 )
      PLATFORM=linux64
+     LIBEXT=so
+     LINKEXT=${LIBEXT}.${LIBCVER}
+     LIBDIR=/usr/local/lib64
+   ;;
+   Linux*aarch64 )
+     PLATFORM=linux-arm64
      LIBEXT=so
      LINKEXT=${LIBEXT}.${LIBCVER}
      LIBDIR=/usr/local/lib64

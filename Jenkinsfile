@@ -22,12 +22,12 @@ pipeline {
     }
 
     stage('matrix') {
-      failFast true
       matrix {
+        agent any
         axes {
           axis {
             name 'DIST'
-            values 'el7', 'amzn2'
+            values 'el7', 'amzn2022'
           }
           axis {
             name 'REPO'
@@ -39,9 +39,12 @@ pipeline {
           }
         }
         when {
+          beforeAgent true
           anyOf {
             allOf {
-              branch 'develop'
+              not {
+                branch 'release/*'
+              }
               expression { return REPO == 'mcu-develop' }
             }
             allOf {
@@ -61,16 +64,6 @@ pipeline {
               values 'aarch64'
             }
           }
-          exclude {
-            axis {
-              name 'DIST'
-              values 'amzn2'
-            }
-            axis {
-              name 'REPO'
-              values 'mcu-release-tsan', 'mcu-release-asan'
-            }
-          }
         }
         environment {
           HOME = "${WORKSPACE}/${DIST}-${REPO}"
@@ -79,13 +72,13 @@ pipeline {
           stage('package') {
             steps {
               script {
-                sh 'mkdir -p $HOME'
                 if (DIST == 'el7') {
+                  sh 'mkdir -p $HOME'
                   docker.build(
                     "el7_builder:${build_tag}-${REPO}",
                     "--build-arg SPECFILE=${spec_file} --build-arg REPO=${REPO} --file el7.Dockerfile ."
                   ).inside() {
-                    sh "SPECFILE=${spec_file} ./rpmbuild.sh --define='REPO ${REPO}'"
+                    sh "SPECFILE=${spec_file} ./rpmbuild.sh --with=${REPO.replace('mcu-release-','')}"
                   }
                 }
                 else {
@@ -95,12 +88,12 @@ pipeline {
                       cloudWatchLogsStatusOverride: 'ENABLED', cloudWatchLogsGroupNameOverride: 'bbrtc-codebuild', \
                       cloudWatchLogsStreamNameOverride: "${job_name}/${ARCH}", \
                       artifactTypeOverride: 'S3', artifactLocationOverride: 'bbrtc-codebuild', \
-                      artifactNameOverride: 'rpmbuild', artifactPathOverride: build_tag, \
+                      artifactNameOverride: 'rpmbuild', artifactPathOverride: "${build_tag}/${DIST}-${REPO}", \
                       downloadArtifacts: 'true', downloadArtifactsRelativePath: '.', \
-                      envVariables: "[ { BUILD_NUMBER, ${BUILD_NUMBER} }, { BRANCH_NAME, ${BRANCH_NAME} }, { REPO, ${REPO} }, { SPECFILE, ${spec_file} } ]", \
+                      envVariables: "[ { BUILD_NUMBER, ${BUILD_NUMBER} }, { BRANCH_NAME, ${BRANCH_NAME} }, { REPO, ${REPO} }, { SPECFILE, ${spec_file} }, { BUILD_ARGS, --with=${REPO.replace('mcu-release-','')} } ]", \
                       projectName: "BbRTC-${ARCH}"
-                  sh "mkdir -p ${HOME}/rpmbuild/RPMS/${ARCH}"
-                  sh "mv ${build_tag}/rpmbuild/RPMS/${ARCH}/* ${HOME}/rpmbuild/RPMS/${ARCH}"
+                  sh "mkdir -p ${DIST}-${REPO}/rpmbuild/RPMS/${ARCH}"
+                  sh "mv ${build_tag}/${DIST}-${REPO}/rpmbuild/RPMS/${ARCH}/* ${DIST}-${REPO}/rpmbuild/RPMS/${ARCH}"
                 }
               }
             }
@@ -111,15 +104,20 @@ pipeline {
             }
           }
           stage('publish') {
+            when {
+              anyOf {
+                branch 'develop'
+                branch 'release/*'
+              }
+            }
             steps {
               unarchive mapping:["${DIST}-${REPO}/rpmbuild/RPMS/" : '.']
               script {
                 stageYumPublish \
-                    rpms: "${HOME}/rpmbuild/RPMS", \
+                    rpms: "${DIST}-${REPO}/rpmbuild/RPMS", \
                     dist: DIST, \
                     repo: REPO, \
                     arch: ARCH, \
-                    local_path: "${HOME}/yum", \
                     tag_branch: "release/", \
                     tag_spec_file: spec_file
               }

@@ -4,19 +4,26 @@ phases:
   install:
     commands:
       - yum update --assumeyes
-      - yum install --assumeyes sudo rpmdevtools yum-utils
+      - yum install --assumeyes shadow-utils sudo gcc-c++ git libasan-static libtsan-static rpmdevtools yum-utils
+      # Always configure mcu-release repository
+      - echo "[mcu-release]" > /etc/yum.repos.d/mcu-release.repo
+      - echo "name=mcu-release" >> /etc/yum.repos.d/mcu-release.repo
+      - echo "baseurl=https://citc-artifacts.s3.amazonaws.com/yum/amzn2022/mcu-release/" >> /etc/yum.repos.d/mcu-release.repo
+      - echo "gpgcheck=false" >> /etc/yum.repos.d/mcu-release.repo
+      # Maybe configure mcu-develop repository
       - echo "[${REPO}]" > /etc/yum.repos.d/${REPO}.repo
       - echo "name=${REPO}" >> /etc/yum.repos.d/${REPO}.repo
-      - echo "baseurl=https://citc-artifacts.s3.amazonaws.com/yum/amzn2/${REPO}/" >> /etc/yum.repos.d/${REPO}.repo
+      - echo "baseurl=https://citc-artifacts.s3.amazonaws.com/yum/amzn2022/${REPO}/" >> /etc/yum.repos.d/${REPO}.repo
       - echo "gpgcheck=false" >> /etc/yum.repos.d/${REPO}.repo
       - yum-builddep --assumeyes ${SPECFILE}
   pre_build:
     commands:
+      - useradd codebuild-user
       - chown -R codebuild-user:codebuild-user .
       - chmod +x rpmbuild.sh
   build:
     commands:
-      - sudo --preserve-env --user=codebuild-user ./rpmbuild.sh
+      - sudo --preserve-env --user=codebuild-user ./rpmbuild.sh ${BUILD_ARGS}
 artifacts:
   files:
     - '**/*.rpm'
