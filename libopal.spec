@@ -4,9 +4,7 @@
 %global version_oem    5
 
 %global ffmpeg_version 4.4.3
-%global srtp_version   2.4.2
-%global opus_version   1.3.1
-%global ptlib_version  2.19.4.18
+%global ptlib_version  2.19.4.18-2.73%{?dist}
 
 
 # Branch ID should be 0 for local builds/PRs
@@ -38,9 +36,9 @@ Source0:        source.tgz
 Source1:        filter-requires.sh
 
 BuildRequires:  collab-ffmpeg-devel = %{ffmpeg_version}
-BuildRequires:  libsrtp2-devel = %{srtp_version}
-BuildRequires:  opus-devel = %{opus_version}
 BuildRequires:  collab-ptlib-devel = %{ptlib_version}
+BuildRequires:  libsrtp2-devel
+BuildRequires:  opus-devel
 
 BuildRequires:  which
 BuildRequires:  speex-devel
@@ -49,9 +47,9 @@ BuildRequires:  libvpx-devel
 
 # Since auto-requires is disabled, we have to explicitly list runtime requirements
 Requires:       collab-ffmpeg = %{ffmpeg_version}
-Requires:       libsrtp2 = %{srtp_version}
-Requires:       opus = %{opus_version}
 Requires:       collab-ptlib = %{ptlib_version}
+Requires:       libsrtp2
+Requires:       opus
 
 Requires:       speex
 Requires:       libtheora
@@ -65,8 +63,9 @@ Summary:        Development files for %{name}
 Group:          Development/Libraries
 Requires:       %{name} = %{version}-%{release}
 Requires:       collab-ffmpeg-devel = %{ffmpeg_version}
-Requires:       libsrtp2-devel = %{srtp_version}
 Requires:       collab-ptlib-devel = %{ptlib_version}
+Requires:       libsrtp2-devel
+Requires:       opus-devel
 
 %description    devel
 The %{name}-devel package contains libraries and header files for
