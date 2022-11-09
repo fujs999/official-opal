@@ -4,6 +4,7 @@
 %global version_oem    5
 
 %global ffmpeg_version 4.4.3
+%global opus_version   1.3.1
 %global ptlib_version  2.19.4.18-2.73%{?dist}
 
 
@@ -38,7 +39,12 @@ Source1:        filter-requires.sh
 BuildRequires:  collab-ffmpeg-devel = %{ffmpeg_version}
 BuildRequires:  collab-ptlib-devel = %{ptlib_version}
 BuildRequires:  libsrtp2-devel
+%if 0%{?el7}
+# needs a version hint to ensure it picks up our own build
+BuildRequires:  opus-devel = %{opus_version}
+%else
 BuildRequires:  opus-devel
+%endif
 
 BuildRequires:  which
 BuildRequires:  speex-devel
@@ -49,7 +55,11 @@ BuildRequires:  libvpx-devel
 Requires:       collab-ffmpeg = %{ffmpeg_version}
 Requires:       collab-ptlib = %{ptlib_version}
 Requires:       libsrtp2
+%if 0%{?el7}
+Requires:       opus = %{opus_version}
+%else
 Requires:       opus
+%endif
 
 Requires:       speex
 Requires:       libtheora
@@ -65,7 +75,11 @@ Requires:       %{name} = %{version}-%{release}
 Requires:       collab-ffmpeg-devel = %{ffmpeg_version}
 Requires:       collab-ptlib-devel = %{ptlib_version}
 Requires:       libsrtp2-devel
+%if 0%{?el7}
+Requires:       opus-devel = %{opus_version}
+%else
 Requires:       opus-devel
+%endif
 
 %description    devel
 The %{name}-devel package contains libraries and header files for
