@@ -239,6 +239,7 @@ SIPConnection::SIPConnection(const Init & init)
   , m_responseRetryTimer(init.m_endpoint.GetThreadPool(), init.m_endpoint, init.m_token, &SIPConnection::OnInviteResponseRetry)
   , m_responseRetryCount(0)
   , m_inviteCollisionTimer(init.m_endpoint.GetThreadPool(), init.m_endpoint, init.m_token, &SIPConnection::OnInviteCollision)
+  , m_referFailSafeTimer(init.m_endpoint.GetThreadPool(), init.m_endpoint, init.m_token, &SIPConnection::OnReferFailSafe)
   , m_delayedReferTimer(init.m_endpoint.GetThreadPool(), init.m_endpoint, init.m_token, &SIPConnection::OnDelayedRefer)
   , m_releaseMethod(ReleaseWithNothing)
   , m_referOfRemoteState(eNoRemoteRefer)
@@ -456,24 +457,27 @@ void SIPConnection::OnReleased()
   AbortPendingTransactions();
 
   // We have a REFER in progress, wait for a while to get status indication
-  if (m_referOfRemoteState != eNoRemoteRefer) {
+  if (m_referOfRemoteState == eReferNotifyConfirmed) {
     PTRACE(4, "Waiting for indication REFER completed on " << *this);
     PSimpleTimer timeout = m_sipEndpoint.GetPduCleanUpTimeout();
-    while (m_referOfRemoteState == eReferNotifyConfirmed && timeout.IsRunning())
+    while (m_referOfRemoteState == eReferNotifyConfirmed) {
+      if (timeout.HasExpired()) {
+        PTRACE(2, "Timed out waiting for indication REFER completed on " << *this);
+        break;
+      }
       PThread::Sleep(250);
-
-    if (m_referOfRemoteState != eNoRemoteRefer && PAssert(LockReadWrite(), PLogicError)) {
-      PTRACE_IF(2, m_referOfRemoteState == eReferNotifyConfirmed,
-                "Timed out waiting for indication REFER completed on " << *this);
-      m_referOfRemoteState = eNoRemoteRefer;
-      PStringToString info;
-      info.SetAt("result", "blind");
-      info.SetAt("party", "B");
-      info.SetAt("Refer-To", m_sentReferTo);
-      info.SetAt("state", "terminated;reason=x-no-final-notify");
-      OnTransferNotify(info, this);
-      UnlockReadWrite();
     }
+  }
+
+  if (m_referOfRemoteState != eNoRemoteRefer && PAssert(LockReadWrite(), PLogicError)) {
+    m_referOfRemoteState = eNoRemoteRefer;
+    PStringToString info;
+    info.SetAt("result", "unknown");
+    info.SetAt("party", "B");
+    info.SetAt("Refer-To", m_sentReferTo);
+    info.SetAt("state", "terminated;reason=x-no-final-notify");
+    OnTransferNotify(info, this);
+    UnlockReadWrite();
   }
 
   // Close media and indicate call ended, even though we have a little bit more
@@ -521,7 +525,7 @@ bool SIPConnection::TransferConnection(const PString & remoteParty)
     PSafePtr<SIPTransaction> referTransaction = new SIPRefer(*this, m_sentReferTo, m_dialog.GetLocalURI(), referSubMode);
     if (!referTransaction->Start())
       return false;
-    m_referOfRemoteState = eReferStarted;
+    m_referOfRemoteState = referSubMode == SIPRefer::e_DisableSubMode ? eReferWithoutNotify : eReferStarted;
     return true;
   }
 
@@ -584,8 +588,15 @@ bool SIPConnection::ConsultationTransfer(SIPConnection & referee, SIPRefer::Refe
   if (!referTransaction->Start())
     return false;
 
-  m_referOfRemoteState = eReferStarted;
+  m_referOfRemoteState = referSubMode == SIPRefer::e_DisableSubMode ? eReferWithoutNotify : eReferStarted;
   return true;
+}
+
+
+void SIPConnection::OnReferFailSafe()
+{
+  PTRACE(2, "Fail safe ending of call after REFER.");
+  Release(EndedByCallForwarded);
 }
 
 
@@ -3048,22 +3059,16 @@ void SIPConnection::OnReceivedOK(SIPTransaction & transaction, SIP_PDU & respons
     case SIP_PDU::Method_REFER :
       if (m_referOfRemoteState == eNoRemoteRefer)
         return; // Ignore
-      if (response.GetStatusCode() == SIP_PDU::Successful_Accepted && response.GetMIME().GetBoolean(ReferSubHeader, true)) {
+      if (response.GetStatusCode() == SIP_PDU::Successful_Accepted &&
+          response.GetMIME().GetBoolean(ReferSubHeader, m_referOfRemoteState != eReferWithoutNotify)) {
         PTRACE(3, "Transfer accepted, with NOTIFY.");
         m_referOfRemoteState = eReferNotifyConfirmed;
       }
       else {
         // Used RFC4488 to indicate we are NOT doing NOTIFYs, release now
-        PTRACE(3, "Blind transfer accepted, without NOTIFY so ending local call.");
+        PTRACE(3, "Transfer accepted, without NOTIFY.");
         m_referOfRemoteState = eNoRemoteRefer;
-
-        PStringToString info;
-        info.SetAt("result", "blind");
-        info.SetAt("party", "B");
-        info.SetAt("Refer-To", m_sentReferTo);
-        OnTransferNotify(info, this);
-
-        Release(OpalConnection::EndedByCallForwarded);
+        m_referFailSafeTimer = m_sipEndpoint.GetInviteTimeout();
       }
       // Do next case
 
