@@ -3,17 +3,10 @@
 %global version_patch  7
 %global version_oem    6
 
-%global ffmpeg_version 4.3.1
-%global ffmpeg_build   2.74
-
-%global srtp_version   2.1.0
-%global srtp_build           2.35
-
+%global ffmpeg_version 4.4.3
 %global opus_version   1.3.1
-%global opus_build     2.13
-
-%global ptlib_version  2.19.4.18
-%global ptlib_build    2.70
+# Note: at release, ptlib_version should be set to a full version, e.g. 2.19.4.18-2.73%{?dist}
+%global ptlib_version  2.19.4.19
 
 
 # Branch ID should be 0 for local builds/PRs
@@ -44,32 +37,34 @@ URL:            http://www.opalvoip.org/
 Source0:        source.tgz
 Source1:        filter-requires.sh
 
-%if "%{?REPO}" == "mcu-develop"
-%global ffmpeg_full_version  %{ffmpeg_version}
-%global srtp_full_version    %{srtp_version}
-%global opus_full_version    %{opus_version}
-%global ptlib_full_version   %{ptlib_version}
+BuildRequires:  collab-ffmpeg-devel = %{ffmpeg_version}
+BuildRequires:  collab-ptlib-devel = %{ptlib_version}
+BuildRequires:  libsrtp2-devel
+%if 0%{?el7}
+# needs a version hint to ensure it picks up our own build
+BuildRequires:  opus-devel = %{opus_version}
 %else
-%global ffmpeg_full_version  %{ffmpeg_version}-%{ffmpeg_build}%{?dist}
-%global srtp_full_version    %{srtp_version}-%{srtp_build}%{?dist}
-%global opus_full_version    %{opus_version}-%{opus_build}%{?dist}
-%global ptlib_full_version   %{ptlib_version}-%{ptlib_build}%{?dist}
+BuildRequires:  opus-devel
 %endif
-
-BuildRequires:  collab-ffmpeg-devel = %{ffmpeg_full_version}
-BuildRequires:  collab-libsrtp2-devel = %{srtp_full_version}
-BuildRequires:  collab-opus-devel = %{opus_full_version}
-BuildRequires:  collab-ptlib-devel = %{ptlib_full_version}
 
 BuildRequires:  which
 BuildRequires:  speex-devel
 BuildRequires:  libtheora-devel
 BuildRequires:  libvpx-devel
 
-Requires:       collab-ffmpeg = %{ffmpeg_full_version}
-Requires:       collab-libsrtp2 = %{srtp_full_version}
-Requires:       collab-opus = %{opus_full_version}
-Requires:       collab-ptlib = %{ptlib_full_version}
+# Since auto-requires is disabled, we have to explicitly list runtime requirements
+Requires:       collab-ffmpeg = %{ffmpeg_version}
+Requires:       collab-ptlib = %{ptlib_version}
+Requires:       libsrtp2
+%if 0%{?el7}
+Requires:       opus = %{opus_version}
+%else
+Requires:       opus
+%endif
+
+Requires:       speex
+Requires:       libtheora
+Requires:       libvpx
 
 %description
 OpalVOIP library
@@ -78,9 +73,14 @@ OpalVOIP library
 Summary:        Development files for %{name}
 Group:          Development/Libraries
 Requires:       %{name} = %{version}-%{release}
-Requires:       collab-ffmpeg-devel = %{ffmpeg_full_version}
-Requires:       collab-libsrtp2-devel = %{srtp_full_version}
-Requires:       collab-ptlib-devel = %{ptlib_full_version}
+Requires:       collab-ffmpeg-devel = %{ffmpeg_version}
+Requires:       collab-ptlib-devel = %{ptlib_version}
+Requires:       libsrtp2-devel
+%if 0%{?el7}
+Requires:       opus-devel = %{opus_version}
+%else
+Requires:       opus-devel
+%endif
 
 %description    devel
 The %{name}-devel package contains libraries and header files for
@@ -102,17 +102,8 @@ developing applications that use %{name}.
 
 
 %build
-%if "%{?dist}" == ".el7"
+%if 0%{?el7}
 source /opt/rh/devtoolset-9/enable
-%endif
-%ifarch aarch64
-%define arch_arg --enable-graviton2 --disable-x264
-%endif
-%if "%{?REPO}" == "mcu-release-tsan"
-%define tsan_arg --enable-sanitize-thread
-%endif
-%if "%{?REPO}" == "mcu-release-asan"
-%define asan_arg --enable-sanitize-address
 %endif
 sed -i \
     -e "s/MAJOR_VERSION.*/MAJOR_VERSION %{version_major}/" \
@@ -121,35 +112,43 @@ sed -i \
     -e "s/PATCH_VERSION.*/PATCH_VERSION %{version_patch}/" \
     -e "s/OEM_VERSION.*/OEM_VERSION %{version_oem}/"       \
     version.h
-./configure %{?arch_arg} %{?tsan_arg} %{?asan_arg} \
-        --enable-cpp14 \
-        --enable-localspeexdsp \
-        --disable-h323 \
-        --disable-iax2 \
-        --disable-skinny \
-        --disable-lid \
-        --disable-t38 \
-        --disable-bfcp \
-        --disable-sipim \
-        --disable-script \
-        --disable-mixer \
-        --disable-presence \
-        --disable-g.722.1 \
-        --disable-g.722.2 \
-        --disable-isac \
-        --disable-iLBC \
-        --disable-silk \
-        --prefix=%{_prefix} \
-        --libdir=%{_libdir}
-make %{?_smp_mflags} all
+%configure \
+%ifarch aarch64
+    --enable-graviton2 \
+    --disable-x264 \
+%endif
+%if 0%{?_with_tsan:1}
+    --enable-sanitize-thread \
+%endif
+%if 0%{?_with_asan:1}
+    --enable-sanitize-address \
+%endif
+    --enable-cpp14 \
+    --enable-localspeexdsp \
+    --disable-h323 \
+    --disable-iax2 \
+    --disable-skinny \
+    --disable-lid \
+    --disable-t38 \
+    --disable-bfcp \
+    --disable-sipim \
+    --disable-script \
+    --disable-mixer \
+    --disable-presence \
+    --disable-g.722.1 \
+    --disable-g.722.2 \
+    --disable-isac \
+    --disable-iLBC \
+    --disable-silk
+%make_build all
 
 
 %install
-%if "%{?dist}" == ".el7"
+%if 0%{?el7}
 source /opt/rh/devtoolset-9/enable
 %endif
 rm -rf $RPM_BUILD_ROOT
-make DESTDIR=$RPM_BUILD_ROOT install
+%make_install
 find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 
 
