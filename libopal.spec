@@ -155,9 +155,7 @@ find $RPM_BUILD_ROOT -name '*.la' -exec rm -f {} ';'
 rm -rf $RPM_BUILD_ROOT
 
 
-%post
-%{_datadir}/opal/install_openh264.sh %{_libdir}
-/sbin/ldconfig
+%post -p /sbin/ldconfig
 
 %postun -p /sbin/ldconfig
 
