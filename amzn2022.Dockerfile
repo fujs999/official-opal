@@ -57,10 +57,6 @@ FROM base
 COPY --from=depsolver std-deps/* std-deps/
 RUN [ -z "$(ls -A std-deps/*.rpm)" ] || (yum install --assumeyes std-deps/*.rpm && yum clean all)
 
-# Install OpenH264
-ADD plugins/install_openh264.sh /tmp/
-RUN /tmp/install_openh264.sh /usr/local/lib64
-
 # Install internal dependencies
 COPY --from=depsolver build-deps/* build-deps/
 RUN [ -z "$(ls -A build-deps/*.rpm)" ] || (yum install --assumeyes build-deps/*.rpm && yum clean all)
