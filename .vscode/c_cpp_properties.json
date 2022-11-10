@@ -4,10 +4,9 @@
         {
             "name": "Mac",
             "includePath": [
-                "${workspaceFolder}/lib_Darwin_x86_64/include/",
-                "${workspaceFolder}/include/**",
-                "${workspaceFolder}/../ptlib/lib_Darwin_x86_64/include/",
-                "${workspaceFolder}/../ptlib/include/**",
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/../ptlib/**",
+                "/opt/homebrew/include/**",
                 "/usr/local/include/**"
             ],
             "macFrameworkPath": [
@@ -16,8 +15,7 @@
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c11",
             "cppStandard": "c++17",
-            "intelliSenseMode": "clang-x64",
-            "configurationProvider": "ms-vscode.makefile-tools"
+            "intelliSenseMode": "clang"
         },
         {
             "name": "Linux",

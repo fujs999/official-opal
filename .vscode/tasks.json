@@ -35,7 +35,7 @@
             },
             "args": [
                 "--directory=${workspaceFolder}",
-                "CONFIG_PARMS=--enable-cpp14",
+                "CONFIG_PARMS=--enable-cpp14 --disable-bfcp --disable-isac",
                 "MULTIPLATFORM=yes",
                 "debugdepend",
                 "debug"
