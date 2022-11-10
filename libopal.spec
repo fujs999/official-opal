@@ -1,11 +1,11 @@
 %global version_major  3
 %global version_minor  19
 %global version_patch  7
-%global version_oem    5
+%global version_oem    6
 
 %global ffmpeg_version 4.4.3
 %global opus_version   1.3.1
-%global ptlib_version  2.19.4.18-2.73%{?dist}
+%global ptlib_version  2.19.4.19-1.334%{?dist}
 
 
 # Branch ID should be 0 for local builds/PRs
