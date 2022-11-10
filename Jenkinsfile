@@ -15,7 +15,7 @@ pipeline {
         script {
           docker.build(
             "el7_builder:${build_tag}",
-            "--build-arg SPECFILE=${spec_file} --build-arg REPO=${BRANCH_NAME=='develop' ? 'mcu-develop' : 'mcu-release'} --file el7.Dockerfile ."
+            "--build-arg SPECFILE=${spec_file} --build-arg REPO=${BRANCH_NAME.matches('release/.*') ? 'mcu-release' : 'mcu-develop'} --file el7.Dockerfile ."
           )
         }
       }
