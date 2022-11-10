@@ -44,8 +44,9 @@ RUN echo "[mcu-release]" > /etc/yum.repos.d/mcu-release.repo && \
     echo "name=mcu-release" >> /etc/yum.repos.d/mcu-release.repo && \
     echo "baseurl=https://citc-artifacts.s3.amazonaws.com/yum/el7/mcu-release/" >> /etc/yum.repos.d/mcu-release.repo && \
     echo "gpgcheck=false" >> /etc/yum.repos.d/mcu-release.repo && \
+    echo "cost=2000" >> /etc/yum.repos.d/mcu-release.repo && \
     cat /etc/yum.repos.d/mcu-release.repo
-# Maybe configure mcu-develop repository
+# Maybe configure mcu-develop or ASan/TSan repository
 ARG REPO=mcu-release
 RUN echo "[${REPO}]" > /etc/yum.repos.d/${REPO}.repo && \
     echo "name=${REPO}" >> /etc/yum.repos.d/${REPO}.repo && \
