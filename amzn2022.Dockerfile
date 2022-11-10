@@ -31,8 +31,9 @@ RUN echo "[mcu-release]" > /etc/yum.repos.d/mcu-release.repo && \
     echo "name=mcu-release" >> /etc/yum.repos.d/mcu-release.repo && \
     echo "baseurl=https://citc-artifacts.s3.amazonaws.com/yum/amzn2022/mcu-release/" >> /etc/yum.repos.d/mcu-release.repo && \
     echo "gpgcheck=false" >> /etc/yum.repos.d/mcu-release.repo && \
+    echo "cost=2000" >> /etc/yum.repos.d/mcu-release.repo && \
     cat /etc/yum.repos.d/mcu-release.repo
-# Maybe configure mcu-develop repository
+# Maybe configure mcu-develop or ASan/TSan repository
 ARG REPO=mcu-release
 RUN echo "[${REPO}]" > /etc/yum.repos.d/${REPO}.repo && \
     echo "name=${REPO}" >> /etc/yum.repos.d/${REPO}.repo && \
@@ -55,10 +56,6 @@ FROM base
 # Install standard dependencies
 COPY --from=depsolver std-deps/* std-deps/
 RUN [ -z "$(ls -A std-deps/*.rpm)" ] || (yum install --assumeyes std-deps/*.rpm && yum clean all)
-
-# Install OpenH264
-ADD plugins/install_openh264.sh /tmp/
-RUN /tmp/install_openh264.sh /usr/local/lib64
 
 # Install internal dependencies
 COPY --from=depsolver build-deps/* build-deps/

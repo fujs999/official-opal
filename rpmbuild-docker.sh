@@ -5,6 +5,7 @@ set -e
 SPECFILE=$(ls *.spec)
 DIST="amzn2022"
 ARCH=$(uname -m | sed -e 's/arm64/aarch64/' -e 's/x86_64/amd64/')
+REPO=mcu-develop
 COMMAND="./rpmbuild.sh"
 
 while [[ $# -gt 0 ]]; do
@@ -21,6 +22,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     -a|--arch)
       ARCH="$2"
+      shift # argument
+      shift # value
+      ;;
+    -r|--repo)
+      REPO="$2"
       shift # argument
       shift # value
       ;;
@@ -51,6 +57,7 @@ echo "Building $DIST/$ARCH docker image \"$DOCKER_TAG\" for \"$SPECFILE\""
 docker build \
     --progress plain \
     --platform $ARCH \
+    --build-arg REPO=${REPO} \
     --build-arg SPECFILE=${SPECFILE} \
     --tag "$DOCKER_TAG" \
     --file $DIST.Dockerfile \
