@@ -28,6 +28,11 @@ SOURCES   := $(CURDIR)/openh264.cxx \
              $(COMMONDIR)/encframe.cxx \
              $(COMMONDIR)/h264frame.cxx \
 
+OPENH264_VERSION := $(word 2,$(subst -, ,$(wildcard /usr/local/lib*/libopenh264-*.*.*-*)$(wildcard /usr/lib*/libopenh264-*.*.*-*)))
+$(info OpenH264 version $(OPENH264_VERSION))
+CPPFLAGS += -Iinc_$(OPENH264_VERSION)
+
+LIB_FILE = $(wildcard
 PLUGIN_LIBS = -lopenh264
 
 vpath   %.cxx $(COMMONDIR)
