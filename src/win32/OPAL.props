@@ -11,6 +11,7 @@
     <V8_DIR Condition="'$(V8_DIR)' == ''">$(EXTERNALDIR)\v8</V8_DIR>
     <FFMPEG32DIR Condition="'$(FFMPEG32DIR)' == ''">$(EXTERNALDIR)\ffmpeg-win32-dev</FFMPEG32DIR>
     <FFMPEG64DIR Condition="'$(FFMPEG64DIR)' == ''">$(EXTERNALDIR)\ffmpeg-win64-dev</FFMPEG64DIR>
+    <OPENH264VER Condition="'$(OPENH264VER)' == ''">2.3.1</OPENH264VER>
     <JPEG32DIR Condition="'$(JPEG32DIR)' == ''">$(EXTERNALDIR)\libjpeg-turbo</JPEG32DIR>
     <JPEG64DIR Condition="'$(JPEG64DIR)' == ''">$(EXTERNALDIR)\libjpeg-turbo64</JPEG64DIR>
     <AWSDIR Condition="'$(AWSDIR)' == ''">$(EXTERNALDIR)\aws-sdk-cpp</AWSDIR>
@@ -64,6 +65,10 @@ PATH=$(LIB64PATH);$(PATH)</LocalDebuggerEnvironment>
     </BuildMacro>
     <BuildMacro Include="FFMPEG64DIR">
       <Value>$(FFMPEG64DIR)</Value>
+      <EnvironmentVariable>true</EnvironmentVariable>
+    </BuildMacro>
+    <BuildMacro Include="OPENH264VER">
+      <Value>$(OPENH264VERs)</Value>
       <EnvironmentVariable>true</EnvironmentVariable>
     </BuildMacro>
     <BuildMacro Include="JPEG32DIR">
