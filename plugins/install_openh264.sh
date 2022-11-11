@@ -4,7 +4,9 @@ set -e
 
 VERSION=2.3.1
 
+FORCE=false
 if [ "$1" == "--force" ]; then
+    FORCE=true
     shift
 elif [ $(whoami) != root ]; then
     echo "$(basename $0) must be run as root!"
@@ -21,22 +23,25 @@ if [ "$1" == "--version" ]; then
     shift 2
 fi
 
+if [ $(echo -e "${VERSION}\n2.3.1" | sort --version-sort | tail -1) == "$VERSION" ]; then
+    LIBCVER=7
+else
+    LIBCVER=6
+fi
+
 PLATFORM=$(uname -sm)
 
 case "$PLATFORM" in
     Linux* )
-        if [ $(echo -e "${VERSION}\n2.3.1" | sort --version-sort | tail -1) == "$VERSION" ]; then
-          LIBCVER=.7
-        else
-          LIBCVER=.6
-        fi
         LIBEXT=so
-        LINKEXT=${LIBEXT}${LIBCVER}
         LIBDIR=/usr/lib64
+        FILE_LIBCVER=.$LIBCVER
+        LINK_LIBCVER=${LIBEXT}.${LIBCVER}
     ;;
     Darwin* )
         LIBEXT=dylib
         LIBDIR=/usr/local/lib
+        LINK_LIBCVER=${LIBCVER}.${LIBEXT}
     ;;
     * )
         echo "Unsupported platform $PLATFORM"
@@ -68,7 +73,7 @@ case "$PLATFORM" in
 esac
 
 LIBBASE=libopenh264
-LIBFILE=${LIBBASE}-${VERSION}-${PLATFORM}${LIBCVER}.${LIBEXT}
+LIBFILE=${LIBBASE}-${VERSION}-${PLATFORM}${FILE_LIBCVER}.${LIBEXT}
 
 if [ -n "$1" ]; then
     LIBDIR="$1"
@@ -79,18 +84,14 @@ if [ \! -d $LIBDIR ]; then
 fi
 
 cd $LIBDIR
-if [ -e "$LIBFILE" ]; then
+if [ -e "$LIBFILE" ] && !$FORCE; then
     echo Already installed.
 else
     echo Installing $LIBBASE to $LIBDIR.
     rm -f ${LIBBASE}*
     curl --silent http://ciscobinary.openh264.org/$LIBFILE.bz2 | bunzip2 > $LIBFILE
     chmod +x $LIBFILE
-    if [ -n "$LINKEXT" ]; then
-        ln -s $LIBFILE ${LIBBASE}.${LINKEXT}
-        ln -s ${LIBBASE}.${LINKEXT} ${LIBBASE}.${LIBEXT}
-    else
-        ln -s $LIBFILE ${LIBBASE}.${LIBEXT}
-    fi
+    ln -s $LIBFILE ${LIBBASE}.${LINK_LIBCVER}
+    ln -s ${LIBBASE}.${LINKEXT} ${LIBBASE}.${LIBEXT}
 fi
 ls -l $LIBDIR/${LIBBASE}*
