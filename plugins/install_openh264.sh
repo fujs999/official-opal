@@ -92,6 +92,6 @@ else
     curl --silent http://ciscobinary.openh264.org/$LIBFILE.bz2 | bunzip2 > $LIBFILE
     chmod +x $LIBFILE
     ln -s $LIBFILE ${LIBBASE}.${LINK_LIBCVER}
-    ln -s ${LIBBASE}.${LINKEXT} ${LIBBASE}.${LIBEXT}
+    ln -s ${LIBBASE}.${LINK_LIBCVER} ${LIBBASE}.${LIBEXT}
 fi
 ls -l $LIBDIR/${LIBBASE}*
