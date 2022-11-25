@@ -2171,7 +2171,7 @@ void OpalManager_C::HandleSetProtocol(const OpalMessage & command, OpalMessageBu
   if (command.m_param.m_protocol.m_privateKey != NULL)
     ep->SetSSLPrivateKeyFile(command.m_param.m_protocol.m_privateKey);
   if (command.m_param.m_protocol.m_autoCreateCertificate > 0)
-    SetSSLAutoCreateCertificate(command.m_param.m_protocol.m_autoCreateCertificate == 1);
+    ep->SetSSLAutoCreateCertificate(command.m_param.m_protocol.m_autoCreateCertificate == 1);
 #endif
 }
 
