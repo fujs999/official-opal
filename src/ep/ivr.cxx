@@ -188,13 +188,6 @@ OpalIVRConnection::OpalIVRConnection(OpalCall & call,
   m_autoStartInfo[OpalMediaType::Video()] = OpalMediaType::DontOffer;
 #endif
 
-#if OPAL_PTLIB_SSL
-  OpalManager & manager = m_endpoint.GetManager();
-  m_vxmlSession.SetSSLCredentials(manager.GetSSLCertificateAuthorityFiles(),
-                                  manager.GetSSLCertificateFile(),
-                                  manager.GetSSLPrivateKeyFile());
-#endif
-
   m_vxmlSession.SetCache(ep.GetTextToSpeechCache());
 
   PTRACE(4, "Constructed");
@@ -214,6 +207,12 @@ void OpalIVRConnection::OnApplyStringOptions()
   m_vxmlSession.SetSpeechRecognition(m_stringOptions.GetString(OPAL_OPT_IVR_SPEECH_RECOGNITION, m_ivrEndPoint.GetDefaultSpeechRecognition()));
   m_vxmlSession.SetRecordDirectory(m_stringOptions.GetString(OPAL_OPT_IVR_RECORDING_DIR, m_ivrEndPoint.GetRecordDirectory()));
   m_vxmlSession.SetProxies(m_stringOptions);
+#if OPAL_PTLIB_SSL
+  if (m_endpoint.HasSSLCertificates())
+    m_vxmlSession.SetSSLCredentials(m_endpoint);
+  else
+    m_vxmlSession.SetSSLCredentials(m_endpoint.GetManager());
+#endif
 
   if (m_stringOptions.Contains(OPAL_OPT_IVR_TTS_CACHE_DIR)) {
     PDirectory dir = m_stringOptions.GetString(OPAL_OPT_IVR_TTS_CACHE_DIR);

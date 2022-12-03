@@ -1924,27 +1924,6 @@ void OpalManager::SetDefaultDisplayName(const PString & name, bool updateAll)
 }
 
 
-#if OPAL_PTLIB_SSL
-OpalCertificateInfo::OpalCertificateInfo(bool withDefaults)
-  : m_caFiles("*") // Use default
-  , m_autoCreateCertificate(true)
-{
-  if (withDefaults) {
-    m_certificateFile = PProcess::Current().GetHomeDirectory() + "opal_certificate.pem";
-    m_privateKeyFile = PProcess::Current().GetHomeDirectory() + "opal_private_key.pem";
-  }
-}
-
-
-bool OpalCertificateInfo::ApplySSLCredentials(const OpalEndPoint & /*ep*/,
-                                              PSSLContext & context,
-                                              bool create) const
-{
-  return context.SetCredentials(m_caFiles, m_certificateFile, m_privateKeyFile, create && m_autoCreateCertificate);
-}
-#endif
-
-
 PBoolean OpalManager::IsLocalAddress(const PIPSocket::Address & ip) const
 {
 #if OPAL_PTLIB_NAT

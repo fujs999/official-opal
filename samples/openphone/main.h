@@ -1412,7 +1412,6 @@ class MyManager : public wxFrame, public OpalManager, public PAsyncNotifierTarge
 
 #if OPAL_PTLIB_SSL
     virtual bool ApplySSLCredentials(
-      const OpalEndPoint & ep,  ///< Endpoint transport is based on.
       PSSLContext & context,    ///< Context on which to set certificates
       bool create               ///< Create self signed cert/key if required
     ) const;

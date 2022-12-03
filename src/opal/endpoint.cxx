@@ -781,9 +781,9 @@ bool OpalEndPoint::FindListenerForProtocol(const char * protoPrefix, OpalTranspo
 #if OPAL_PTLIB_SSL
 bool OpalEndPoint::ApplySSLCredentials(PSSLContext & context, bool create) const
 {
-  if (m_certificateFile.empty())
-    return m_manager.ApplySSLCredentials(*this, context, create);
-  return OpalCertificateInfo::ApplySSLCredentials(*this, context, create);
+  if (HasSSLCertificates())
+    return ApplySSLCredentials(context, create);
+  return m_manager.ApplySSLCredentials(context, create);
 }
 #endif
 
