@@ -1,7 +1,7 @@
 %global version_major  3
 %global version_minor  19
 %global version_patch  7
-%global version_oem    6
+%global version_oem    7
 
 %global ffmpeg_version 4.4.3
 %global opus_version   1.3.1
