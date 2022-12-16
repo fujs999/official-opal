@@ -948,7 +948,7 @@ typedef struct OpalParamProtocol {
                                            be a filename or a PEM format certificate as a string. Note, an empty
                                            string "" is a valid value, and only NULL can be used for "no change". */
   unsigned m_autoCreateCertificate;   /**< Indicate a self signed certificate should be generated automatically
-                                           if the certicalte and private key files are not found at the locations
+                                           if the certificate and private key files are not found at the locations
                                            indicated (value=1), or that only the file/value indicated in above
                                            fields is used exclusively (value=2). */
 } OpalParamProtocol;
