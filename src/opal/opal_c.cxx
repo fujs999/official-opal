@@ -2047,7 +2047,7 @@ void OpalManager_C::HandleSetProtocol(const OpalMessage & command, OpalMessageBu
   ep->SetProductInfo(product);
 
   if (m_apiVersion >= 43)
-    SetEndPointSSLCredentials(*ep, command, response));
+    SetEndPointSSLCredentials(*ep, command, response);
 
 #if OPAL_GSTREAMER
   OpalGstEndPoint_C * gstEP = dynamic_cast<OpalGstEndPoint_C *>(ep);
