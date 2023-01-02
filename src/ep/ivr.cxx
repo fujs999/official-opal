@@ -232,6 +232,14 @@ void OpalIVRConnection::OnApplyStringOptions()
   }
 }
 
+
+void OpalIVRConnection::OnReleased()
+{
+  m_vxmlSession.Close();
+  OpalLocalConnection::OnReleased();
+}
+
+
 void OpalIVRConnection::OnStartMediaPatch(OpalMediaPatch & patch)
 {
   OpalLocalConnection::OnStartMediaPatch(patch);
