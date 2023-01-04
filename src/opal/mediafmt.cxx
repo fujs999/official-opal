@@ -1851,6 +1851,7 @@ const PString & OpalAudioFormat::ChannelsOption()          { static const PConst
 const PString & OpalAudioFormat::MinPacketTimeOption()     { static const PConstString s("minptime"); return s; }
 const PString & OpalAudioFormat::MaxPacketTimeOption()     { static const PConstString s("maxptime"); return s; }
 const PString & OpalAudioFormat::SilenceSuppressionOption(){ static const PConstString s("Silence Suppression"); return s; }
+const PString & OpalAudioFormat::EchoCancellationOption() { static const PConstString s("Echo Cancellation"); return s; }
 #endif
 
 OpalAudioFormat::OpalAudioFormat(Internal * info, bool dynamic)
@@ -1927,7 +1928,8 @@ OpalAudioFormatInternal::OpalAudioFormatInternal(const char * fullName,
 #if OPAL_SDP
   AddOption(new OpalMediaOptionUnsigned(OpalAudioFormat::MinPacketTimeOption(),      false, OpalMediaOption::NoMerge));
   AddOption(new OpalMediaOptionUnsigned(OpalAudioFormat::MaxPacketTimeOption(),      false, OpalMediaOption::NoMerge));
-  AddOption(new OpalMediaOptionString(OpalAudioFormat::SilenceSuppressionOption(),   false));
+  AddOption(new OpalMediaOptionString(OpalAudioFormat::SilenceSuppressionOption(),   false, OpalMediaOption::AlwaysMerge));
+  AddOption(new OpalMediaOptionString(OpalAudioFormat::EchoCancellationOption(),     false, OpalMediaOption::AlwaysMerge));
 #endif
 }
 
