@@ -203,7 +203,14 @@ OpalIVRConnection::~OpalIVRConnection()
 void OpalIVRConnection::OnApplyStringOptions()
 {
   OpalLocalConnection::OnApplyStringOptions();
-  m_vxmlSession.SetTextToSpeech(m_stringOptions.GetString(OPAL_OPT_IVR_TEXT_TO_SPEECH, m_ivrEndPoint.GetDefaultTextToSpeech()));
+
+  PStringOptions ttsOptions;
+  for (StringOptions::iterator it = m_stringOptions.begin(); it != m_stringOptions.end(); ++it) {
+    if (it->first.NumCompare("TTS-") == EqualTo)
+      ttsOptions.SetAt(it->first, it->second);
+  }
+
+  m_vxmlSession.SetTextToSpeech(m_stringOptions.GetString(OPAL_OPT_IVR_TEXT_TO_SPEECH, m_ivrEndPoint.GetDefaultTextToSpeech()), ttsOptions);
   m_vxmlSession.SetSpeechRecognition(m_stringOptions.GetString(OPAL_OPT_IVR_SPEECH_RECOGNITION, m_ivrEndPoint.GetDefaultSpeechRecognition()));
   m_vxmlSession.SetRecordDirectory(m_stringOptions.GetString(OPAL_OPT_IVR_RECORDING_DIR, m_ivrEndPoint.GetRecordDirectory()));
   m_vxmlSession.SetProxies(m_stringOptions);
