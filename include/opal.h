@@ -1732,7 +1732,7 @@ union OpalMessageParam {
 struct OpalMessage {
   OpalMessageType        m_type;        ///< Type of message
   union OpalMessageParam m_param;       ///< Context sensitive parameter based on m_type
-  unsigned long long     m_enqueueTime; ///< Microseconds since epoch time (1/1/1970)
+  unsigned long long     m_enqueueTime; ///< Microseconds since epoch time (1/1/1970 UTC)
 };
 
 
