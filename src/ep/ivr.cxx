@@ -182,6 +182,7 @@ OpalIVRConnection::OpalIVRConnection(OpalCall & call,
   , P_DISABLE_MSVC_WARNINGS(4355, m_vxmlSession(*this))
   , m_vxmlStarted(false)
 {
+  PTRACE_CONTEXT_ID_TO(m_vxmlSession);
   SetVXML(remoteParty);
 
 #if OPAL_VIDEO
