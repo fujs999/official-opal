@@ -76,7 +76,7 @@ typedef struct OpalHandleStruct * OpalHandle;
 typedef struct OpalMessage OpalMessage;
 
 /// Current API version
-#define OPAL_C_API_VERSION 43
+#define OPAL_C_API_VERSION 44
 
 
 ///////////////////////////////////////
@@ -1730,8 +1730,9 @@ union OpalMessageParam {
     This is passed via the OpalGetMessage() or OpalSendMessage() functions.
   */
 struct OpalMessage {
-  OpalMessageType m_type;   ///< Type of message
-  union OpalMessageParam m_param;   ///< Context sensitive parameter based on m_type
+  OpalMessageType        m_type;        ///< Type of message
+  union OpalMessageParam m_param;       ///< Context sensitive parameter based on m_type
+  unsigned long long     m_enqueueTime; ///< Microseconds since epoch time (1/1/1970)
 };
 
 

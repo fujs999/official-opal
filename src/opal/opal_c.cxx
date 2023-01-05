@@ -567,6 +567,7 @@ OpalMessage * OpalMessageBuffer::Detach()
 {
   OpalMessage * message = (OpalMessage *)m_data;
   m_data = NULL;
+  message->m_enqueueTime = PTime().GetTimestamp();
   return message;
 }
 
