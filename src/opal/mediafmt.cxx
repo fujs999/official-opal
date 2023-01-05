@@ -1928,8 +1928,8 @@ OpalAudioFormatInternal::OpalAudioFormatInternal(const char * fullName,
 #if OPAL_SDP
   AddOption(new OpalMediaOptionUnsigned(OpalAudioFormat::MinPacketTimeOption(),      false, OpalMediaOption::NoMerge));
   AddOption(new OpalMediaOptionUnsigned(OpalAudioFormat::MaxPacketTimeOption(),      false, OpalMediaOption::NoMerge));
-  AddOption(new OpalMediaOptionString(OpalAudioFormat::SilenceSuppressionOption(),   false, OpalMediaOption::AlwaysMerge));
-  AddOption(new OpalMediaOptionString(OpalAudioFormat::EchoCancellationOption(),     false, OpalMediaOption::AlwaysMerge));
+  AddOption(new OpalMediaOptionString(OpalAudioFormat::SilenceSuppressionOption(),   false));
+  AddOption(new OpalMediaOptionString(OpalAudioFormat::EchoCancellationOption(),     false));
 #endif
 }
 
