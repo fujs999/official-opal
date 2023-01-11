@@ -1955,7 +1955,9 @@ void OpalRTPSession::SyncSource::CalculateRTT(const PTime & reportTime, const PT
     PTRACE(4, &m_session, *this << "very large round trip time, ignoring");
   }
   else {
-    m_session.m_roundTripTime = (myDelay - reportDelay).GetInterval();
+    // Allow for delay being > 0, but < 1 millisecond
+    int64_t ms = (myDelay - reportDelay).GetMilliSeconds();
+    m_session.m_roundTripTime = ms > 0 ? (int)ms : 1;
     PTRACE(4, &m_session, *this << "determined round trip time: " << m_session.m_roundTripTime << "ms");
   }
 }
