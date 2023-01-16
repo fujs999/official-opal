@@ -328,7 +328,7 @@ bool OpalConnection::GarbageCollection()
       ++mtp;
   }
 
-  return m_mediaStreams.DeleteObjectsToBeRemoved() && m_mediaTransports.DeleteObjectsToBeRemoved();
+  return m_mediaStreams.DeleteObjectsToBeRemoved() & m_mediaTransports.DeleteObjectsToBeRemoved();
 }
 
 
@@ -959,8 +959,9 @@ bool OpalConnection::CloseMediaStream(OpalMediaStreamPtr stream)
 PBoolean OpalConnection::RemoveMediaStream(OpalMediaStream & stream)
 {
   stream.Close();
-  PTRACE(3, "Removed media stream " << stream);
-  return m_mediaStreams.RemoveAt(stream);
+  bool removed = m_mediaStreams.RemoveAt(stream);
+  PTRACE(3, (removed ? "Removed" : "Already removed") << " media stream " << stream);
+  return removed;
 }
 
 
@@ -971,8 +972,7 @@ void OpalConnection::StartMediaStreams()
 #endif
   for (StreamDict::iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
     OpalMediaStreamPtr mediaStream = it->second;
-    if (mediaStream.SetSafetyMode(PSafeReadWrite)) {
-      mediaStream->Start();
+    if (mediaStream.SetSafetyMode(PSafeReadWrite) && mediaStream->Start()) {
 #if PTRACING
       ++startCount;
 #endif
