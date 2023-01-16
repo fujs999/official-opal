@@ -89,7 +89,7 @@ class OpalMediaPatch : public PSafeObject
     /**Start the patch. The default implementation simply starts the
        patch thread, which in turn calls Main()
       */
-    virtual void Start();
+    virtual bool Start();
 
     /**Indicate the patch has started. Typically called from the beginning
        of the patch thread.
@@ -334,7 +334,7 @@ class OpalPassiveMediaPatch : public OpalMediaPatch
       OpalMediaStream & source       ///<  Source media stream
     );
 
-    virtual void Start();
+    virtual bool Start();
     virtual void Close();
 
   protected:

@@ -261,8 +261,7 @@ PBoolean OpalMediaStream::Start()
   }
 
   PTRACE(4, "Starting stream " << *this);
-  mediaPatch->Start();
-  return true;
+  return mediaPatch->Start();
 }
 
 

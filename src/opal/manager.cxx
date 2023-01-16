@@ -806,22 +806,31 @@ void OpalManager::InternalClearAllCalls(OpalConnection::CallEndReason reason, bo
                       << ", " << (firstThread ? "primary" : "secondary") << " thread.");
 
   if (firstThread) {
-    // Clear all the currentyl active calls
+    // Clear all the currently active calls
     for (PSafePtr<OpalCall> call = m_activeCalls; call != NULL; ++call)
       call->Clear(reason);
   }
 
-  if (wait) {
-    /* This is done this way as PSyncPoint only works for one thread at a time,
-       all subsequent threads will wait on the mutex for the first one to be
-       released from the PSyncPoint wait. */
-    m_clearingAllCallsMutex.Wait();
-    if (firstThread)
-      PAssert(m_allCallsCleared.Wait(PTimeInterval(0,m_activeCalls.GetSize()*2,1)), "All calls not cleared in a timely manner");
-    m_clearingAllCallsMutex.Signal();
-  }
+  if (!wait)
+    return;
+  
+  /* This is done this way as PSyncPoint only works for one thread at a time,
+      all subsequent threads will wait on the mutex for the first one to be
+      released from the PSyncPoint wait. */
+  m_clearingAllCallsMutex.Wait();
+  bool cleared = firstThread && m_allCallsCleared.Wait(PTimeInterval(0,m_activeCalls.GetSize()*2,1));
+  m_clearingAllCallsMutex.Signal();
+  PAssert(cleared, "All calls not cleared in a timely manner");
 
-  PTRACE(3, "All calls cleared.");
+#if PTRACING
+  if (cleared)
+    PTRACE(3, "All calls cleared.");
+  else {
+    // Probably a circular reference, try and give some clues.
+    PSafeObject::m_traceDetailLevel = 3;
+    GarbageCollection();
+  }
+#endif // PTRACING
 }
 
 
