@@ -1268,8 +1268,16 @@ OpalMediaStreamPtr OpalConnection::GetMediaStream(const PString & streamID, bool
 
 OpalMediaStreamPtr OpalConnection::GetMediaStream(unsigned sessionId, bool isSource, RTP_SyncSourceId ssrc) const
 {
-  StreamDict::const_iterator it = m_mediaStreams.find(StreamKey(sessionId, ssrc, isSource));
-  return it != m_mediaStreams.end() ? it->second : OpalMediaStreamPtr();
+  for (StreamDict::const_iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
+    OpalMediaStreamPtr mediaStream = it->second;
+    if (mediaStream != NULL &&
+        mediaStream->GetSessionID() == sessionId &&
+        mediaStream->IsSource() == isSource &&
+        (ssrc == 0 || mediaStream->GetSyncSource() == ssrc))
+      return mediaStream;
+  }
+
+  return NULL;
 }
 
 
