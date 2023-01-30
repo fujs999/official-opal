@@ -328,6 +328,7 @@ bool OpalConnection::GarbageCollection()
       ++mtp;
   }
 
+  // Use & to assure both are executed every time
   return m_mediaStreams.DeleteObjectsToBeRemoved() & m_mediaTransports.DeleteObjectsToBeRemoved();
 }
 
