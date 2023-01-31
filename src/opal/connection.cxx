@@ -328,7 +328,8 @@ bool OpalConnection::GarbageCollection()
       ++mtp;
   }
 
-  return m_mediaStreams.DeleteObjectsToBeRemoved() && m_mediaTransports.DeleteObjectsToBeRemoved();
+  // Use & to assure both are executed every time
+  return m_mediaStreams.DeleteObjectsToBeRemoved() & m_mediaTransports.DeleteObjectsToBeRemoved();
 }
 
 
@@ -916,6 +917,7 @@ OpalMediaStreamPtr OpalConnection::OpenMediaStream(const OpalMediaFormat & media
       return NULL;
     }
     stream->SetSyncSource(ssrc);
+    PTRACE(4, "Added media stream " << *stream);
     m_mediaStreams.SetAt(*stream, stream);
 
     m_mediaSessionFailedMutex.Wait();
@@ -925,7 +927,7 @@ OpalMediaStreamPtr OpalConnection::OpenMediaStream(const OpalMediaFormat & media
 
   if (stream->Open()) {
     if (OnOpenMediaStream(*stream)) {
-      PTRACE(3, "Opened " << (isSource ? "source" : "sink") << " stream " << stream->GetID() << " with format " << mediaFormat);
+      PTRACE(3, "Opened media stream " << *stream);
       return stream;
     }
     PTRACE(2, "OnOpenMediaStream failed for " << mediaFormat << ", closing " << *stream);
@@ -959,8 +961,15 @@ bool OpalConnection::CloseMediaStream(OpalMediaStreamPtr stream)
 PBoolean OpalConnection::RemoveMediaStream(OpalMediaStream & stream)
 {
   stream.Close();
-  PTRACE(3, "Removed media stream " << stream);
-  return m_mediaStreams.RemoveAt(stream);
+  bool removed = m_mediaStreams.RemoveAt(stream);
+#if PTRACING
+  if (removed)
+    PTRACE(3, "Removed media stream " << stream);
+  else {
+    PTRACE(3, "Already removed media stream " << stream << '\n' << m_mediaStreams);
+  }
+#endif // PTRACING
+  return removed;
 }
 
 
@@ -971,8 +980,7 @@ void OpalConnection::StartMediaStreams()
 #endif
   for (StreamDict::iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
     OpalMediaStreamPtr mediaStream = it->second;
-    if (mediaStream.SetSafetyMode(PSafeReadWrite)) {
-      mediaStream->Start();
+    if (mediaStream.SetSafetyMode(PSafeReadWrite) && mediaStream->Start()) {
 #if PTRACING
       ++startCount;
 #endif
@@ -1261,8 +1269,16 @@ OpalMediaStreamPtr OpalConnection::GetMediaStream(const PString & streamID, bool
 
 OpalMediaStreamPtr OpalConnection::GetMediaStream(unsigned sessionId, bool isSource, RTP_SyncSourceId ssrc) const
 {
-  StreamDict::const_iterator it = m_mediaStreams.find(StreamKey(sessionId, ssrc, isSource));
-  return it != m_mediaStreams.end() ? it->second : OpalMediaStreamPtr();
+  for (StreamDict::const_iterator it = m_mediaStreams.begin(); it != m_mediaStreams.end(); ++it) {
+    OpalMediaStreamPtr mediaStream = it->second;
+    if (mediaStream != NULL &&
+        mediaStream->GetSessionID() == sessionId &&
+        mediaStream->IsSource() == isSource &&
+        (ssrc == 0 || mediaStream->GetSyncSource() == ssrc))
+      return mediaStream;
+  }
+
+  return NULL;
 }
 
 

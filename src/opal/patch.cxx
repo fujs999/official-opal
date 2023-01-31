@@ -150,32 +150,34 @@ bool OpalMediaPatch::CanStart() const
 }
 
 
-void OpalMediaPatch::Start()
+bool OpalMediaPatch::Start()
 {
   PWaitAndSignal m(m_patchThreadMutex);
 
   if(m_patchThread != NULL && !m_patchThread->IsTerminated()) {
     PTRACE(5, "Already started thread " << m_patchThread->GetThreadName());
-    return;
+    return false;
   }
 
   delete m_patchThread;
   m_patchThread = NULL;
 
-  if (CanStart()) {
-    PString threadName = m_source.GetPatchThreadName();
-    if (threadName.IsEmpty()) {
-      P_INSTRUMENTED_LOCK_READ_ONLY(return);
-      if (!m_sinks.empty())
-        threadName = m_sinks.front().m_stream->GetPatchThreadName();
-    }
-    if (threadName.IsEmpty())
-      threadName = "Media Patch";
-    m_patchThread = new PThreadObj<OpalMediaPatch>(*this, &OpalMediaPatch::Main, false, threadName, PThread::HighPriority);
-    PTRACE_CONTEXT_ID_TO(m_patchThread);
-    PThread::Yield();
-    PTRACE(4, "Starting thread " << m_patchThread->GetThreadName());
+  if (!CanStart())
+    return false;
+  
+  PString threadName = m_source.GetPatchThreadName();
+  if (threadName.IsEmpty()) {
+    P_INSTRUMENTED_LOCK_READ_ONLY(return false);
+    if (!m_sinks.empty())
+      threadName = m_sinks.front().m_stream->GetPatchThreadName();
   }
+  if (threadName.IsEmpty())
+    threadName = "Media Patch";
+  m_patchThread = new PThreadObj<OpalMediaPatch>(*this, &OpalMediaPatch::Main, false, threadName, PThread::HighPriority);
+  PTRACE_CONTEXT_ID_TO(m_patchThread);
+  PThread::Yield();
+  PTRACE(4, "Starting thread " << m_patchThread->GetThreadName());
+  return true;
 }
 
 
@@ -1105,16 +1107,18 @@ OpalPassiveMediaPatch::OpalPassiveMediaPatch(OpalMediaStream & source)
 }
 
 
-void OpalPassiveMediaPatch::Start()
+bool OpalPassiveMediaPatch::Start()
 {
   if (m_started)
-    return;
+    return false;
 
-  if (CanStart()) {
-    m_started = true;
-    PTRACE(4, "Passive media patch started: " << *this);
-    m_source.GetConnection().GetEndPoint().GetManager().QueueDecoupledEvent(new PSafeWorkNoArg<OpalMediaPatch, bool>(this, &OpalMediaPatch::OnStartMediaPatch));
-  }
+  if (!CanStart())
+    return false;
+
+  m_started = true;
+  PTRACE(4, "Passive media patch started: " << *this);
+  m_source.GetConnection().GetEndPoint().GetManager().QueueDecoupledEvent(new PSafeWorkNoArg<OpalMediaPatch, bool>(this, &OpalMediaPatch::OnStartMediaPatch));
+  return true;
 }
 
 

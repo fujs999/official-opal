@@ -399,9 +399,9 @@ class PWAVFilePluginFactory : public PObject, public Factory::WorkerBase
       return new Instance(m_wavFormatCode, m_mediaFormat, m_extendedHeader);
     }
 
-    unsigned         m_wavFormatCode;
-    OpalMediaFormat  m_mediaFormat;
-    PBYTEArray       m_extendedHeader;
+    unsigned   m_wavFormatCode;
+    PString    m_mediaFormat;
+    PBYTEArray m_extendedHeader;
 
   public:
     static void Register(const typename Factory::Key_T & key, const PWAVFilePluginValidFormat & info)
