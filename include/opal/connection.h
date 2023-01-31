@@ -2035,16 +2035,9 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
 
     class StreamKey : public PKey<uint64_t>
     {
-        uint64_t CalculateKey(unsigned sessionID, RTP_SyncSourceId ssrc, bool isSource)
-        {
-          return sessionID | (uint64_t(ssrc) << (62-32)) | (isSource ? (1ULL<<63) : (1ULL<<62));
-        }
       public:
-        StreamKey(unsigned sessionID, RTP_SyncSourceId ssrc, bool isSource)
-          : PKey<uint64_t>(CalculateKey(sessionID, ssrc, isSource))
-        { }
         StreamKey(const OpalMediaStream & stream)
-          : PKey<uint64_t>(CalculateKey(stream.GetSessionID(), stream.GetSyncSource(), stream.IsSource()))
+          : PKey<uint64_t>(reinterpret_cast<uint64_t>(&stream))
         { }
         PObject * Clone() const { return new StreamKey(*this); }
     };
