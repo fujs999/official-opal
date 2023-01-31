@@ -477,7 +477,7 @@ PString SIPURL::AsQuotedString() const
   PStringStream s;
 
   if (!m_displayName.IsEmpty())
-    s << '"' << m_displayName << "\" ";
+    s << m_displayName.ToLiteral() << ' ';
   s << '<' << AsString() << '>';
 
   OutputVars(s, m_fieldParameters, ';', ';', '=', QuotedParameterTranslation);

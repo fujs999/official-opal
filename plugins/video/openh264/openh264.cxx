@@ -33,8 +33,8 @@
 
 #include "../../../src/codec/h264mf_inc.cxx"
 #include "../common/h264frame.h"
-#include "svc/codec_api.h"
-#include "svc/codec_ver.h"
+#include "wels/codec_api.h"
+#include "wels/codec_ver.h"
 
 #include <iomanip>
 #include <algorithm>

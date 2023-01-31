@@ -2991,6 +2991,7 @@ void SDPAudioMediaDescription::OutputAttributes(ostream & strm) const
   unsigned minptimeMax = 0;
   unsigned maxptimeMin = UINT_MAX;
   PString silenceSupp;
+  PString ecan;
 
   // output attributes for each payload type
   for (SDPMediaFormatList::const_iterator format = m_formats.begin(); format != m_formats.end(); ++format) {
@@ -3013,6 +3014,8 @@ void SDPAudioMediaDescription::OutputAttributes(ostream & strm) const
 
     if (silenceSupp.empty())
       silenceSupp = mediaFormat.GetOptionString(OpalAudioFormat::SilenceSuppressionOption());
+    if (ecan.empty())
+      ecan = mediaFormat.GetOptionString(OpalAudioFormat::EchoCancellationOption());
   }
 
   if (minptimeMax > 0)
@@ -3023,6 +3026,8 @@ void SDPAudioMediaDescription::OutputAttributes(ostream & strm) const
 
   if (!silenceSupp.empty())
     strm << "a=silenceSupp:" << silenceSupp << CRLF;
+  if (!ecan.empty())
+    strm << "a=ecan:" << ecan << CRLF;
 }
 
 
@@ -3057,6 +3062,11 @@ void SDPAudioMediaDescription::SetAttribute(const PString & attr, const PString 
     return;
   }
 
+  if (attr *= "ecan") {
+    m_ecan = value;
+    return;
+  }
+
   return SDPRTPAVPMediaDescription::SetAttribute(attr, value);
 }
 
@@ -3086,6 +3096,8 @@ bool SDPAudioMediaDescription::PostDecode(Direction defaultDirection, const Opal
 
     if (!m_silenceSupp.IsEmpty())
       mediaFormat.SetOptionString(OpalAudioFormat::SilenceSuppressionOption(), m_silenceSupp);
+    if (!m_ecan.IsEmpty())
+      mediaFormat.SetOptionString(OpalAudioFormat::EchoCancellationOption(), m_ecan);
   }
 
   return true;

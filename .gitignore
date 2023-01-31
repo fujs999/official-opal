@@ -146,6 +146,7 @@ opal.xcodeproj/xcuserdata
 /samples/openphone/OpenPhone.xcodeproj/project.xcworkspace/xc*data
 /samples/openphone/server.cer
 /samples/openphone/server.key
+/samples/openphone/cache
 /samples/opalshark/opalshark.app/
 /samples/opalshark/resource.cpp
 /samples/opalshark/opalshark.cxx
@@ -157,5 +158,6 @@ opal.xcodeproj/xcuserdata
 /samples/fax/results
 rpmbuild/
 nbproject/private/
+/samples/c_api/cache
 /samples/ivr/cache
 .vscode/*.log

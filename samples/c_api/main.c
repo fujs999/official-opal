@@ -34,6 +34,7 @@
 
 
 #define LOCAL_MEDIA 0
+#define CERTIFICATES 0
 #define STUN_SERVER "stun.l.google.com:19302"
 
 
@@ -213,6 +214,13 @@ int InitialiseOPAL()
 #endif
   command.m_param.m_general.m_mediaMask = "RFC4175*";
 
+#if CERTIFICATES
+  command.m_param.m_general.m_caFiles = "*";
+  command.m_param.m_general.m_certificate = "C:\\data\\temp\\general_cert.pem";
+  command.m_param.m_general.m_privateKey = "C:\\data\\temp\\general_key.pem";
+  command.m_param.m_general.m_autoCreateCertificate = 1;
+#endif
+
 #if LOCAL_MEDIA
   command.m_param.m_general.m_mediaReadData = MyReadMediaData;
   command.m_param.m_general.m_mediaWriteData = MyWriteMediaData;
@@ -230,7 +238,8 @@ int InitialiseOPAL()
 
   command.m_param.m_protocol.m_userName = "robertj";
   command.m_param.m_protocol.m_displayName = "Robert Jongbloed";
-  command.m_param.m_protocol.m_interfaceAddresses = "*";
+  command.m_param.m_protocol.m_interfaceAddresses = "0.0.0.0";
+  //command.m_param.m_protocol.m_defaultOptions = "Http-Proxy=http://192.168.1.10";
 
   if ((response = MySendCommand(&command, "Could not set protocol options")) == NULL)
     return 0;
@@ -242,6 +251,12 @@ int InitialiseOPAL()
 
   command.m_param.m_protocol.m_prefix = "sip";
   command.m_param.m_protocol.m_defaultOptions = "PRACK-Mode=0\nInitial-Offer=false";
+#if CERTIFICATES
+  command.m_param.m_protocol.m_caFiles = "*";
+  command.m_param.m_protocol.m_certificate = "C:\\data\\temp\\sip_cert.pem";
+  command.m_param.m_protocol.m_privateKey = "C:\\data\\temp\\sip_key.pem";
+  command.m_param.m_protocol.m_autoCreateCertificate = 1;
+#endif
 
   if ((response = MySendCommand(&command, "Could not set SIP options")) == NULL)
     return 0;
@@ -318,7 +333,7 @@ static void HandleMessages(unsigned timeout)
                message->m_param.m_incomingCall.m_remoteAddress,
                message->m_param.m_incomingCall.m_calledAddress,
                message->m_param.m_incomingCall.m_localAddress);
-        if (CurrentCallToken == NULL) {
+        if (CurrentCallToken == NULL || strncmp(message->m_param.m_incomingCall.m_calledAddress, "ivr:", 4) == 0) {
           memset(&command, 0, sizeof(command));
           command.m_type = OpalCmdAnswerCall;
           command.m_param.m_answerCall.m_callToken = message->m_param.m_incomingCall.m_callToken;
@@ -616,7 +631,7 @@ int DoPlay(const char * to, const char * file)
 
   printf("Playing %s to %s\n", file, to);
 
-  PlayScript = (char *)malloc(1000);
+  PlayScript = (char *)malloc(1000); // Yes, this leaks, don't care!
   snprintf(PlayScript, 999,
            "ivr:<?xml version=\"1.0\"?>"
            "<vxml version=\"1.0\">"
@@ -627,6 +642,10 @@ int DoPlay(const char * to, const char * file)
 
   memset(&command, 0, sizeof(command));
   command.m_type = OpalCmdSetUpCall;
+  if (strncmp(to, "pc:", 3) == 0) {
+    command.m_param.m_callSetUp.m_partyA = PlayScript;
+    PlayScript = NULL;
+  }
   command.m_param.m_callSetUp.m_partyB = to;
   if ((response = MySendCommand(&command, "Could not make call")) == NULL)
     return 0;
@@ -808,27 +827,26 @@ typedef enum
   NumOperations
 } Operations;
 
-static const char * const OperationNames[NumOperations] =
-  { "shutdown", "listen", "call", "mute", "hold", "transfer", "consult", "register", "subscribe", "record", "play", "presence", "im" };
-
-static int const RequiredArgsForOperation[NumOperations] =
-  { 2, 2, 3, 3, 3, 4, 4, 3, 3, 3, 3, 4, 5 };
-
-static const char * const OperationHelp[NumOperations] = {
-  "",
-  "",
-  "<destination-URL> [ <local-URL> ]",
-  "<destination-URL>",
-  "<destination-URL>",
-  "<destination-URL> <transfer-URL>",
-  "<destination-URL> <transfer-URL>",
-  "<address-of-record> [ <pwd> ]",
-  "<package> <address-of-record> [ <pwd> ]",
-  "<destination-URL> <filename>",
-  "<destination-URL> <filename>",
-  "<local-URL> [ <attr>=<value> ... ] <remote-URL> ...\n"
-  "    attrib one of pwd/host/transport/sub-protocol etc",
-  "<from> <to> [ host=<host> ] <msg>"
+static struct
+{
+  const char * m_name;
+  int          m_numArgs;
+  const char * m_help;
+} Operation []  = {
+  { "shutdown",  2, "" },
+  { "listen",    2, "" },
+  { "call",      3, "<destination-URL> [ <local-URL> ]" },
+  { "mute",      3, "<destination-URL>" },
+  { "hold",      3, "<destination-URL>" },
+  { "transfer",  4, "<destination-URL> <transfer-URL>" },
+  { "consult",   4, "<destination-URL> <transfer-URL>" },
+  { "register",  3, "<address-of-record> [ <pwd> ]" },
+  { "subscribe", 3, "<package> <address-of-record> [ <pwd> ]" },
+  { "record",    3, "<destination-URL> <filename>" },
+  { "play",      3, "<destination-URL> <filename>" },
+  { "presence",  4, "<local-URL> [ <attr>=<value> ... ] <remote-URL> ...\n"
+                    "    attrib one of pwd/host/transport/sub-protocol etc" },
+  { "im",        5, "<from> <to> [ host=<host> ] <msg>" }
 };
 
 
@@ -837,7 +855,7 @@ static Operations GetOperation(const char * name)
   Operations op;
 
   for (op = OpFirst; op < NumOperations; op++) {
-    if (strcmp(name, OperationNames[op]) == 0)
+    if (strcmp(name, Operation[op].m_name) == 0)
       break;
   }
 
@@ -849,11 +867,11 @@ int main(int argc, const char * const * argv)
 {
   Operations operation;
   
-  if (argc < 2 || (operation = GetOperation(argv[1])) == NumOperations || argc < RequiredArgsForOperation[operation]) {
+  if (argc < 2 || (operation = GetOperation(argv[1])) == NumOperations || argc < Operation[operation].m_numArgs) {
     Operations op;
     fputs("usage:\n", stderr);
     for (op = OpListen; op < NumOperations; op++)
-      fprintf(stderr, "  c_api %s %s\n", OperationNames[op], OperationHelp[op]);
+      fprintf(stderr, "  c_api %s %s\n", Operation[op].m_name, Operation[op].m_help);
     return 1;
   }
 

@@ -828,6 +828,22 @@ void RTP_ControlFrame::SetPayloadType(PayloadTypes pt)
 }
 
 
+PINDEX RTP_ControlFrame::GetPayloadSize() const
+{
+  PINDEX size = 4*(PINDEX)GetAs<PUInt16b>(m_compoundOffset+2);
+  if (size + m_compoundOffset + 4 > m_packetSize) {
+    PTRACE(2, "RTP",
+           "malformed RTCP packet received:"
+           " payload-size=" << size <<
+           " offset=" << m_compoundOffset <<
+           " packet-size=" << m_packetSize << ":\n" <<
+           setprecision(2) << PHexDump(*this, false));
+    size = m_packetSize - m_compoundOffset - 4; // Get whatever was left in malformed packet
+  }
+  return size;
+}
+
+
 bool RTP_ControlFrame::SetPayloadSize(PINDEX sz)
 {
   m_payloadSize = sz;

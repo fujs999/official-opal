@@ -2199,14 +2199,14 @@ bool OpalManagerConsole::Initialise(PArgList & args, bool verbose, const PString
     DisableDetectInBandDTMF(true);
 
 #if OPAL_PTLIB_SSL
-  SetSSLCertificateAuthorityFiles(args.GetOptionString("ssl-ca", GetSSLCertificateAuthorityFiles()));
-  SetSSLCertificateFile(args.GetOptionString("ssl-cert", GetSSLCertificateFile()));
-  SetSSLPrivateKeyFile(args.GetOptionString("ssl-key", GetSSLPrivateKeyFile()));
+  SetSSLCertificateAuthority(args.GetOptionString("ssl-ca", GetSSLCertificateAuthority()));
+  SetSSLCertificate(args.GetOptionString("ssl-cert", GetSSLCertificate()));
+  SetSSLPrivateKey(args.GetOptionString("ssl-key", GetSSLPrivateKey()));
   SetSSLAutoCreateCertificate(!args.HasOption("ssl-no-create"));
   if (verbose)
-    output << "SSL/TLS certificate authority: " << GetSSLCertificateAuthorityFiles() << "\n"
-              "SSL/TLS certificate: " << GetSSLCertificateFile() << "\n"
-              "SSL/TLS private key: " << GetSSLPrivateKeyFile() << "\n"
+    output << "SSL/TLS certificate authority: " << GetSSLCertificateAuthority() << "\n"
+              "SSL/TLS certificate: " << GetSSLCertificate() << "\n"
+              "SSL/TLS private key: " << GetSSLPrivateKey() << "\n"
               "SSL/TLS auto-create certificate/key: " << (GetSSLAutoCreateCertificate() ? "Yes" : "No") << '\n';
 #endif
 
@@ -3306,17 +3306,17 @@ void OpalManagerCLI::CmdIpQoS(PCLI::Arguments & args, P_INT_PTR)
 #if OPAL_PTLIB_SSL
 void OpalManagerCLI::CmdSSL(PCLI::Arguments & args, P_INT_PTR)
 {
-  SetSSLCertificateAuthorityFiles(args.GetOptionString("ca", GetSSLCertificateAuthorityFiles()));
-  SetSSLCertificateFile(args.GetOptionString("cert", GetSSLCertificateFile()));
-  SetSSLPrivateKeyFile(args.GetOptionString("key", GetSSLPrivateKeyFile()));
+  SetSSLCertificateAuthority(args.GetOptionString("ca", GetSSLCertificateAuthority()));
+  SetSSLCertificate(args.GetOptionString("cert", GetSSLCertificate()));
+  SetSSLPrivateKey(args.GetOptionString("key", GetSSLPrivateKey()));
   if (args.HasOption("create"))
     SetSSLAutoCreateCertificate(true);
   if (args.HasOption("no-create"))
     SetSSLAutoCreateCertificate(false);
   
-  args.GetContext() << "SSL/TLS certificate authority: " << GetSSLCertificateAuthorityFiles() << "\n"
-                       "SSL/TLS certificate: " << GetSSLCertificateFile() << "\n"
-                       "SSL/TLS private key: " << GetSSLPrivateKeyFile() << "\n"
+  args.GetContext() << "SSL/TLS certificate authority: " << GetSSLCertificateAuthority() << "\n"
+                       "SSL/TLS certificate: " << GetSSLCertificate() << "\n"
+                       "SSL/TLS private key: " << GetSSLPrivateKey() << "\n"
                        "SSL/TLS auto-create certificate/key: " << (GetSSLAutoCreateCertificate() ? "Yes" : "No") << '\n';
 }
 #endif

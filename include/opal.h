@@ -76,7 +76,7 @@ typedef struct OpalHandleStruct * OpalHandle;
 typedef struct OpalMessage OpalMessage;
 
 /// Current API version
-#define OPAL_C_API_VERSION 42
+#define OPAL_C_API_VERSION 44
 
 
 ///////////////////////////////////////
@@ -936,6 +936,21 @@ typedef struct OpalParamProtocol {
   const char * m_protocolMessageIdentifiers; /**< List of \n separated regular expressions (extended variant, and
                                                   with ignore case enabled) for protocol message identifers, that
                                                   OPAL will return a OpalIndProtocolMessage for. */
+  const char * m_caFiles;             /**< File or directory containing Certificate Authority root certificates
+                                           to validate remotes in TLS connections, e.g. sips or h323s. Note,
+                                           an empty string "" is a valid value, and only NULL can be used
+                                           for "no change". */
+  const char * m_certificate;         /**< Certificate to use to identify this endpoint in TLS connections,
+                                           e.g. sips or h323s. This can either be a filename or a PEM format
+                                           certificate as a string. Note, an empty string "" is a valid value,
+                                           and only NULL can be used for "no change". */
+  const char * m_privateKey;          /**< Private key to use with the above certificate file. This can either
+                                           be a filename or a PEM format certificate as a string. Note, an empty
+                                           string "" is a valid value, and only NULL can be used for "no change". */
+  unsigned m_autoCreateCertificate;   /**< Indicate a self signed certificate should be generated automatically
+                                           if the certificate and private key files are not found at the locations
+                                           indicated (value=1), or that only the file/value indicated in above
+                                           fields is used exclusively (value=2). */
 } OpalParamProtocol;
 
 
@@ -1715,8 +1730,9 @@ union OpalMessageParam {
     This is passed via the OpalGetMessage() or OpalSendMessage() functions.
   */
 struct OpalMessage {
-  OpalMessageType m_type;   ///< Type of message
-  union OpalMessageParam m_param;   ///< Context sensitive parameter based on m_type
+  OpalMessageType        m_type;        ///< Type of message
+  union OpalMessageParam m_param;       ///< Context sensitive parameter based on m_type
+  unsigned long long     m_enqueueTime; ///< Microseconds since epoch time (1/1/1970 UTC)
 };
 
 

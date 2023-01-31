@@ -35,8 +35,10 @@
 
 #if OPAL_SRTP
 #include <rtp/dtls_srtp_session.h>
-#ifdef _MSC_VER
+#ifdef P_SSL_LIB1
 #pragma comment(lib, P_SSL_LIB1)
+#endif
+#ifdef P_SSL_LIB2
 #pragma comment(lib, P_SSL_LIB2)
 #endif
 

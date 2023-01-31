@@ -1428,6 +1428,7 @@ class OpalAudioFormat : public OpalMediaFormat
     static const PString & MinPacketTimeOption();
     static const PString & MaxPacketTimeOption();
     static const PString & SilenceSuppressionOption();
+    static const PString & EchoCancellationOption();
 #endif
 
     P_DECLARE_BITWISE_ENUM(FrameType, 3, (

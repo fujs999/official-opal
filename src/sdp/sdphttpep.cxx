@@ -215,6 +215,7 @@ PBoolean OpalSDPHTTPConnection::SetUpConnection()
   InternalSetAsOriginating();
 
   PHTTPClient http;
+  http.SetProxies(PHTTP::Proxies(m_stringOptions));
   if (!http.ConnectURL(url)) {
     PTRACE(2, "Could not connect to " << url << ": "
            << http.GetLastResponseCode() << " - " << http.GetLastResponseInfo());
@@ -258,6 +259,7 @@ void OpalSDPHTTPConnection::OnReleased()
       url.SetQueryVar(OPAL_SDP_HTTP_ID_QUERY_PARAM, m_guid.AsString());
 
       PHTTPClient http;
+      http.SetProxies(PHTTP::Proxies(m_stringOptions));
       PMIMEInfo outMIME;
       if (http.PostData(url, outMIME, PString::Empty()))
         PTRACE(3, "Sent disconnect command: " << url);

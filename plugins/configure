@@ -1553,7 +1553,8 @@ Optional Features:
   --enable-cpp17          Enable C++17 build
   --enable-graviton2      Optimise compiler for Graviton2 processor
   --enable-force32        Force 32-bit x86 build
-  --disable-deprecated    Stop compiler warning about deprecated functions
+  --enable-deprecated     Generate compiler warnings about deprecated
+                          functions
   --disable-silk          disable Skype SILK audio codec
   --disable-gsmamr        disable GSM-AMR audio codec
   --disable-g.726         disable G.726 audio codec
@@ -3344,9 +3345,6 @@ ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-
-
 
 
 
@@ -6330,6 +6328,10 @@ then :
 else $as_nop
   as_fn_error $? "Unable to determine iOS release number" "$LINENO" 5
 fi
+      if test "x$target_cpu" = xarm
+then :
+  target_cpu=arm64
+fi
 
       CPPFLAGS="-mmacosx-version-min=$target_release $CPPFLAGS"
       LDFLAGS="-mmacosx-version-min=$target_release $LDFLAGS"
@@ -6549,6 +6551,10 @@ rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
       target_64bit=1
     ;; #(
   hppa64 | ia64 | s390x) :
+
+      target_64bit=1
+    ;; #(
+  arm*64*) :
 
       target_64bit=1
     ;; #(
@@ -7032,8 +7038,47 @@ then :
   enableval=$enable_deprecated;
 fi
 
+if test "x$enable_deprecated" = xyes
+then :
 
-if test "${enable_deprecated}" != "yes" ; then
+
+   oldCPPFLAGS="$CPPFLAGS"
+   CPPFLAGS="$CPPFLAGS -Werror -Wdeprecated-declarations"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking compiler -Wdeprecated-declarations" >&5
+printf %s "checking compiler -Wdeprecated-declarations... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main (void)
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+  usable=yes
+else $as_nop
+  usable=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $usable" >&5
+printf "%s\n" "$usable" >&6; }
+   CPPFLAGS="$oldCPPFLAGS"
+
+   if test "x$usable" = "xyes"
+then :
+  CPPFLAGS="$CPPFLAGS -Wdeprecated-declarations"
+
+fi
+
+
+
+else $as_nop
+
 
    oldCPPFLAGS="$CPPFLAGS"
    CPPFLAGS="$CPPFLAGS -Werror -Wno-deprecated-declarations"
@@ -7069,6 +7114,7 @@ then :
 fi
 
 
+
 fi
 
 
@@ -7102,6 +7148,42 @@ printf "%s\n" "$usable" >&6; }
    if test "x$usable" = "xyes"
 then :
   CPPFLAGS="-Wall $CPPFLAGS"
+
+fi
+
+
+
+
+   oldCPPFLAGS="$CPPFLAGS"
+   CPPFLAGS="$CPPFLAGS -Wno-unknown-warning-option"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking warnings on unknown warnings (-Wno-unknown-warning-option)" >&5
+printf %s "checking warnings on unknown warnings (-Wno-unknown-warning-option)... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main (void)
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"
+then :
+  usable=yes
+else $as_nop
+  usable=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $usable" >&5
+printf "%s\n" "$usable" >&6; }
+   CPPFLAGS="$oldCPPFLAGS"
+
+   if test "x$usable" = "xyes"
+then :
+  CPPFLAGS="-Wno-unknown-warning-option $CPPFLAGS"
 
 fi
 
@@ -8372,6 +8454,7 @@ printf "%s\n" "$as_me: Using directory $withval for GSM 06.10 audio codec" >&6;}
 
 else $as_nop
 
+
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gsm " >&5
 printf %s "checking for gsm ... " >&6; }
@@ -8430,18 +8513,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$GSM_PKG_ERRORS" >&5
 
-
-                     GSM_CFLAGS=""
-                     GSM_LIBS="-lgsm"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     GSM_CFLAGS=""
-                     GSM_LIBS="-lgsm"
-
+	usable=no
 
 else
 	GSM_CFLAGS=$pkg_cv_GSM_CFLAGS
@@ -8449,18 +8526,78 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $GSM_CFLAGS"
    LIBS="$GSM_LIBS $LIBS"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for GSM usability" >&5
+printf %s "checking for GSM usability... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <gsm.h>
+int
+main (void)
+{
+gsm_create()
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  usable=yes
+else $as_nop
+  usable=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $usable" >&5
+printf "%s\n" "$usable" >&6; }
+   CPPFLAGS="$MY_LINK_IFELSE_CPPFLAGS"
+   LIBS="$MY_LINK_IFELSE_LIBS"
+
+   if test "x$usable" = "xyes"
+then :
+
+            GSM_CPPFLAGS=`$PKG_CONFIG --cflags-only-I "gsm "`
+            GSM_CFLAGS=`$PKG_CONFIG --cflags-only-other "gsm "`
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $GSM_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $GSM_CPPFLAGS" >&6;}
+      CPPFLAGS="$GSM_CPPFLAGS $CPPFLAGS"
+
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $GSM_CFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $GSM_CFLAGS" >&6;}
+      CXXFLAGS="$GSM_CFLAGS $CXXFLAGS"
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $GSM_LIBS" >&5
+printf "%s\n" "$as_me: Adding LIBS: $GSM_LIBS" >&6;}
+      LIBS="$GSM_LIBS $LIBS"
+
+
+
+
+fi
+
+
+fi
+
+   if test "x$usable" = "xyes"
+then :
+
+else $as_nop
+
+
+   MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
+   MY_LINK_IFELSE_LIBS="$LIBS"
+   CPPFLAGS="$CPPFLAGS "
+   LIBS="-lgsm $LIBS"
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for GSM 06.10 audio codec usability" >&5
 printf %s "checking for GSM 06.10 audio codec usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -8494,18 +8631,15 @@ then :
 
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $GSM_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $GSM_CFLAGS" >&6;}
-      CPPFLAGS="$GSM_CFLAGS $CPPFLAGS"
 
 
 
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: -lgsm" >&5
+printf "%s\n" "$as_me: Adding LIBS: -lgsm" >&6;}
+      LIBS="-lgsm $LIBS"
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $GSM_LIBS" >&5
-printf "%s\n" "$as_me: Adding LIBS: $GSM_LIBS" >&6;}
-      LIBS="$GSM_LIBS $LIBS"
 
-
+                           usable=yes
 
 else $as_nop
   usable=no
@@ -8514,7 +8648,13 @@ fi
 
 
 
+
 fi
+
+
+
+fi
+
 
 
             if test "x$usable" = xno
@@ -8676,6 +8816,7 @@ printf "%s\n" "$as_me: Using directory $withval for iLBC audio codec" >&6;}
 
 else $as_nop
 
+
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ilbc " >&5
 printf %s "checking for ilbc ... " >&6; }
@@ -8734,18 +8875,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$ILBC_PKG_ERRORS" >&5
 
-
-                     ILBC_CFLAGS=""
-                     ILBC_LIBS="-lilbc"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     ILBC_CFLAGS=""
-                     ILBC_LIBS="-lilbc"
-
+	usable=no
 
 else
 	ILBC_CFLAGS=$pkg_cv_ILBC_CFLAGS
@@ -8753,18 +8888,80 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $ILBC_CFLAGS"
    LIBS="$ILBC_LIBS $LIBS"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for ILBC usability" >&5
+printf %s "checking for ILBC usability... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <iLBC_encode.h>
+int
+main (void)
+{
+
+      struct iLBC_Enc_Inst_t_ * context;
+      initEncode(context, 30);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  usable=yes
+else $as_nop
+  usable=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $usable" >&5
+printf "%s\n" "$usable" >&6; }
+   CPPFLAGS="$MY_LINK_IFELSE_CPPFLAGS"
+   LIBS="$MY_LINK_IFELSE_LIBS"
+
+   if test "x$usable" = "xyes"
+then :
+
+            ILBC_CPPFLAGS=`$PKG_CONFIG --cflags-only-I "ilbc "`
+            ILBC_CFLAGS=`$PKG_CONFIG --cflags-only-other "ilbc "`
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $ILBC_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $ILBC_CPPFLAGS" >&6;}
+      CPPFLAGS="$ILBC_CPPFLAGS $CPPFLAGS"
+
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $ILBC_CFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $ILBC_CFLAGS" >&6;}
+      CXXFLAGS="$ILBC_CFLAGS $CXXFLAGS"
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $ILBC_LIBS" >&5
+printf "%s\n" "$as_me: Adding LIBS: $ILBC_LIBS" >&6;}
+      LIBS="$ILBC_LIBS $LIBS"
+
+
+
+
+fi
+
+
+fi
+
+   if test "x$usable" = "xyes"
+then :
+
+else $as_nop
+
+
+   MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
+   MY_LINK_IFELSE_LIBS="$LIBS"
+   CPPFLAGS="$CPPFLAGS "
+   LIBS="-lilbc $LIBS"
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for iLBC audio codec usability" >&5
 printf %s "checking for iLBC audio codec usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -8800,18 +8997,15 @@ then :
 
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $ILBC_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $ILBC_CFLAGS" >&6;}
-      CPPFLAGS="$ILBC_CFLAGS $CPPFLAGS"
 
 
 
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: -lilbc" >&5
+printf "%s\n" "$as_me: Adding LIBS: -lilbc" >&6;}
+      LIBS="-lilbc $LIBS"
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $ILBC_LIBS" >&5
-printf "%s\n" "$as_me: Adding LIBS: $ILBC_LIBS" >&6;}
-      LIBS="$ILBC_LIBS $LIBS"
 
-
+                           usable=yes
 
 else $as_nop
   usable=no
@@ -8820,7 +9014,13 @@ fi
 
 
 
+
 fi
+
+
+
+fi
+
 
 
             if test "x$usable" = xno
@@ -8991,6 +9191,7 @@ printf "%s\n" "$as_me: Using directory $withval for Speex audio codec" >&6;}
 
 else $as_nop
 
+
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for speex " >&5
 printf %s "checking for speex ... " >&6; }
@@ -9049,18 +9250,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$SPEEX_PKG_ERRORS" >&5
 
-
-                     SPEEX_CFLAGS=""
-                     SPEEX_LIBS="-lspeex"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     SPEEX_CFLAGS=""
-                     SPEEX_LIBS="-lspeex"
-
+	usable=no
 
 else
 	SPEEX_CFLAGS=$pkg_cv_SPEEX_CFLAGS
@@ -9068,18 +9263,77 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $SPEEX_CFLAGS"
    LIBS="$SPEEX_LIBS $LIBS"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for SPEEX usability" >&5
+printf %s "checking for SPEEX usability... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <speex/speex.h>
+int
+main (void)
+{
+speex_encoder_init(&speex_wb_mode)
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  usable=yes
+else $as_nop
+  usable=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $usable" >&5
+printf "%s\n" "$usable" >&6; }
+   CPPFLAGS="$MY_LINK_IFELSE_CPPFLAGS"
+   LIBS="$MY_LINK_IFELSE_LIBS"
+
+   if test "x$usable" = "xyes"
+then :
+
+            SPEEX_CPPFLAGS=`$PKG_CONFIG --cflags-only-I "speex "`
+            SPEEX_CFLAGS=`$PKG_CONFIG --cflags-only-other "speex "`
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $SPEEX_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $SPEEX_CPPFLAGS" >&6;}
+      CPPFLAGS="$SPEEX_CPPFLAGS $CPPFLAGS"
+
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $SPEEX_CFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $SPEEX_CFLAGS" >&6;}
+      CXXFLAGS="$SPEEX_CFLAGS $CXXFLAGS"
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $SPEEX_LIBS" >&5
+printf "%s\n" "$as_me: Adding LIBS: $SPEEX_LIBS" >&6;}
+      LIBS="$SPEEX_LIBS $LIBS"
+
+
+
+
+fi
+
+
+fi
+
+   if test "x$usable" = "xyes"
+then :
+
+else $as_nop
+
+
+   MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
+   MY_LINK_IFELSE_LIBS="$LIBS"
+   CPPFLAGS="$CPPFLAGS "
+   LIBS="-lspeex $LIBS"
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Speex audio codec usability" >&5
 printf %s "checking for Speex audio codec usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -9112,18 +9366,15 @@ then :
 
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $SPEEX_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $SPEEX_CFLAGS" >&6;}
-      CPPFLAGS="$SPEEX_CFLAGS $CPPFLAGS"
 
 
 
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: -lspeex" >&5
+printf "%s\n" "$as_me: Adding LIBS: -lspeex" >&6;}
+      LIBS="-lspeex $LIBS"
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $SPEEX_LIBS" >&5
-printf "%s\n" "$as_me: Adding LIBS: $SPEEX_LIBS" >&6;}
-      LIBS="$SPEEX_LIBS $LIBS"
 
-
+                           usable=yes
 
 else $as_nop
   usable=no
@@ -9132,7 +9383,13 @@ fi
 
 
 
+
 fi
+
+
+
+fi
+
 
 
             if test "x$usable" = xno
@@ -9284,6 +9541,7 @@ printf "%s\n" "$as_me: Using directory $withval for Bluetooth SBC audio codec" >
 
 else $as_nop
 
+
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for samplerate" >&5
 printf %s "checking for samplerate... " >&6; }
@@ -9342,18 +9600,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$SBC_PKG_ERRORS" >&5
 
-
-                     SBC_CFLAGS=""
-                     SBC_LIBS="-lsamplerate"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     SBC_CFLAGS=""
-                     SBC_LIBS="-lsamplerate"
-
+	usable=no
 
 else
 	SBC_CFLAGS=$pkg_cv_SBC_CFLAGS
@@ -9361,18 +9613,78 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $SBC_CFLAGS"
    LIBS="$SBC_LIBS $LIBS"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for SBC usability" >&5
+printf %s "checking for SBC usability... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <samplerate.h>
+int
+main (void)
+{
+src_get_version()
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  usable=yes
+else $as_nop
+  usable=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $usable" >&5
+printf "%s\n" "$usable" >&6; }
+   CPPFLAGS="$MY_LINK_IFELSE_CPPFLAGS"
+   LIBS="$MY_LINK_IFELSE_LIBS"
+
+   if test "x$usable" = "xyes"
+then :
+
+            SBC_CPPFLAGS=`$PKG_CONFIG --cflags-only-I "samplerate"`
+            SBC_CFLAGS=`$PKG_CONFIG --cflags-only-other "samplerate"`
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $SBC_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $SBC_CPPFLAGS" >&6;}
+      CPPFLAGS="$SBC_CPPFLAGS $CPPFLAGS"
+
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $SBC_CFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $SBC_CFLAGS" >&6;}
+      CXXFLAGS="$SBC_CFLAGS $CXXFLAGS"
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $SBC_LIBS" >&5
+printf "%s\n" "$as_me: Adding LIBS: $SBC_LIBS" >&6;}
+      LIBS="$SBC_LIBS $LIBS"
+
+
+
+
+fi
+
+
+fi
+
+   if test "x$usable" = "xyes"
+then :
+
+else $as_nop
+
+
+   MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
+   MY_LINK_IFELSE_LIBS="$LIBS"
+   CPPFLAGS="$CPPFLAGS "
+   LIBS="-lsamplerate $LIBS"
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Bluetooth SBC audio codec usability" >&5
 printf %s "checking for Bluetooth SBC audio codec usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -9406,18 +9718,15 @@ then :
 
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $SBC_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $SBC_CFLAGS" >&6;}
-      CPPFLAGS="$SBC_CFLAGS $CPPFLAGS"
 
 
 
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: -lsamplerate" >&5
+printf "%s\n" "$as_me: Adding LIBS: -lsamplerate" >&6;}
+      LIBS="-lsamplerate $LIBS"
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $SBC_LIBS" >&5
-printf "%s\n" "$as_me: Adding LIBS: $SBC_LIBS" >&6;}
-      LIBS="$SBC_LIBS $LIBS"
 
-
+                           usable=yes
 
 else $as_nop
   usable=no
@@ -9426,7 +9735,13 @@ fi
 
 
 
+
 fi
+
+
+
+fi
+
 
 
 
@@ -9546,6 +9861,7 @@ then :
 then :
 
 
+
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for celt" >&5
 printf %s "checking for celt... " >&6; }
@@ -9617,18 +9933,12 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $CELT_CFLAGS"
    LIBS="$CELT_LIBS $LIBS"
-   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for CELT audio codec usability" >&5
-printf %s "checking for CELT audio codec usability... " >&6; }
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for CELT usability" >&5
+printf %s "checking for CELT usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <celt/celt.h>
@@ -9657,13 +9967,19 @@ printf "%s\n" "$usable" >&6; }
    if test "x$usable" = "xyes"
 then :
 
+            CELT_CPPFLAGS=`$PKG_CONFIG --cflags-only-I "celt"`
+            CELT_CFLAGS=`$PKG_CONFIG --cflags-only-other "celt"`
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $CELT_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $CELT_CFLAGS" >&6;}
-      CPPFLAGS="$CELT_CFLAGS $CPPFLAGS"
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $CELT_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $CELT_CPPFLAGS" >&6;}
+      CPPFLAGS="$CELT_CPPFLAGS $CPPFLAGS"
 
 
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $CELT_CFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $CELT_CFLAGS" >&6;}
+      CXXFLAGS="$CELT_CFLAGS $CXXFLAGS"
 
 
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $CELT_LIBS" >&5
@@ -9672,6 +9988,15 @@ printf "%s\n" "$as_me: Adding LIBS: $CELT_LIBS" >&6;}
 
 
 
+
+fi
+
+
+fi
+
+   if test "x$usable" = "xyes"
+then :
+
 else $as_nop
   usable=no
 
@@ -9679,7 +10004,6 @@ fi
 
 
 
-fi
 
 
 
@@ -9837,6 +10161,7 @@ printf "%s\n" "$as_me: Using directory $withval for Opus Interactive Audio Codec
 
 else $as_nop
 
+
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for opus " >&5
 printf %s "checking for opus ... " >&6; }
@@ -9895,18 +10220,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$OPUS_PKG_ERRORS" >&5
 
-
-                     OPUS_CFLAGS=""
-                     OPUS_LIBS="-lopus"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     OPUS_CFLAGS=""
-                     OPUS_LIBS="-lopus"
-
+	usable=no
 
 else
 	OPUS_CFLAGS=$pkg_cv_OPUS_CFLAGS
@@ -9914,18 +10233,77 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $OPUS_CFLAGS"
    LIBS="$OPUS_LIBS $LIBS"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for OPUS usability" >&5
+printf %s "checking for OPUS usability... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <opus.h>
+int
+main (void)
+{
+opus_get_version_string()
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  usable=yes
+else $as_nop
+  usable=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $usable" >&5
+printf "%s\n" "$usable" >&6; }
+   CPPFLAGS="$MY_LINK_IFELSE_CPPFLAGS"
+   LIBS="$MY_LINK_IFELSE_LIBS"
+
+   if test "x$usable" = "xyes"
+then :
+
+            OPUS_CPPFLAGS=`$PKG_CONFIG --cflags-only-I "opus "`
+            OPUS_CFLAGS=`$PKG_CONFIG --cflags-only-other "opus "`
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $OPUS_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $OPUS_CPPFLAGS" >&6;}
+      CPPFLAGS="$OPUS_CPPFLAGS $CPPFLAGS"
+
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $OPUS_CFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $OPUS_CFLAGS" >&6;}
+      CXXFLAGS="$OPUS_CFLAGS $CXXFLAGS"
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $OPUS_LIBS" >&5
+printf "%s\n" "$as_me: Adding LIBS: $OPUS_LIBS" >&6;}
+      LIBS="$OPUS_LIBS $LIBS"
+
+
+
+
+fi
+
+
+fi
+
+   if test "x$usable" = "xyes"
+then :
+
+else $as_nop
+
+
+   MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
+   MY_LINK_IFELSE_LIBS="$LIBS"
+   CPPFLAGS="$CPPFLAGS "
+   LIBS="-lopus $LIBS"
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Opus Interactive Audio Codec usability" >&5
 printf %s "checking for Opus Interactive Audio Codec usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -9958,18 +10336,15 @@ then :
 
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $OPUS_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $OPUS_CFLAGS" >&6;}
-      CPPFLAGS="$OPUS_CFLAGS $CPPFLAGS"
 
 
 
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: -lopus" >&5
+printf "%s\n" "$as_me: Adding LIBS: -lopus" >&6;}
+      LIBS="-lopus $LIBS"
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $OPUS_LIBS" >&5
-printf "%s\n" "$as_me: Adding LIBS: $OPUS_LIBS" >&6;}
-      LIBS="$OPUS_LIBS $LIBS"
 
-
+                           usable=yes
 
 else $as_nop
   usable=no
@@ -9978,7 +10353,13 @@ fi
 
 
 
+
 fi
+
+
+
+fi
+
 
 
             if test "x$usable" = xno
@@ -10186,6 +10567,7 @@ printf "%s\n" "$as_me: Using directory $withval for FFMPEG libavutil library" >&
 
 else $as_nop
 
+
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libavutil >= 54.0.0" >&5
 printf %s "checking for libavutil >= 54.0.0... " >&6; }
@@ -10244,18 +10626,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$LIBAVUTIL_PKG_ERRORS" >&5
 
-
-                     LIBAVUTIL_CFLAGS=""
-                     LIBAVUTIL_LIBS="-lavutil"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     LIBAVUTIL_CFLAGS=""
-                     LIBAVUTIL_LIBS="-lavutil"
-
+	usable=no
 
 else
 	LIBAVUTIL_CFLAGS=$pkg_cv_LIBAVUTIL_CFLAGS
@@ -10263,18 +10639,77 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $LIBAVUTIL_CFLAGS"
    LIBS="$LIBAVUTIL_LIBS $LIBS"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LIBAVUTIL usability" >&5
+printf %s "checking for LIBAVUTIL usability... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <libavutil/avutil.h>
+int
+main (void)
+{
+avutil_version()
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  usable=yes
+else $as_nop
+  usable=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $usable" >&5
+printf "%s\n" "$usable" >&6; }
+   CPPFLAGS="$MY_LINK_IFELSE_CPPFLAGS"
+   LIBS="$MY_LINK_IFELSE_LIBS"
+
+   if test "x$usable" = "xyes"
+then :
+
+            LIBAVUTIL_CPPFLAGS=`$PKG_CONFIG --cflags-only-I "libavutil >= 54.0.0"`
+            LIBAVUTIL_CFLAGS=`$PKG_CONFIG --cflags-only-other "libavutil >= 54.0.0"`
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $LIBAVUTIL_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $LIBAVUTIL_CPPFLAGS" >&6;}
+      CPPFLAGS="$LIBAVUTIL_CPPFLAGS $CPPFLAGS"
+
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $LIBAVUTIL_CFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $LIBAVUTIL_CFLAGS" >&6;}
+      CXXFLAGS="$LIBAVUTIL_CFLAGS $CXXFLAGS"
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $LIBAVUTIL_LIBS" >&5
+printf "%s\n" "$as_me: Adding LIBS: $LIBAVUTIL_LIBS" >&6;}
+      LIBS="$LIBAVUTIL_LIBS $LIBS"
+
+
+
+
+fi
+
+
+fi
+
+   if test "x$usable" = "xyes"
+then :
+
+else $as_nop
+
+
+   MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
+   MY_LINK_IFELSE_LIBS="$LIBS"
+   CPPFLAGS="$CPPFLAGS "
+   LIBS="-lavutil $LIBS"
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for FFMPEG libavutil library usability" >&5
 printf %s "checking for FFMPEG libavutil library usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -10307,18 +10742,15 @@ then :
 
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $LIBAVUTIL_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $LIBAVUTIL_CFLAGS" >&6;}
-      CPPFLAGS="$LIBAVUTIL_CFLAGS $CPPFLAGS"
 
 
 
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: -lavutil" >&5
+printf "%s\n" "$as_me: Adding LIBS: -lavutil" >&6;}
+      LIBS="-lavutil $LIBS"
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $LIBAVUTIL_LIBS" >&5
-printf "%s\n" "$as_me: Adding LIBS: $LIBAVUTIL_LIBS" >&6;}
-      LIBS="$LIBAVUTIL_LIBS $LIBS"
 
-
+                           usable=yes
 
 else $as_nop
   usable=no
@@ -10327,7 +10759,13 @@ fi
 
 
 
+
 fi
+
+
+
+fi
+
 
 
 
@@ -10420,6 +10858,7 @@ printf "%s\n" "$as_me: Using directory $withval for FFMPEG libswresample library
 
 else $as_nop
 
+
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libswresample >= 1.1.0" >&5
 printf %s "checking for libswresample >= 1.1.0... " >&6; }
@@ -10478,18 +10917,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$LIBSWRESAMPLE_PKG_ERRORS" >&5
 
-
-                     LIBSWRESAMPLE_CFLAGS=""
-                     LIBSWRESAMPLE_LIBS="-lswresample"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     LIBSWRESAMPLE_CFLAGS=""
-                     LIBSWRESAMPLE_LIBS="-lswresample"
-
+	usable=no
 
 else
 	LIBSWRESAMPLE_CFLAGS=$pkg_cv_LIBSWRESAMPLE_CFLAGS
@@ -10497,18 +10930,77 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $LIBSWRESAMPLE_CFLAGS"
    LIBS="$LIBSWRESAMPLE_LIBS $LIBS"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LIBSWRESAMPLE usability" >&5
+printf %s "checking for LIBSWRESAMPLE usability... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <libswresample/swresample.h>
+int
+main (void)
+{
+swresample_version()
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  usable=yes
+else $as_nop
+  usable=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $usable" >&5
+printf "%s\n" "$usable" >&6; }
+   CPPFLAGS="$MY_LINK_IFELSE_CPPFLAGS"
+   LIBS="$MY_LINK_IFELSE_LIBS"
+
+   if test "x$usable" = "xyes"
+then :
+
+            LIBSWRESAMPLE_CPPFLAGS=`$PKG_CONFIG --cflags-only-I "libswresample >= 1.1.0"`
+            LIBSWRESAMPLE_CFLAGS=`$PKG_CONFIG --cflags-only-other "libswresample >= 1.1.0"`
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $LIBSWRESAMPLE_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $LIBSWRESAMPLE_CPPFLAGS" >&6;}
+      CPPFLAGS="$LIBSWRESAMPLE_CPPFLAGS $CPPFLAGS"
+
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $LIBSWRESAMPLE_CFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $LIBSWRESAMPLE_CFLAGS" >&6;}
+      CXXFLAGS="$LIBSWRESAMPLE_CFLAGS $CXXFLAGS"
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $LIBSWRESAMPLE_LIBS" >&5
+printf "%s\n" "$as_me: Adding LIBS: $LIBSWRESAMPLE_LIBS" >&6;}
+      LIBS="$LIBSWRESAMPLE_LIBS $LIBS"
+
+
+
+
+fi
+
+
+fi
+
+   if test "x$usable" = "xyes"
+then :
+
+else $as_nop
+
+
+   MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
+   MY_LINK_IFELSE_LIBS="$LIBS"
+   CPPFLAGS="$CPPFLAGS "
+   LIBS="-lswresample $LIBS"
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for FFMPEG libswresample library usability" >&5
 printf %s "checking for FFMPEG libswresample library usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -10541,18 +11033,15 @@ then :
 
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $LIBSWRESAMPLE_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $LIBSWRESAMPLE_CFLAGS" >&6;}
-      CPPFLAGS="$LIBSWRESAMPLE_CFLAGS $CPPFLAGS"
 
 
 
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: -lswresample" >&5
+printf "%s\n" "$as_me: Adding LIBS: -lswresample" >&6;}
+      LIBS="-lswresample $LIBS"
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $LIBSWRESAMPLE_LIBS" >&5
-printf "%s\n" "$as_me: Adding LIBS: $LIBSWRESAMPLE_LIBS" >&6;}
-      LIBS="$LIBSWRESAMPLE_LIBS $LIBS"
 
-
+                           usable=yes
 
 else $as_nop
   usable=no
@@ -10561,7 +11050,13 @@ fi
 
 
 
+
 fi
+
+
+
+fi
+
 
 
 
@@ -10654,6 +11149,7 @@ printf "%s\n" "$as_me: Using directory $withval for FFMPEG libavcodec library" >
 
 else $as_nop
 
+
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libavcodec >= 56.0.0" >&5
 printf %s "checking for libavcodec >= 56.0.0... " >&6; }
@@ -10712,18 +11208,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$LIBAVCODEC_PKG_ERRORS" >&5
 
-
-                     LIBAVCODEC_CFLAGS=""
-                     LIBAVCODEC_LIBS="-lavcodec"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     LIBAVCODEC_CFLAGS=""
-                     LIBAVCODEC_LIBS="-lavcodec"
-
+	usable=no
 
 else
 	LIBAVCODEC_CFLAGS=$pkg_cv_LIBAVCODEC_CFLAGS
@@ -10731,18 +11221,77 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $LIBAVCODEC_CFLAGS"
    LIBS="$LIBAVCODEC_LIBS $LIBS"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for LIBAVCODEC usability" >&5
+printf %s "checking for LIBAVCODEC usability... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <libavcodec/avcodec.h>
+int
+main (void)
+{
+avcodec_register_all()
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  usable=yes
+else $as_nop
+  usable=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $usable" >&5
+printf "%s\n" "$usable" >&6; }
+   CPPFLAGS="$MY_LINK_IFELSE_CPPFLAGS"
+   LIBS="$MY_LINK_IFELSE_LIBS"
+
+   if test "x$usable" = "xyes"
+then :
+
+            LIBAVCODEC_CPPFLAGS=`$PKG_CONFIG --cflags-only-I "libavcodec >= 56.0.0"`
+            LIBAVCODEC_CFLAGS=`$PKG_CONFIG --cflags-only-other "libavcodec >= 56.0.0"`
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $LIBAVCODEC_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $LIBAVCODEC_CPPFLAGS" >&6;}
+      CPPFLAGS="$LIBAVCODEC_CPPFLAGS $CPPFLAGS"
+
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $LIBAVCODEC_CFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $LIBAVCODEC_CFLAGS" >&6;}
+      CXXFLAGS="$LIBAVCODEC_CFLAGS $CXXFLAGS"
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $LIBAVCODEC_LIBS" >&5
+printf "%s\n" "$as_me: Adding LIBS: $LIBAVCODEC_LIBS" >&6;}
+      LIBS="$LIBAVCODEC_LIBS $LIBS"
+
+
+
+
+fi
+
+
+fi
+
+   if test "x$usable" = "xyes"
+then :
+
+else $as_nop
+
+
+   MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
+   MY_LINK_IFELSE_LIBS="$LIBS"
+   CPPFLAGS="$CPPFLAGS "
+   LIBS="-lavcodec $LIBS"
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for FFMPEG libavcodec library usability" >&5
 printf %s "checking for FFMPEG libavcodec library usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -10775,18 +11324,15 @@ then :
 
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $LIBAVCODEC_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $LIBAVCODEC_CFLAGS" >&6;}
-      CPPFLAGS="$LIBAVCODEC_CFLAGS $CPPFLAGS"
 
 
 
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: -lavcodec" >&5
+printf "%s\n" "$as_me: Adding LIBS: -lavcodec" >&6;}
+      LIBS="-lavcodec $LIBS"
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $LIBAVCODEC_LIBS" >&5
-printf "%s\n" "$as_me: Adding LIBS: $LIBAVCODEC_LIBS" >&6;}
-      LIBS="$LIBAVCODEC_LIBS $LIBS"
 
-
+                           usable=yes
 
 else $as_nop
   usable=no
@@ -10795,7 +11341,13 @@ fi
 
 
 
+
 fi
+
+
+
+fi
+
 
 
 
@@ -11138,6 +11690,7 @@ printf "%s\n" "$as_me: Using directory $withval for VideoLan x264 H.264 video co
 
 else $as_nop
 
+
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for x264 >= 0.102" >&5
 printf %s "checking for x264 >= 0.102... " >&6; }
@@ -11196,18 +11749,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$X264_PKG_ERRORS" >&5
 
-
-                     X264_CFLAGS=""
-                     X264_LIBS="-lx264"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     X264_CFLAGS=""
-                     X264_LIBS="-lx264"
-
+	usable=no
 
 else
 	X264_CFLAGS=$pkg_cv_X264_CFLAGS
@@ -11215,18 +11762,91 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $X264_CFLAGS"
    LIBS="$X264_LIBS $LIBS"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for X264 usability" >&5
+printf %s "checking for X264 usability... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+         #if defined HAVE_STDINT_H
+           #include <stdint.h>
+         #elif defined HAVE_INTTYPES_H
+           #include <inttypes.h>
+         #endif
+         #include <x264.h>
+         #if X264_BUILD < 102
+         #error x264 header too old
+         #endif
+
+int
+main (void)
+{
+
+         x264_param_t param;
+         x264_encoder_open(&param);
+
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  usable=yes
+else $as_nop
+  usable=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $usable" >&5
+printf "%s\n" "$usable" >&6; }
+   CPPFLAGS="$MY_LINK_IFELSE_CPPFLAGS"
+   LIBS="$MY_LINK_IFELSE_LIBS"
+
+   if test "x$usable" = "xyes"
+then :
+
+            X264_CPPFLAGS=`$PKG_CONFIG --cflags-only-I "x264 >= 0.102"`
+            X264_CFLAGS=`$PKG_CONFIG --cflags-only-other "x264 >= 0.102"`
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $X264_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $X264_CPPFLAGS" >&6;}
+      CPPFLAGS="$X264_CPPFLAGS $CPPFLAGS"
+
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $X264_CFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $X264_CFLAGS" >&6;}
+      CXXFLAGS="$X264_CFLAGS $CXXFLAGS"
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $X264_LIBS" >&5
+printf "%s\n" "$as_me: Adding LIBS: $X264_LIBS" >&6;}
+      LIBS="$X264_LIBS $LIBS"
+
+
+
+
+fi
+
+
+fi
+
+   if test "x$usable" = "xyes"
+then :
+
+else $as_nop
+
+
+   MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
+   MY_LINK_IFELSE_LIBS="$LIBS"
+   CPPFLAGS="$CPPFLAGS "
+   LIBS="-lx264 $LIBS"
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for VideoLan x264 H.264 video codec usability" >&5
 printf %s "checking for VideoLan x264 H.264 video codec usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -11273,18 +11893,15 @@ then :
 
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $X264_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $X264_CFLAGS" >&6;}
-      CPPFLAGS="$X264_CFLAGS $CPPFLAGS"
 
 
 
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: -lx264" >&5
+printf "%s\n" "$as_me: Adding LIBS: -lx264" >&6;}
+      LIBS="-lx264 $LIBS"
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $X264_LIBS" >&5
-printf "%s\n" "$as_me: Adding LIBS: $X264_LIBS" >&6;}
-      LIBS="$X264_LIBS $LIBS"
 
-
+                           usable=yes
 
 else $as_nop
   usable=no
@@ -11293,7 +11910,13 @@ fi
 
 
 
+
 fi
+
+
+
+fi
+
 
 
 
@@ -11504,6 +12127,7 @@ printf "%s\n" "$as_me: Using directory $withval for Cisco Open H.264 video codec
 
 else $as_nop
 
+
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for " >&5
 printf %s "checking for ... " >&6; }
@@ -11562,20 +12186,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$OPENH264_PKG_ERRORS" >&5
 
-
-                     OPENH264_CFLAGS=""
-                     OPENH264_LIBS="-lopenh264 -lpthread
-   "
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     OPENH264_CFLAGS=""
-                     OPENH264_LIBS="-lopenh264 -lpthread
-   "
-
+	usable=no
 
 else
 	OPENH264_CFLAGS=$pkg_cv_OPENH264_CFLAGS
@@ -11583,18 +12199,78 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $OPENH264_CFLAGS"
    LIBS="$OPENH264_LIBS $LIBS"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for OPENH264 usability" >&5
+printf %s "checking for OPENH264 usability... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main (void)
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  usable=yes
+else $as_nop
+  usable=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $usable" >&5
+printf "%s\n" "$usable" >&6; }
+   CPPFLAGS="$MY_LINK_IFELSE_CPPFLAGS"
+   LIBS="$MY_LINK_IFELSE_LIBS"
+
+   if test "x$usable" = "xyes"
+then :
+
+            OPENH264_CPPFLAGS=`$PKG_CONFIG --cflags-only-I ""`
+            OPENH264_CFLAGS=`$PKG_CONFIG --cflags-only-other ""`
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $OPENH264_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $OPENH264_CPPFLAGS" >&6;}
+      CPPFLAGS="$OPENH264_CPPFLAGS $CPPFLAGS"
+
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $OPENH264_CFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $OPENH264_CFLAGS" >&6;}
+      CXXFLAGS="$OPENH264_CFLAGS $CXXFLAGS"
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $OPENH264_LIBS" >&5
+printf "%s\n" "$as_me: Adding LIBS: $OPENH264_LIBS" >&6;}
+      LIBS="$OPENH264_LIBS $LIBS"
+
+
+
+
+fi
+
+
+fi
+
+   if test "x$usable" = "xyes"
+then :
+
+else $as_nop
+
+
+   MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
+   MY_LINK_IFELSE_LIBS="$LIBS"
+   CPPFLAGS="$CPPFLAGS "
+   LIBS="-lopenh264 -lpthread
+    $LIBS"
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Cisco Open H.264 video codec usability" >&5
 printf %s "checking for Cisco Open H.264 video codec usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -11627,18 +12303,18 @@ then :
 
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $OPENH264_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $OPENH264_CFLAGS" >&6;}
-      CPPFLAGS="$OPENH264_CFLAGS $CPPFLAGS"
 
 
 
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: -lopenh264 -lpthread
+   " >&5
+printf "%s\n" "$as_me: Adding LIBS: -lopenh264 -lpthread
+   " >&6;}
+      LIBS="-lopenh264 -lpthread
+    $LIBS"
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $OPENH264_LIBS" >&5
-printf "%s\n" "$as_me: Adding LIBS: $OPENH264_LIBS" >&6;}
-      LIBS="$OPENH264_LIBS $LIBS"
 
-
+                           usable=yes
 
 else $as_nop
   usable=no
@@ -11647,7 +12323,13 @@ fi
 
 
 
+
 fi
+
+
+
+fi
+
 
 
             if test "x$usable" = xno
@@ -11798,6 +12480,7 @@ printf "%s\n" "$as_me: Using directory $withval for VP8 (WebM) video codec" >&6;
 
 else $as_nop
 
+
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for vpx" >&5
 printf %s "checking for vpx... " >&6; }
@@ -11856,18 +12539,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$VP8_PKG_ERRORS" >&5
 
-
-                     VP8_CFLAGS=""
-                     VP8_LIBS="-lvpx"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     VP8_CFLAGS=""
-                     VP8_LIBS="-lvpx"
-
+	usable=no
 
 else
 	VP8_CFLAGS=$pkg_cv_VP8_CFLAGS
@@ -11875,18 +12552,82 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $VP8_CFLAGS"
    LIBS="$VP8_LIBS $LIBS"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for VP8 usability" >&5
+printf %s "checking for VP8 usability... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <vpx/vpx_encoder.h>
+int
+main (void)
+{
+
+      vpx_codec_iface_t *iface = 0;
+      vpx_codec_enc_cfg_t *cfg = 0;
+      vpx_codec_err_t err = vpx_codec_enc_config_default(iface, cfg, 1U);
+
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  usable=yes
+else $as_nop
+  usable=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $usable" >&5
+printf "%s\n" "$usable" >&6; }
+   CPPFLAGS="$MY_LINK_IFELSE_CPPFLAGS"
+   LIBS="$MY_LINK_IFELSE_LIBS"
+
+   if test "x$usable" = "xyes"
+then :
+
+            VP8_CPPFLAGS=`$PKG_CONFIG --cflags-only-I "vpx"`
+            VP8_CFLAGS=`$PKG_CONFIG --cflags-only-other "vpx"`
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $VP8_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $VP8_CPPFLAGS" >&6;}
+      CPPFLAGS="$VP8_CPPFLAGS $CPPFLAGS"
+
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $VP8_CFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $VP8_CFLAGS" >&6;}
+      CXXFLAGS="$VP8_CFLAGS $CXXFLAGS"
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $VP8_LIBS" >&5
+printf "%s\n" "$as_me: Adding LIBS: $VP8_LIBS" >&6;}
+      LIBS="$VP8_LIBS $LIBS"
+
+
+
+
+fi
+
+
+fi
+
+   if test "x$usable" = "xyes"
+then :
+
+else $as_nop
+
+
+   MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
+   MY_LINK_IFELSE_LIBS="$LIBS"
+   CPPFLAGS="$CPPFLAGS "
+   LIBS="-lvpx $LIBS"
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for VP8 (WebM) video codec usability" >&5
 printf %s "checking for VP8 (WebM) video codec usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -11924,18 +12665,15 @@ then :
 
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $VP8_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $VP8_CFLAGS" >&6;}
-      CPPFLAGS="$VP8_CFLAGS $CPPFLAGS"
 
 
 
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: -lvpx" >&5
+printf "%s\n" "$as_me: Adding LIBS: -lvpx" >&6;}
+      LIBS="-lvpx $LIBS"
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $VP8_LIBS" >&5
-printf "%s\n" "$as_me: Adding LIBS: $VP8_LIBS" >&6;}
-      LIBS="$VP8_LIBS $LIBS"
 
-
+                           usable=yes
 
 else $as_nop
   usable=no
@@ -11944,7 +12682,13 @@ fi
 
 
 
+
 fi
+
+
+
+fi
+
 
 
 
@@ -12075,6 +12819,7 @@ printf "%s\n" "$as_me: Using directory $withval for Theora video codec" >&6;}
 
 else $as_nop
 
+
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for theora" >&5
 printf %s "checking for theora... " >&6; }
@@ -12133,18 +12878,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$THEORA_PKG_ERRORS" >&5
 
-
-                     THEORA_CFLAGS=""
-                     THEORA_LIBS="-ltheora -logg"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     THEORA_CFLAGS=""
-                     THEORA_LIBS="-ltheora -logg"
-
+	usable=no
 
 else
 	THEORA_CFLAGS=$pkg_cv_THEORA_CFLAGS
@@ -12152,18 +12891,81 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $THEORA_CFLAGS"
    LIBS="$THEORA_LIBS $LIBS"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for THEORA usability" >&5
+printf %s "checking for THEORA usability... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <theora/theora.h>
+int
+main (void)
+{
+
+      theora_info info;
+      theora_info_init(&info);
+
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  usable=yes
+else $as_nop
+  usable=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $usable" >&5
+printf "%s\n" "$usable" >&6; }
+   CPPFLAGS="$MY_LINK_IFELSE_CPPFLAGS"
+   LIBS="$MY_LINK_IFELSE_LIBS"
+
+   if test "x$usable" = "xyes"
+then :
+
+            THEORA_CPPFLAGS=`$PKG_CONFIG --cflags-only-I "theora"`
+            THEORA_CFLAGS=`$PKG_CONFIG --cflags-only-other "theora"`
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $THEORA_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $THEORA_CPPFLAGS" >&6;}
+      CPPFLAGS="$THEORA_CPPFLAGS $CPPFLAGS"
+
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $THEORA_CFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $THEORA_CFLAGS" >&6;}
+      CXXFLAGS="$THEORA_CFLAGS $CXXFLAGS"
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $THEORA_LIBS" >&5
+printf "%s\n" "$as_me: Adding LIBS: $THEORA_LIBS" >&6;}
+      LIBS="$THEORA_LIBS $LIBS"
+
+
+
+
+fi
+
+
+fi
+
+   if test "x$usable" = "xyes"
+then :
+
+else $as_nop
+
+
+   MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
+   MY_LINK_IFELSE_LIBS="$LIBS"
+   CPPFLAGS="$CPPFLAGS "
+   LIBS="-ltheora -logg $LIBS"
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Theora video codec usability" >&5
 printf %s "checking for Theora video codec usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -12200,18 +13002,15 @@ then :
 
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $THEORA_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $THEORA_CFLAGS" >&6;}
-      CPPFLAGS="$THEORA_CFLAGS $CPPFLAGS"
 
 
 
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: -ltheora -logg" >&5
+printf "%s\n" "$as_me: Adding LIBS: -ltheora -logg" >&6;}
+      LIBS="-ltheora -logg $LIBS"
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $THEORA_LIBS" >&5
-printf "%s\n" "$as_me: Adding LIBS: $THEORA_LIBS" >&6;}
-      LIBS="$THEORA_LIBS $LIBS"
 
-
+                           usable=yes
 
 else $as_nop
   usable=no
@@ -12220,7 +13019,13 @@ fi
 
 
 
+
 fi
+
+
+
+fi
+
 
 
 
@@ -12353,6 +13158,7 @@ printf "%s\n" "$as_me: Using directory $withval for Voicetronics VPB telephony c
 
 else $as_nop
 
+
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for vpb" >&5
 printf %s "checking for vpb... " >&6; }
@@ -12411,18 +13217,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$VPB_PKG_ERRORS" >&5
 
-
-                     VPB_CFLAGS=""
-                     VPB_LIBS="-lvpb"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     VPB_CFLAGS=""
-                     VPB_LIBS="-lvpb"
-
+	usable=no
 
 else
 	VPB_CFLAGS=$pkg_cv_VPB_CFLAGS
@@ -12430,18 +13230,78 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $VPB_CFLAGS"
    LIBS="$VPB_LIBS $LIBS"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for VPB usability" >&5
+printf %s "checking for VPB usability... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <vpbapi.h>
+
+int
+main (void)
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  usable=yes
+else $as_nop
+  usable=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $usable" >&5
+printf "%s\n" "$usable" >&6; }
+   CPPFLAGS="$MY_LINK_IFELSE_CPPFLAGS"
+   LIBS="$MY_LINK_IFELSE_LIBS"
+
+   if test "x$usable" = "xyes"
+then :
+
+            VPB_CPPFLAGS=`$PKG_CONFIG --cflags-only-I "vpb"`
+            VPB_CFLAGS=`$PKG_CONFIG --cflags-only-other "vpb"`
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $VPB_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $VPB_CPPFLAGS" >&6;}
+      CPPFLAGS="$VPB_CPPFLAGS $CPPFLAGS"
+
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $VPB_CFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $VPB_CFLAGS" >&6;}
+      CXXFLAGS="$VPB_CFLAGS $CXXFLAGS"
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $VPB_LIBS" >&5
+printf "%s\n" "$as_me: Adding LIBS: $VPB_LIBS" >&6;}
+      LIBS="$VPB_LIBS $LIBS"
+
+
+
+
+fi
+
+
+fi
+
+   if test "x$usable" = "xyes"
+then :
+
+else $as_nop
+
+
+   MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
+   MY_LINK_IFELSE_LIBS="$LIBS"
+   CPPFLAGS="$CPPFLAGS "
+   LIBS="-lvpb $LIBS"
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Voicetronics VPB telephony card usability" >&5
 printf %s "checking for Voicetronics VPB telephony card usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -12475,18 +13335,15 @@ then :
 
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $VPB_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $VPB_CFLAGS" >&6;}
-      CPPFLAGS="$VPB_CFLAGS $CPPFLAGS"
 
 
 
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: -lvpb" >&5
+printf "%s\n" "$as_me: Adding LIBS: -lvpb" >&6;}
+      LIBS="-lvpb $LIBS"
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $VPB_LIBS" >&5
-printf "%s\n" "$as_me: Adding LIBS: $VPB_LIBS" >&6;}
-      LIBS="$VPB_LIBS $LIBS"
 
-
+                           usable=yes
 
 else $as_nop
   usable=no
@@ -12495,7 +13352,13 @@ fi
 
 
 
+
 fi
+
+
+
+fi
+
 
 
 
@@ -12628,6 +13491,7 @@ printf "%s\n" "$as_me: Using directory $withval for SpanDSP based fax" >&6;}
 
 else $as_nop
 
+
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for spandsp" >&5
 printf %s "checking for spandsp... " >&6; }
@@ -12686,18 +13550,12 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$SPANDSP_PKG_ERRORS" >&5
 
-
-                     SPANDSP_CFLAGS=""
-                     SPANDSP_LIBS="-lspandsp"
-
+	usable=no
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-
-                     SPANDSP_CFLAGS=""
-                     SPANDSP_LIBS="-lspandsp"
-
+	usable=no
 
 else
 	SPANDSP_CFLAGS=$pkg_cv_SPANDSP_CFLAGS
@@ -12705,18 +13563,78 @@ else
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
 
-fi
-
-fi
-
-
-         if test "x$usable" = xyes
-then :
-
    MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
    MY_LINK_IFELSE_LIBS="$LIBS"
    CPPFLAGS="$CPPFLAGS $SPANDSP_CFLAGS"
    LIBS="$SPANDSP_LIBS $LIBS"
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for SPANDSP usability" >&5
+printf %s "checking for SPANDSP usability... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <spandsp.h>
+int
+main (void)
+{
+fax_state_t * fax = fax_init(NULL, 1)
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  usable=yes
+else $as_nop
+  usable=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $usable" >&5
+printf "%s\n" "$usable" >&6; }
+   CPPFLAGS="$MY_LINK_IFELSE_CPPFLAGS"
+   LIBS="$MY_LINK_IFELSE_LIBS"
+
+   if test "x$usable" = "xyes"
+then :
+
+            SPANDSP_CPPFLAGS=`$PKG_CONFIG --cflags-only-I "spandsp"`
+            SPANDSP_CFLAGS=`$PKG_CONFIG --cflags-only-other "spandsp"`
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $SPANDSP_CPPFLAGS" >&5
+printf "%s\n" "$as_me: Adding CPPFLAGS: $SPANDSP_CPPFLAGS" >&6;}
+      CPPFLAGS="$SPANDSP_CPPFLAGS $CPPFLAGS"
+
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CXXFLAGS: $SPANDSP_CFLAGS" >&5
+printf "%s\n" "$as_me: Adding CXXFLAGS: $SPANDSP_CFLAGS" >&6;}
+      CXXFLAGS="$SPANDSP_CFLAGS $CXXFLAGS"
+
+
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $SPANDSP_LIBS" >&5
+printf "%s\n" "$as_me: Adding LIBS: $SPANDSP_LIBS" >&6;}
+      LIBS="$SPANDSP_LIBS $LIBS"
+
+
+
+
+fi
+
+
+fi
+
+   if test "x$usable" = "xyes"
+then :
+
+else $as_nop
+
+
+   MY_LINK_IFELSE_CPPFLAGS="$CPPFLAGS"
+   MY_LINK_IFELSE_LIBS="$LIBS"
+   CPPFLAGS="$CPPFLAGS "
+   LIBS="-lspandsp $LIBS"
    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for SpanDSP based fax usability" >&5
 printf %s "checking for SpanDSP based fax usability... " >&6; }
    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -12750,18 +13668,15 @@ then :
 
 
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding CPPFLAGS: $SPANDSP_CFLAGS" >&5
-printf "%s\n" "$as_me: Adding CPPFLAGS: $SPANDSP_CFLAGS" >&6;}
-      CPPFLAGS="$SPANDSP_CFLAGS $CPPFLAGS"
 
 
 
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: -lspandsp" >&5
+printf "%s\n" "$as_me: Adding LIBS: -lspandsp" >&6;}
+      LIBS="-lspandsp $LIBS"
 
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Adding LIBS: $SPANDSP_LIBS" >&5
-printf "%s\n" "$as_me: Adding LIBS: $SPANDSP_LIBS" >&6;}
-      LIBS="$SPANDSP_LIBS $LIBS"
 
-
+                           usable=yes
 
 else $as_nop
   usable=no
@@ -12770,7 +13685,13 @@ fi
 
 
 
+
 fi
+
+
+
+fi
+
 
 
 

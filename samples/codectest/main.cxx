@@ -1063,13 +1063,11 @@ void TranscoderThread::Main()
     //
     unsigned long encodedPayloadSize = 0;
     unsigned long encodedPacketCount = 0;
-    unsigned long encodedDataSize    = 0;
     unsigned frameCount = 0;
     for (RTP_DataFrameList::iterator it = encFrames.begin(); it != encFrames.end(); ++it, ++frameCount) {
       it->SetSequenceNumber(++sequenceNumber);
       ++encodedPacketCount;
       encodedPayloadSize += it->GetPayloadSize();
-      encodedDataSize += it->GetPayloadSize() + it->GetHeaderSize();
       switch (m_markerHandling) {
         case SuppressMarkers:
           it->SetMarker(false);

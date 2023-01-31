@@ -1138,11 +1138,11 @@ bool MyManager::Initialise(bool startMinimised)
     SetMaxRtpPayloadSize(value1);
 #if OPAL_PTLIB_SSL
   if (config->Read(CertificateAuthorityKey, &str))
-    SetSSLCertificateAuthorityFiles(str);
+    SetSSLCertificateAuthority(str);
   if (config->Read(LocalCertificateKey, &str))
-    SetSSLCertificateFile(str);
+    SetSSLCertificate(str);
   if (config->Read(PrivateKeyKey, &str))
-    SetSSLPrivateKeyFile(str);
+    SetSSLPrivateKey(str);
 #endif
   if (config->Read(TCPPortBaseKey, &value1) && config->Read(TCPPortMaxKey, &value2))
     SetTCPPorts(value1, value2);
@@ -2848,10 +2848,10 @@ void MyManager::OnEvtCleared(wxCommandEvent & theEvent)
 
 
 #if OPAL_PTLIB_SSL
-bool MyManager::ApplySSLCredentials(const OpalEndPoint & ep, PSSLContext & context, bool create) const
+bool MyManager::ApplySSLCredentials(PSSLContext & context, bool create) const
 {
   context.SetPasswordNotifier(PCREATE_NOTIFIER_EXT(const_cast<MyManager *>(this), MyManager, OnSSLPassword));
-  return OpalManager::ApplySSLCredentials(ep, context, create);
+  return OpalManager::ApplySSLCredentials(context, create);
 }
 
 
@@ -4579,9 +4579,9 @@ OptionsDialog::OptionsDialog(MyManager * manager)
   INIT_FIELD(DiffServVideo, m_manager.GetMediaQoS(OpalMediaType::Video()).m_dscp);
   INIT_FIELD(MaxRtpPayloadSize, m_manager.GetMaxRtpPayloadSize());
 #if OPAL_PTLIB_SSL
-  INIT_FIELD(CertificateAuthority, m_manager.GetSSLCertificateAuthorityFiles());
-  INIT_FIELD(LocalCertificate, m_manager.GetSSLCertificateFile());
-  INIT_FIELD(PrivateKey, m_manager.GetSSLPrivateKeyFile());
+  INIT_FIELD(CertificateAuthority, m_manager.GetSSLCertificateAuthority());
+  INIT_FIELD(LocalCertificate, m_manager.GetSSLCertificate());
+  INIT_FIELD(PrivateKey, m_manager.GetSSLPrivateKey());
 #else
   FindWindow(CertificateAuthorityKey)->Disable();
   FindWindow(LocalCertificateKey)->Disable();
@@ -5134,9 +5134,9 @@ bool OptionsDialog::TransferDataFromWindow()
 
   SAVE_FIELD(MaxRtpPayloadSize, m_manager.SetMaxRtpPayloadSize);
 #if OPAL_PTLIB_SSL
-  SAVE_FIELD(CertificateAuthority, m_manager.SetSSLCertificateAuthorityFiles);
-  SAVE_FIELD(LocalCertificate, m_manager.SetSSLCertificateFile);
-  SAVE_FIELD(PrivateKey, m_manager.SetSSLPrivateKeyFile);
+  SAVE_FIELD(CertificateAuthority, m_manager.SetSSLCertificateAuthority);
+  SAVE_FIELD(LocalCertificate, m_manager.SetSSLCertificate);
+  SAVE_FIELD(PrivateKey, m_manager.SetSSLPrivateKey);
 #endif
   SAVE_FIELD2(TCPPortBase, TCPPortMax, m_manager.SetTCPPorts);
   SAVE_FIELD2(UDPPortBase, UDPPortMax, m_manager.SetUDPPorts);

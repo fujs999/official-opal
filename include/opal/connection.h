@@ -139,6 +139,22 @@ class PURL;
 #define OPAL_OPT_VIDUP_METHOD_DEFAULT     3
 
 
+  // Note the following should be identical to PHTTP::HttpProxyKey etc
+
+/** HTTP proxy URL to use for (possible) HTTP operations in connection.
+ */
+#define OPAL_OPT_HTTP_PROXY "Http-Proxy"
+
+/** HTTPS proxy URL to use (possible) HTTP operations in connection.
+ */
+#define OPAL_OPT_HTTPS_PROXY "Https-Proxy"
+
+/** A comma or space separated list of hosts/domains to not use proxy in
+   (possible) HTTP operations for connection.
+ */
+#define OPAL_OPT_NO_PROXY "No-Proxy"
+
+
 
 /*! \page pageOpalConnections Connection handling in the OPAL library
 
@@ -2021,16 +2037,9 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
 
     class StreamKey : public PKey<uint64_t>
     {
-        uint64_t CalculateKey(unsigned sessionID, RTP_SyncSourceId ssrc, bool isSource)
-        {
-          return sessionID | (uint64_t(ssrc) << (62-32)) | (isSource ? (1ULL<<63) : (1ULL<<62));
-        }
       public:
-        StreamKey(unsigned sessionID, RTP_SyncSourceId ssrc, bool isSource)
-          : PKey<uint64_t>(CalculateKey(sessionID, ssrc, isSource))
-        { }
         StreamKey(const OpalMediaStream & stream)
-          : PKey<uint64_t>(CalculateKey(stream.GetSessionID(), stream.GetSyncSource(), stream.IsSource()))
+          : PKey<uint64_t>(reinterpret_cast<uint64_t>(&stream))
         { }
         PObject * Clone() const { return new StreamKey(*this); }
     };

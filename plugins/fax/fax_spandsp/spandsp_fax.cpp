@@ -1311,13 +1311,14 @@ class TIFF_T38 : public FaxTIFF, public FaxT38
       if (m_t38State != NULL)
         return true;
 
-      PTRACE(3, m_tag << " Opening TIFF_T38/SpanDSP for " << (IsReceiving() ? "receive" : "transmit"));
+      bool callingParty = !IsReceiving();
+      PTRACE(3, m_tag << " Opening TIFF_T38/SpanDSP for " << (callingParty ? "calling" : "called") << " party");
 
       // If our max bit rate is 9600 then explicitly remove V.17 or spandsp does 14400 anyway
       if (GetMaxBitRate() <= 9600)
         m_supported_modems &= ~T30_SUPPORT_V17;
 
-      m_t38State = t38_terminal_init(NULL, !IsReceiving(), FaxT38::QueueT38, (FaxT38 *)this);
+      m_t38State = t38_terminal_init(NULL, callingParty, FaxT38::QueueT38, (FaxT38 *)this);
       if (HasError(m_t38State != NULL, "t38_terminal_init failed."))
         return false;
 
@@ -1458,9 +1459,10 @@ class TIFF_PCM : public FaxTIFF, public FaxPCM
       if (m_faxState != NULL)
         return true;
 
-      PTRACE(3, m_tag << " Opening TIFF_PCM/SpanDSP for " << (IsReceiving() ? "receive" : "transmit"));
+      bool callingParty = !IsReceiving();
+      PTRACE(3, m_tag << " Opening TIFF_PCM/SpanDSP for " << (callingParty ? "calling" : "called") << " party");
 
-      m_faxState = fax_init(NULL, !IsReceiving());
+      m_faxState = fax_init(NULL, callingParty);
       if (HasError(m_faxState != NULL, "t38_terminal_init failed."))
         return false;
 

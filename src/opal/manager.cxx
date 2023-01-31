@@ -294,7 +294,8 @@ ostream & operator<<(ostream & strm, const OpalProductInfo & info)
 /////////////////////////////////////////////////////////////////////////////
 
 OpalManager::OpalManager()
-  : m_productInfo(OpalProductInfo::Default())
+  : OpalCertificateInfo(true)
+  , m_productInfo(OpalProductInfo::Default())
   , m_defaultUserName(PProcess::Current().GetUserName())
   , m_defaultDisplayName(m_defaultUserName)
   , m_rtpPayloadSizeMax(1400) // RFC879 recommends 576 bytes, but that is ancient history, 99.999% of the time 1400+ bytes is used.
@@ -315,12 +316,6 @@ OpalManager::OpalManager()
   , m_dtlsTimeout(0, 3)           // Seconds
 #endif
   , m_rtpIpPorts(5000, 5999)
-#if OPAL_PTLIB_SSL
-  , m_caFiles("*") // Use default
-  , m_certificateFile(PProcess::Current().GetHomeDirectory() + "opal_certificate.pem")
-  , m_privateKeyFile(PProcess::Current().GetHomeDirectory() + "opal_private_key.pem")
-  , m_autoCreateCertificate(true)
-#endif
 #if OPAL_PTLIB_NAT
   , m_natMethods(new PNatMethods(true))
   , m_onInterfaceChange(PCREATE_InterfaceNotifier(OnInterfaceChange))
@@ -385,6 +380,10 @@ OpalManager::OpalManager()
 #if OPAL_PTLIB_NAT
   PInterfaceMonitor::GetInstance().AddNotifier(m_onInterfaceChange);
 #endif
+
+  PAssert(PHTTP::HttpProxyKey() == OPAL_OPT_HTTP_PROXY, PUnsupportedFeature);
+  PAssert(PHTTP::HttpsProxyKey() == OPAL_OPT_HTTPS_PROXY, PUnsupportedFeature);
+  PAssert(PHTTP::NoProxyKey() == OPAL_OPT_NO_PROXY, PUnsupportedFeature);
 
   PTRACE(4, "Created manager, OPAL version " << OpalGetVersion());
 }
@@ -810,22 +809,31 @@ void OpalManager::InternalClearAllCalls(OpalConnection::CallEndReason reason, bo
                       << ", " << (firstThread ? "primary" : "secondary") << " thread.");
 
   if (firstThread) {
-    // Clear all the currentyl active calls
+    // Clear all the currently active calls
     for (CallDict::iterator call = m_activeCalls.begin(); call != m_activeCalls.end(); ++call)
-      call->second->Clear(reason);
+      call->Clear(reason);
   }
 
-  if (wait) {
-    /* This is done this way as PSyncPoint only works for one thread at a time,
-       all subsequent threads will wait on the mutex for the first one to be
-       released from the PSyncPoint wait. */
-    m_clearingAllCallsMutex.Wait();
-    if (firstThread)
-      PAssert(m_allCallsCleared.Wait(PTimeInterval(0,m_activeCalls.GetSize()*2,1)), "All calls not cleared in a timely manner");
-    m_clearingAllCallsMutex.Signal();
-  }
+  if (!wait)
+    return;
+  
+  /* This is done this way as PSyncPoint only works for one thread at a time,
+      all subsequent threads will wait on the mutex for the first one to be
+      released from the PSyncPoint wait. */
+  m_clearingAllCallsMutex.Wait();
+  bool cleared = firstThread && m_allCallsCleared.Wait(PTimeInterval(0,m_activeCalls.GetSize()*2,1));
+  m_clearingAllCallsMutex.Signal();
+  PAssert(cleared, "All calls not cleared in a timely manner");
 
-  PTRACE(3, "All calls cleared.");
+#if PTRACING
+  if (cleared)
+    PTRACE(3, "All calls cleared.");
+  else {
+    // Probably a circular reference, try and give some clues.
+    PSafeObject::m_traceDetailLevel = 3;
+    GarbageCollection();
+  }
+#endif // PTRACING
 }
 
 
@@ -1932,16 +1940,6 @@ void OpalManager::SetDefaultDisplayName(const PString & name, bool updateAll)
     m_endpointsMutex.EndWrite();
   }
 }
-
-
-#if OPAL_PTLIB_SSL
-bool OpalManager::ApplySSLCredentials(const OpalEndPoint & /*ep*/,
-                                    PSSLContext & context,
-                                    bool create) const
-{
-  return context.SetCredentials(m_caFiles, m_certificateFile, m_privateKeyFile, create && m_autoCreateCertificate);
-}
-#endif
 
 
 PBoolean OpalManager::IsLocalAddress(const PIPSocket::Address & ip) const

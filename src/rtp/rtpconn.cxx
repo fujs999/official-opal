@@ -421,6 +421,7 @@ void OpalRTPConnection::ReplaceMediaSession(unsigned sessionId, OpalMediaSession
            << " (" << mediaSession->GetSessionType() << ")"
 	      " using media=" << remoteMedia << ","
               " ctrl=" << remoteCtrl);
+    it->second->Close();
   }
 
   OpalRTPSession * rtpSession = dynamic_cast<OpalRTPSession *>(mediaSession);
@@ -745,6 +746,7 @@ void OpalRTPConnection::OnUserInputInlineRFC2833(OpalRFC2833Info & info, OpalRFC
 
 bool OpalRTPConnection::GarbageCollection()
 {
+  // Use & to assure both are executed every time
   return m_sessions.DeleteObjectsToBeRemoved() & OpalConnection::GarbageCollection();
 }
 

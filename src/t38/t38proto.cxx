@@ -683,6 +683,7 @@ void OpalFaxConnection::AdjustMediaFormats(bool   local,
     if (*it == OpalG711_ULAW_64K || *it == OpalG711_ALAW_64K) {
       // If we are using G.711 pass thru fax, then we also include silenceSupp:off SDP parameter.
       it->SetOptionString(OpalAudioFormat::SilenceSuppressionOption(), "off - - - -");
+      it->SetOptionString(OpalAudioFormat::EchoCancellationOption(), "fb on");
       ++it;
     }
     else if ((!m_ownerCall.IsSwitchingToT38() && it->GetMediaType() == OpalMediaType::Audio()) || it->GetMediaType() == "userinput")

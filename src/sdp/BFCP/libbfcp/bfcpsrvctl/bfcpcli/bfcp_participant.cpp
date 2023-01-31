@@ -1346,7 +1346,7 @@ bool BFCP_Participant::BFCPFSM_UpdatesBfcpFsmEvent( s_bfcp_msg_event* p_bfcp_evt
             bfcpFsmEvt.BeneficiaryID = p_bfcp_evt->BeneficiaryID ;
             bfcpFsmEvt.i_parm = p_bfcp_evt->i_parm ;
             bfcpFsmEvt.pt_param = p_bfcp_evt->pt_param ;
-            strncpy(bfcpFsmEvt.c_param ,p_bfcp_evt->c_param , sizeof(bfcpFsmEvt.c_param));
+            memcpy(bfcpFsmEvt.c_param ,p_bfcp_evt->c_param , sizeof(bfcpFsmEvt.c_param));
         }else{
             if ( m_bfcp_participant_information ){
             bfcpFsmEvt.userID = m_bfcp_participant_information->userID ;
@@ -1368,7 +1368,7 @@ bool BFCP_Participant::OnBFCPConnected(BFCP_SOCKET socket, const char* remoteIp 
     s_bfcp_msg_event evt ;
     memset ( &evt , 0 , sizeof(s_bfcp_msg_event));
     if ( remoteIp ) 
-        strncpy(evt.c_param , remoteIp , BFCP_STRING_SIZE );
+        strncpy(evt.c_param , remoteIp , sizeof(evt.c_param)-1);
     if ( remotePort )
         evt.i_parm = remotePort ;
     return FsmCtrlPerform( BFCP_fsm::BFCP_ACT_CONNECTED , &evt ) ;

@@ -784,7 +784,9 @@ bool OpalEndPoint::FindListenerForProtocol(const char * protoPrefix, OpalTranspo
 #if OPAL_PTLIB_SSL
 bool OpalEndPoint::ApplySSLCredentials(PSSLContext & context, bool create) const
 {
-  return m_manager.ApplySSLCredentials(*this, context, create);
+  if (HasSSLCertificates())
+    return OpalCertificateInfo::ApplySSLCredentials(context, create);
+  return m_manager.ApplySSLCredentials(context, create);
 }
 #endif
 
@@ -862,6 +864,9 @@ PStringList OpalEndPoint::GetAvailableStringOptions() const
     OPAL_OPT_REMOVE_CODEC,
     OPAL_OPT_SILENCE_DETECT_MODE,
     OPAL_OPT_VIDUP_METHODS,
+    OPAL_OPT_HTTP_PROXY,
+    OPAL_OPT_HTTPS_PROXY,
+    OPAL_OPT_NO_PROXY,
     OPAL_OPT_MEDIA_RX_TIMEOUT,
     OPAL_OPT_MEDIA_TX_TIMEOUT
   };

@@ -685,6 +685,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     void OnInviteResponseRetry();
     void OnInviteResponseTimeout();
     void OnInviteCollision();
+    void OnReferFailSafe();
     void OnDelayedRefer();
     virtual bool AllowMusicOnHold() const;
     virtual bool OnHoldStateChanged(bool placeOnHold);
@@ -772,6 +773,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     PoolTimer             m_responseRetryTimer;
     unsigned              m_responseRetryCount;
     PoolTimer             m_inviteCollisionTimer;
+    PoolTimer             m_referFailSafeTimer;
     PoolTimer             m_delayedReferTimer;
     SIPURL                m_delayedReferTo;
     SIPURL                m_sentReferTo;
@@ -789,6 +791,7 @@ class SIPConnection : public OpalSDPConnection, public SIPTransactionOwner
     enum {
       eNoRemoteRefer,
       eReferStarted,
+      eReferWithoutNotify,
       eReferNotifyConfirmed
     } m_referOfRemoteState;
     PString m_consultationTransferToken;
