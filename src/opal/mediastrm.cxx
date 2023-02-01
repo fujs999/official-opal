@@ -110,12 +110,7 @@ PString OpalMediaStream::GetPatchThreadName() const
 
 bool OpalMediaStream::SetSyncSource(RTP_SyncSourceId newSSRC)
 {
-  RTP_SyncSourceId oldSSRC = m_syncSource.exchange(newSSRC);
-  if (oldSSRC == newSSRC)
-    return false;
-
-  m_connection.InternalOnMediaStreamSyncSourceChanged(*this, oldSSRC);
-  return true;
+  return m_syncSource.exchange(newSSRC) != newSSRC;
 }
 
 
@@ -326,7 +321,6 @@ PBoolean OpalMediaStream::ReadPacket(RTP_DataFrame & packet)
   RTP_SyncSourceId ssrc = 0;
   if (m_syncSource.compare_exchange_strong(ssrc, packet.GetSyncSource())) {
     m_syncSource.compare_exchange_strong(ssrc, PRandom::Number());
-    m_connection.InternalOnMediaStreamSyncSourceChanged(*this, 0);
     ssrc = m_syncSource;
   }
   packet.SetSyncSource(ssrc);

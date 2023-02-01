@@ -944,14 +944,6 @@ OpalMediaStreamPtr OpalConnection::OpenMediaStream(const OpalMediaFormat & media
 }
 
 
-void OpalConnection::InternalOnMediaStreamSyncSourceChanged(OpalMediaStream & mediaStream,
-                                                            RTP_SyncSourceId oldSSRC)
-{
-  m_mediaStreams.Move(StreamKey(mediaStream.GetSessionID(), oldSSRC, mediaStream.IsSource()), mediaStream);
-  PTRACE(3, "Changing from SSRC=" << RTP_TRACE_SRC(oldSSRC) << " on stream " << mediaStream);
-}
-
-
 bool OpalConnection::CloseMediaStream(unsigned sessionId, bool source)
 {
   PSafeLockReadWrite safeLock(*this);
