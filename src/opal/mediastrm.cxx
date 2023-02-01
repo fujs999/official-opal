@@ -110,7 +110,7 @@ PString OpalMediaStream::GetPatchThreadName() const
 
 bool OpalMediaStream::SetSyncSource(RTP_SyncSourceId newSSRC)
 {
-  RTP_SyncSourceId oldSSRC = m_syncSource.exchange(newSSRC);
+  return m_syncSource.exchange(newSSRC) != newSRC;
   if (oldSSRC == newSSRC)
     return false;
 
