@@ -279,6 +279,13 @@ bool OpalIVRConnection::OnTransferNotify(const PStringToString & info,
 
 bool OpalIVRConnection::TransferConnection(const PString & remoteParty)
 {
+  if (IsReleased())
+    return false;
+
+  PSafeLockReadWrite mutex(*this);
+  if (!mutex.IsLocked())
+    return false;
+
   SetVXML(remoteParty);
   return StartVXML();
 }

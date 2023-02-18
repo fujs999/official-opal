@@ -873,7 +873,8 @@ void OpalIVREndPoint_C::OnEndDialog(OpalIVRConnection & connection)
   PTRACE(4, "OnEndDialog for " << connection);
 
   // Do not call ancestor and start a long pause, as do not want it to hang up
-  connection.TransferConnection("<vxml><form><break time=\"3600s\"/></form></vxml>");
+  if (!connection.TransferConnection("<vxml><form><break time=\"3600s\"/></form></vxml>"))
+    return;
 
   // Send message to app, which may (or may not) start a new IVR script
   OpalMessageBuffer message(OpalIndCompletedIVR);
@@ -2622,11 +2623,11 @@ void OpalManager_C::HandleTransferCall(const OpalMessage & command, OpalMessageB
 
   PString search = command.m_param.m_callSetUp.m_partyA;
   if (search == "*") {
-	PString prefixB = GetPrefixFromPartyAddress(partyB);
-	if (prefixB.IsEmpty()) {
+    PString prefixB = GetPrefixFromPartyAddress(partyB);
+    if (prefixB.IsEmpty()) {
       response.SetError("Invalid transfer address provided, must have prefix.");
       return;
-	}
+    }
     OpalEndPoint * ep = FindEndPoint(prefixB);
     if (ep != NULL) {
       PTRACE(4, "Searching for local/network connection the same as " << *ep);
