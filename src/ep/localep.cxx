@@ -376,7 +376,8 @@ PBoolean OpalLocalConnection::SetUpConnection()
   if (!OpalConnection::SetUpConnection())
     return false;
 
-  if (m_ownerCall.GetConnection(0) == this)
+  // We are originating, or being transferred to
+  if (m_ownerCall.GetConnection(0) == this || m_ownerCall.GetConnection(2) == this)
     return true;
 
   if (!OnIncoming()) {
