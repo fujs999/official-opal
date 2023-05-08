@@ -821,17 +821,26 @@ void OpalConnection::AutoStartMediaStreams(bool transfer)
   OpalMediaTypeList mediaTypes = OpalMediaType::GetList();
   for (OpalMediaTypeList::iterator iter = mediaTypes.begin(); iter != mediaTypes.end(); ++iter) {
     OpalMediaType mediaType = *iter;
-    if ((otherConnection->GetAutoStart(mediaType)&OpalMediaType::Receive) &&
-                         (GetAutoStart(mediaType)&OpalMediaType::Transmit) &&
-                        (transfer || GetMediaStream(mediaType, true) == NULL))
-      m_ownerCall.OpenSourceMediaStreams(*this,
-                                       mediaType,
-                                       mediaType->GetDefaultSessionId(),
-                                       OpalMediaFormat(),
+
+    if (transfer || GetMediaStream(mediaType, true) == NULL) {
+      unsigned sessionID = mediaType->GetDefaultSessionId();
+      OpalMediaStreamPtr otherMediaStream = sessionID != 0
+                                              ? otherConnection->GetMediaStream(sessionID, false)
+                                              : otherConnection->GetMediaStream(mediaType, false);
+      if (otherMediaStream != NULL ||
+          ((otherConnection->GetAutoStart(mediaType)&OpalMediaType::Receive) &&
+           (GetAutoStart(mediaType)&OpalMediaType::Transmit))) {
+        m_ownerCall.OpenSourceMediaStreams(*this,
+                                           mediaType,
+                                           sessionID,
+                                           OpalMediaFormat(),
 #if OPAL_VIDEO
-                                       OpalVideoFormat::eNoRole,
+                                           OpalVideoFormat::eNoRole,
 #endif
-                                       transfer);
+                                           transfer,
+                                           otherMediaStream != NULL && otherMediaStream->IsPaused());
+      }
+    }
   }
 
   if (!transfer && GetPhase() >= ConnectedPhase)
