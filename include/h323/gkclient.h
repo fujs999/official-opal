@@ -389,7 +389,7 @@ class H323Gatekeeper : public H225_RAS
     PDECLARE_InterfaceNotifier(H323Gatekeeper, OnLowPriorityInterfaceChange);
     PInterfaceMonitor::Notifier m_onLowPriorityInterfaceChange;
     
-    class AlternateInfo : public PObject {
+    class AlternateInfo : public PObject, PNonCopyable {
       PCLASSINFO(AlternateInfo, PObject);
       public:
         AlternateInfo(H225_AlternateGK & alt);
@@ -406,11 +406,6 @@ class H323Gatekeeper : public H225_RAS
           IsRegistered,
           RegistrationFailed
         } registrationState;
-
-      private:
-        // Disable copy constructor and assignment
-        AlternateInfo(const AlternateInfo &other): PObject(other) { }
-        AlternateInfo & operator=(const AlternateInfo &) { return *this; }
     };
     typedef PSortedList<AlternateInfo> AlternateList;
     AlternateList m_alternates;

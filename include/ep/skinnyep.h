@@ -260,6 +260,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
 
     // Note: all derived classes MUST NOT have composite members, e.g. PString
 #define OPAL_SKINNY_MSG2(cls, base, id, extraSpace, vars) \
+    P_PUSH_MSVC_WARNINGS(26495) \
     class cls : public base \
     { \
         PCLASSINFO(cls, base); \
@@ -269,6 +270,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
         cls(const PBYTEArray & pdu) : base(ID, sizeof(*this), extraSpace) { Construct(pdu); } \
         vars \
     }; \
+    P_POP_MSVC_WARNINGS() \
     virtual bool OnReceiveMsg(PhoneDevice & client, const cls & msg)
 
 #define OPAL_SKINNY_MSG(cls, id, vars) OPAL_SKINNY_MSG2(cls, SkinnyMsg, id, 0, vars)
@@ -343,7 +345,7 @@ class OpalSkinnyEndPoint : public OpalRTPEndPoint
         PUInt32l m_codec;
         PUInt32l m_maxFramesPerPacket;
         PUInt32l m_g7231BitRate; // 1=5.3 Kbps, 2=6.4 Kbps
-        char     m_unknown[4];
+        PUInt32l m_unknown;
       } m_capability[32];
 
       virtual void PrintOn(ostream & strm) const;

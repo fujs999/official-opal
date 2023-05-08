@@ -1111,6 +1111,7 @@ OpalManager_C::OpalManager_C(unsigned version, const PArgList & args)
   : m_apiVersion(version)
   , m_manualAlerting(false)
   , m_shuttingDown(false)
+  , m_messageAvailableCallback(NULL)
 {
   PString defProto, defUser;
   PINDEX  defProtoPos = P_MAX_INDEX, defUserPos = P_MAX_INDEX;
@@ -1325,7 +1326,7 @@ OpalMessage * OpalManager_C::SendMessage(const OpalMessage * message)
 
   OpalMessageBuffer response(message->m_type);
 
-  HandlerFunc func = message->m_type < OpalMessageTypeCount ? m_handlers[message->m_type] : NULL;
+  HandlerFunc func = message->m_type >= 0 && message->m_type < OpalMessageTypeCount ? m_handlers[message->m_type] : NULL;
   if (func == (HandlerFunc)NULL)
     return NULL;
 
