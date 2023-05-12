@@ -1110,8 +1110,8 @@ static bool CheckProto(const PArgList & args, const char * proto, const char * d
 OpalManager_C::OpalManager_C(unsigned version, const PArgList & args)
   : m_apiVersion(version)
   , m_manualAlerting(false)
-  , m_shuttingDown(false)
   , m_messageAvailableCallback(NULL)
+  , m_shuttingDown(false)
 {
   PString defProto, defUser;
   PINDEX  defProtoPos = P_MAX_INDEX, defUserPos = P_MAX_INDEX;
