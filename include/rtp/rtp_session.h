@@ -88,6 +88,11 @@ class RTP_MetricsReport;
   */
 #define OPAL_OPT_TRANSPORT_WIDE_CONGESTION_CONTROL "Transport-Wide-Congestion-Control"
 
+/**String option key to a boolean indicating that the ICE detection
+   should be disabled. Default false.
+  */
+#define OPAL_OPT_DISABLE_ICE "Disable-ICE"
+
 
 ///////////////////////////////////////////////////////////////////////////////
 

@@ -3515,10 +3515,10 @@ OpalMediaStream * OpalRTPSession::CreateMediaStream(const OpalMediaFormat & medi
 OpalMediaTransport * OpalRTPSession::CreateMediaTransport(const PString & name)
 {
 #if OPAL_ICE
-  return new OpalICEMediaTransport(name);
-#else
-  return new OpalUDPMediaTransport(name);
+  if (!m_stringOptions.GetBoolean(OPAL_OPT_DISABLE_ICE))
+    return new OpalICEMediaTransport(name);
 #endif
+  return new OpalUDPMediaTransport(name);
 }
 
 
