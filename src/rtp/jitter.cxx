@@ -153,7 +153,7 @@ ostream & operator<<(ostream & strm, const OpalAudioJitterBuffer::AdjustResult a
         }
       }
 
-      void PrintOn(ostream & strm) const
+      void PrintOn(ostream & strm) const override
       {
         if (inPos == 0 && outPos == 0)
           return;

@@ -103,7 +103,9 @@ char * CurrentCallToken;
 char * HeldCallToken;
 char * PlayScript;
 
+#ifndef bool
 typedef enum bool { false, true } bool;
+#endif
 
 
 OpalMessage * MySendCommand(OpalMessage * command, const char * errorMessage)

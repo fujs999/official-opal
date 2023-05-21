@@ -103,7 +103,7 @@ class OpalPresenceInfo : public PObject
     static State FromString(const PString & str);
     PString AsString() const;
 
-    Comparison Compare(const PObject & other) const;
+    virtual Comparison Compare(const PObject & other) const override;
 };
 
 ostream & operator<<(ostream & strm, OpalPresenceInfo::State state);
@@ -574,7 +574,7 @@ class OpalPresentityWithCommandThread : public OpalPresentity
   //@{
     /**Close the presentity.
       */
-    virtual bool Close();
+    virtual bool Close() override;
 
     /** Lowlevel function to send a command to the presentity handler.
         All commands are asynchronous. They will usually initiate an action
@@ -589,7 +589,7 @@ class OpalPresentityWithCommandThread : public OpalPresentity
       */
     virtual bool SendCommand(
       OpalPresentityCommand * cmd   ///< Command to execute
-    );
+    ) override;
   //@}
 
   protected:

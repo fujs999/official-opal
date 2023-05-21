@@ -640,7 +640,7 @@ PBoolean OpalLineConnection::SendUserInputString(const PString & value)
 }
 
 
-PBoolean OpalLineConnection::SendUserInputTone(char tone, int duration)
+PBoolean OpalLineConnection::SendUserInputTone(char tone, unsigned duration)
 {
   if (duration <= 0)
     return m_line.PlayDTMF(&tone);

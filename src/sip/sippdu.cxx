@@ -4066,12 +4066,6 @@ SIPAck::SIPAck(const SIPTransaction & invite, const SIP_PDU & response)
 }
 
 
-SIPTransaction * SIPAck::CreateDuplicate() const
-{
-  return NULL;
-}
-
-
 /////////////////////////////////////////////////////////////////////////
 
 SIPBye::SIPBye(SIPEndPoint & endpoint, SIPDialogContext & dialog)

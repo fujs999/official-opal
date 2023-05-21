@@ -188,13 +188,13 @@ class OpalPCSSEndPoint_C : public OpalPCSSEndPoint, public OpalMediaDataCallback
   public:
     OpalPCSSEndPoint_C(OpalManager_C & manager);
 
-    virtual PBoolean OnShowIncoming(const OpalPCSSConnection &);
-    virtual PBoolean OnShowOutgoing(const OpalPCSSConnection &);
+    virtual PBoolean OnShowIncoming(const OpalPCSSConnection &) override;
+    virtual PBoolean OnShowOutgoing(const OpalPCSSConnection &) override;
 
-    virtual bool OnReadMediaFrame(const OpalLocalConnection &, const OpalMediaStream & mediaStream, RTP_DataFrame &);
-    virtual bool OnWriteMediaFrame(const OpalLocalConnection &, const OpalMediaStream &, RTP_DataFrame & frame);
-    virtual bool OnReadMediaData(const OpalLocalConnection &, const OpalMediaStream &, void *, PINDEX, PINDEX &);
-    virtual bool OnWriteMediaData(const OpalLocalConnection &, const OpalMediaStream &, const void *, PINDEX, PINDEX &);
+    virtual bool OnReadMediaFrame(const OpalLocalConnection &, const OpalMediaStream & mediaStream, RTP_DataFrame &) override;
+    virtual bool OnWriteMediaFrame(const OpalLocalConnection &, const OpalMediaStream &, RTP_DataFrame & frame) override;
+    virtual bool OnReadMediaData(OpalLocalConnection &, OpalMediaStream &, void *, PINDEX,PINDEX &) override;
+    virtual bool OnWriteMediaData(const OpalLocalConnection &, const OpalMediaStream &, const void *, PINDEX, PINDEX &) override;
 
   protected:
     OpalManager_C & m_manager;
@@ -209,13 +209,13 @@ class OpalLocalEndPoint_C : public OpalLocalEndPoint, public OpalMediaDataCallba
   public:
     OpalLocalEndPoint_C(OpalManager_C & manager);
 
-    virtual bool OnOutgoingCall(const OpalLocalConnection &);
-    virtual bool OnIncomingCall(OpalLocalConnection &);
+    virtual bool OnOutgoingCall(const OpalLocalConnection &) override;
+    virtual bool OnIncomingCall(OpalLocalConnection &) override;
 
-    virtual bool OnReadMediaFrame(const OpalLocalConnection &, const OpalMediaStream & mediaStream, RTP_DataFrame &);
-    virtual bool OnWriteMediaFrame(const OpalLocalConnection &, const OpalMediaStream &, RTP_DataFrame & frame);
-    virtual bool OnReadMediaData(const OpalLocalConnection &, const OpalMediaStream &, void *, PINDEX, PINDEX &);
-    virtual bool OnWriteMediaData(const OpalLocalConnection &, const OpalMediaStream &, const void *, PINDEX, PINDEX &);
+    virtual bool OnReadMediaFrame(const OpalLocalConnection &, const OpalMediaStream & mediaStream, RTP_DataFrame &) override;
+    virtual bool OnWriteMediaFrame(const OpalLocalConnection &, const OpalMediaStream &, RTP_DataFrame & frame) override;
+    virtual bool OnReadMediaData(OpalLocalConnection &, OpalMediaStream &, void *, PINDEX, PINDEX &) override;
+    virtual bool OnWriteMediaData(const OpalLocalConnection &, const OpalMediaStream &, const void *, PINDEX, PINDEX &) override;
 
   private:
     OpalManager_C & m_manager;
@@ -230,8 +230,8 @@ class OpalGstEndPoint_C : public GstEndPoint
   public:
     OpalGstEndPoint_C(OpalManager_C & manager);
 
-    virtual bool OnOutgoingCall(const OpalLocalConnection &);
-    virtual bool OnIncomingCall(OpalLocalConnection & connection);
+    virtual bool OnOutgoingCall(const OpalLocalConnection &) override;
+    virtual bool OnIncomingCall(OpalLocalConnection & connection) override;
 
   private:
     OpalManager_C & m_manager;
@@ -248,9 +248,9 @@ class OpalIVREndPoint_C : public OpalIVREndPoint
   public:
     OpalIVREndPoint_C(OpalManager_C & manager);
 
-    virtual bool OnOutgoingCall(const OpalLocalConnection &);
-    virtual bool OnIncomingCall(OpalLocalConnection & connection);
-    virtual void OnEndDialog(OpalIVRConnection & connection);
+    virtual bool OnOutgoingCall(const OpalLocalConnection &) override;
+    virtual bool OnIncomingCall(OpalLocalConnection & connection) override;
+    virtual void OnEndDialog(OpalIVRConnection & connection) override;
 
   private:
     OpalManager_C & m_manager;
@@ -268,27 +268,27 @@ class SIPEndPoint_C : public SIPEndPoint
 
     virtual void OnRegistrationStatus(
       const RegistrationStatus & status
-    );
+    ) override;
     virtual void OnSubscriptionStatus(
       const PString & eventPackage, ///< Event package subscribed to
       const SIPURL & uri,           ///< Target URI for the subscription.
       bool wasSubscribing,          ///< Indication the subscribing or unsubscribing
       bool reSubscribing,           ///< If subscribing then indication was refeshing subscription
       SIP_PDU::StatusCodes reason   ///< Status of subscription
-    );
+    ) override;
     virtual bool OnReINVITE(
       SIPConnection & connection,
       bool fromRemote,
       const PString & remoteSDP
-    );
+    ) override;
     virtual void OnDialogInfoReceived(
       const SIPDialogNotification & info  ///< Information on dialog state change
-    );
+    ) override;
     virtual bool OnReceivedInfoPackage(
       SIPConnection & connection,
       const PString & package,
       const PMultiPartList & content
-    );
+    ) override;
 
     void SetProtocolMessageIdentifiers(const PString & str);
     bool SendIndProtocolMessage(
@@ -319,21 +319,21 @@ class OpalManager_C : public OpalManager
     OpalMessage * GetMessage(unsigned timeout, const char * & error);
     OpalMessage * SendMessage(const OpalMessage * message);
 
-    virtual void OnEstablishedCall(OpalCall & call);
-    virtual void OnHold(OpalConnection & connection, bool fromRemote, bool onHold);
-    virtual bool OnTransferNotify(OpalConnection &, const PStringToString &);
-    virtual PBoolean OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream);
-    virtual void OnClosedMediaStream(const OpalMediaStream & stream);
-    virtual void OnUserInputString(OpalConnection & connection, const PString & value);
-    virtual void OnUserInputTone(OpalConnection & connection, char tone, int duration);
-    virtual void OnMWIReceived(const PString & party, MessageWaitingType type, const PString & extraInfo);
-    virtual void OnProceeding(OpalConnection & conenction);
-    virtual void OnClearedCall(OpalCall & call);
+    virtual void OnEstablishedCall(OpalCall & call) override;
+    virtual void OnHold(OpalConnection & connection, bool fromRemote, bool onHold) override;
+    virtual bool OnTransferNotify(OpalConnection &, const PStringToString &) override;
+    virtual PBoolean OnOpenMediaStream(OpalConnection & connection, OpalMediaStream & stream) override;
+    virtual void OnClosedMediaStream(const OpalMediaStream & stream) override;
+    virtual void OnUserInputString(OpalConnection & connection, const PString & value) override;
+    virtual void OnUserInputTone(OpalConnection & connection, char tone, int duration) override;
+    virtual void OnMWIReceived(const PString & party, MessageWaitingType type, const PString & extraInfo) override;
+    virtual void OnProceeding(OpalConnection & conenction) override;
+    virtual void OnClearedCall(OpalCall & call) override;
 
 #if OPAL_HAS_IM
-    virtual void OnMessageReceived(const OpalIM & message);
-    virtual void OnMessageDisposition(const OpalIMContext::DispositionInfo &);
-    virtual void OnCompositionIndication(const OpalIMContext::CompositionInfo &);
+    virtual void OnMessageReceived(const OpalIM & message) override;
+    virtual void OnMessageDisposition(const OpalIMContext::DispositionInfo &) override;
+    virtual void OnCompositionIndication(const OpalIMContext::CompositionInfo &) override;
 #endif
 
 #if OPAL_HAS_PRESENCE
@@ -621,8 +621,8 @@ bool OpalLocalEndPoint_C::OnWriteMediaFrame(const OpalLocalConnection & connecti
 }
 
 
-bool OpalLocalEndPoint_C::OnReadMediaData(const OpalLocalConnection & connection,
-                                          const OpalMediaStream & mediaStream,
+bool OpalLocalEndPoint_C::OnReadMediaData(OpalLocalConnection & connection,
+                                          OpalMediaStream & mediaStream,
                                           void * data,
                                           PINDEX size,
                                           PINDEX & length)
@@ -794,8 +794,8 @@ bool OpalPCSSEndPoint_C::OnWriteMediaFrame(const OpalLocalConnection & connectio
 }
 
 
-bool OpalPCSSEndPoint_C::OnReadMediaData(const OpalLocalConnection & connection,
-                                         const OpalMediaStream & mediaStream,
+bool OpalPCSSEndPoint_C::OnReadMediaData(OpalLocalConnection & connection,
+                                         OpalMediaStream & mediaStream,
                                          void * data,
                                          PINDEX size,
                                          PINDEX & length)

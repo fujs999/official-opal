@@ -144,7 +144,7 @@ class SIPURL : public PURL
      */
     virtual Comparison Compare(
       const PObject & obj   ///< Object to compare against.
-    ) const;
+    ) const override;
 
     /** Returns complete SIPURL as one string, including displayname (in
         quotes) and address in angle brackets.
@@ -227,7 +227,7 @@ class SIPURL : public PURL
     virtual PBoolean InternalParse(
       const char * cstr,
       const char * defaultScheme
-    ) { return ReallyInternalParse(false, cstr, defaultScheme); }
+    ) override { return ReallyInternalParse(false, cstr, defaultScheme); }
 
     bool ReallyInternalParse(
       bool fromField,
@@ -299,8 +299,8 @@ class SIPMIMEInfo : public PMIMEInfo
   public:
     SIPMIMEInfo(bool compactForm = false);
 
-    virtual void PrintOn(ostream & strm) const;
-    virtual bool InternalAddMIME(const PString & fieldName, const PString & fieldValue);
+    virtual void PrintOn(ostream & strm) const override;
+    virtual bool InternalAddMIME(const PString & fieldName, const PString & fieldValue) override;
 
     void SetCompactForm(bool form) { compactForm = form; }
 
@@ -641,7 +641,7 @@ class SIP_PDU : public PSafeObject
 
     void PrintOn(
       ostream & strm
-    ) const;
+    ) const override;
 
     void InitialiseHeaders(
       const SIPURL & dest,
@@ -921,7 +921,7 @@ class SIPTimeoutWorkItem : public SIPWorkItem
     {
     }
 
-    virtual void Work()
+    virtual void Work() override
     {
       PSafePtr<Target_T> target;
       if (GetTarget(target)) {
@@ -1078,7 +1078,7 @@ class SIPTransaction : public SIPTransactionBase
     bool IsFailed()     const { return GetState() > Terminated_Success; }
     bool IsCompleted()  const { return GetState() >= Completed; }
     bool IsCanceled()   const { const States state = GetState(); return state == Cancelling || state == Terminated_Cancelled || state == Terminated_Aborted; }
-    bool IsTerminated() const { return GetState() >= Terminated_Success; }
+    bool IsTerminated() const override { return GetState() >= Terminated_Success; }
 
     void WaitForCompletion();
     PBoolean Cancel();
@@ -1157,10 +1157,10 @@ class SIPResponse : public SIPTransaction
       StatusCodes code
     );
 
-    virtual SIPTransaction * CreateDuplicate() const;
+    virtual SIPTransaction * CreateDuplicate() const override;
 
-    virtual bool Send();
-    virtual bool ReSend(const SIP_PDU & cmd);
+    virtual bool Send() override;
+    virtual bool ReSend(const SIP_PDU & cmd) override;
 };
 
 
@@ -1182,9 +1182,9 @@ class SIPInvite : public SIPTransaction
     );
     ~SIPInvite();
 
-    virtual SIPTransaction * CreateDuplicate() const;
+    virtual SIPTransaction * CreateDuplicate() const override;
 
-    virtual PBoolean OnReceivedResponse(SIP_PDU & response);
+    virtual PBoolean OnReceivedResponse(SIP_PDU & response) override;
 
     mutable OpalRTPConnection::SessionMap m_sessions;
 };
@@ -1203,8 +1203,6 @@ class SIPAck : public SIP_PDU
       const SIPTransaction & invite,
       const SIP_PDU & response
     );
-
-    virtual SIPTransaction * CreateDuplicate() const;
 };
 
 
@@ -1224,7 +1222,7 @@ class SIPBye : public SIPTransaction
       SIPConnection & conn
     );
 
-    virtual SIPTransaction * CreateDuplicate() const;
+    virtual SIPTransaction * CreateDuplicate() const override;
 };
 
 
@@ -1288,7 +1286,7 @@ class SIPRegister : public SIPTransaction
       const Params & params
     );
 
-    virtual SIPTransaction * CreateDuplicate() const;
+    virtual SIPTransaction * CreateDuplicate() const override;
 };
 
 
@@ -1340,7 +1338,7 @@ class SIPSubscribe : public SIPTransaction
         bool operator==(PredefinedPackages pkg) const { return Compare(EventPackage(pkg)) == EqualTo; }
         bool operator==(const PString & str) const { return Compare(str) == EqualTo; }
         bool operator==(const char * cstr) const { return InternalCompare(0, P_MAX_INDEX, cstr) == EqualTo; }
-        virtual Comparison InternalCompare(PINDEX offset, PINDEX length, const char * cstr) const;
+        virtual Comparison InternalCompare(PINDEX offset, PINDEX length, const char * cstr) const override;
 
         bool IsWatcher() const;
     };
@@ -1419,7 +1417,7 @@ class SIPSubscribe : public SIPTransaction
         const Params & params
     );
 
-    virtual SIPTransaction * CreateDuplicate() const;
+    virtual SIPTransaction * CreateDuplicate() const override;
 };
 
 
@@ -1471,7 +1469,7 @@ class SIPNotify : public SIPTransaction
         const PString & body
     );
 
-    virtual SIPTransaction * CreateDuplicate() const;
+    virtual SIPTransaction * CreateDuplicate() const override;
 };
 
 
@@ -1490,7 +1488,7 @@ class SIPPublish : public SIPTransaction
       const PString & body
     );
 
-    virtual SIPTransaction * CreateDuplicate() const;
+    virtual SIPTransaction * CreateDuplicate() const override;
 };
 
 
@@ -1515,7 +1513,7 @@ class SIPRefer : public SIPTransaction
       ReferSubMode referSubMode
     );
 
-    virtual SIPTransaction * CreateDuplicate() const;
+    virtual SIPTransaction * CreateDuplicate() const override;
 };
 
 
@@ -1533,7 +1531,7 @@ class SIPReferNotify : public SIPTransaction
       StatusCodes code
     );
 
-    virtual SIPTransaction * CreateDuplicate() const;
+    virtual SIPTransaction * CreateDuplicate() const override;
 };
 
 
@@ -1573,7 +1571,7 @@ class SIPMessage : public SIPTransaction
       const Params & params
     );
 
-    virtual SIPTransaction * CreateDuplicate() const;
+    virtual SIPTransaction * CreateDuplicate() const override;
 
     const Params & GetParameters() const { return m_parameters; }
     const SIPURL & GetLocalAddress() const { return m_localAddress; }
@@ -1613,7 +1611,7 @@ class SIPOptions : public SIPTransaction
       const Params & params
     );
 
-    virtual SIPTransaction * CreateDuplicate() const;
+    virtual SIPTransaction * CreateDuplicate() const override;
 
   protected:
     void Construct(const Params & params);
@@ -1644,7 +1642,7 @@ class SIPInfo : public SIPTransaction
       const Params & params
     );
 
-    virtual SIPTransaction * CreateDuplicate() const;
+    virtual SIPTransaction * CreateDuplicate() const override;
 };
 
 
@@ -1663,7 +1661,7 @@ class SIPPing : public SIPTransaction
       const SIPURL & address
     );
 
-    virtual SIPTransaction * CreateDuplicate() const;
+    virtual SIPTransaction * CreateDuplicate() const override;
 };
 
 
@@ -1682,7 +1680,7 @@ class SIPPrack : public SIPTransaction
       const PString & rack
     );
 
-    virtual SIPTransaction * CreateDuplicate() const;
+    virtual SIPTransaction * CreateDuplicate() const override;
 };
 
 

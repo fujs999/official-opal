@@ -39,9 +39,9 @@ class MyManager : public OpalManagerCLI
     MyManager();
     ~MyManager();
 
-    PString GetArgumentSpec() const;
-    void Usage(ostream & strm, const PArgList & args);
-    bool Initialise(PArgList & args, bool verbose);
+    PString GetArgumentSpec() const override;
+    void Usage(ostream & strm, const PArgList & args) override;
+    virtual bool Initialise(PArgList & args, bool verbose, const PString & defaultRoute = PString::Empty()) override;
     void AddPresentityCmd(PArgList & args);
 
     PDECLARE_AuthorisationRequestNotifier(MyManager, AuthorisationRequest);
@@ -58,8 +58,6 @@ class MyManager : public OpalManagerCLI
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdBuddyAdd);
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdBuddyRemove);
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdBuddySusbcribe);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdDelay);
-    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdQuit);
 
     PString     m_presenceAgent;
     PString     m_xcapRoot;
@@ -107,7 +105,7 @@ void MyManager::Usage(ostream & strm, const PArgList & args)
 }
 
 
-bool MyManager::Initialise(PArgList & args, bool verbose)
+bool MyManager::Initialise(PArgList & args, bool verbose, const PString &)
 {
   if (!OpalManagerCLI::Initialise(args, verbose))
     return false;
@@ -364,21 +362,6 @@ void MyManager::CmdBuddySusbcribe(PCLI::Arguments & args, P_INT_PTR)
     args.WriteError() << "Presentity \"" << args[0] << "\" does not exist." << endl;
   else if (!m_presentities[args[0]].SubscribeBuddyList())
     args.WriteError() << "Could not subscribe all buddies for presentity \"" << args[0] << '"' << endl;
-}
-
-
-void MyManager::CmdDelay(PCLI::Arguments & args, P_INT_PTR)
-{
-  if (args.GetCount() < 1)
-    args.WriteUsage();
-  int delay = args[0].AsInteger();
-  PThread::Sleep(delay * 1000);
-}
-
-
-void MyManager::CmdQuit(PCLI::Arguments & args, P_INT_PTR)
-{
-  args.GetContext().Stop();
 }
 
 

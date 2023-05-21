@@ -618,7 +618,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
       */
     void PrintOn(
       ostream & strm    ///<  Stream to output text representation
-    ) const;
+    ) const override;
   //@}
 
   /**@name Basic operations */
@@ -1672,7 +1672,7 @@ class OpalConnection : public PSafeObject, protected OpalConnectionInfo
         Returns true if all garbage has been collected.
         Default behaviour deletes the objects in the connectionsActive list.
       */
-    virtual bool GarbageCollection();
+    virtual bool GarbageCollection() override;
   //@}
 
   /**@name Member variable access */

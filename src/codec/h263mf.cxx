@@ -85,7 +85,7 @@ class OpalCustomSizeOption : public OpalMediaOptionString
     {
     }
 
-    virtual bool Merge(const OpalMediaOption & option)
+    virtual bool Merge(const OpalMediaOption & option) override
     {
       char buffer[H263_CUSTOM_RESOLUTION_BUFFER_SIZE];
       if (!MergeCustomResolution(m_value, option.AsString(), buffer))
