@@ -2669,7 +2669,12 @@ void SIPConnection::OnReceivedNOTIFY(SIP_PDU & request)
   }
   else {
     m_referOfRemoteState = eNoRemoteRefer;
-    info.SetAt("result", code < 300 ? "success" : "failed");
+    if (code < 300)
+    info.SetAt("result", "success");
+    else {
+      info.SetAt("result", "failed");
+      info.SetAt("reason", GetCallEndReasonFromResponse(static_cast<SIP_PDU::StatusCodes>(code)).AsInteger());
+    }
   }
 
   if (OnTransferNotify(info, this))

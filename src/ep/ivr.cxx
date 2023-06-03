@@ -263,9 +263,35 @@ void OpalIVRConnection::OnStartMediaPatch(OpalMediaPatch & patch)
 bool OpalIVRConnection::OnTransferNotify(const PStringToString & info,
                                          const OpalConnection * transferringConnection)
 {
-  PString result = info["result"];
-  if (result != "progress" && info["party"] == "B")
-    m_vxmlSession.SetTransferComplete(result == "success");
+  if (info["party"] == "B") {
+    PCaselessString result = info["result"];
+    if (result == "success")
+      m_vxmlSession.SetTransferStatus(PVXMLSession::TransferSuccessful);
+    else if (result == "error" || result == "unknown")
+      m_vxmlSession.SetTransferStatus(PVXMLSession::TransferUnknown);
+    else if (result == "failed") {
+      CallEndReason reason(info["reason"].AsInteger());
+      switch (reason) {
+        case EndedByRemoteBusy:
+        case EndedByRefusal:
+          m_vxmlSession.SetTransferStatus(PVXMLSession::TransferBusy);
+          break;
+        case EndedByRemoteCongestion:
+        case EndedByLocalCongestion:
+          m_vxmlSession.SetTransferStatus(PVXMLSession::TransferCongestion);
+          break;
+        case EndedByNoAnswer :
+          m_vxmlSession.SetTransferStatus(PVXMLSession::TransferNoAnswer);
+          break;
+        default :
+          if (transferringConnection && reason.code != 0)
+            m_vxmlSession.SetTransferStatus(PVXMLSession::TransferFailed,
+                                            PSTRSTRM(transferringConnection->GetPrefixName() << '.' << reason.code));
+          else
+            m_vxmlSession.SetTransferStatus(PVXMLSession::TransferUnknown);
+      }
+    }
+  }
 
   return OpalConnection::OnTransferNotify(info, transferringConnection);
 }
