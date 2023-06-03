@@ -828,20 +828,17 @@ MyManager::MyManager()
   SetIcon(wxICON(AppIcon));
 
   // Make an image list containing large icons
-  m_imageListSmall = new wxImageList(16, 16, true);
-  m_imageListNormal = new wxImageList(48, 48, true);
-
   // Order here is important!! Must be same as IconStates enum
-  m_imageListSmall ->Add(wxICON(unknown16));
-  m_imageListNormal->Add(wxICON(unknown48));
-  m_imageListSmall ->Add(wxICON(absent16));
-  m_imageListNormal->Add(wxICON(absent48));
-  m_imageListSmall ->Add(wxICON(present16));
-  m_imageListNormal->Add(wxICON(present48));
-  m_imageListSmall ->Add(wxICON(busy16));
-  m_imageListNormal->Add(wxICON(busy48));
-  m_imageListSmall ->Add(wxICON(absent16));
-  m_imageListNormal->Add(wxICON(absent48));
+  m_imageListSmall.push_back(wxICON(unknown16));
+  m_imageListNormal.push_back(wxICON(unknown48));
+  m_imageListSmall.push_back(wxICON(absent16));
+  m_imageListNormal.push_back(wxICON(absent48));
+  m_imageListSmall.push_back(wxICON(present16));
+  m_imageListNormal.push_back(wxICON(present48));
+  m_imageListSmall.push_back(wxICON(busy16));
+  m_imageListNormal.push_back(wxICON(busy48));
+  m_imageListSmall.push_back(wxICON(absent16));
+  m_imageListNormal.push_back(wxICON(absent48));
 
   m_RingSoundTimer.SetNotifier(PCREATE_NOTIFIER(OnRingSoundAgain));
   m_ForwardingTimer.SetNotifier(PCREATE_NOTIFIER(OnForwardingTimeout));
@@ -866,9 +863,6 @@ MyManager::~MyManager()
   wxMenuBar * menubar = GetMenuBar();
   SetMenuBar(NULL);
   delete menubar;
-
-  delete m_imageListNormal;
-  delete m_imageListSmall;
 
   delete wxXmlResource::Set(NULL);
 }
@@ -1793,8 +1787,8 @@ void MyManager::RecreateSpeedDials(SpeedDialViews view)
     }
   }
   else {
-    m_speedDials->SetImageList(m_imageListNormal, wxIMAGE_LIST_NORMAL);
-    m_speedDials->SetImageList(m_imageListSmall, wxIMAGE_LIST_SMALL);
+    m_speedDials->SetNormalImages(m_imageListNormal);
+    m_speedDials->SetSmallImages(m_imageListSmall);
   }
 
   // Now either replace the tab or set it for the first time

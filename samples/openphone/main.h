@@ -1241,8 +1241,8 @@ class MyManager : public wxFrame, public OpalManager, public PAsyncNotifierTarge
     wxTextCtrl       * m_logWindow;
     wxListCtrl       * m_speedDials;
     bool               m_speedDialDetail;
-    wxImageList      * m_imageListNormal;
-    wxImageList      * m_imageListSmall;
+    wxVector<wxBitmapBundle> m_imageListNormal;
+    wxVector<wxBitmapBundle> m_imageListSmall;
     wxDataFormat       m_ClipboardFormat;
 
     set<SpeedDialInfo> m_speedDialInfo;
