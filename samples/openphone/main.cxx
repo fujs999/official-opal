@@ -558,7 +558,7 @@ class TextCtrlChannel : public PChannel
     TextCtrlChannel()
       { }
 
-    virtual PString GetName() const
+    virtual PString GetName() const override
     {
       return "TextCtrl";
     }
@@ -571,7 +571,7 @@ class TextCtrlChannel : public PChannel
     virtual PBoolean Write(
       const void * buf, /// Pointer to a block of memory to write.
       PINDEX len        /// Number of bytes to write.
-    ) {
+    ) override {
       if (sm_frame == NULL)
         return false;
 

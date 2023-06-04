@@ -92,11 +92,11 @@ class MyPCSSEndPoint : public OpalPCSSEndPoint
   public:
     MyPCSSEndPoint(MyManager & manager);
 
-    virtual PSoundChannel * CreateSoundChannel(const OpalPCSSConnection & connection, const OpalMediaFormat & mediaFormat, unsigned sessionID, bool isSource);
+    virtual PSoundChannel * CreateSoundChannel(const OpalPCSSConnection & connection, const OpalMediaFormat & mediaFormat, unsigned sessionID, bool isSource) override;
 
   private:
-    virtual PBoolean OnShowIncoming(const OpalPCSSConnection & connection);
-    virtual PBoolean OnShowOutgoing(const OpalPCSSConnection & connection);
+    virtual PBoolean OnShowIncoming(const OpalPCSSConnection & connection) override;
+    virtual PBoolean OnShowOutgoing(const OpalPCSSConnection & connection) override;
 
     MyManager & m_manager;
 };
@@ -153,7 +153,7 @@ class MyFaxEndPoint : public OpalFaxEndPoint
 
   public:
     MyFaxEndPoint(OpalManager & manager) : OpalFaxEndPoint(manager) { }
-    virtual void OnFaxCompleted(OpalFaxConnection & connection, bool timeout);
+    virtual void OnFaxCompleted(OpalFaxConnection & connection, bool timeout) override;
 };
 #endif // OPAL_FAX
 
@@ -1438,10 +1438,10 @@ class OpenPhoneApp : public wxApp, public PProcess
   public:
     OpenPhoneApp();
 
-    void Main(); // Dummy function
+    void Main() override; // Dummy function
 
       // FUnction from wxWindows
-    virtual bool OnInit();
+    virtual bool OnInit() override;
 };
 
 
