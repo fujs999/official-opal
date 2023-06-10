@@ -64,15 +64,15 @@ void OpalVXMLSession::OnEndSession()
 }
 
 
-bool OpalVXMLSession::OnTransfer(const PString & destination, TransferType type)
+OpalVXMLSession::TransferStatus OpalVXMLSession::OnTransfer(const PString & destination, TransferType type)
 {
   if (type == BridgedTransfer)
-    return false;
+    return TransferUnsupported;
 
   OpalCall & call = m_connection.GetCall();
   if (!call.Transfer(destination) && !call.Transfer(destination, &m_connection))
-    SetTransferStatus(TransferFailed);
-  return true;
+    return TransferFailed;
+  return TransferInProgress;
 }
 
 
