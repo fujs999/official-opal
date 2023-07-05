@@ -2742,7 +2742,7 @@ bool SIP_PDU::DecodeSDP(SIPConnection & connection, PMultiPartList & parts)
 
 bool SIP_PDU::DecodeSDP(SIPConnection & connection, PString & sdpText, PMultiPartList & parts)
 {
-  bool createSDP = m_SDP == NULL && m_mime.GetSDP(m_entityBody, sdpText, parts);
+  bool hasSDP = m_mime.GetSDP(m_entityBody, sdpText, parts);
 
   static PConstString const x_sip_headers("x-sip/headers");
   for (PMultiPartList::iterator it = parts.begin(); ; ++it) {
@@ -2756,7 +2756,10 @@ bool SIP_PDU::DecodeSDP(SIPConnection & connection, PString & sdpText, PMultiPar
     }
   }
 
-  if (!createSDP)
+  if (m_SDP != NULL)
+    return true; // Already decoded, but may need the multipart MIME fields
+
+  if (!hasSDP)
     return false;
 
   m_SDP = connection.GetEndPoint().CreateSDP(0, 0, OpalTransportAddress());

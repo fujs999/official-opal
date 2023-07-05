@@ -1647,6 +1647,7 @@ bool SIPConnection::OnReceivedResponseToINVITE(SIPTransaction & transaction, SIP
     /* If we had SDP but no media could not be decoded from it, then we should return
        Not Acceptable Here error and not do an offer. Only offer if there was no body
        at all or there was a valid SDP with no m lines. */
+    PTRACE(3, "Unacceptable SDP in body");
     Release(EndedByCapabilityExchange);
     return true;
   }
@@ -1702,6 +1703,7 @@ bool SIPConnection::OnReceivedResponseToINVITE(SIPTransaction & transaction, SIP
   if (sdp == NULL || transaction.GetSDP() != NULL)
     return statusCode >= 200; // Don't send ACK if only provisional response
 
+  PTRACE(4, "Handling response to our empty INVITE");
   // Empty INVITE means offer in remotes response, get the media formats out of it
   if (SetRemoteMediaFormatsFromPDU(response) <= 0) {
     Release(EndedByCapabilityExchange);
