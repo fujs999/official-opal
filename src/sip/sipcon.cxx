@@ -2588,7 +2588,8 @@ void SIPConnection::OnReceivedACK(SIP_PDU & ack)
 void SIPConnection::OnReceivedOPTIONS(SIP_PDU & request)
 {
   SIPTransaction * response = new SIPResponse(GetEndPoint(), request, SIP_PDU::Failure_UnsupportedMediaType);
-  if (request.GetMIME().GetAccept().Find(OpalSDPEndPoint::ContentType()) != P_MAX_INDEX) {
+  PCaselessString accept = request.GetMIME().GetAccept();
+  if (accept.IsEmpty() || accept.Find(OpalSDPEndPoint::ContentType()) != P_MAX_INDEX) {
     response->SetStatusCode(SIP_PDU::Successful_OK);
     response->SetAllow(GetAllowedMethods());
     response->SetSDP(GetEndPoint().CreateSDP(m_sdpSessionId, m_sdpVersion, OpalTransportAddress()));
