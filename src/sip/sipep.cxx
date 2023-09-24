@@ -375,33 +375,46 @@ OpalTransportPtr SIPEndPoint::GetTransport(const SIPTransactionOwner & transacto
     }
   }
 
-  // Link just created or was closed/lost
-  if (!transport->Connect()) {
-    PTRACE(1, "Could not connect to " << remoteAddress << " - " << transport->GetErrorText());
-    switch (transport->GetErrorCode()) {
-      case PChannel::Timeout :
-        reason = SIP_PDU::Local_Timeout;
-        break;
-      case PChannel::AccessDenied :
-        reason = SIP_PDU::Local_NotAuthenticated;
-        break;
-      default :
-        reason = SIP_PDU::Local_TransportError;
+  /* We can get here from two threads trying to start a transport to the same
+     remote, the above assures only one transport instance is created, but then
+     we can end up with two reader threads below as both get a successful
+     Connect(). We lock the transport here assuring only one thread does that
+     Connect() and the other should see it as being Open when it gets it's go.
+  */
+  {
+    PSafeLockReadWrite mutex(*transport);
+    if (transport->IsOpen())
+      return transport;
+
+    // Link just created or was closed/lost
+    if (!transport->Connect()) {
+      PTRACE(1, "Could not connect to " << remoteAddress << " - " << transport->GetErrorText());
+      switch (transport->GetErrorCode()) {
+        case PChannel::Timeout:
+          reason = SIP_PDU::Local_Timeout;
+          break;
+        case PChannel::AccessDenied:
+          reason = SIP_PDU::Local_NotAuthenticated;
+          break;
+        default:
+          reason = SIP_PDU::Local_TransportError;
+      }
+    }
+    else if (!transport->IsAuthenticated((transactor.GetProxy().IsEmpty() ? transactor.GetRequestURI() : transactor.GetProxy()).GetHostName()))
+      reason = SIP_PDU::Local_NotAuthenticated;
+    else {
+      if (transport->IsReliable())
+        transport->AttachThread(new PThreadObj1Arg<SIPEndPoint, OpalTransportPtr>
+                                (*this, transport, &SIPEndPoint::TransportThreadMain, false, "SIP Transport", PThread::HighestPriority));
+      else
+        transport->SetPromiscuous(OpalTransport::AcceptFromAny);
+
+      return transport;
     }
   }
-  else if (!transport->IsAuthenticated((transactor.GetProxy().IsEmpty() ? transactor.GetRequestURI() : transactor.GetProxy()).GetHostName()))
-    reason = SIP_PDU::Local_NotAuthenticated;
-  else {
-    if (transport->IsReliable())
-      transport->AttachThread(new PThreadObj1Arg<SIPEndPoint, OpalTransportPtr>
-              (*this, transport, &SIPEndPoint::TransportThreadMain, false, "SIP Transport", PThread::HighestPriority));
-    else
-      transport->SetPromiscuous(OpalTransport::AcceptFromAny);
 
-    return transport;
-  }
-
-  // Outside of m_transportsTableMutex to avoid deadlock in CloseWait
+  /* Outside of m_transportsTableMutex and transport read/write lock to avoid
+     deadlock in CloseWait */
   if (transport != NULL)
     transport->CloseWait();
 
