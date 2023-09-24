@@ -478,6 +478,8 @@ OpalMessageBuffer::OpalMessageBuffer(OpalMessageType type)
   : m_size(sizeof(OpalMessage))
   , m_data((char *)malloc(m_size))
 {
+  if (m_data == NULL)
+    throw bad_alloc();
   memset(m_data, 0, m_size);
   (*this)->m_type = type;
 }
@@ -501,6 +503,8 @@ void OpalMessageBuffer::SetData(const char * * variable, const void * value, siz
   PAssert((char *)variable >= m_data && (char *)variable < m_data+m_size, PInvalidParameter);
 
   char * newData = (char *)realloc(m_data, m_size + length);
+  if (newData == NULL)
+    throw bad_alloc();
   if (PAssertNULL(newData) != m_data) {
     // Memory has moved, this invalidates pointer variables so recalculate them
     intptr_t delta = newData - m_data;
@@ -3439,6 +3443,8 @@ OpalMessagePtr & OpalMessagePtr::SetType(OpalMessageType type)
   OpalFreeMessage(m_message);
 
   m_message = (OpalMessage *)malloc(sizeof(OpalMessage)); // Use malloc to be compatible with OpalFreeMessage
+  if (m_message == NULL)
+    throw bad_alloc();
   memset(m_message, 0, sizeof(OpalMessage));
   m_message->m_type = type;
   return *this;
