@@ -1133,7 +1133,7 @@ void SIPConnection::WriteINVITE(OpalTransport & transport, bool & succeeded)
 
   PString transportProtocol = m_dialog.GetRequestURI().GetTransportProto();
   if (!transportProtocol.IsEmpty())
-    myAddress.SetParamVar("transport", transportProtocol);
+    myAddress.SetTransport(transportProtocol);
 
   if (IsOriginating()) {
     // only allow override of calling party number if the local party

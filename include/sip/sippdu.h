@@ -216,6 +216,13 @@ class SIPURL : public PURL
     /// Get a tag
     PString GetTag() const;
 
+    // Get transport
+    PString GetTransport(const PString & dflt = PString::Empty()) const { return GetParamVars().Get(TransportKey(), dflt); }
+    // Set transport
+    void SetTransport(const PString & transport) { SetParamVar(TransportKey(), transport); }
+
+    static const PCaselessString & TransportKey();
+
   protected:
     void ParseAsAddress(
       const PString & name,
