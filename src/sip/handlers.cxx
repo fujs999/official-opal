@@ -2096,28 +2096,11 @@ SIPPresenceInfo::SIPPresenceInfo(SIP_PDU::StatusCodes status, bool subscribing)
 
 void SIPPresenceInfo::PrintOn(ostream & strm) const
 {
-  if (m_entity.IsEmpty())
-    return;
-
-  if (m_activities.GetSize() > 0)
-    strm << setfill(',') << m_activities << setfill(' ');
-  else {
-    switch (m_state) {
-      case Unchanged :
-        strm << "Unchanged";
-        break;
-
-      case NoPresence :
-        strm << "Closed";
-        break;
-
-      default:
-        if (m_note.IsEmpty())
-          strm << "Open";
-        else
-          strm << m_note;
-    }
-  }
+  if (!m_presenceAgent.empty())
+    strm << "Pres. Agent  : " << m_presenceAgent << '\n';
+  if (!m_personId.empty())
+    strm << "Person ID    : " << m_personId << '\n';
+  OpalPresenceInfo::PrintOn(strm);
 }
 
 
@@ -2182,10 +2165,8 @@ PString SIPPresenceInfo::AsXML() const
     xml << "    </sc:servcaps>\r\n";
   }
 
-  if (!m_note.IsEmpty()) {
-    //xml << "    <note xml:lang=\"en\">" << PXML::EscapeSpecialChars(m_note) << "</note>\r\n";
+  if (!m_note.IsEmpty())
     xml << "    <note>" << PXML::EscapeSpecialChars(m_note) << "</note>\r\n";
-  }
 
   xml << "    <timestamp>" << PTime().AsString(PTime::RFC3339) << "</timestamp>\r\n"
          "  </tuple>\r\n";
@@ -2198,8 +2179,9 @@ PString SIPPresenceInfo::AsXML() const
 
 static void SetNoteFromElement(PXMLElement * element, PString & notes)
 {
-  PXMLElement * noteElement = element->GetElement("note");
-  if (noteElement == NULL)
+  PXMLElement * noteElement;
+  if ((noteElement = element->GetElement("note")) == NULL &&
+      (noteElement = element->GetElement("urn:ietf:params:xml:ns:pidf:data-model|note")) == NULL)
     return;
 
   PString note = noteElement->GetData();
@@ -2211,11 +2193,8 @@ static void SetNoteFromElement(PXMLElement * element, PString & notes)
 }
 
 
-bool SIPPresenceInfo::ParseNotify(SIPSubscribe::NotifyCallbackInfo & notifyInfo,
-                                  list<SIPPresenceInfo> & infoList)
+PXML::ValidationInfo const * const SIPPresenceInfo::GetValidation()
 {
-  infoList.clear();
-
   static PXML::ValidationInfo const StatusValidation[] = {
     { PXML::RequiredElement,            "basic" },
     { PXML::EndOfValidationList }
@@ -2247,9 +2226,17 @@ bool SIPPresenceInfo::ParseNotify(SIPSubscribe::NotifyCallbackInfo & notifyInfo,
     { PXML::Subtree,                    "dm:person", { PersonValidation }, 0, 1 },
     { PXML::EndOfValidationList }
   };
+  return PresenceValidation;
+}
+
+
+bool SIPPresenceInfo::ParseNotify(SIPSubscribe::NotifyCallbackInfo & notifyInfo,
+                                  list<SIPPresenceInfo> & infoList)
+{
+  infoList.clear();
 
   PXML xml;
-  if (!notifyInfo.LoadAndValidate(xml, PresenceValidation))
+  if (!notifyInfo.LoadAndValidate(xml, GetValidation()))
     return false;
 
   if (notifyInfo.m_handler.GetProductInfo().name.Find("Asterisk") != P_MAX_INDEX) {
@@ -2267,6 +2254,17 @@ bool SIPPresenceInfo::ParseNotify(SIPSubscribe::NotifyCallbackInfo & notifyInfo,
 }
 
 
+static PString RemoveNamespace(const PXMLElement * element)
+{
+  if (element == NULL)
+    return PString::Empty();
+  PString name = element->GetName();
+  PINDEX pos = name.FindLast('|');
+  if (pos == P_MAX_INDEX)
+    return name;
+  return name.Mid(pos+1);
+}
+
 bool SIPPresenceInfo::ParseXML(const PXML & xml, list<SIPPresenceInfo> & infoList)
 {
   infoList.clear();
@@ -2279,37 +2277,32 @@ bool SIPPresenceInfo::ParseXML(const PXML & xml, list<SIPPresenceInfo> & infoLis
     return false;
   }
 
+  SIPPresenceInfo baseInfo(Unavailable);
+  baseInfo.m_infoType = SIPPresenceEventPackageContentType;
+  baseInfo.m_infoData = xml.AsString();
+  baseInfo.m_entity = entity;
+  SetNoteFromElement(rootElement, baseInfo.m_note);
+
   PTime defaultTimestamp; // Start with "now"
-  PStringSet personActivities;
-  PString    personNote;
   PXMLElement * element;
 
   // RFC4479/3.2 states there can be one and only one <person> component.
   if ((element = rootElement->GetElement("urn:ietf:params:xml:ns:pidf:data-model|person")) != NULL ||
       (element = rootElement->GetElement("urn:cisco:params:xml:ns:pidf:rpid|person")) != NULL) {
-    SetNoteFromElement(element, personNote);
+    baseInfo.m_personId = element->GetAttribute("id");
+    SetNoteFromElement(element, baseInfo.m_note);
     PXMLElement * activities;
     if ((activities = element->GetElement("activities")) != NULL ||
         (activities = element->GetElement("urn:ietf:params:xml:ns:pidf:rpid|activities")) != NULL ||
         (activities = element->GetElement("urn:ietf:params:xml:ns:pidf:status:rpid|activities")) != NULL ||
         (activities = element->GetElement("urn:cisco:params:xml:ns:pidf:rpid|activities")) != NULL) {
-      for (PINDEX i = 0; i < activities->GetSize(); ++i) {
-        PXMLElement * activity = dynamic_cast<PXMLElement *>(activities->GetElement(i));
-        if (activity == NULL)
-          continue;
-
-        PCaselessString name(activity->GetName());
-        PINDEX pos = name.Find('|');
-        if (pos != P_MAX_INDEX)
-          name.Delete(0, pos+1);
-
+      for (PINDEX i = 0; PXMLElement * activity = activities->GetElement(i); ++i) {
+        PCaselessString name(RemoveNamespace(activity));
         PCaselessString data = activity->GetData().Trim();
         if (data.IsEmpty())
-          personActivities += name;
+          baseInfo.m_activities += name;
         else
-          personActivities += name + '=' + data;
-
-        SetNoteFromElement(activity, personNote);
+          baseInfo.m_activities += name + '=' + data;
       }
     }
   }
@@ -2317,16 +2310,9 @@ bool SIPPresenceInfo::ParseXML(const PXML & xml, list<SIPPresenceInfo> & infoLis
   // Now process all the <tuple> components.
   PXMLElement * tupleElement;
   for (PINDEX tupleIdx = 0; (tupleElement = rootElement->GetElement("urn:ietf:params:xml:ns:pidf|tuple", tupleIdx)) != NULL; ++tupleIdx) {
-    SIPPresenceInfo info(Unavailable);
-    info.m_infoType = SIPPresenceEventPackageContentType;
-    info.m_infoData = xml.AsString();
-    info.m_activities = personActivities;
-    info.m_activities.MakeUnique();
-    info.m_note = personNote;
-    info.m_entity = entity;
+    SIPPresenceInfo info = baseInfo;
     info.m_service = tupleElement->GetAttribute("id");
-
-    SetNoteFromElement(rootElement, info.m_note);
+    info.m_activities.MakeUnique();
     SetNoteFromElement(tupleElement, info.m_note);
 
     if ((element = tupleElement->GetElement("status")) != NULL) {
@@ -2346,19 +2332,21 @@ bool SIPPresenceInfo::ParseXML(const PXML & xml, list<SIPPresenceInfo> & infoLis
     if ((element = tupleElement->GetElement("timestamp")) != NULL && !info.m_when.Parse(element->GetData()))
       info.m_when = defaultTimestamp;
 
+    if ((element = tupleElement->GetElement("urn:ietf:params:xml:ns:pidf:rpid|service-class")) != NULL)
+      info.m_serviceClass = RemoveNamespace(element->GetElement(0));
+
+    if ((element = tupleElement->GetElement("urn:ietf:params:xml:ns:pidf:rpid|relationship")) != NULL)
+      info.m_relationship = RemoveNamespace(element->GetElement(0));
+
     if ((element = tupleElement->GetElement("urn:ietf:params:xml:ns:pidf:caps|servcaps")) != NULL ||
         (element = tupleElement->GetElement("urn:ietf:params:xml:ns:pidf:servcaps|servcaps")) != NULL) {
-      for (PINDEX idx = 0; idx < element->GetSize(); ++idx) {
-        PXMLElement * cap = dynamic_cast<PXMLElement *>(element->GetElement(idx));
-        if (cap != NULL) {
-          PCaselessString name = cap->GetName();
-          name.Delete(0, name.Find('|')+1);
-          PCaselessString data = cap->GetData().Trim();
-          if (data == "true")
-            info.m_capabilities += name;
-          else if (!data.IsEmpty() && data != "false")
-            info.m_capabilities += name + '=' + data;
-        }
+      for (PINDEX idx = 0;  PXMLElement * cap = element->GetElement(idx); ++idx) {
+        PCaselessString name = RemoveNamespace(cap);
+        PCaselessString data = cap->GetData().Trim();
+        if (data == "true")
+          info.m_capabilities += name;
+        else if (!data.IsEmpty() && data != "false")
+          info.m_capabilities += name + '=' + data;
       }
     }
 

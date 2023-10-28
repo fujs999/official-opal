@@ -58,6 +58,7 @@ class MyManager : public OpalManagerCLI
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdBuddyAdd);
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdBuddyRemove);
     PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdBuddySusbcribe);
+    PDECLARE_NOTIFIER(PCLI::Arguments, MyManager, CmdConformanceTest);
 
     PString     m_presenceAgent;
     PString     m_xcapRoot;
@@ -156,6 +157,9 @@ bool MyManager::Initialise(PArgList & args, bool verbose, const PString &)
   m_cli->SetCommand("buddy subscribe", PCREATE_NOTIFIER(CmdBuddySusbcribe),
                     "Susbcribe to all URIs in the buddy list for presentity.",
                     "<presentity>");
+  m_cli->SetCommand("parse", PCREATE_NOTIFIER(CmdConformanceTest),
+                    "Perform conformance test on parsing sXML data.",
+                    "<file>");
 
   return true;
 }
@@ -362,6 +366,29 @@ void MyManager::CmdBuddySusbcribe(PCLI::Arguments & args, P_INT_PTR)
     args.WriteError() << "Presentity \"" << args[0] << "\" does not exist." << endl;
   else if (!m_presentities[args[0]].SubscribeBuddyList())
     args.WriteError() << "Could not subscribe all buddies for presentity \"" << args[0] << '"' << endl;
+}
+
+
+void MyManager::CmdConformanceTest(PCLI::Arguments & args, P_INT_PTR)
+{
+  if (args.GetCount() < 1) {
+    args.WriteUsage();
+    return;
+  }
+
+  PXML xml;
+  PString error;
+  list<SIPPresenceInfo> infoList;
+  if (xml.LoadAndValidate(PTextFile(args[0]).ReadString(P_MAX_INDEX),
+                          SIPPresenceInfo::GetValidation(),
+                          error,
+                          PXML::WithNS) &&
+      SIPPresenceInfo::ParseXML(xml, infoList)) {
+    for (list<SIPPresenceInfo>::const_iterator it = infoList.begin(); it != infoList.end(); ++it)
+      args.GetContext() << *it << endl;
+    return;
+  }
+  args.WriteError() << "Could not parse file." << endl;
 }
 
 

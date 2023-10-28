@@ -416,9 +416,9 @@ public:
     const PXML & xml,
     list<SIPPresenceInfo> & info
   );
+  static PXML::ValidationInfo const * const GetValidation();
 
   virtual void PrintOn(ostream & strm) const override;
-  friend ostream & operator<<(ostream & strm, const SIPPresenceInfo & info) { info.PrintOn(strm); return strm; }
 
   // Constructor
   SIPPresenceInfo(

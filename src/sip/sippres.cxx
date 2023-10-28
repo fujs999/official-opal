@@ -328,6 +328,7 @@ void SIP_Presentity::OnPresenceSubscriptionStatus(SIPSubscribeHandler &, const S
     SetPIDFEntity(info.m_entity);
     info.m_target = aor->second;
 
+    PTRACE(3, m_aor << " presence of '" << info.m_entity << "' is " << info.m_state);
     OnPresenceChange(info);
 
     if (!status.m_wasSubscribing) {
