@@ -321,7 +321,7 @@ void SIP_Presentity::OnPresenceSubscriptionStatus(SIPSubscribeHandler &, const S
   PString id = status.m_handler->GetCallID();
   StringMap::iterator aor = m_presenceAorById.find(id);
   if (aor == m_presenceAorById.end()) {
-    PTRACE(2, m_aor << " " << "recieved subscription status for unknown ID " << id);
+    PTRACE(2, m_aor << " " << "received subscription status for unknown ID " << id);
   }
   else {
     SIPPresenceInfo info(status.m_reason, status.m_wasSubscribing);

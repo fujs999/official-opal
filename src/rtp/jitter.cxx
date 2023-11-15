@@ -553,10 +553,14 @@ PBoolean OpalAudioJitterBuffer::WriteData(const RTP_DataFrame & frame, const PTi
           m_packetTime = newFrameTime;
           PTRACE_PARAM(AdjustResult adjusted =) AdjustCurrentJitterDelay(0);
           PTRACE_J(m_packetTimeChangedThrottle, "Frame time set  : "
-                      "ts=" << timestamp << ", "
-                      "size=" << m_frames.size() << ", "
-                      "time=" << newFrameTime << " (" << (newFrameTime/m_timeUnits) << "ms), " <<
-                      adjusted << COMMON_TRACE_DELAY << m_packetTimeChangedThrottle);
+                   "SSRC=" << RTP_TRACE_SRC(newSyncSource) << ", "
+                   "sn=" << currentSequenceNum << ", "
+                   "pt=" << frame.GetPayloadType() << ", "
+                   "psz=" << frame.GetPayloadSize() << ","
+                   "ts=" << timestamp << ", "
+                   "time=" << newFrameTime << " (" << (newFrameTime/m_timeUnits) << "ms), "
+                   "len=" << m_frames.size() << ", " <<
+                   adjusted << COMMON_TRACE_DELAY << m_packetTimeChangedThrottle);
         }
       }
     }
