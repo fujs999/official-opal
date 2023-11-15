@@ -3011,15 +3011,9 @@ OpalTransportAddress SIPDialogContext::GetRemoteTransportAddress(PINDEX dnsEntry
     addr = m_routeSet.front().GetTransportAddress(dnsEntry);
     PTRACE(4, "Remote dialog address from route set: " << addr);
   }
-  else if (!m_requestURI.GetTransport().empty()) {
+  else {
     addr = m_requestURI.GetTransportAddress(dnsEntry);
     PTRACE(4, "Remote dialog address from target: " << addr);
-  }
-  else {
-    SIPURL adjustedURI = m_requestURI;
-    adjustedURI.SetTransport(m_remoteURI.GetTransport(m_localURI.GetTransport()));
-    addr = adjustedURI.GetTransportAddress(dnsEntry);
-    PTRACE(4, "Remote dialog address from target and remote transport: " << addr);
   }
 
   return addr;
