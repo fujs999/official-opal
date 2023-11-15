@@ -387,16 +387,10 @@ void SIP_Presentity::Internal_SubscribeToWatcherInfo(const SIPWatcherInfoCommand
 
   PTRACE(3, m_aor << " sending subscribe for own presence.watcherinfo");
 
-  // Make sure local address has some transport as remote
-  SIPURL localAddress = m_aor;
-  PString transport = m_presenceAgentURL.GetTransport();
-  if (!transport.empty())
-    localAddress.SetTransport(transport);
-
   // subscribe to the presence.winfo event on the presence server
   SIPSubscribe::Params param(SIPSubscribe::Presence | SIPSubscribe::Watcher);
   param.m_contentType      = "application/watcherinfo+xml";
-  param.m_localAddress     = localAddress;
+  param.m_localAddress     = m_aor;
   param.m_addressOfRecord  = m_aor;
   param.m_remoteAddress    = m_presenceAgentURL;
   param.m_authID           = m_attributes.Get(OpalPresentity::AuthNameKey, m_aor.GetUserName());

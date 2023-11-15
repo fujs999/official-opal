@@ -94,7 +94,6 @@ SIPHandler::SIPHandler(SIP_PDU::Methods method,
 {
   PTRACE_CONTEXT_ID_NEW();
 
-  m_dialog.SetRequestURI(m_addressOfRecord);
   m_dialog.SetCallID(m_callID);
 
   SIPURL remoteAddress(params.m_remoteAddress);
@@ -112,6 +111,12 @@ SIPHandler::SIPHandler(SIP_PDU::Methods method,
 
   m_dialog.SetProxy(proxy, true);
   m_dialog.SetRemoteURI(remoteAddress);
+
+  SIPURL requestURI = m_addressOfRecord;
+  PString transport = remoteAddress.GetTransport();
+  if (!transport.empty())
+    requestURI.SetTransport(transport);
+  m_dialog.SetRequestURI(requestURI);
 
   PTRACE(4, "Constructed " << m_method << " handler for " << m_addressOfRecord);
 }
@@ -566,7 +571,7 @@ SIPRegisterHandler::SIPRegisterHandler(SIPEndPoint & endpoint, const SIPRegister
   , m_sequenceNumber(0)
   , m_rfc5626_reg_id(++LastRegId)
 {
-  // Foer some bizarre reason, even though REGISTER does not create a dialog,
+  // For some bizarre reason, even though REGISTER does not create a dialog,
   // some registrars insist that you have a from tag ...
   SIPURL local = params.m_localAddress.IsEmpty() ? params.m_addressOfRecord : params.m_localAddress;
   local.SetTag();
