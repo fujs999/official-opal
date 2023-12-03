@@ -3232,6 +3232,9 @@ void OpalManager_C::HandleSendIM(const OpalMessage &, OpalMessageBuffer & respon
 
 ///////////////////////////////////////////////////////////////////////////////
 
+static PCriticalSection g_handlesMutex;
+static std::set<OpalHandle> g_handles;;
+
 extern "C" {
 
   OpalHandle OPAL_EXPORT OpalInitialise(unsigned * version, const char * options)
@@ -3261,8 +3264,11 @@ extern "C" {
     }
 
     OpalHandle handle = new OpalHandleStruct(callerVersion, args);
-    if (!handle->m_manager->GetEndPoints().IsEmpty())
+    if (!handle->m_manager->GetEndPoints().IsEmpty()) {
+      PWaitAndSignal lock(g_handlesMutex);
+      g_handles.insert(handle);
       return handle;
+    }
 
     PTRACE(1, "No endpoints were available or selected using \"" << optionsString << '"');
     delete handle;
@@ -3272,6 +3278,11 @@ extern "C" {
 
   void OPAL_EXPORT OpalShutDown(OpalHandle handle)
   {
+    {
+      PWaitAndSignal lock(g_handlesMutex);
+      if (g_handles.erase(handle) == 0)
+        return;
+    }
     delete handle;
   }
 
